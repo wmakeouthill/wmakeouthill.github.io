@@ -1,0 +1,173 @@
+.experience {
+  background: var(--bg-secondary);
+}
+
+.timeline {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.marker-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 3px solid var(--color-accent);
+  position: relative;
+  z-index: 1;
+}
+
+.marker-dot.active {
+  background: var(--color-accent);
+  box-shadow: 0 0 20px var(--color-accent);
+  animation: pulse 2s infinite;
+}
+
+.marker-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(
+    to bottom,
+    var(--color-accent),
+    transparent
+  );
+  margin-top: 0.5rem;
+  min-height: 80px;
+}
+
+.timeline-content {
+  padding-bottom: 2rem;
+}
+
+.experience-card {
+  background: var(--bg-card);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(219, 194, 125, 0.1);
+  transition: all var(--transition-normal);
+}
+
+.experience-card:hover {
+  transform: translateX(10px);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.position {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.company {
+  font-size: 1.125rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  margin: 0;
+}
+
+.current-badge {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-dark);
+  padding: 0.375rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.card-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.date,
+.location {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.description {
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.technologies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-tag {
+  background: rgba(219, 194, 125, 0.1);
+  color: var(--color-accent);
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(219, 194, 125, 0.2);
+}
+
+@media (max-width: 768px) {
+  .timeline-item {
+    grid-template-columns: 30px 1fr;
+    gap: 1rem;
+  }
+
+  .marker-dot {
+    width: 16px;
+    height: 16px;
+  }
+
+  .experience-card {
+    padding: 1.5rem;
+  }
+
+  .position {
+    font-size: 1.25rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .card-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .experience-card:hover {
+    transform: translateY(-5px) translateX(0);
+  }
+}

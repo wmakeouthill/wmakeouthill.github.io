@@ -1,0 +1,45 @@
+<section id="education" class="section education">
+  <div class="container">
+    <div class="section-title">
+      <h2>Educação & Formação</h2>
+      <p class="section-subtitle">Minha trajetória acadêmica</p>
+    </div>
+
+    <div class="education-grid">
+      @for (edu of education; track edu.id) {
+        <div class="education-card">
+          <div class="card-icon">🎓</div>
+          
+          <div class="card-content">
+            @if (edu.current) {
+              <span class="current-badge">Cursando</span>
+            }
+            
+            <h3 class="degree">{{ edu.degree }} em {{ edu.field }}</h3>
+            <p class="institution">{{ edu.institution }}</p>
+            
+            <div class="period">
+              📅 {{ formatDate(edu.startDate) }} - 
+              @if (edu.endDate) {
+                {{ formatDate(edu.endDate) }}
+              } @else {
+                Presente
+              }
+            </div>
+            
+            @if (edu.description) {
+              <p class="description">{{ edu.description }}</p>
+            }
+            
+            @if (edu.grade) {
+              <div class="grade">
+                <span class="grade-label">Nota:</span>
+                <span class="grade-value">{{ edu.grade }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,57 @@
+<section id="experience" class="section experience">
+  <div class="container">
+    <div class="section-title">
+      <h2>Experiência Profissional</h2>
+      <p class="section-subtitle">Minha trajetória no mercado</p>
+    </div>
+
+    <div class="timeline">
+      @for (exp of experiences; track exp.id; let isLast = $last) {
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="marker-dot" [class.active]="exp.current"></div>
+            @if (!isLast) {
+              <div class="marker-line"></div>
+            }
+          </div>
+
+          <div class="timeline-content">
+            <div class="experience-card">
+              <div class="card-header">
+                <div>
+                  <h3 class="position">{{ exp.position }}</h3>
+                  <p class="company">{{ exp.company }}</p>
+                </div>
+                @if (exp.current) {
+                  <span class="current-badge">Atual</span>
+                }
+              </div>
+
+              <div class="card-meta">
+                <span class="date">
+                  📅 {{ formatDate(exp.startDate) }} - 
+                  @if (exp.endDate) {
+                    {{ formatDate(exp.endDate) }}
+                  } @else {
+                    Presente
+                  }
+                </span>
+                @if (exp.location) {
+                  <span class="location">📍 {{ exp.location }}</span>
+                }
+              </div>
+
+              <p class="description">{{ exp.description }}</p>
+
+              <div class="technologies">
+                @for (tech of exp.technologies; track tech) {
+                  <span class="tech-tag">{{ tech }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

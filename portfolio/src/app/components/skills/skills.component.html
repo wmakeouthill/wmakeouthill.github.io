@@ -1,0 +1,38 @@
+<section id="skills" class="section skills">
+  <div class="container">
+    <div class="section-title">
+      <h2>Skills & Tecnologias</h2>
+      <p class="section-subtitle">Ferramentas e linguagens que domino</p>
+    </div>
+
+    <div class="skills-categories">
+      @for (category of categories; track category.key) {
+        <div class="category-section">
+          <h3 class="category-title">
+            <span class="category-icon">{{ category.icon }}</span>
+            {{ category.label }}
+          </h3>
+          <div class="skills-grid">
+            @for (skill of getSkillsByCategory(category.key); track skill.name) {
+              <div class="skill-card">
+                <div class="skill-header">
+                  <span class="skill-icon">{{ skill.icon }}</span>
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <span class="skill-percentage">{{ skill.level }}%</span>
+                </div>
+                <div class="skill-bar">
+                  <div class="skill-progress" 
+                       [style.width.%]="skill.level"
+                       [class.high]="skill.level >= 80"
+                       [class.medium]="skill.level >= 60 && skill.level < 80"
+                       [class.low]="skill.level < 60">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

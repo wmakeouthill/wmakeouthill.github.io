@@ -1,0 +1,61 @@
+<header class="header" [class.scrolled]="isScrolled">
+  <nav class="nav-container">
+    <div class="nav-brand">
+      <a (click)="scrollToSection('hero')" class="logo">
+        <span class="logo-text">&lt;Dev<span class="accent">Portfolio</span>/&gt;</span>
+      </a>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <ul class="nav-menu desktop-menu">
+      @for (item of navItems; track item.section) {
+        <li class="nav-item">
+          <a (click)="scrollToSection(item.section)" class="nav-link">
+            {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
+
+    <!-- Social Links -->
+    <div class="nav-social desktop-only">
+      @for (social of socialLinks; track social.platform) {
+        <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
+           class="social-link" [title]="social.platform">
+          {{ social.icon }}
+        </a>
+      }
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()" 
+            [class.open]="isMobileMenuOpen" aria-label="Toggle menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  @if (isMobileMenuOpen) {
+    <div class="mobile-menu" [@slideDown]>
+      <ul class="mobile-nav-list">
+        @for (item of navItems; track item.section) {
+          <li class="mobile-nav-item">
+            <a (click)="scrollToSection(item.section)" class="mobile-nav-link">
+              {{ item.label }}
+            </a>
+          </li>
+        }
+      </ul>
+      <div class="mobile-social">
+        @for (social of socialLinks; track social.platform) {
+          <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
+             class="mobile-social-link" [title]="social.platform">
+            {{ social.icon }} {{ social.platform }}
+          </a>
+        }
+      </div>
+    </div>
+  }
+</header>

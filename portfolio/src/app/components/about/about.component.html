@@ -1,0 +1,65 @@
+<section id="about" class="section about">
+  <div class="container">
+    <div class="section-title">
+      <h2>Sobre Mim</h2>
+      <p class="section-subtitle">Conheça mais sobre minha trajetória</p>
+    </div>
+
+    <div class="about-content">
+      <div class="about-image">
+        <div class="image-frame">
+          <img src="https://placehold.co/400x500/002E59/DBC27D?text=Foto+Profissional" 
+               alt="Profile Picture" class="about-photo">
+          <div class="image-border"></div>
+        </div>
+      </div>
+
+      <div class="about-text">
+        <div class="about-intro">
+          <h3>{{ personalInfo.name }}</h3>
+          <p class="title">{{ personalInfo.title }}</p>
+        </div>
+
+        <div class="about-bio">
+          @for (paragraph of personalInfo.bio; track paragraph) {
+            <p>{{ paragraph }}</p>
+          }
+        </div>
+
+        <div class="about-highlights">
+          @for (highlight of highlights; track highlight.title) {
+            <div class="highlight-card">
+              <span class="highlight-icon">{{ highlight.icon }}</span>
+              <div class="highlight-content">
+                <span class="highlight-title">{{ highlight.title }}</span>
+                <span class="highlight-value">{{ highlight.value }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="about-info">
+          <div class="info-item">
+            <span class="info-label">📍 Localização:</span>
+            <span class="info-value">{{ personalInfo.location }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">✉️ Email:</span>
+            <span class="info-value">{{ personalInfo.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">💼 Status:</span>
+            @if (personalInfo.available) {
+              <span class="info-value available">
+                <span class="status-dot"></span>
+                Disponível para oportunidades
+              </span>
+            } @else {
+              <span class="info-value">Não disponível no momento</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
