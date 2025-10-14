@@ -1,0 +1,28 @@
+{
+  "name": "portfolio-workspace",
+  "version": "1.0.0",
+  "description": "Portfólio profissional Angular workspace",
+  "scripts": {
+    "start": "cd portfolio && ng serve",
+    "build": "cd portfolio && ng build --configuration production",
+    "deploy": "./deploy.sh",
+    "test": "cd portfolio && ng test",
+    "lint": "cd portfolio && ng lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wmakeouthill/wmakeouthill.github.io.git"
+  },
+  "keywords": [
+    "portfolio",
+    "angular",
+    "typescript",
+    "github-pages"
+  ],
+  "author": "Seu Nome",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wmakeouthill/wmakeouthill.github.io/issues"
+  },
+  "homepage": "https://wmakeouthill.github.io"
+}
