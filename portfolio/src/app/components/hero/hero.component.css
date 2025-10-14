@@ -69,26 +69,41 @@
   padding: 2rem;
 }
 
-.hero-text {
-  z-index: 1;
+.hero-stats-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-.hero-greeting {
-  font-size: 1.25rem;
-  color: var(--color-accent);
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+/* garantir que o wrapper centralize quando o texto estiver centralizado */
+.hero-text .hero-stats-wrapper {
+  width: 100%;
 }
 
-.hero-name {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  margin-bottom: 1rem;
-  line-height: 1.1;
-  background: linear-gradient(135deg, var(--color-white), var(--text-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: nowrap; /* força ficar em uma linha */
+  align-items: center;
+  overflow: hidden; /* evita quebra visual em telas menores */
 }
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: nowrap; /* força ficar em uma linha */
+  align-items: center;
+  overflow: hidden; /* evita quebra visual em telas menores */
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column; /* número acima do rótulo para melhor leitura */
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
 
 .hero-title {
   font-size: clamp(1.5rem, 3vw, 2rem);
@@ -157,7 +172,9 @@
 
 .stat-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .stat-number {
@@ -165,22 +182,29 @@
   font-weight: 700;
   color: var(--color-accent);
   line-height: 1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Hero Image */
-.hero-image {
+.stat-item {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
+  flex-direction: column; /* número acima do rótulo para melhor leitura */
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.hero-name {
+  font-size: clamp(2.0rem, 4.2vw, 3.2rem);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--color-white), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* garante que a coluna da imagem fique alinhada ao topo da célula do grid */
+.hero-image {
+  align-self: start;
 }
 
 .image-wrapper {
@@ -239,6 +263,44 @@
   gap: 0.5rem;
   cursor: pointer;
   animation: bounce 2s infinite;
+}
+
+/* inline scroll indicator (below stats) -- visible on larger screens */
+.scroll-indicator-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* centraliza o indicador inline e o afasta um pouco dos stats (controle via .hero-scroll-row) */
+
+/* linha do container que hospeda o indicador e o centraliza */
+.hero-scroll-row {
+  grid-column: 1 / -1; /* ocupa as duas colunas do grid */
+  display: flex;
+  justify-content: center; /* centraliza horizontalmente dentro do container */
+  margin-top: 1rem; /* afasta das estatísticas */
+}
+
+.scroll-indicator-inline .scroll-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.scroll-indicator-inline .scroll-arrow {
+  font-size: 1.25rem;
+  color: var(--color-accent);
+  animation: arrow-bounce 1.6s infinite;
+}
+
+@keyframes arrow-bounce {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+  100% { transform: translateY(0); }
 }
 
 .scroll-text {
@@ -312,6 +374,12 @@
 
   .hero-stats {
     justify-content: center;
+    flex-wrap: wrap; /* permite quebra em telas menores */
+  }
+
+  /* esconder o scroll inline em telas menores e deixar o indicador absoluto */
+  .scroll-indicator-inline {
+    display: none;
   }
 
   .image-wrapper {
@@ -326,6 +394,16 @@
 
   .scroll-indicator {
     display: none;
+  }
+}
+
+/* Em telas maiores, esconder o indicador absoluto e usar o inline centralizado */
+@media (min-width: 769px) {
+  .scroll-indicator {
+    display: none;
+  }
+  .scroll-indicator-inline {
+    display: flex;
   }
 }
 

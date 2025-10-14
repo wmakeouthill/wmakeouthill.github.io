@@ -8,12 +8,14 @@
     <div class="hero-text fade-in-up">
       <p class="hero-greeting">Olá, eu sou</p>
       <h1 class="hero-name">
-        <span class="text-accent">Seu</span> Nome Completo
+        <span class="text-accent">Wesley</span> de Carvalho Augusto Correia
       </h1>
+
       <div class="hero-title">
         <span class="typing-text">{{ displayedText }}</span>
         <span class="cursor">|</span>
       </div>
+
       <p class="hero-tagline">
         Transformando ideias em código. Criando experiências digitais incríveis
         com tecnologias modernas e design elegante.
@@ -24,37 +26,48 @@
           <span>Ver Projetos</span>
           <span class="btn-icon">→</span>
         </button>
-        <button class="btn btn-outline" (click)="scrollToSection('contact')">
-          <span>Entre em Contato</span>
-        </button>
         <button class="btn btn-outline" (click)="downloadCV()">
           <span>Download CV</span>
           <span class="btn-icon">⬇</span>
         </button>
+        <button class="btn btn-outline" (click)="scrollToSection('contact')">
+          <span>Entre em Contato</span>
+        </button>
       </div>
 
-      <div class="hero-stats">
-        <div class="stat-item">
-          <span class="stat-number">2+</span>
-          <span class="stat-label">Anos de Experiência</span>
+      <div class="hero-stats-wrapper">
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">2+</span>
+            <span class="stat-label">Anos de Experiência</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Projetos Completos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">10+</span>
+            <span class="stat-label">Tecnologias</span>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-number">20+</span>
-          <span class="stat-label">Projetos Completos</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">10+</span>
-          <span class="stat-label">Tecnologias</span>
-        </div>
+
+        <!-- Scroll indicator inline (visível em telas maiores) - removido daqui para evitar duplicação -->
       </div>
     </div>
-
+    
     <div class="hero-image fade-in-right">
       <div class="image-wrapper">
         <div class="image-glow"></div>
         <img src="https://placehold.co/500x500/002E59/DBC27D?text=Sua+Foto" 
              alt="Profile" class="profile-image">
         <div class="image-decoration"></div>
+      </div>
+    </div>
+    <!-- indicador inline agora posicionado após a imagem para não afetar o layout da mesma -->
+    <div class="hero-scroll-row">
+      <div class="scroll-indicator-inline" (click)="scrollToSection('about')">
+        <span class="scroll-text">Scroll</span>
+        <div class="scroll-arrow">↓</div>
       </div>
     </div>
   </div>
