@@ -14,21 +14,18 @@
           </h3>
           <div class="skills-grid">
             @for (skill of getSkillsByCategory(category.key); track skill.name) {
-              <div class="skill-card">
-                <div class="skill-header">
-                  <span class="skill-icon">{{ skill.icon }}</span>
-                  <span class="skill-name">{{ skill.name }}</span>
-                  <span class="skill-percentage">{{ skill.level }}%</span>
-                </div>
-                <div class="skill-bar">
-                  <div class="skill-progress" 
-                       [style.width.%]="skill.level"
-                       [class.high]="skill.level >= 80"
-                       [class.medium]="skill.level >= 60 && skill.level < 80"
-                       [class.low]="skill.level < 60">
+                  <div class="skill-card">
+                    <div class="skill-chip">
+                      <span class="skill-icon">{{ skill.icon }}</span>
+                      <span class="skill-name">{{ skill.name }}</span>
+                      <span class="skill-badge">{{ skill.levelLabel }}</span>
+                    </div>
+                    <div class="skill-meta">
+                      @if (skill.projectsCount) {
+                        <small class="projects-count">Usado em {{ skill.projectsCount }} projeto{{ skill.projectsCount > 1 ? 's' : '' }}</small>
+                      }
+                    </div>
                   </div>
-                </div>
-              </div>
             }
           </div>
         </div>

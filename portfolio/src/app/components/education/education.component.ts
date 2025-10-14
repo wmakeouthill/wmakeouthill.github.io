@@ -34,12 +34,12 @@ export class EducationComponent {
     {
       id: 3,
       institution: 'Faculdade GRAN',
-      degree: 'Licenciatura / Bacharelado (em andamento)',
+      degree: 'Bacharelado (em andamento)',
       field: 'Ciências da Computação',
       startDate: '2024-02',
       endDate: '2027-08',
       current: true,
-      description: 'Curso de graduação em Ciências da Computação (em andamento).'
+      description: 'Graduação em andamento em Ciências da Computação.'
     },
     {
       id: 4,

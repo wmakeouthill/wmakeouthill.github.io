@@ -11,33 +11,38 @@ import { Skill } from '../../models/interfaces';
 })
 export class SkillsComponent {
   skills: Skill[] = [
-    // Frontend
-    { name: 'Angular', level: 90, category: 'frontend', icon: '🅰️' },
-    { name: 'TypeScript', level: 90, category: 'frontend', icon: '📘' },
-    { name: 'JavaScript', level: 90, category: 'frontend', icon: '�' },
-    { name: 'HTML5', level: 95, category: 'frontend', icon: '🌐' },
-    { name: 'CSS3/SCSS', level: 90, category: 'frontend', icon: '�' },
+  // Frontend
+  { name: 'Angular', levelLabel: 'Produção', projectsCount: 4, category: 'frontend', icon: '🅰️' },
+  { name: 'TypeScript', levelLabel: 'Produção', projectsCount: 6, category: 'frontend', icon: '📘' },
+  { name: 'JavaScript', levelLabel: 'Produção', projectsCount: 8, category: 'frontend', icon: '📜' },
+  { name: 'HTML5', levelLabel: 'Produção', projectsCount: 10, category: 'frontend', icon: '🌐' },
+  { name: 'CSS3/SCSS', levelLabel: 'Produção', projectsCount: 9, category: 'frontend', icon: '🎨' },
 
     // Backend
-    { name: 'Java', level: 85, category: 'backend', icon: '☕' },
-    { name: 'Spring', level: 80, category: 'backend', icon: '🌱' },
-    { name: 'Spring Boot', level: 80, category: 'backend', icon: '�' },
-    { name: 'SQL', level: 85, category: 'backend', icon: '�️' },
+  { name: 'Java', levelLabel: 'Produção', projectsCount: 3, category: 'backend', icon: '☕' },
+  { name: 'Spring', levelLabel: 'Avançado', projectsCount: 3, category: 'backend', icon: '🌱' },
+  { name: 'Spring Boot', levelLabel: 'Avançado', projectsCount: 3, category: 'backend', icon: '🚀' },
+  { name: 'SQL', levelLabel: 'Produção', projectsCount: 6, category: 'backend', icon: '🗄️' },
 
     // Database
-    { name: 'PostgreSQL', level: 85, category: 'database', icon: '�' },
-    { name: 'MySQL', level: 80, category: 'database', icon: '�' },
-    { name: 'Oracle', level: 75, category: 'database', icon: '🔷' },
+  { name: 'PostgreSQL', levelLabel: 'Avançado', projectsCount: 3, category: 'database', icon: '🐘' },
+  { name: 'MySQL', levelLabel: 'Avançado', projectsCount: 3, category: 'database', icon: '🐬' },
+  { name: 'Oracle', levelLabel: 'Avançado', projectsCount: 2, category: 'database', icon: '🔷' },
 
     // DevOps & Tools
-    { name: 'Docker', level: 80, category: 'devops', icon: '�' },
-    { name: 'Podman', level: 70, category: 'devops', icon: '📦' },
-    { name: 'Kubernetes', level: 70, category: 'devops', icon: '☸️' },
-    { name: 'Liquibase', level: 70, category: 'devops', icon: '�' },
-    { name: 'Prometheus', level: 70, category: 'devops', icon: '📈' },
-    { name: 'Grafana', level: 70, category: 'devops', icon: '�' },
-    { name: 'Git', level: 90, category: 'devops', icon: '🌿' },
-    { name: 'Docker Compose', level: 75, category: 'devops', icon: '🧩' }
+    { name: 'Docker', levelLabel: 'Produção', projectsCount: 5, category: 'devops', icon: '🐳' },
+    { name: 'Podman', levelLabel: 'Intermediário', projectsCount: 1, category: 'devops', icon: '📦' },
+    { name: 'Kubernetes', levelLabel: 'Intermediário', projectsCount: 1, category: 'devops', icon: '☸️' },
+    { name: 'Liquibase', levelLabel: 'Avançado', projectsCount: 2, category: 'devops', icon: '📜' },
+    { name: 'Prometheus', levelLabel: 'Avançado', projectsCount: 2, category: 'devops', icon: '📈' },
+    { name: 'Grafana', levelLabel: 'Avançado', projectsCount: 2, category: 'devops', icon: '📊' },
+    { name: 'Micrometer', levelLabel: 'Intermediário', projectsCount: 1, category: 'devops', icon: '📏' },
+    { name: 'AlertManager', levelLabel: 'Intermediário', projectsCount: 1, category: 'devops', icon: '🚨' },
+    { name: 'Maven', levelLabel: 'Avançado', projectsCount: 3, category: 'devops', icon: '📦' },
+    { name: 'Cloud', levelLabel: 'Intermediário', projectsCount: 1, category: 'devops', icon: '☁️' },
+    { name: 'Electron', levelLabel: 'Intermediário', projectsCount: 1, category: 'other', icon: '⚡' },
+    { name: 'Git', levelLabel: 'Produção', projectsCount: 10, category: 'devops', icon: '🌿' },
+    { name: 'Docker Compose', levelLabel: 'Avançado', projectsCount: 4, category: 'devops', icon: '🧩' }
   ];
 
   categories = [

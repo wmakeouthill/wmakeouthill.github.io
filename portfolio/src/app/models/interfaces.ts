@@ -23,9 +23,12 @@ export interface GitHubRepository {
 // Interface para skills/tecnologias
 export interface Skill {
   name: string;
-  level: number; // 1-100
+  // level numérico foi substituído por uma label categórica para evitar autoavaliação precisa
+  levelLabel?: 'Básico' | 'Intermediário' | 'Avançado' | 'Produção';
   category: 'frontend' | 'backend' | 'database' | 'devops' | 'other';
   icon?: string;
+  // opcional: em quantos projetos essa skill foi utilizada (para evidência)
+  projectsCount?: number;
 }
 
 // Interface para experiência profissional
