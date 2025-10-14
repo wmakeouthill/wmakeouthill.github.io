@@ -1,7 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 
 import { HeaderComponent } from './components/header/header.component';
 import { HeroComponent } from './components/hero/hero.component';
@@ -20,7 +19,6 @@ import { FooterComponent } from './components/footer/footer.component';
   imports: [
     RouterOutlet,
     CommonModule,
-    HttpClientModule,
     HeaderComponent,
     HeroComponent,
     AboutComponent,
