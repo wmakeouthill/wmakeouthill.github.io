@@ -1,0 +1,97 @@
+<section id="projects" class="section projects">
+  <div class="container">
+    <div class="section-title">
+      <h2>Projetos & Portfólio</h2>
+      <p class="section-subtitle">Meus trabalhos recentes do GitHub</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      @for (lang of availableLanguages; track lang) {
+        <button 
+          class="filter-btn"
+          [class.active]="selectedFilter === lang"
+          (click)="filterProjects(lang)">
+          {{ lang === 'all' ? 'Todos' : lang }}
+        </button>
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Carregando projetos...</p>
+      </div>
+    }
+
+    <!-- Projects Grid -->
+    @if (!loading && filteredProjects.length > 0) {
+      <div class="projects-grid">
+        @for (project of filteredProjects; track project.id) {
+          <div class="project-card">
+            <div class="project-image">
+              <img [src]="'https://placehold.co/600x400/002E59/DBC27D?text=' + project.name" 
+                   [alt]="project.name">
+              <div class="project-overlay">
+                <div class="project-links">
+                  <a [href]="project.html_url" target="_blank" 
+                     rel="noopener noreferrer" class="project-link">
+                    🔗 GitHub
+                  </a>
+                  @if (project.homepage) {
+                    <a [href]="project.homepage" target="_blank" 
+                       rel="noopener noreferrer" class="project-link">
+                      🚀 Demo
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="project-content">
+              <h3 class="project-title">{{ project.name }}</h3>
+              <p class="project-description">
+                {{ project.description || 'Sem descrição disponível' }}
+              </p>
+
+              <div class="project-footer">
+                <div class="project-stats">
+                  <span class="stat">⭐ {{ project.stargazers_count }}</span>
+                  <span class="stat">🔱 {{ project.forks_count }}</span>
+                </div>
+
+                @if (project.language) {
+                  <span class="language-badge">{{ project.language }}</span>
+                }
+              </div>
+
+              @if (project.topics && project.topics.length > 0) {
+                <div class="project-topics">
+                  @for (topic of project.topics.slice(0, 3); track topic) {
+                    <span class="topic-tag">{{ topic }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (hasMore) {
+        <div class="load-more">
+          <button class="btn btn-outline" (click)="loadMore()">
+            Carregar Mais Projetos
+          </button>
+        </div>
+      }
+    }
+
+    <!-- Empty State -->
+    @if (!loading && filteredProjects.length === 0) {
+      <div class="empty-state">
+        <p>Nenhum projeto encontrado para este filtro.</p>
+      </div>
+    }
+  </div>
+</section>

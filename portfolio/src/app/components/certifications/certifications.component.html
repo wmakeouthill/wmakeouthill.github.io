@@ -1,0 +1,38 @@
+<section id="certifications" class="section certifications">
+  <div class="container">
+    <div class="section-title">
+      <h2>Certificações</h2>
+      <p class="section-subtitle">Cursos e certificados conquistados</p>
+    </div>
+
+    <div class="certifications-grid">
+      @for (cert of certifications; track cert.id) {
+        <div class="cert-card">
+          <div class="cert-image">
+            <img [src]="cert.image" [alt]="cert.name">
+            <div class="cert-badge">📜</div>
+          </div>
+
+          <div class="cert-content">
+            <h3 class="cert-name">{{ cert.name }}</h3>
+            <p class="cert-issuer">{{ cert.issuer }}</p>
+
+            <div class="cert-date">
+              <span>📅 {{ formatDate(cert.issueDate) }}</span>
+              @if (cert.expiryDate) {
+                <span class="expiry">Válido até {{ formatDate(cert.expiryDate) }}</span>
+              }
+            </div>
+
+            @if (cert.credentialUrl) {
+              <a [href]="cert.credentialUrl" target="_blank" 
+                 rel="noopener noreferrer" class="cert-link">
+                Ver Credencial →
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
