@@ -22,7 +22,7 @@ export class ContactComponent {
     { iconSrc: 'assets/icons/linkedin.svg', label: 'LinkedIn', value: 'linkedin.com/in/wcacorreia', link: 'https://linkedin.com/in/wcacorreia' },
     { iconSrc: 'assets/icons/github.svg', label: 'GitHub', value: 'github.com/wmakeouthill', link: 'https://github.com/wmakeouthill' },
     { iconSrc: 'assets/icons/whatsapp.svg', label: 'WhatsApp', value: '+55 21 98386-6676', link: 'https://wa.me/5521983866676' },
-    { iconSrc: 'assets/icons/location.svg', label: 'Endereço', value: 'Av. Leandro da Mota, Vila São Sebastião, Duque de Caxias, RJ' }
+    { iconSrc: 'assets/icons/endereco.svg', label: 'Endereço', value: 'Av. Leandro da Mota, Vila São Sebastião, Duque de Caxias, RJ' }
   ];
 
   onSubmit() {

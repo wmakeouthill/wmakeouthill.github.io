@@ -16,13 +16,19 @@
             @for (skill of getSkillsByCategory(category.key); track skill.name) {
                   <div class="skill-card">
                     <div class="skill-chip">
-                      <span class="skill-icon">{{ skill.icon }}</span>
-                      <span class="skill-name">{{ skill.name }}</span>
-                      <span class="skill-badge">{{ skill.levelLabel }}</span>
-                    </div>
+                        <span class="skill-icon">
+                          @if (isSvg(skill.icon)) {
+                            <img src="assets/icons/{{ skill.icon }}" alt="{{ skill.name }}" width="20" height="20" />
+                          } @else {
+                            {{ skill.icon }}
+                          }
+                        </span>
+                        <span class="skill-name">{{ skill.name }}</span>
+                        <span class="skill-badge">{{ skill.levelLabel }}</span>
+                      </div>
                     <div class="skill-meta">
                       @if (skill.projectsCount) {
-                        <small class="projects-count">Usado em {{ skill.projectsCount }} projeto{{ skill.projectsCount > 1 ? 's' : '' }}</small>
+                        <small class="projects-count">Usado em {{ skill.projectsCount }} {{ pluralize(skill.projectsCount, 'projeto', 'projetos') }}</small>
                       }
                     </div>
                   </div>
