@@ -47,7 +47,7 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/wmakeouthill.github.io/"
+              "baseHref": "/"
             },
             "development": {
               "optimization": false,
