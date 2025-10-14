@@ -24,8 +24,8 @@ export class HeaderComponent {
   ];
 
   socialLinks = [
-    { platform: 'GitHub', url: 'https://github.com/wmakeouthill', icon: '🔗' },
-    { platform: 'LinkedIn', url: 'https://linkedin.com/in/seu-perfil', icon: '💼' }
+    { platform: 'GitHub', url: 'https://github.com/wmakeouthill', iconSrc: 'assets/icons/github-octocat.svg' },
+    { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' }
   ];
 
   @HostListener('window:scroll')

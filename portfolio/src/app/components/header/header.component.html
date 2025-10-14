@@ -22,7 +22,7 @@
       @for (social of socialLinks; track social.platform) {
         <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
            class="social-link" [title]="social.platform">
-          {{ social.icon }}
+          <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
         </a>
       }
     </div>
@@ -52,7 +52,7 @@
         @for (social of socialLinks; track social.platform) {
           <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
              class="mobile-social-link" [title]="social.platform">
-            {{ social.icon }} {{ social.platform }}
+            <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="18" height="18" /> {{ social.platform }}
           </a>
         }
       </div>
