@@ -208,9 +208,10 @@
 }
 
 .image-wrapper {
-  position: relative;
   width: 400px;
   height: 400px;
+  overflow: hidden;   /* importante para recortar */
+  border-radius: 50%; /* garante o círculo */
 }
 
 .image-glow {
@@ -238,6 +239,7 @@
   box-shadow: 0 0 50px rgba(219, 194, 125, 0.3);
   position: relative;
   z-index: 1;
+  object-position: 50% 13%;
 }
 
 .image-decoration {
