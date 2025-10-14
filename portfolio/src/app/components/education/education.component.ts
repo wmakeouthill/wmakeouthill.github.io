@@ -16,9 +16,9 @@ export class EducationComponent {
       institution: 'Faculdade FACINT',
       degree: 'Pós-Graduação',
       field: 'Full Stack Java Developer',
-      startDate: '2025-08',
-      endDate: '2026-05',
-      current: false,
+  startDate: '2025-08',
+  endDate: '2026-05',
+  current: true,
       description: 'Pós-graduação focada em desenvolvimento Java Full Stack com ênfase em Spring e práticas modernas de desenvolvimento.'
     },
     {
@@ -26,9 +26,9 @@ export class EducationComponent {
       institution: 'Centro Universitário Unigama',
       degree: 'Pós-Graduação',
       field: 'Gestão de Projetos',
-      startDate: '2025-01',
-      endDate: '2025-12',
-      current: false,
+  startDate: '2025-01',
+  endDate: '2025-12',
+  current: true,
       description: 'Pós-graduação em gestão de projetos com foco em práticas Ágeis e PMI.'
     },
     {
