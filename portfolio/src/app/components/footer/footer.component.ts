@@ -20,7 +20,7 @@ export class FooterComponent {
   ];
 
   socialLinks = [
-    { platform: 'GitHub', url: 'https://github.com/wmakeouthill', iconSrc: 'assets/icons/github-octocat.svg' },
+    { platform: 'GitHub', url: 'https://github.com/WesleyAugusto', iconSrc: 'assets/icons/github-octocat.svg' },
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' },
     { platform: 'Email', url: 'mailto:wcacorreia1995@gmail.com', iconSrc: 'assets/icons/gmail.svg' }
   ];

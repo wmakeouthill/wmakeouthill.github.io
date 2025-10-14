@@ -10,7 +10,8 @@ import { CommonModule } from '@angular/common';
 })
 export class HeroComponent implements OnInit, OnDestroy {
   displayedText = '';
-  fullText = 'Desenvolvedor Full Stack Junior';
+  // Texto exibido na animação do hero
+  fullText = 'Desenvolvedor Full Stack';
   typingSpeed = 100;
   private typingInterval: any;
   private loopInterval: any;

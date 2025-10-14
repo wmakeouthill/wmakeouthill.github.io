@@ -38,6 +38,8 @@ export interface Experience {
   current: boolean;
   description: string;
   technologies: string[];
+  // Lista de destaques formatados como bullets com título e texto
+  highlights?: Array<{ title: string; text: string }>;
   location?: string;
 }
 

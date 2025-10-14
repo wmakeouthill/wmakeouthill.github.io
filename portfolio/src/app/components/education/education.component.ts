@@ -13,25 +13,43 @@ export class EducationComponent {
   education: Education[] = [
     {
       id: 1,
-      institution: 'Universidade Federal de São Paulo',
-      degree: 'Bacharelado',
-      field: 'Ciência da Computação',
-      startDate: '2019-02',
-      endDate: null,
-      current: true,
-      description: 'Formação em Ciência da Computação com foco em desenvolvimento de software e arquitetura de sistemas.',
-      grade: '8.5/10'
+      institution: 'Faculdade FACINT',
+      degree: 'Pós-Graduação',
+      field: 'Full Stack Java Developer',
+      startDate: '2025-08',
+      endDate: '2026-05',
+      current: false,
+      description: 'Pós-graduação focada em desenvolvimento Java Full Stack com ênfase em Spring e práticas modernas de desenvolvimento.'
     },
     {
       id: 2,
-      institution: 'Escola Técnica Estadual',
-      degree: 'Técnico',
-      field: 'Informática',
-      startDate: '2016-02',
-      endDate: '2018-12',
+      institution: 'Centro Universitário Unigama',
+      degree: 'Pós-Graduação',
+      field: 'Gestão de Projetos',
+      startDate: '2025-01',
+      endDate: '2025-12',
       current: false,
-      description: 'Curso técnico com foco em desenvolvimento web e programação.',
-      grade: '9.0/10'
+      description: 'Pós-graduação em gestão de projetos com foco em práticas Ágeis e PMI.'
+    },
+    {
+      id: 3,
+      institution: 'Faculdade GRAN',
+      degree: 'Licenciatura / Bacharelado (em andamento)',
+      field: 'Ciências da Computação',
+      startDate: '2024-02',
+      endDate: '2027-08',
+      current: true,
+      description: 'Curso de graduação em Ciências da Computação (em andamento).'
+    },
+    {
+      id: 4,
+      institution: 'Centro Universitário Unigama',
+      degree: 'Graduação',
+      field: 'Direito',
+      startDate: '2018-02',
+      endDate: '2022-12',
+      current: false,
+      description: 'Bacharel em Direito.'
     }
   ];
 

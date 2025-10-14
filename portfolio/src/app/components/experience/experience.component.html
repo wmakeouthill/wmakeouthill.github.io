@@ -41,7 +41,19 @@
                 }
               </div>
 
-              <p class="description">{{ exp.description }}</p>
+              <div class="experience-highlights">
+                @if (exp.highlights && exp.highlights.length > 0) {
+                  <ul class="highlights-list">
+                    @for (h of exp.highlights; track h.title) {
+                      <li>
+                        <strong>{{ h.title }}:</strong> {{ h.text }}
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="description">{{ exp.description }}</p>
+                }
+              </div>
 
               <div class="technologies">
                 @for (tech of exp.technologies; track tech) {
