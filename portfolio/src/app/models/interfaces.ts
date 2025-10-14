@@ -17,6 +17,7 @@ export interface GitHubRepository {
   created_at: string;
   updated_at: string;
   pushed_at: string;
+  fork: boolean; // Adicionada propriedade fork
 }
 
 // Interface para skills/tecnologias

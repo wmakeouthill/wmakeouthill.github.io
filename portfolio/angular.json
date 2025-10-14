@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "1e94e907-288c-44ab-8e0a-c9f6c41db350"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -45,7 +46,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "baseHref": "/wmakeouthill.github.io/"
             },
             "development": {
               "optimization": false,
