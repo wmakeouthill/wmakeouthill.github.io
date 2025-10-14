@@ -13,25 +13,43 @@ export class HeroComponent implements OnInit, OnDestroy {
   fullText = 'Desenvolvedor Full Stack Junior';
   typingSpeed = 100;
   private typingInterval: any;
+  private loopInterval: any;
 
   ngOnInit() {
+    // inicia a primeira execução imediatamente
     this.startTypingAnimation();
+    // agenda re-execução a cada 8 segundos
+    this.loopInterval = setInterval(() => {
+      this.startTypingAnimation();
+    }, 10000);
   }
 
   ngOnDestroy() {
     if (this.typingInterval) {
       clearInterval(this.typingInterval);
     }
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+    }
   }
 
   startTypingAnimation() {
+    // evita iniciar uma nova animação se já estiver digitando
+    if (this.typingInterval) {
+      return;
+    }
+
+    // reinicia texto e começa a digitar do início
+    this.displayedText = '';
     let index = 0;
     this.typingInterval = setInterval(() => {
       if (index < this.fullText.length) {
         this.displayedText += this.fullText.charAt(index);
         index++;
       } else {
+        // terminou de digitar: limpa o intervalo de digitação
         clearInterval(this.typingInterval);
+        this.typingInterval = null;
       }
     }, this.typingSpeed);
   }

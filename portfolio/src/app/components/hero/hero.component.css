@@ -208,10 +208,10 @@
 }
 
 .image-wrapper {
+  position: relative; /* necessário para posicionar decorações absolutas dentro */
   width: 400px;
   height: 400px;
-  overflow: hidden;   /* importante para recortar */
-  border-radius: 50%; /* garante o círculo */
+  overflow: visible; /* permitir que decorações fiquem parcialmente fora do wrapper */
 }
 
 .image-glow {
@@ -239,18 +239,61 @@
   box-shadow: 0 0 50px rgba(219, 194, 125, 0.3);
   position: relative;
   z-index: 1;
-  object-position: 50% 13%;
+  /* centro-um pouco-para-topo por padrão */
+  object-position: 50% 15%;
 }
 
 .image-decoration {
   position: absolute;
-  top: -20px;
-  right: -20px;
-  width: 150px;
-  height: 150px;
+  top: -28px;
+  right: -28px;
+  width: 160px;
+  height: 160px;
   border: 3px solid var(--color-primary);
   border-radius: 50%;
-  z-index: 0;
+  z-index: 0; /* fica atrás da imagem */
+  pointer-events: none;
+}
+
+/* Mobile adjustments: centralizar imagem na coluna e ajustar posicionamento da foto e decoração */
+@media (max-width: 768px) {
+  .hero-image {
+    align-self: center; /* centraliza a imagem quando o grid vira coluna */
+  }
+
+  .image-wrapper {
+    width: 300px;
+    height: 300px;
+  }
+
+  .profile-image {
+    object-position: 50% 5%; /* mostrar mais do topo no mobile */
+  }
+
+  .image-decoration {
+    top: -18px;
+    right: -18px;
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-wrapper {
+    width: 250px;
+    height: 250px;
+  }
+
+  .profile-image {
+    object-position: 50% 0%;
+  }
+
+  .image-decoration {
+    top: -14px;
+    right: -14px;
+    width: 80px;
+    height: 80px;
+  }
 }
 
 /* Scroll Indicator */
