@@ -32,7 +32,9 @@
              rel="noopener noreferrer" 
              class="footer-social-link"
              [title]="social.platform">
-            <span class="social-icon">{{ social.icon }}</span>
+            <span class="social-icon">
+              <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
+            </span>
             <span>{{ social.platform }}</span>
           </a>
         }

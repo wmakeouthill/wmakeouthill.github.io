@@ -18,7 +18,9 @@
           @for (info of contactInfo; track info.label) {
             <a [href]="info.link" target="_blank" 
                rel="noopener noreferrer" class="contact-method">
-              <span class="method-icon">{{ info.icon }}</span>
+              <span class="method-icon">
+                <img [src]="info.iconSrc" [alt]="info.label + ' icon'" width="28" height="28" />
+              </span>
               <div class="method-content">
                 <span class="method-label">{{ info.label }}</span>
                 <span class="method-value">{{ info.value }}</span>
@@ -32,11 +34,11 @@
           <div class="social-icons">
             <a href="https://github.com/wmakeouthill" target="_blank" 
                rel="noopener noreferrer" class="social-icon" title="GitHub">
-              🔗
+              <img src="assets/icons/github.svg" alt="GitHub" width="22" height="22" />
             </a>
-            <a href="https://linkedin.com/in/seu-perfil" target="_blank" 
+            <a href="https://linkedin.com/in/wcacorreia" target="_blank" 
                rel="noopener noreferrer" class="social-icon" title="LinkedIn">
-              💼
+              <img src="assets/icons/linkedin.svg" alt="LinkedIn" width="22" height="22" />
             </a>
           </div>
         </div>

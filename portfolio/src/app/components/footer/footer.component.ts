@@ -20,9 +20,9 @@ export class FooterComponent {
   ];
 
   socialLinks = [
-    { platform: 'GitHub', url: 'https://github.com/wmakeouthill', icon: '🔗' },
-    { platform: 'LinkedIn', url: 'https://linkedin.com/in/seu-perfil', icon: '💼' },
-    { platform: 'Email', url: 'mailto:seuemail@exemplo.com', icon: '✉️' }
+    { platform: 'GitHub', url: 'https://github.com/wmakeouthill', iconSrc: 'assets/icons/github-octocat.svg' },
+    { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' },
+    { platform: 'Email', url: 'mailto:wcacorreia1995@gmail.com', iconSrc: 'assets/icons/gmail.svg' }
   ];
 
   scrollToSection(sectionId: string) {
