@@ -184,3 +184,11 @@
   opacity: 1;
   transform: translateX(0);
 }
+
+.experience-card:hover,
+.experience-card.auto-hover {
+  transform: translateY(-5px) translateX(10px);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+  border-color: var(--color-accent);
+}

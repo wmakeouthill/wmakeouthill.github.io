@@ -110,8 +110,17 @@
   transition: filter var(--transition-fast);
 }
 
-.highlight-card:hover .highlight-icon {
+.highlight-card:hover .highlight-icon,
+.highlight-card.auto-hover .highlight-icon {
   filter: grayscale(0);
+}
+
+.highlight-card:hover,
+.highlight-card.auto-hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+  border-color: var(--color-accent);
 }
 
 /* Scroll Animation */

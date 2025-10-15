@@ -69,14 +69,16 @@ export class EducationComponent implements OnInit, AfterViewInit {
 
   private setupScrollAnimations() {
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
+      threshold: [0.3, 0.6],
+      rootMargin: '0px 0px -20px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+          entry.target.classList.add('animate-in', 'auto-hover');
+        } else if (!entry.isIntersecting || entry.intersectionRatio < 0.3) {
+          entry.target.classList.remove('auto-hover');
         }
       });
     }, observerOptions);

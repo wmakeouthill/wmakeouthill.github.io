@@ -32,14 +32,17 @@
   transition: transform var(--transition-normal);
 }
 
-.education-card:hover::before {
+.education-card:hover::before,
+.education-card.auto-hover::before {
   transform: scaleX(1);
 }
 
-.education-card:hover {
-  transform: translateY(-5px);
+.education-card:hover,
+.education-card.auto-hover {
+  transform: translateY(-10px);
   border-color: var(--color-accent);
   box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
 }
 
 .card-icon {
@@ -54,7 +57,8 @@
   height: 2rem;
 }
 
-.education-card:hover .card-icon {
+.education-card:hover .card-icon,
+.education-card.auto-hover .card-icon {
   filter: grayscale(0);
 }
 
@@ -180,4 +184,11 @@
 .education-card.animate-in {
   opacity: 1;
   transform: translateY(0);
+}
+
+.education-card:hover,
+.education-card.auto-hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
 }
