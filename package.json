@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/wmakeouthill/wmakeouthill.github.io/issues"
   },
-  "homepage": "https://wmakeouthill.github.io"
+  "homepage": "https://wmakeouthill.github.io",
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1"
+  }
 }

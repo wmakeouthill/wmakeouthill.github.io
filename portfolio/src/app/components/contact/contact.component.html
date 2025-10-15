@@ -10,34 +10,43 @@
       <div class="contact-info">
         <h3>Informações de Contato</h3>
         <p class="info-description">
-          Estou disponível para oportunidades de trabalho, freelance e projetos interessantes.
-          Entre em contato através de qualquer um dos canais abaixo!
+          Estou disponível para oportunidades de trabalho, freelance e projetos interessantes. Entre
+          em contato através de qualquer um dos canais abaixo!
         </p>
 
         <div class="contact-methods">
           @for (info of contactInfo; track info.label) {
-            <a [href]="info.link" target="_blank" 
-               rel="noopener noreferrer" class="contact-method">
-              <span class="method-icon">
-                <img [src]="info.iconSrc" [alt]="info.label + ' icon'" width="28" height="28" />
-              </span>
-              <div class="method-content">
-                <span class="method-label">{{ info.label }}</span>
-                <span class="method-value">{{ info.value }}</span>
-              </div>
-            </a>
+          <a [href]="info.link" target="_blank" rel="noopener noreferrer" class="contact-method">
+            <span class="method-icon">
+              <img [src]="info.iconSrc" [alt]="info.label + ' icon'" width="28" height="28" />
+            </span>
+            <div class="method-content">
+              <span class="method-label">{{ info.label }}</span>
+              <span class="method-value">{{ info.value }}</span>
+            </div>
+          </a>
           }
         </div>
 
         <div class="social-prompt">
           <p>Ou me encontre nas redes sociais:</p>
           <div class="social-icons">
-            <a href="https://github.com/wmakeouthill" target="_blank" 
-               rel="noopener noreferrer" class="social-icon" title="GitHub">
+            <a
+              href="https://github.com/wmakeouthill"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-icon"
+              title="GitHub"
+            >
               <img src="assets/icons/github-octocat.svg" alt="GitHub" width="22" height="22" />
             </a>
-            <a href="https://linkedin.com/in/wcacorreia" target="_blank" 
-               rel="noopener noreferrer" class="social-icon" title="LinkedIn">
+            <a
+              href="https://linkedin.com/in/wcacorreia"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-icon"
+              title="LinkedIn"
+            >
               <img src="assets/icons/linkedin.svg" alt="LinkedIn" width="22" height="22" />
             </a>
           </div>
@@ -47,53 +56,72 @@
       <!-- Contact Form -->
       <div class="contact-form-wrapper">
         <h3>Envie uma Mensagem</h3>
-        <form class="contact-form" (ngSubmit)="onSubmit()">
+        <p class="form-description">
+          Preencha o formulário abaixo e entrarei em contato o mais rápido possível!
+        </p>
+
+        <!-- Feedback Message -->
+        <div
+          *ngIf="submitMessage"
+          class="submit-message"
+          [class.success]="submitSuccess"
+          [class.error]="!submitSuccess"
+        >
+          {{ submitMessage }}
+        </div>
+
+        <form class="contact-form" (ngSubmit)="onSubmit()" [class.submitting]="isSubmitting">
           <div class="form-group">
             <label for="name">Nome Completo</label>
-            <input 
-              type="text" 
-              id="name" 
+            <input
+              type="text"
+              id="name"
               name="name"
               [(ngModel)]="formData.name"
               placeholder="Seu nome"
-              required>
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
+            <input
+              type="email"
+              id="email"
               name="email"
               [(ngModel)]="formData.email"
               placeholder="seu@email.com"
-              required>
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="subject">Assunto</label>
-            <input 
-              type="text" 
-              id="subject" 
+            <input
+              type="text"
+              id="subject"
               name="subject"
               [(ngModel)]="formData.subject"
               placeholder="Assunto da mensagem"
-              required>
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="message">Mensagem</label>
-            <textarea 
-              id="message" 
+            <textarea
+              id="message"
               name="message"
               [(ngModel)]="formData.message"
               rows="5"
               placeholder="Escreva sua mensagem aqui..."
-              required></textarea>
+              required
+            ></textarea>
           </div>
 
-          <button type="submit" class="btn btn-accent btn-block">
-            Enviar Mensagem
+          <button type="submit" class="btn btn-accent btn-block" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Enviar Mensagem</span>
+            <span *ngIf="isSubmitting">Enviando...</span>
           </button>
         </form>
       </div>

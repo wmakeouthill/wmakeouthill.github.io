@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EmailService, EmailData } from '../../services/email.service';
 
 @Component({
   selector: 'app-contact',
@@ -10,12 +11,16 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './contact.component.css'
 })
 export class ContactComponent {
-  formData = {
+  formData: EmailData = {
     name: '',
     email: '',
     subject: '',
     message: ''
   };
+
+  isSubmitting = false;
+  submitMessage = '';
+  submitSuccess = false;
 
   contactInfo = [
     { iconSrc: 'assets/icons/gmail.svg', label: 'Email', value: 'wcacorreia1995@gmail.com', link: 'mailto:wcacorreia1995@gmail.com' },
@@ -25,10 +30,33 @@ export class ContactComponent {
     { iconSrc: 'assets/icons/endereco.svg', label: 'Endereço', value: 'Av. Leandro da Mota, Vila São Sebastião, Duque de Caxias, RJ' }
   ];
 
-  onSubmit() {
-    console.log('Form submitted:', this.formData);
-    alert('Funcionalidade de envio será implementada! Por enquanto, entre em contato diretamente pelo email.');
-    this.resetForm();
+  constructor(private emailService: EmailService) { }
+
+  async onSubmit() {
+    if (this.isSubmitting) return;
+
+    this.isSubmitting = true;
+    this.submitMessage = '';
+    this.submitSuccess = false;
+
+    try {
+      const success = await this.emailService.sendEmail(this.formData);
+
+      if (success) {
+        this.submitMessage = 'Mensagem enviada com sucesso! Entrarei em contato em breve.';
+        this.submitSuccess = true;
+        this.resetForm();
+      } else {
+        this.submitMessage = 'Erro ao enviar mensagem. Tente novamente ou entre em contato diretamente pelo email.';
+        this.submitSuccess = false;
+      }
+    } catch (error) {
+      console.error('Erro no envio:', error);
+      this.submitMessage = 'Erro ao enviar mensagem. Tente novamente ou entre em contato diretamente pelo email.';
+      this.submitSuccess = false;
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
   resetForm() {
@@ -38,5 +66,7 @@ export class ContactComponent {
       subject: '',
       message: ''
     };
+    this.submitMessage = '';
+    this.submitSuccess = false;
   }
 }

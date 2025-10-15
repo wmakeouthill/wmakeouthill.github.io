@@ -3,8 +3,8 @@
     <div class="footer-section">
       <h3 class="footer-brand">&lt;DevPortfolio/&gt;</h3>
       <p class="footer-description">
-        Desenvolvedor Full Stack apaixonado por ajudar a resolver problemas das pessoas, trabalhar na criação de soluções inovadoras 
-        e experiências digitais incríveis.
+        Desenvolvedor Full Stack apaixonado por ajudar a resolver problemas das pessoas, trabalhar
+        na criação de soluções inovadoras e experiências digitais incríveis.
       </p>
       <div class="footer-badge">
         <span>🅰️ Desenvolvido com Angular</span>
@@ -15,11 +15,11 @@
       <h4 class="footer-title">Links Rápidos</h4>
       <ul class="footer-links">
         @for (link of quickLinks; track link.section) {
-          <li>
-            <a (click)="scrollToSection(link.section)" class="footer-link">
-              {{ link.label }}
-            </a>
-          </li>
+        <li>
+          <a (click)="scrollToSection(link.section)" class="footer-link">
+            {{ link.label }}
+          </a>
+        </li>
         }
       </ul>
     </div>
@@ -28,15 +28,18 @@
       <h4 class="footer-title">Redes Sociais</h4>
       <div class="footer-social">
         @for (social of socialLinks; track social.platform) {
-          <a [href]="social.url" target="_blank" 
-             rel="noopener noreferrer" 
-             class="footer-social-link"
-             [title]="social.platform">
-            <span class="social-icon">
-              <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
-            </span>
-            <span>{{ social.platform }}</span>
-          </a>
+        <a
+          [href]="social.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-social-link"
+          [title]="social.platform"
+        >
+          <span class="social-icon">
+            <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
+          </span>
+          <span>{{ social.platform }}</span>
+        </a>
         }
       </div>
     </div>
@@ -47,7 +50,6 @@
       <p class="copyright">
         © {{ currentYear }} Wesley de Carvalho Augusto Correia. Todos os direitos reservados.
       </p>
-      <p class="footer-contact">Telefone: (21) 98386-6676 • Habilitação: AB</p>
       <!-- <p class="made-with">
         Feito com <span class="heart">❤️</span> usando Angular, TypeScript e CSS
       </p> -->
