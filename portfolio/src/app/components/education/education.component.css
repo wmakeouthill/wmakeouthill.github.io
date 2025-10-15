@@ -169,3 +169,15 @@
     margin-bottom: 1rem;
   }
 }
+
+/* Scroll Animation */
+.education-card {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.education-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}

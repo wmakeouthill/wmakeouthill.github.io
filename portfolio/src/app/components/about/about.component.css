@@ -114,6 +114,24 @@
   filter: grayscale(0);
 }
 
+/* Scroll Animation */
+.highlight-card {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.highlight-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger animation for multiple cards */
+.highlight-card:nth-child(1) { transition-delay: 0.1s; }
+.highlight-card:nth-child(2) { transition-delay: 0.2s; }
+.highlight-card:nth-child(3) { transition-delay: 0.3s; }
+.highlight-card:nth-child(4) { transition-delay: 0.4s; }
+
 .highlight-content {
   display: flex;
   flex-direction: column;

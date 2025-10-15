@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Education } from '../../models/interfaces';
 
@@ -9,16 +9,17 @@ import { Education } from '../../models/interfaces';
   templateUrl: './education.component.html',
   styleUrl: './education.component.css'
 })
-export class EducationComponent {
+export class EducationComponent implements OnInit, AfterViewInit {
+  @ViewChild('educationContainer') educationContainer!: ElementRef;
   education: Education[] = [
     {
       id: 1,
       institution: 'Faculdade FACINT',
       degree: 'Pós-Graduação',
       field: 'Full Stack Java Developer',
-  startDate: '2025-08',
-  endDate: '2026-05',
-  current: true,
+      startDate: '2025-08',
+      endDate: '2026-05',
+      current: true,
       description: 'Pós-graduação focada em desenvolvimento Java Full Stack com ênfase em Spring e práticas modernas de desenvolvimento.'
     },
     {
@@ -26,9 +27,9 @@ export class EducationComponent {
       institution: 'Centro Universitário Unigama',
       degree: 'Pós-Graduação',
       field: 'Gestão de Projetos',
-  startDate: '2025-01',
-  endDate: '2025-12',
-  current: true,
+      startDate: '2025-01',
+      endDate: '2025-12',
+      current: true,
       description: 'Pós-graduação em gestão de projetos com foco em práticas Ágeis e PMI.'
     },
     {
@@ -56,5 +57,35 @@ export class EducationComponent {
   formatDate(date: string): string {
     const [year, month] = date.split('-');
     return `${year}`;
+  }
+
+  ngOnInit() {
+    // Component initialization
+  }
+
+  ngAfterViewInit() {
+    this.setupScrollAnimations();
+  }
+
+  private setupScrollAnimations() {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    // Observe education cards
+    const educationCards = this.educationContainer?.nativeElement?.querySelectorAll('.education-card');
+    educationCards?.forEach((card: Element, index: number) => {
+      (card as HTMLElement).style.transitionDelay = `${index * 0.2}s`;
+      observer.observe(card);
+    });
   }
 }

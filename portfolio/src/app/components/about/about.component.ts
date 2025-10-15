@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,7 +8,8 @@ import { CommonModule } from '@angular/common';
   templateUrl: './about.component.html',
   styleUrl: './about.component.css'
 })
-export class AboutComponent {
+export class AboutComponent implements OnInit, AfterViewInit {
+  @ViewChild('highlightsContainer') highlightsContainer!: ElementRef;
   personalInfo = {
     name: 'Wesley de Carvalho Augusto Correia',
     title: 'Desenvolvedor Full Stack',
@@ -43,4 +44,33 @@ export class AboutComponent {
   mainStack = [
     'Java', 'Spring', 'Spring Boot', 'Maven', 'Angular', 'TypeScript', 'SQL', 'JavaScript', 'CSS', 'SCSS', 'HTML', 'Docker', 'Podman', 'Kubernetes', 'Compose', 'Electron', 'Liquibase', 'Prometheus', 'Grafana', 'Micrometer', 'AlertManager', 'Cloud', 'PostgreSQL', 'MySQL', 'Oracle'
   ];
+
+  ngOnInit() {
+    // Component initialization
+  }
+
+  ngAfterViewInit() {
+    this.setupScrollAnimations();
+  }
+
+  private setupScrollAnimations() {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    // Observe highlight cards
+    const highlightCards = this.highlightsContainer?.nativeElement?.querySelectorAll('.highlight-card');
+    highlightCards?.forEach((card: Element) => {
+      observer.observe(card);
+    });
+  }
 }

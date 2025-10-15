@@ -172,3 +172,15 @@
     transform: translateY(-5px) translateX(0);
   }
 }
+
+/* Scroll Animation */
+.experience-card {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.6s ease;
+}
+
+.experience-card.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Experience } from '../../models/interfaces';
 
@@ -9,7 +9,8 @@ import { Experience } from '../../models/interfaces';
   templateUrl: './experience.component.html',
   styleUrl: './experience.component.css'
 })
-export class ExperienceComponent {
+export class ExperienceComponent implements OnInit, AfterViewInit {
+  @ViewChild('experienceContainer') experienceContainer!: ElementRef;
   experiences: Experience[] = [
     {
       id: 1,
@@ -103,5 +104,35 @@ export class ExperienceComponent {
     const [year, month] = date.split('-');
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     return `${months[parseInt(month) - 1]} ${year}`;
+  }
+
+  ngOnInit() {
+    // Component initialization
+  }
+
+  ngAfterViewInit() {
+    this.setupScrollAnimations();
+  }
+
+  private setupScrollAnimations() {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    // Observe experience cards
+    const experienceCards = this.experienceContainer?.nativeElement?.querySelectorAll('.experience-card');
+    experienceCards?.forEach((card: Element, index: number) => {
+      (card as HTMLElement).style.transitionDelay = `${index * 0.2}s`;
+      observer.observe(card);
+    });
   }
 }
