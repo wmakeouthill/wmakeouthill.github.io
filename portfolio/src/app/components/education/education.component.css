@@ -44,11 +44,14 @@
 
 .card-icon {
   position: absolute;
-  top: 1rem;
+  top: 0.75rem;
   left: 1rem;
-  font-size: 2.25rem;
+  font-size: 2rem;
   filter: grayscale(1);
   transition: filter var(--transition-fast);
+  display: flex;
+  align-items: center;
+  height: 2rem;
 }
 
 .education-card:hover .card-icon {
@@ -57,8 +60,8 @@
 
 .card-content {
   position: relative;
-  padding-left: 3.5rem; /* espaço para o ícone */
-  padding-top: 1.2rem; /* espaço para ícone/badge */
+  padding-left: 4rem; /* espaço para o ícone */
+  padding-top: 3rem; /* espaço para ícone/badge */
 }
 
 .card-header {
@@ -73,23 +76,31 @@
   top: 0.75rem;
   right: 1rem;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 2rem;
 }
 
 .badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.75rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+  background: rgba(219, 194, 125, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(219, 194, 125, 0.2);
 }
 
 .badge.in-progress {
-  background: linear-gradient(90deg, #d4af37, #b8860b); /* dourado */
-  color: #111;
+  background: rgba(219, 194, 125, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(219, 194, 125, 0.2);
 }
 
 .badge.completed {
-  background: linear-gradient(90deg, #28a745, #1e7e34); /* verde */
-  color: #fff;
+  background: rgba(219, 194, 125, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(219, 194, 125, 0.2);
 }
 
 .degree {

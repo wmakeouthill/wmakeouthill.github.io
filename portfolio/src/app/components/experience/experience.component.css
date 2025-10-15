@@ -96,7 +96,7 @@
 
 .current-badge {
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: var(--color-dark);
+  color: white;
   padding: 0.375rem 1rem;
   border-radius: var(--radius-full);
   font-size: 0.875rem;
@@ -127,6 +127,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .tech-tag {

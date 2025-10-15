@@ -29,7 +29,7 @@
 
 .filter-btn.active {
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: var(--color-dark);
+  color: white;
   border-color: transparent;
 }
 
@@ -107,6 +107,25 @@
 .project-link:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-accent);
+}
+
+.project-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-link img {
+  width: 30px !important;
+  height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
+  flex-shrink: 0;
+}
+
+.readme-btn {
+  background: rgba(100, 100, 100, 1) !important;
+  color: white !important;
 }
 
 .project-content {
@@ -201,7 +220,6 @@
 .modal-content {
   background: var(--bg-primary);
   border-radius: 12px;
-  max-width: 95vw;
   max-height: 82vh;
   width: 100%;
   max-width: 1200px;

@@ -44,7 +44,8 @@
                 rel="noopener noreferrer"
                 class="project-link"
               >
-                🔗 GitHub
+                <img src="assets/icons/github-octocat.svg" alt="GitHub" width="14" height="14" />
+                GitHub
               </a>
               @if (project.homepage) {
               <a
@@ -57,7 +58,8 @@
               </a>
               }
               <button (click)="openReadmeModal(project.name)" class="project-link readme-btn">
-                📖 README
+                <img src="assets/icons/readme.svg" alt="README" width="14" height="14" />
+                README
               </button>
             </div>
           </div>
@@ -108,8 +110,8 @@
 
   <!-- README Modal -->
   @if (showReadmeModal) {
-  <div class="modal-overlay" (click)="closeReadmeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="closeReadmeModal()" (keydown)="onKeyDown($event)">
+    <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
       <div class="modal-header">
         <h2>{{ currentProjectName }} - README</h2>
         <div class="modal-controls">
