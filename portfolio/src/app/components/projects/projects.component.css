@@ -193,22 +193,23 @@
   background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 1000;
-  padding: 1rem;
+  padding: 4.5rem 1rem 1rem 1rem;
 }
 
 .modal-content {
   background: var(--bg-primary);
   border-radius: 12px;
   max-width: 95vw;
-  max-height: 85vh;
+  max-height: 82vh;
   width: 100%;
   max-width: 1200px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-color);
+  margin-top: 2rem;
 }
 
 .modal-header {
@@ -474,9 +475,14 @@
   }
 
   /* Modal responsive styles */
+  .modal-overlay {
+    padding: 3rem 0.5rem 0.5rem 0.5rem;
+  }
+
   .modal-content {
     max-width: 98vw;
-    max-height: 90vh;
+    max-height: 82vh;
+    margin-top: 1rem;
   }
 
   .modal-header {
