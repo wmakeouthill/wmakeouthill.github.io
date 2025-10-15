@@ -8,9 +8,7 @@
     <div class="about-content">
       <div class="about-image">
         <div class="image-frame">
-          <img src="/wesley-photo.png" 
-               alt="Profile Picture" class="about-photo">
-          <div class="image-border"></div>
+          <img src="/wesley-photo.png" alt="Profile" class="about-photo" />
         </div>
       </div>
 
@@ -22,42 +20,50 @@
 
         <div class="about-bio">
           @for (paragraph of personalInfo.bio; track paragraph) {
-            <p>{{ paragraph }}</p>
+          <p>{{ paragraph }}</p>
           }
         </div>
 
         <div class="about-highlights">
           @for (highlight of highlights; track highlight.title) {
-            <div class="highlight-card">
-              <span class="highlight-icon">{{ highlight.icon }}</span>
-              <div class="highlight-content">
-                <span class="highlight-title">{{ highlight.title }}</span>
-                <span class="highlight-value">{{ highlight.value }}</span>
-              </div>
+          <div class="highlight-card">
+            <span class="highlight-icon">{{ highlight.icon }}</span>
+            <div class="highlight-content">
+              <span class="highlight-title">{{ highlight.title }}</span>
+              <span class="highlight-value">{{ highlight.value }}</span>
             </div>
+          </div>
           }
         </div>
+      </div>
 
-        <div class="about-info">
-          <div class="info-item">
-            <span class="info-label">📍 Localização:</span>
-            <span class="info-value">{{ personalInfo.location }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">✉️ Email:</span>
-            <span class="info-value">{{ personalInfo.email }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">💼 Status:</span>
-            @if (personalInfo.available) {
-              <span class="info-value available">
-                <span class="status-dot"></span>
-                Disponível para oportunidades
-              </span>
-            } @else {
-              <span class="info-value">Não disponível no momento</span>
-            }
-          </div>
+      <div class="about-info">
+        <div class="info-item">
+          <span class="info-label">📍 Localização:</span>
+          <span class="info-value">{{ personalInfo.location }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">✉️ Email:</span>
+          <span class="info-value">{{ personalInfo.email }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">🎂 Idade:</span>
+          <span class="info-value">{{ personalInfo.age }} anos</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">🚗 Carteira:</span>
+          <span class="info-value">{{ personalInfo.driverLicense }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">💼 Status:</span>
+          @if (personalInfo.available) {
+          <span class="info-value available">
+            <span class="status-dot"></span>
+            Disponível para oportunidades
+          </span>
+          } @else {
+          <span class="info-value">Não disponível no momento</span>
+          }
         </div>
       </div>
     </div>

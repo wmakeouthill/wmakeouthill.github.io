@@ -13,8 +13,10 @@ export class AboutComponent {
     name: 'Wesley de Carvalho Augusto Correia',
     title: 'Desenvolvedor Full Stack',
     yearsOfExperience: 6,
+    age: 29,
     location: 'Duque de Caxias, RJ, Brasil',
     email: 'wcacorreia1995@gmail.com',
+    driverLicense: 'AB',
     available: true,
     bio: [
       'Desde as lan houses da infância, onde comecei a trabalhar, até hoje, minha trajetória é marcada pela paixão por tecnologia e apoio a negócios com soluções de T.I., suporte técnico e automações. Atuei como autônomo, na empresa familiar de T.I. e em indústrias como gás e energia (Petrobras), tabaco (Philip Morris), jurídico e infraestrutura financeira crítica (Banco Central/Anbima/SELIC). Essa diversidade forjou minha versatilidade técnica e visão estratégica. Analítico e solucionador, identifico gargalos e crio automações que geram eficiência mensurável. Adapto-me com facilidade a grandes corporações ou contextos dinâmicos, destacando-me em soluções criativas sob pressão. Mais que executar, entendo contextos, proponho melhorias e entrego valor. Aprendo rápido, valorizo colaboração, gosto de ser útil e ajudar pessoas e busco desafios que unam inovação e impacto no negócio.'
