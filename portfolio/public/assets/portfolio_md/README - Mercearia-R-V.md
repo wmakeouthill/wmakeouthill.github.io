@@ -6,6 +6,33 @@ Um sistema completo de gestão de estoque e vendas para mercearias, com experiê
 
 O Mercearia R&V une uma UI moderna em Angular a um backend Spring Boot embutido e controlado pelo Electron. O aplicativo inicia o backend localmente, serve o frontend e garante que tudo esteja pronto antes de apresentar a interface ao usuário. O banco de dados é PostgreSQL embarcado, evitando dependências externas e facilitando instalações em máquinas simples.
 
+### Arquitetura do Sistema
+
+```mermaid
+graph TB
+    A[Electron App] --> B[Spring Boot Backend]
+    B --> C[PostgreSQL Database]
+    B --> D[Angular Frontend]
+    D --> E[Product Management]
+    D --> F[Sales Management]
+    D --> G[Stock Control]
+    D --> H[Reports & PDFs]
+    
+    subgraph "Desktop Environment"
+        A
+        B
+        C
+        D
+    end
+    
+    subgraph "Features"
+        E
+        F
+        G
+        H
+    end
+```
+
 ## 🏗️ Stack Tecnológica
 
 ### Backend (Spring Boot)

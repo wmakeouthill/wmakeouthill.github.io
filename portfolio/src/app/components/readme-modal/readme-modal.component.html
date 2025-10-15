@@ -1,0 +1,40 @@
+@if (isOpen) {
+<div class="modal-overlay" (click)="onOverlayClick($event)" (keydown)="onKeyDown($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2>{{ projectName }} - README</h2>
+      <div class="modal-controls">
+        <div class="zoom-controls">
+          <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
+          <span class="zoom-level">{{ markdownZoom * 100 | number : '1.0-0' }}%</span>
+          <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>
+          <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">↺</button>
+        </div>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body" (wheel)="onMouseWheel($event)" (keydown)="onKeyDown($event)">
+      @if (loadingReadme) {
+      <div class="loading-readme">
+        <div class="spinner"></div>
+        <p>Carregando README...</p>
+      </div>
+      } @else if (readmeContent) {
+      <div
+        class="markdown-content"
+        [style.transform]="'scale(' + markdownZoom + ')'"
+        [style.transform-origin]="'top left'"
+        [innerHTML]="sanitizer.bypassSecurityTrustHtml(readmeContent)"
+      ></div>
+      } @else {
+      <div class="no-readme">
+        <p>README não encontrado para este projeto.</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

@@ -37,17 +37,39 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.2MB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kB",
-                  "maximumError": "12kB"
+                  "maximumWarning": "15kB",
+                  "maximumError": "20kB"
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/"
+              "baseHref": "/",
+              "allowedCommonJsDependencies": [
+                "marked",
+                "mermaid",
+                "prismjs",
+                "prismjs/components/prism-java",
+                "prismjs/components/prism-typescript",
+                "prismjs/components/prism-javascript",
+                "prismjs/components/prism-bash",
+                "prismjs/components/prism-json",
+                "prismjs/components/prism-css",
+                "prismjs/components/prism-markup",
+                "cytoscape-fcose",
+                "@braintree/sanitize-url",
+                "dayjs",
+                "dayjs/plugin/isoWeek.js",
+                "dayjs/plugin/customParseFormat.js",
+                "dayjs/plugin/advancedFormat.js",
+                "cytoscape-cose-bilkent",
+                "debug",
+                "vscode-jsonrpc/lib/common/events.js",
+                "vscode-jsonrpc/lib/common/cancellation.js"
+              ]
             },
             "development": {
               "optimization": false,

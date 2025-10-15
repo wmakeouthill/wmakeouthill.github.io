@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubService } from '../../services/github.service';
-import { MarkdownService } from '../../services/markdown.service';
 import { GitHubRepository } from '../../models/interfaces';
+import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReadmeModalComponent],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -20,13 +20,9 @@ export class ProjectsComponent implements OnInit {
   // Modal properties
   showReadmeModal = false;
   currentProjectName = '';
-  readmeContent = '';
-  loadingReadme = false;
-  markdownZoom = 0.9; // Zoom padrão menor
 
   constructor(
-    private readonly githubService: GithubService,
-    private readonly markdownService: MarkdownService
+    private readonly githubService: GithubService
   ) { }
 
   ngOnInit() {
@@ -83,74 +79,11 @@ export class ProjectsComponent implements OnInit {
   openReadmeModal(projectName: string) {
     this.currentProjectName = projectName;
     this.showReadmeModal = true;
-    this.loadingReadme = true;
-    this.readmeContent = '';
-
-    this.markdownService.getReadmeContent(projectName).subscribe({
-      next: (content) => {
-        this.readmeContent = content;
-        this.loadingReadme = false;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar README:', error);
-        this.loadingReadme = false;
-      }
-    });
   }
 
   closeReadmeModal() {
     this.showReadmeModal = false;
     this.currentProjectName = '';
-    this.readmeContent = '';
-    this.loadingReadme = false;
-    this.markdownZoom = 0.9; // Reset zoom quando fecha
-  }
-
-  increaseZoom() {
-    if (this.markdownZoom < 1.5) {
-      this.markdownZoom += 0.1;
-    }
-  }
-
-  decreaseZoom() {
-    if (this.markdownZoom > 0.5) {
-      this.markdownZoom -= 0.1;
-    }
-  }
-
-  resetZoom() {
-    this.markdownZoom = 0.9;
-  }
-
-  onMouseWheel(event: WheelEvent) {
-    if (event.ctrlKey) {
-      event.preventDefault();
-      if (event.deltaY < 0) {
-        this.increaseZoom();
-      } else {
-        this.decreaseZoom();
-      }
-    }
-  }
-
-  onKeyDown(event: KeyboardEvent) {
-    if (event.ctrlKey) {
-      switch (event.key) {
-        case '=':
-        case '+':
-          event.preventDefault();
-          this.increaseZoom();
-          break;
-        case '-':
-          event.preventDefault();
-          this.decreaseZoom();
-          break;
-        case '0':
-          event.preventDefault();
-          this.resetZoom();
-          break;
-      }
-    }
   }
 
   getProjectImage(projectName: string): string {
