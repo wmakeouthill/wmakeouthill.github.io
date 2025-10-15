@@ -35,6 +35,8 @@ export class MarkdownService {
         const projectMappings: { [key: string]: string } = {
             'fazenda-inhouse': 'README - Fazenda inhouse.md',
             'lol-matchmaking': 'README - LOL Matchmaking.md',
+            'lol-matchmaking-fazenda': 'README - LOL Matchmaking.md',
+            'mercearia-r-v': 'README - Mercearia-R-V.md',
             // Adicione mais mapeamentos conforme necessário
         };
 

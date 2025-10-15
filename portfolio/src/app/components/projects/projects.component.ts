@@ -152,4 +152,14 @@ export class ProjectsComponent implements OnInit {
       }
     }
   }
+
+  getProjectImage(projectName: string): string {
+    // Mapear nomes de projetos para imagens locais
+    const imageMap: { [key: string]: string } = {
+      'LoL-Matchmaking-Fazenda': 'assets/portifolio_imgs/LoL-Matchmaking-Fazenda.png',
+      'Mercearia-R-V': 'assets/portifolio_imgs/Mercearia-R-V.png'
+    };
+
+    return imageMap[projectName] || `https://placehold.co/600x400/002E59/DBC27D?text=${projectName}`;
+  }
 }

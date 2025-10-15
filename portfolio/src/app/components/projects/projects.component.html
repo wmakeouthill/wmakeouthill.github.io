@@ -32,10 +32,7 @@
       @for (project of filteredProjects; track project.id) {
       <div class="project-card">
         <div class="project-image">
-          <img
-            [src]="'https://placehold.co/600x400/002E59/DBC27D?text=' + project.name"
-            [alt]="project.name"
-          />
+          <img [src]="getProjectImage(project.name)" [alt]="project.name" />
           <div class="project-overlay">
             <div class="project-links">
               <a
