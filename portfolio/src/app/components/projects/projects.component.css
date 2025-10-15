@@ -335,7 +335,7 @@
 .markdown-content {
   line-height: 1.6;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 16px;
   transition: transform 0.2s ease;
   min-width: fit-content;
 }
@@ -353,33 +353,57 @@
 }
 
 .markdown-content h1 {
-  font-size: 2rem;
+  font-size: 0.65rem;
   border-bottom: 2px solid var(--accent-color);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  margin-top: 1.3rem;
 }
 
 .markdown-content h2 {
-  font-size: 1.5rem;
+  font-size: 0.8rem;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.3rem;
+  margin-top: 1.2rem;
 }
 
 .markdown-content h3 {
-  font-size: 1.25rem;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.markdown-content h4 {
+  font-size: 0.85rem;
+  margin-top: 0.8rem;
+  font-weight: 600;
+}
+
+.markdown-content h5 {
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
+  font-weight: 600;
+}
+
+.markdown-content h6 {
+  font-size: 0.85rem;
+  margin-top: 0.7rem;
+  font-weight: 600;
 }
 
 .markdown-content p {
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.7;
 }
 
 .markdown-content ul,
 .markdown-content ol {
   margin-bottom: 1rem;
-  padding-left: 2rem;
+  padding-left: 1.5rem;
 }
 
 .markdown-content li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.6;
 }
 
 .markdown-content code {
@@ -406,6 +430,21 @@
   border: none;
   padding: 0;
   color: var(--text-primary);
+}
+
+/* Evitar que comentários em blocos de código sejam renderizados como títulos */
+.markdown-content pre h1,
+.markdown-content pre h2,
+.markdown-content pre h3,
+.markdown-content pre h4,
+.markdown-content pre h5,
+.markdown-content pre h6 {
+  font-size: inherit !important;
+  font-weight: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  color: var(--text-primary) !important;
 }
 
 .markdown-content strong {
@@ -516,14 +555,22 @@
   }
 
   .markdown-content {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .markdown-content h1 {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
   }
 
   .markdown-content h2 {
-    font-size: 1.25rem;
+    font-size: 1.05rem;
+  }
+
+  .markdown-content h3 {
+    font-size: 0.95rem;
+  }
+
+  .markdown-content h4 {
+    font-size: 0.9rem;
   }
 }

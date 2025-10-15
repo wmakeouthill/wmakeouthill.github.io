@@ -55,9 +55,13 @@ export class MarkdownService {
     }
 
     private parseMarkdown(content: string): string {
-        // Converter markdown básico para HTML
+        // Converter markdown básico para HTML de forma simples
         return content
+            // Code blocks primeiro
+            .replace(/```(\w+)?\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+
             // Headers
+            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
             .replace(/^# (.*$)/gim, '<h1>$1</h1>')
@@ -69,9 +73,6 @@ export class MarkdownService {
             // Italic
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/_(.*?)_/g, '<em>$1</em>')
-
-            // Code blocks
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
 
             // Inline code
             .replace(/`(.*?)`/g, '<code>$1</code>')
