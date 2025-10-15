@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-cv-modal',
@@ -14,6 +15,13 @@ export class CvModalComponent {
 
     pdfZoom = 1.0; // Zoom padrão
     cvPath = '/assets/curriculo/Wesley de Carvalho Augusto Correia - Currículo.pdf';
+    safeCvPath: SafeResourceUrl;
+
+    constructor(private readonly sanitizer: DomSanitizer) {
+        this.safeCvPath = this.sanitizer.bypassSecurityTrustResourceUrl(
+            this.cvPath + '#toolbar=0&navpanes=0&scrollbar=1&view=FitV'
+        );
+    }
 
     increaseZoom() {
         if (this.pdfZoom < 2.0) {
@@ -50,6 +58,7 @@ export class CvModalComponent {
     }
 
     onMouseWheel(event: WheelEvent) {
+        // Apenas zoom com Ctrl+scroll, sem interferir no scroll do PDF
         if (event.ctrlKey) {
             event.preventDefault();
             if (event.deltaY < 0) {
@@ -58,5 +67,6 @@ export class CvModalComponent {
                 this.decreaseZoom();
             }
         }
+        // Deixa o scroll normal passar para o iframe do PDF
     }
 }

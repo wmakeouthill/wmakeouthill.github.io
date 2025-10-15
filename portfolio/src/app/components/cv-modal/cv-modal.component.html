@@ -17,10 +17,10 @@
         <button class="close-btn" (click)="closeModal()">&times;</button>
       </div>
     </div>
-    <div class="modal-body" (wheel)="onMouseWheel($event)" (keydown)="onKeyDown($event)">
-      <div class="pdf-container">
+    <div class="modal-body" (keydown)="onKeyDown($event)">
+      <div class="pdf-container" (wheel)="onMouseWheel($event)">
         <iframe
-          [src]="cvPath + '#toolbar=1&navpanes=1&scrollbar=1'"
+          [src]="safeCvPath"
           class="pdf-viewer"
           [style.transform]="'scale(' + pdfZoom + ')'"
           [style.transform-origin]="'top left'"
@@ -28,7 +28,7 @@
           height="600px"
           title="Currículo PDF"
           type="application/pdf"
-          frameborder="0"
+          style="border: none"
         >
         </iframe>
       </div>
