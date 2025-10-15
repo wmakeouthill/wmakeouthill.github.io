@@ -8,90 +8,142 @@
     <!-- Filters -->
     <div class="filters">
       @for (lang of availableLanguages; track lang) {
-        <button 
-          class="filter-btn"
-          [class.active]="selectedFilter === lang"
-          (click)="filterProjects(lang)">
-          {{ lang === 'all' ? 'Todos' : lang }}
-        </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === lang"
+        (click)="filterProjects(lang)"
+      >
+        {{ lang === 'all' ? 'Todos' : lang }}
+      </button>
       }
     </div>
 
     <!-- Loading State -->
     @if (loading) {
-      <div class="loading-container">
-        <div class="spinner"></div>
-        <p>Carregando projetos...</p>
-      </div>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando projetos...</p>
+    </div>
     }
 
     <!-- Projects Grid -->
     @if (!loading && filteredProjects.length > 0) {
-      <div class="projects-grid">
-        @for (project of filteredProjects; track project.id) {
-          <div class="project-card">
-            <div class="project-image">
-              <img [src]="'https://placehold.co/600x400/002E59/DBC27D?text=' + project.name" 
-                   [alt]="project.name">
-              <div class="project-overlay">
-                <div class="project-links">
-                  <a [href]="project.html_url" target="_blank" 
-                     rel="noopener noreferrer" class="project-link">
-                    🔗 GitHub
-                  </a>
-                  @if (project.homepage) {
-                    <a [href]="project.homepage" target="_blank" 
-                       rel="noopener noreferrer" class="project-link">
-                      🚀 Demo
-                    </a>
-                  }
-                </div>
-              </div>
-            </div>
-
-            <div class="project-content">
-              <h3 class="project-title">{{ project.name }}</h3>
-              <p class="project-description">
-                {{ project.description || 'Sem descrição disponível' }}
-              </p>
-
-              <div class="project-footer">
-                <div class="project-stats">
-                  <span class="stat">⭐ {{ project.stargazers_count }}</span>
-                  <span class="stat">🔱 {{ project.forks_count }}</span>
-                </div>
-
-                @if (project.language) {
-                  <span class="language-badge">{{ project.language }}</span>
-                }
-              </div>
-
-              @if (project.topics && project.topics.length > 0) {
-                <div class="project-topics">
-                  @for (topic of project.topics.slice(0, 3); track topic) {
-                    <span class="topic-tag">{{ topic }}</span>
-                  }
-                </div>
+    <div class="projects-grid">
+      @for (project of filteredProjects; track project.id) {
+      <div class="project-card">
+        <div class="project-image">
+          <img
+            [src]="'https://placehold.co/600x400/002E59/DBC27D?text=' + project.name"
+            [alt]="project.name"
+          />
+          <div class="project-overlay">
+            <div class="project-links">
+              <a
+                [href]="project.html_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link"
+              >
+                🔗 GitHub
+              </a>
+              @if (project.homepage) {
+              <a
+                [href]="project.homepage"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link"
+              >
+                🚀 Demo
+              </a>
               }
+              <button (click)="openReadmeModal(project.name)" class="project-link readme-btn">
+                📖 README
+              </button>
             </div>
           </div>
-        }
-      </div>
-
-      @if (hasMore) {
-        <div class="load-more">
-          <button class="btn btn-outline" (click)="loadMore()">
-            Carregar Mais Projetos
-          </button>
         </div>
+
+        <div class="project-content">
+          <h3 class="project-title">{{ project.name }}</h3>
+          <p class="project-description">
+            {{ project.description || 'Sem descrição disponível' }}
+          </p>
+
+          <div class="project-footer">
+            <div class="project-stats">
+              <span class="stat">⭐ {{ project.stargazers_count }}</span>
+              <span class="stat">🔱 {{ project.forks_count }}</span>
+            </div>
+
+            @if (project.language) {
+            <span class="language-badge">{{ project.language }}</span>
+            }
+          </div>
+
+          @if (project.topics && project.topics.length > 0) {
+          <div class="project-topics">
+            @for (topic of project.topics.slice(0, 3); track topic) {
+            <span class="topic-tag">{{ topic }}</span>
+            }
+          </div>
+          }
+        </div>
+      </div>
       }
-    }
+    </div>
+
+    @if (hasMore) {
+    <div class="load-more">
+      <button class="btn btn-outline" (click)="loadMore()">Carregar Mais Projetos</button>
+    </div>
+    } }
 
     <!-- Empty State -->
     @if (!loading && filteredProjects.length === 0) {
-      <div class="empty-state">
-        <p>Nenhum projeto encontrado para este filtro.</p>
-      </div>
+    <div class="empty-state">
+      <p>Nenhum projeto encontrado para este filtro.</p>
+    </div>
     }
   </div>
+
+  <!-- README Modal -->
+  @if (showReadmeModal) {
+  <div class="modal-overlay" (click)="closeReadmeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ currentProjectName }} - README</h2>
+        <div class="modal-controls">
+          <div class="zoom-controls">
+            <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
+            <span class="zoom-level">{{ markdownZoom * 100 | number : '1.0-0' }}%</span>
+            <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>
+            <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">
+              ↺
+            </button>
+          </div>
+          <button class="close-btn" (click)="closeReadmeModal()">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body" (wheel)="onMouseWheel($event)" (keydown)="onKeyDown($event)">
+        @if (loadingReadme) {
+        <div class="loading-readme">
+          <div class="spinner"></div>
+          <p>Carregando README...</p>
+        </div>
+        } @else if (readmeContent) {
+        <div
+          class="markdown-content"
+          [style.transform]="'scale(' + markdownZoom + ')'"
+          [style.transform-origin]="'top left'"
+          [innerHTML]="readmeContent"
+        ></div>
+        } @else {
+        <div class="no-readme">
+          <p>README não encontrado para este projeto.</p>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
 </section>
