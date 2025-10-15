@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CvModalComponent } from '../cv-modal/cv-modal.component';
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CvModalComponent],
   templateUrl: './hero.component.html',
   styleUrl: './hero.component.css'
 })
@@ -15,6 +16,9 @@ export class HeroComponent implements OnInit, OnDestroy {
   typingSpeed = 100;
   private typingInterval: any;
   private loopInterval: any;
+
+  // Modal CV properties
+  showCvModal = false;
 
   ngOnInit() {
     // inicia a primeira execução imediatamente
@@ -69,9 +73,11 @@ export class HeroComponent implements OnInit, OnDestroy {
     }
   }
 
-  downloadCV() {
-    // Implementar download do CV
-    console.log('Download CV');
-    alert('Funcionalidade de download do CV será implementada em breve!');
+  openCvModal() {
+    this.showCvModal = true;
+  }
+
+  closeCvModal() {
+    this.showCvModal = false;
   }
 }

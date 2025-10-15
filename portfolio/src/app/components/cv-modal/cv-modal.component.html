@@ -1,0 +1,38 @@
+@if (isOpen) {
+<div class="modal-overlay" (click)="closeModal()" (keydown)="onKeyDown($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
+    <div class="modal-header">
+      <h2>Meu Currículo</h2>
+      <div class="modal-controls">
+        <div class="zoom-controls">
+          <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
+          <span class="zoom-level">{{ pdfZoom * 100 | number : '1.0-0' }}%</span>
+          <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>
+          <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">↺</button>
+        </div>
+        <button class="download-btn" (click)="downloadCV()" title="Baixar currículo">
+          <span>⬇</span>
+          <span>Download</span>
+        </button>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body" (wheel)="onMouseWheel($event)" (keydown)="onKeyDown($event)">
+      <div class="pdf-container">
+        <iframe
+          [src]="cvPath + '#toolbar=1&navpanes=1&scrollbar=1'"
+          class="pdf-viewer"
+          [style.transform]="'scale(' + pdfZoom + ')'"
+          [style.transform-origin]="'top left'"
+          width="100%"
+          height="600px"
+          title="Currículo PDF"
+          type="application/pdf"
+          frameborder="0"
+        >
+        </iframe>
+      </div>
+    </div>
+  </div>
+</div>
+}

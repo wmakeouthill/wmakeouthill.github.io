@@ -7,9 +7,7 @@
   <div class="hero-content container">
     <div class="hero-text fade-in-up">
       <p class="hero-greeting">Olá, eu sou</p>
-      <h1 class="hero-name">
-        <span class="text-accent">Wesley</span> de Carvalho Augusto Correia
-      </h1>
+      <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
 
       <div class="hero-title">
         <span class="typing-text">{{ displayedText }}</span>
@@ -17,8 +15,8 @@
       </div>
 
       <p class="hero-tagline">
-        Transformando ideias em código. Criando experiências digitais incríveis
-        com tecnologias modernas e design elegante.
+        Transformando ideias em código. Criando experiências digitais incríveis com tecnologias
+        modernas e design elegante.
       </p>
 
       <div class="hero-cta">
@@ -26,9 +24,9 @@
           <span>Ver Projetos</span>
           <span class="btn-icon">→</span>
         </button>
-        <button class="btn btn-outline" (click)="downloadCV()">
-          <span>Download CV</span>
-          <span class="btn-icon">⬇</span>
+        <button class="btn btn-outline" (click)="openCvModal()">
+          <span>Meu Currículo</span>
+          <span class="btn-icon">📄</span>
         </button>
         <button class="btn btn-outline" (click)="scrollToSection('contact')">
           <span>Entre em Contato</span>
@@ -54,26 +52,44 @@
         <!-- Scroll indicator inline (visível em telas maiores) - removido daqui para evitar duplicação -->
       </div>
     </div>
-    
+
     <div class="hero-image fade-in-right">
       <div class="image-wrapper">
         <div class="image-glow"></div>
-     <img src="/wesley-photo.png" 
-       alt="Profile" class="profile-image">
+        <img src="/wesley-photo.png" alt="Profile" class="profile-image" />
         <div class="image-decoration"></div>
       </div>
     </div>
     <!-- indicador inline agora posicionado após a imagem para não afetar o layout da mesma -->
     <div class="hero-scroll-row">
-      <div class="scroll-indicator-inline" (click)="scrollToSection('about')">
+      <div
+        class="scroll-indicator-inline"
+        (click)="scrollToSection('about')"
+        (keydown.enter)="scrollToSection('about')"
+        (keydown.space)="scrollToSection('about')"
+        tabindex="0"
+        role="button"
+        aria-label="Scroll para seção sobre"
+      >
         <span class="scroll-text">Scroll</span>
         <div class="scroll-arrow">↓</div>
       </div>
     </div>
   </div>
 
-  <div class="scroll-indicator" (click)="scrollToSection('about')">
+  <div
+    class="scroll-indicator"
+    (click)="scrollToSection('about')"
+    (keydown.enter)="scrollToSection('about')"
+    (keydown.space)="scrollToSection('about')"
+    tabindex="0"
+    role="button"
+    aria-label="Scroll para seção sobre"
+  >
     <span class="scroll-text">Scroll</span>
     <div class="scroll-arrow">↓</div>
   </div>
 </section>
+
+<!-- CV Modal -->
+<app-cv-modal [isOpen]="showCvModal" (close)="closeCvModal()"></app-cv-modal>

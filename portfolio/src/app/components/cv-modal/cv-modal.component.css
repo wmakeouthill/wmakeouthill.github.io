@@ -1,0 +1,251 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 4.5rem 1rem 1rem 1rem;
+}
+
+/* Modal Content */
+.modal-content {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  max-height: 82vh;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  margin-top: 2rem;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Modal Controls */
+.modal-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-primary);
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.zoom-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  background: var(--color-accent-dark);
+  transform: scale(1.05);
+}
+
+.zoom-btn.reset-zoom {
+  background: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.zoom-btn.reset-zoom:hover {
+  background: var(--text-secondary);
+}
+
+.zoom-level {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 3rem;
+  text-align: center;
+}
+
+/* Download Button */
+.download-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-btn:hover {
+  background: var(--color-accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(219, 194, 125, 0.3);
+}
+
+/* Close Button */
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Modal Body */
+.modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+  position: relative;
+  background: #f8f9fa;
+}
+
+/* PDF Container */
+.pdf-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* PDF Viewer */
+.pdf-viewer {
+  border: none;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+  min-width: fit-content;
+  background: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 3rem 0.5rem 0.5rem 0.5rem;
+  }
+
+  .modal-content {
+    max-width: 98vw;
+    max-height: 82vh;
+    margin-top: 1rem;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .zoom-controls {
+    padding: 0.3rem;
+    gap: 0.3rem;
+  }
+
+  .zoom-btn {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.9rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .pdf-viewer {
+    height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-controls {
+    justify-content: space-between;
+    flex-direction: row;
+  }
+
+  .zoom-controls {
+    order: 1;
+  }
+
+  .download-btn {
+    order: 2;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .close-btn {
+    order: 3;
+  }
+}
