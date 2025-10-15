@@ -24,10 +24,10 @@ export class AboutComponent {
   };
 
   highlights = [
-    { icon: '💼', title: 'Experiência', value: 'Experiência em TI e Governança' },
-    { icon: '🎓', title: 'Formação', value: 'Direito, Pós-graduações e Ciências da Computação (em andamento)' },
-    { icon: '🚀', title: 'Projetos', value: 'Automação e Modernização de Sistemas' },
-    { icon: '✅', title: 'Status', value: 'Disponível' }
+    { icon: '💼', title: 'Experiência', value: 'Experiência em TI com suporte, desenvolvimento e Governança. Além de experiências administrativas e de backoffice.' },
+    { icon: '🎓', title: 'Formação', value: 'Graduado em Direito. Cursando Pós-graduação em Desenvolvimento FullStack Java, MBA em Gestão de Projetos e cursando Ciências da Computação (em andamento)' },
+    { icon: '🚀', title: 'Projetos', value: 'Automação e Modernização de Sistemas e desenvolvimento fullstack de aplicações.' },
+    { icon: '✅', title: 'Status', value: 'Disponível para oportunidades!' }
   ];
 
   softSkills = [
