@@ -1268,7 +1268,22 @@ export class MarkdownService {
 
         const svgClone = generatedSvg.cloneNode(true) as SVGSVGElement;
 
-        // Aplicar estilos responsivos e otimizados
+        // Tentar calcular bounding box do SVG gerado (usa o elemento original que está no DOM)
+        try {
+          // getBBox() funciona melhor no elemento SVG presente no DOM (generatedSvg)
+          const bbox = (generatedSvg as unknown as SVGGraphicsElement).getBBox();
+          if (bbox && bbox.width && bbox.height) {
+            svgClone.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+          }
+        } catch (e) {
+          // Se não for possível calcular, manter o viewBox existente (se houver)
+          console.warn('Não foi possível calcular bbox do SVG (renderMermaidToSvg):', e);
+        }
+
+        // Remover dimensões fixas se existirem e garantir comportamento responsivo
+        svgClone.removeAttribute('width');
+        svgClone.removeAttribute('height');
+        svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         svgClone.style.cssText = `
           max-width: 100% !important;
           height: auto !important;
@@ -1277,17 +1292,7 @@ export class MarkdownService {
           width: 100% !important;
         `;
 
-        // Configurar viewBox para responsividade
-        const viewBox = svgClone.getAttribute('viewBox');
-        if (viewBox) {
-          svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        }
-
-        // Remover dimensões fixas se existirem
-        svgClone.removeAttribute('width');
-        svgClone.removeAttribute('height');
-
-        const svgHtml = svgClone.outerHTML;
+  const svgHtml = svgClone.outerHTML;
         console.log(`📋 SVG HTML gerado para ${diagramId}:`, svgHtml.length + ' caracteres');
 
         // Salvar no cache ANTES de limpar (com timestamp)
@@ -1604,6 +1609,20 @@ export class MarkdownService {
 
         // Clonar o SVG e aplicar estilos
         const svgClone = generatedSvg.cloneNode(true) as SVGSVGElement;
+
+        // Tentar calcular bbox a partir do elemento gerado (que está no hiddenContainer no DOM)
+        try {
+          const bbox = (generatedSvg as unknown as SVGGraphicsElement).getBBox();
+          if (bbox && bbox.width && bbox.height) {
+            svgClone.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+          }
+        } catch (e) {
+          console.warn('Não foi possível calcular bbox do SVG (renderSingleMermaidDiagram):', e);
+        }
+
+        svgClone.removeAttribute('width');
+        svgClone.removeAttribute('height');
+        svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         svgClone.style.cssText = `
           max-width: 100% !important;
           height: auto !important;
