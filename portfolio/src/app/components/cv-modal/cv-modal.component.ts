@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 
 @Component({
     selector: 'app-cv-modal',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, PdfViewerComponent],
     templateUrl: './cv-modal.component.html',
     styleUrl: './cv-modal.component.css'
 })
@@ -13,15 +13,10 @@ export class CvModalComponent {
     @Input() isOpen = false;
     @Output() close = new EventEmitter<void>();
 
-    pdfZoom = 1.0; // Zoom padrão
+    // pdfZoom = 1.0 significa 100%.
+    pdfZoom = 1.0; // Zoom padrão (1.0 = 100%)
     cvPath = '/assets/curriculo/Wesley de Carvalho Augusto Correia - Currículo.pdf';
-    safeCvPath: SafeResourceUrl;
-
-    constructor(private readonly sanitizer: DomSanitizer) {
-        this.safeCvPath = this.sanitizer.bypassSecurityTrustResourceUrl(
-            this.cvPath + '#toolbar=0&navpanes=0&scrollbar=1&view=FitV'
-        );
-    }
+    
 
     increaseZoom() {
         if (this.pdfZoom < 2.0) {
@@ -69,4 +64,6 @@ export class CvModalComponent {
         }
         // Deixa o scroll normal passar para o iframe do PDF
     }
+
+    // O PdfViewerComponent gerencia carregamento e renderização sem necessidade de rebuild do URL.
 }

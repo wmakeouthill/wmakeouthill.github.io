@@ -162,7 +162,11 @@
 .pdf-container {
   width: 100%;
   flex: 1;
-  overflow: hidden;
+  /* permitir scroll do viewer e centralizar horizontalmente */
+  display: flex;
+  align-items: flex-start; /* colado sob o header */
+  justify-content: center; /* centraliza horizontalmente */
+  overflow: auto;
   background: white;
   border-radius: 0 0 8px 8px;
   margin: 0;

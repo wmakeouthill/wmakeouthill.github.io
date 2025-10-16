@@ -1,0 +1,8 @@
+<div #root class="pdf-viewer-root">
+  <div class="pdf-viewer-frame">
+    <canvas #canvas class="pdf-canvas"></canvas>
+    <div class="pdf-loading" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>

@@ -6,7 +6,7 @@
       <div class="modal-controls">
         <div class="zoom-controls">
           <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
-          <span class="zoom-level">{{ pdfZoom * 100 | number : '1.0-0' }}%</span>
+          <span class="zoom-level">{{ (pdfZoom === 1) ? 'Auto' : (pdfZoom * 100 | number : '1.0-0') + '%' }}</span>
           <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>
           <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">↺</button>
         </div>
@@ -19,18 +19,7 @@
     </div>
     <div class="modal-body" (keydown)="onKeyDown($event)">
       <div class="pdf-container" (wheel)="onMouseWheel($event)">
-        <iframe
-          [src]="safeCvPath"
-          class="pdf-viewer"
-          [style.transform]="'scale(' + pdfZoom + ')'"
-          [style.transform-origin]="'top left'"
-          width="100%"
-          height="600px"
-          title="Currículo PDF"
-          type="application/pdf"
-          style="border: none"
-        >
-        </iframe>
+        <app-pdf-viewer [src]="cvPath" [zoom]="pdfZoom"></app-pdf-viewer>
       </div>
     </div>
   </div>

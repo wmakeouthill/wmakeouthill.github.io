@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+  "postinstall": "mkdir -p public/assets && cp ./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ./public/assets/pdf.worker.min.mjs || true",
     "start:network": "ng serve --host 0.0.0.0 --port 4200",
     "start:local": "ng serve --host localhost --port 4200",
     "build": "ng build",
@@ -24,6 +25,7 @@
   },
   "private": true,
   "dependencies": {
+  "pdfjs-dist": "^4.0.0",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
