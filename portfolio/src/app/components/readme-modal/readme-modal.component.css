@@ -99,7 +99,7 @@
 .modal-header h2 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 1.5rem;
+  font-size: calc(var(--md-scale) * 1.5rem);
   font-weight: 600;
 }
 
@@ -247,6 +247,13 @@
   position: relative;
   /* Garantir que não há espaços extras */
   box-sizing: border-box;
+  /* Melhorias para transforms (especialmente no Firefox) */
+  transform-box: fill-box;
+  will-change: transform;
+  /* Variável para escala no Firefox: base 1 -> 100% */
+  --md-scale: 1;
+  /* Base font-size em px que será multiplicada por --md-scale (Firefox usa essa variável) */
+  font-size: calc(var(--md-scale) * 16px);
 }
 
 /* Garantir que o último elemento não tenha espaços extras */
@@ -324,7 +331,7 @@
 .markdown-content .mermaid-diagram::before {
   content: "📊 Diagrama de Fluxo";
   display: block;
-  font-size: 0.9rem;
+  font-size: calc(var(--md-scale) * 0.9rem);
   font-weight: 600;
   color: var(--color-accent);
   margin-bottom: 1rem;
@@ -417,53 +424,16 @@
   color: #ff6b6b;
 }
 
+/* Tipografia baseada em --md-scale para forçar reflow no Firefox */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  margin-top: calc(var(--md-scale) * 1.25rem);
+  margin-bottom: calc(var(--md-scale) * 0.75rem);
   color: var(--text-primary);
-  font-weight: 600;
-}
-
-.markdown-content h1 {
-  font-size: 2rem;
-  border-bottom: 2px solid var(--accent-color);
-  padding-bottom: 0.4rem;
-  margin-top: 1.3rem;
-}
-
-.markdown-content h2 {
-  font-size: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.3rem;
-  margin-top: 1.2rem;
-}
-
-.markdown-content h3 {
-  font-size: 1.25rem;
-  margin-top: 1rem;
-  font-weight: 600;
-}
-
-.markdown-content h4 {
-  font-size: 1.1rem;
-  margin-top: 0.8rem;
-  font-weight: 600;
-}
-
-.markdown-content h5 {
-  font-size: 1rem;
-  margin-top: 0.8rem;
-  font-weight: 600;
-}
-
-.markdown-content h6 {
-  font-size: 0.9rem;
-  margin-top: 0.7rem;
   font-weight: 600;
 }
 
@@ -500,7 +470,7 @@
 }
 
 .markdown-content a {
-  color: var(--accent-color);
+  margin-bottom: calc(var(--md-scale) * 0.8rem);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-bottom 0.2s ease;
@@ -519,26 +489,22 @@
 }
 
 /* Table Styles */
-.markdown-content table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 1rem 0;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  overflow: hidden;
+.markdown-content h1 {
+  font-size: calc(var(--md-scale) * 2rem);
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: calc(var(--md-scale) * 0.4rem);
+  margin-top: calc(var(--md-scale) * 1.3rem);
 }
-
-.markdown-content th,
-.markdown-content td {
-  border: 1px solid var(--border-color);
-  padding: 0.75rem;
-  text-align: left;
+.markdown-content h2 {
+  font-size: calc(var(--md-scale) * 1.5rem);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: calc(var(--md-scale) * 0.3rem);
+  margin-top: calc(var(--md-scale) * 1.2rem);
 }
-
-.markdown-content th {
-  background: var(--bg-primary);
+.markdown-content h3 {
+  font-size: calc(var(--md-scale) * 1.25rem);
+  margin-top: calc(var(--md-scale) * 1rem);
   font-weight: 600;
-  color: var(--color-accent);
 }
 
 .markdown-content tr:nth-child(even) {
@@ -573,7 +539,7 @@
 }
 
 .code-language {
-  font-size: 0.875rem;
+  font-size: calc(var(--md-scale) * 0.875rem);
   font-weight: 600;
   color: #DBC27D;
   text-transform: uppercase;
@@ -631,7 +597,7 @@
   }
 
   .modal-header h2 {
-    font-size: 1.25rem;
+    font-size: calc(var(--md-scale) * 1.25rem);
   }
 
   .modal-controls {
@@ -654,23 +620,23 @@
     padding: 1.5rem;
   }
 
-  .markdown-content {
-    font-size: 14px;
+  .markdown-content p {
+    margin-bottom: calc(var(--md-scale) * 0.8rem);
+    line-height: 1.7;
   }
 
-  .markdown-content h1 {
-    font-size: 1.15rem;
+  .markdown-content p:last-child {
+    margin-bottom: 0 !important;
   }
-
   .markdown-content h2 {
-    font-size: 1.05rem;
+    font-size: calc(var(--md-scale) * 1.05rem);
   }
 
   .markdown-content h3 {
-    font-size: 0.95rem;
+    font-size: calc(var(--md-scale) * 0.95rem);
   }
 
   .markdown-content h4 {
-    font-size: 0.9rem;
+    font-size: calc(var(--md-scale) * 0.9rem);
   }
 }

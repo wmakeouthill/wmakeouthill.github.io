@@ -575,3 +575,36 @@ a:hover {
   background: var(--color-accent);
   color: var(--color-dark);
 }
+
+/* Forçar títulos e elementos dentro de markdown-content a escalar com --md-scale
+   Isso tem prioridade global para evitar que regras locais com menor especificidade
+   imutabilizem os títulos quando injetados via innerHTML. */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  /* Usar calc com --md-scale para forçar reflow no Firefox */
+  font-size: calc(var(--md-scale, 1) * 1rem) !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+/* Escalas mais finas para headings maiores */
+.markdown-content h1 { font-size: calc(var(--md-scale, 1) * 2rem) !important; }
+.markdown-content h2 { font-size: calc(var(--md-scale, 1) * 1.5rem) !important; }
+.markdown-content h3 { font-size: calc(var(--md-scale, 1) * 1.25rem) !important; }
+.markdown-content h4 { font-size: calc(var(--md-scale, 1) * 1.05rem) !important; }
+.markdown-content h5 { font-size: calc(var(--md-scale, 1) * 0.95rem) !important; }
+.markdown-content h6 { font-size: calc(var(--md-scale, 1) * 0.9rem) !important; }
+
+/* Mermaid title inserted inline previously — sobrescrever inline styles */
+.mermaid-title {
+  font-size: calc(var(--md-scale, 1) * 0.9rem) !important;
+  font-weight: 600 !important;
+  color: var(--color-accent) !important;
+  margin-bottom: calc(var(--md-scale, 1) * 0.5rem) !important;
+  text-align: center !important;
+}

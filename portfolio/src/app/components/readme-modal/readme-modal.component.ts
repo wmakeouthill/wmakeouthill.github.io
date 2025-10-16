@@ -18,7 +18,8 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
 
   readmeContent: string = '';
   loadingReadme = false;
-  markdownZoom = 0.9;
+  // usar 1.0 como zoom padrão (100%)
+  markdownZoom = 1.0;
 
   constructor(
     private readonly markdownService: MarkdownService,
@@ -26,6 +27,17 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
     private readonly elementRef: ElementRef,
     private readonly renderer: Renderer2
   ) { }
+
+  // Detectar se o navegador é Firefox (uso para fallback de zoom)
+  isFirefox = false;
+
+  ngAfterViewInit() {
+    try {
+      this.isFirefox = /firefox/i.test(navigator.userAgent);
+    } catch (e) {
+      this.isFirefox = false;
+    }
+  }
 
   ngOnInit() {
     // Não carregar aqui, apenas no ngOnChanges
@@ -86,11 +98,7 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
   }
 
   private calculateExactHeight(modalBody: HTMLElement, markdownContent: HTMLElement) {
-    console.log('📏 Calculando altura exata do conteúdo...');
-
-    // Obter todas as informações necessárias
-    const modalBodyRect = modalBody.getBoundingClientRect();
-    const markdownRect = markdownContent.getBoundingClientRect();
+    console.log('📏 Calculando altura exata do conteúdo (usando medidas não escaladas)...');
 
     // Encontrar o último elemento com conteúdo real
     const lastElement = this.findLastElementWithContent(markdownContent);
@@ -100,39 +108,57 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const lastElementRect = lastElement.getBoundingClientRect();
+    // Usar medidas não escaladas (offsetTop/offsetHeight) que refletem o layout original
+    const unscaledLastBottom = (lastElement as HTMLElement).offsetTop + (lastElement as HTMLElement).offsetHeight;
+    const padding = 10; // pequena folga para evitar cortar conteúdo
 
-    console.log('📊 Informações dos elementos:');
-    console.log(`  - Modal body top: ${modalBodyRect.top}px`);
-    console.log(`  - Markdown content top: ${markdownRect.top}px`);
-    console.log(`  - Last element bottom: ${lastElementRect.bottom}px`);
+    // Aplicar o fator de zoom ao valor não escalado para obter a altura final
+    const finalHeight = Math.ceil(unscaledLastBottom * this.markdownZoom) + padding;
+
+    console.log('📏 Altura calculada (não escalada -> escalada):');
+    console.log(`  - Altura não escalada do conteúdo: ${unscaledLastBottom}px`);
     console.log(`  - Scale: ${this.markdownZoom}`);
+    console.log(`  - Altura final aplicada: ${finalHeight}px`);
+    console.log(`  - Altura atual do modal-body (scrollHeight): ${modalBody.scrollHeight}px`);
 
-    // Calcular a altura necessária baseada na posição do último elemento
-    // Como o scale é aplicado ao markdown-content, precisamos considerar isso
-    const contentTop = markdownRect.top;
-    const contentBottom = lastElementRect.bottom;
-    const actualContentHeight = contentBottom - contentTop;
-
-    // Adicionar apenas uma pequena margem (10px) para evitar scroll desnecessário
-    const finalHeight = actualContentHeight + 10;
-
-    console.log(`📏 Altura calculada:`);
-    console.log(`  - Altura real do conteúdo: ${actualContentHeight}px`);
-    console.log(`  - Altura final com margem: ${finalHeight}px`);
-    console.log(`  - Altura atual do modal-body: ${modalBody.scrollHeight}px`);
-
-    // Aplicar a altura calculada se for menor que a atual
+    // Aplicar a altura calculada somente se reduzir o espaço desnecessário
     if (finalHeight < modalBody.scrollHeight) {
       console.log(`🔧 Aplicando altura máxima: ${finalHeight}px`);
       this.renderer.setStyle(modalBody, 'max-height', `${finalHeight}px`);
       this.renderer.setStyle(modalBody, 'height', `${finalHeight}px`);
-
-      // Forçar o scroll para o topo para garantir que não há scroll desnecessário
-      modalBody.scrollTop = 0;
+      // Não forçar scrollTop para evitar pular para o topo; posição será preservada externamente
     } else {
-      console.log(`✅ Altura atual já está correta`);
+      console.log('✅ Altura atual já está correta');
     }
+  }
+
+  // Helper para preservar scroll proporcionalmente ao aplicar uma mudança (por ex. alterar zoom)
+  private preserveScrollAndApply(changeFn: () => void) {
+    const modalBody = this.elementRef.nativeElement.querySelector('.modal-body') as HTMLElement;
+    if (!modalBody) {
+      changeFn();
+      // aplicar correção após mudança
+      setTimeout(() => this.fixScrollHeight(), 50);
+      return;
+    }
+
+    const maxScrollBefore = Math.max(0, modalBody.scrollHeight - modalBody.clientHeight);
+    const ratio = maxScrollBefore > 0 ? modalBody.scrollTop / maxScrollBefore : 0;
+
+    // Aplicar a mudança (ex.: alterar markdownZoom)
+    changeFn();
+
+    // Após o DOM reagir ao zoom, recalcular alturas e restaurar posição proporcional
+    setTimeout(() => {
+      this.fixScrollHeight();
+
+      // pequena espera para que scrollHeight se estabilize
+      setTimeout(() => {
+        const maxScrollAfter = Math.max(0, modalBody.scrollHeight - modalBody.clientHeight);
+        const newScrollTop = Math.round(ratio * maxScrollAfter);
+        modalBody.scrollTop = newScrollTop;
+      }, 80);
+    }, 80);
   }
 
   private findLastElementWithContent(container: HTMLElement): HTMLElement | null {
@@ -254,30 +280,18 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
 
   increaseZoom() {
     if (this.markdownZoom < 1.5) {
-      this.markdownZoom += 0.1;
-      // Corrigir scroll após mudança de zoom
-      setTimeout(() => {
-        this.fixScrollHeight();
-      }, 50);
+      this.preserveScrollAndApply(() => { this.markdownZoom = Math.round((this.markdownZoom + 0.1) * 10) / 10; });
     }
   }
 
   decreaseZoom() {
     if (this.markdownZoom > 0.5) {
-      this.markdownZoom -= 0.1;
-      // Corrigir scroll após mudança de zoom
-      setTimeout(() => {
-        this.fixScrollHeight();
-      }, 50);
+      this.preserveScrollAndApply(() => { this.markdownZoom = Math.round((this.markdownZoom - 0.1) * 10) / 10; });
     }
   }
 
   resetZoom() {
-    this.markdownZoom = 0.9;
-    // Corrigir scroll após reset de zoom
-    setTimeout(() => {
-      this.fixScrollHeight();
-    }, 50);
+    this.preserveScrollAndApply(() => { this.markdownZoom = 1.0; });
   }
 
   onMouseWheel(event: WheelEvent) {

@@ -30,10 +30,10 @@
       } @else if (readmeContent) {
       <div
         class="markdown-content"
-        [style.transform]="'scale(' + markdownZoom + ')'"
-        [style.transform-origin]="'top left'"
         [innerHTML]="sanitizer.bypassSecurityTrustHtml(readmeContent)"
-      ></div>
+        [style.--md-scale]="markdownZoom"
+        [ngStyle]="isFirefox ? {'width': '100%'} : {'zoom': markdownZoom}">
+      </div>
       } @else {
       <div class="no-readme">
         <p>README não encontrado para este projeto.</p>
