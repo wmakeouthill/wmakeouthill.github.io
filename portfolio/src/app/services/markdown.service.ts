@@ -308,12 +308,14 @@ export class MarkdownService {
           .replace(/&#x27;/g, "'")
           .replace(/&nbsp;/g, ' ');
 
-        return `<div class="code-block">
-                    <div class="code-header">
-                        <span class="code-language">text</span>
-                        <button class="copy-code-btn" onclick="navigator.clipboard.writeText('${cleanCode.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">📋</button>
+        console.log(`Encontrado code block: text (sem linguagem)`);
+
+        return `<div class="code-block" style="margin: 1.5rem 0 !important; background: #2a2a2a !important; border-radius: 8px !important; overflow: hidden !important; border: 1px solid #333 !important; font-family: 'Courier New', monospace !important;">
+                    <div class="code-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 0.75rem 1rem !important; background: #1a1a1a !important; border-bottom: 1px solid #333 !important;">
+                        <span class="code-language" style="font-size: 0.875rem !important; font-weight: 600 !important; color: #DBC27D !important; text-transform: uppercase !important;">text</span>
+                        <button class="copy-code-btn" onclick="navigator.clipboard.writeText('${cleanCode.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="background: none !important; border: 1px solid #333 !important; color: #ccc !important; padding: 0.25rem 0.5rem !important; border-radius: 4px !important; cursor: pointer !important; font-size: 0.75rem !important;">📋</button>
                     </div>
-                    <pre><code>${cleanCode}</code></pre>
+                    <pre style="margin: 0 !important; padding: 1rem !important; overflow-x: auto !important; background: transparent !important; border: none !important;"><code style="background: none !important; padding: 0 !important; border: none !important; font-family: inherit !important; font-size: 0.9rem !important; line-height: 1.5 !important; color: #d4d4d4 !important;">${cleanCode}</code></pre>
                 </div>`;
       });
 
