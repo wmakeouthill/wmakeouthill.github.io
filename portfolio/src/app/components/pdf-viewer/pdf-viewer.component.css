@@ -5,7 +5,7 @@
 	align-items:flex-start; /* colado ao topo do container */
 	justify-content:center; /* centra horizontalmente dentro do modal */
 	overflow:auto; /* permite scroll vertical */
-	background: #e6e9ee; /* cinza suave por trás do PDF */
+	background: transparent; /* fundo transparente */
 	padding: 0; /* remove padding que causava border visual */
 }
 .pdf-viewer-frame{

@@ -42,11 +42,11 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     // (por exemplo em ambientes estranhos), faremos fallback para CDN unpkg.
     try {
       // Import dinâmico ESM — evita problemas com 'require' em bundlers modernos
-  // @ts-ignore: import dinâmica de caminho interno do pdfjs (resolvido em tempo de execução)
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf');
+      // @ts-ignore: import dinâmica de caminho interno do pdfjs (resolvido em tempo de execução)
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf');
       // define worker local (deve existir em public/assets — postinstall tenta copiar)
-  // @ts-ignore
-  pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
+      // @ts-ignore
+      pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
 
       const loadingTask = (pdfjs as any).getDocument(this.src);
       this.pdf = await loadingTask.promise;
@@ -63,13 +63,14 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
   }
 
   private async renderPage() {
-  if (!this.pdf) return;
-  this.loading = true;
+    if (!this.pdf) return;
+    this.loading = true;
     const page = await this.pdf.getPage(this.pageNumber);
 
     // determinar scale desejado
-    // Sempre usar o zoom fornecido (1.0 = 100%). fitToContainer está desativado por padrão.
-    let targetScale = this.zoom;
+    // Se zoom for 1.0 (Auto), usar um scale maior por padrão para melhor visualização
+    // Para outros valores, multiplicar por 1.5 para manter a proporção
+    let targetScale = this.zoom === 1.0 ? 1.5 : this.zoom * 1.5;
 
     const viewport = page.getViewport({ scale: targetScale });
     const canvas = this.canvasRef.nativeElement;

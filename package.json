@@ -4,7 +4,7 @@
   "description": "Portfólio profissional Angular workspace",
   "scripts": {
     "start": "cd portfolio && ng serve",
-    "build": "cd portfolio && ng build --configuration production",
+    "build": "cd portfolio && ng build --configuration production && cd .. && (if exist docs rmdir /s /q docs) && mkdir docs && xcopy portfolio\\dist\\portfolio\\browser\\* docs\\ /s /e /y",
     "deploy": "./deploy.sh",
     "test": "cd portfolio && ng test",
     "lint": "cd portfolio && ng lint"

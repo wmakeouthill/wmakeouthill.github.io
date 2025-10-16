@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 
@@ -9,14 +9,41 @@ import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
     templateUrl: './cv-modal.component.html',
     styleUrl: './cv-modal.component.css'
 })
-export class CvModalComponent {
+export class CvModalComponent implements OnChanges, OnDestroy {
     @Input() isOpen = false;
     @Output() close = new EventEmitter<void>();
 
     // pdfZoom = 1.0 significa 100%.
     pdfZoom = 1.0; // Zoom padrão (1.0 = 100%)
     cvPath = '/assets/curriculo/Wesley de Carvalho Augusto Correia - Currículo.pdf';
-    
+
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['isOpen']) {
+            if (this.isOpen) {
+                this.disableBodyScroll();
+            } else {
+                this.enableBodyScroll();
+            }
+        }
+    }
+
+    private disableBodyScroll() {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.top = `-${window.scrollY}px`;
+    }
+
+    private enableBodyScroll() {
+        const scrollY = document.body.style.top;
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.top = '';
+        if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+    }
 
     increaseZoom() {
         if (this.pdfZoom < 2.0) {
@@ -35,6 +62,7 @@ export class CvModalComponent {
     }
 
     closeModal() {
+        this.enableBodyScroll();
         this.close.emit();
     }
 
@@ -63,6 +91,11 @@ export class CvModalComponent {
             }
         }
         // Deixa o scroll normal passar para o iframe do PDF
+    }
+
+    ngOnDestroy() {
+        // Garantir que o scroll seja reativado caso o componente seja destruído
+        this.enableBodyScroll();
     }
 
     // O PdfViewerComponent gerencia carregamento e renderização sem necessidade de rebuild do URL.
