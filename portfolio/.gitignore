@@ -6,6 +6,7 @@
 /out-tsc
 /bazel-out
 /material para os markdowns/
+/material para os markdowns
 # Node
 /node_modules
 npm-debug.log

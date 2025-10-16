@@ -13,6 +13,7 @@ import { MarkdownService } from '../../services/markdown.service';
 export class ReadmeModalComponent implements OnInit, OnDestroy {
     @Input() isOpen = false;
     @Input() projectName = '';
+    @Input() visible = true;
     @Output() close = new EventEmitter<void>();
 
     readmeContent: string = '';
@@ -36,8 +37,13 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
 
     ngOnChanges(changes: any) {
         if (changes['isOpen'] && this.isOpen && this.projectName) {
-            // O conteúdo já foi pré-renderizado, apenas carregar do cache
-            this.loadReadmeFromCache();
+            // Carregar conteúdo apenas uma vez (na primeira abertura)
+            if (!this.readmeContent) {
+                console.log('📄 Carregando conteúdo do cache...');
+                this.loadReadmeFromCache();
+            } else {
+                console.log('📄 Conteúdo já carregado, mantendo...');
+            }
         }
     }
 
@@ -51,17 +57,11 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
                 this.readmeContent = content;
                 this.loadingReadme = false;
 
-                // Os diagramas já foram pré-renderizados e estão no cache
-                // Apenas aplicar renderização final se ainda houver diagramas não processados
-                setTimeout(() => {
-                    console.log('🔍 Verificando se há diagramas pendentes...');
-                    this.markdownService.renderMermaidDiagrams().then(() => {
-                        console.log('✅ Renderização final concluída');
-                    });
-                }, 100);
+                // Log simples - a indexação será feita pelo componente pai
+                console.log('📄 Conteúdo carregado no modal, aguardando indexação...');
             },
             error: (error) => {
-                console.error('Erro ao carregar README atualizado:', error);
+                console.error('❌ Erro ao carregar README atualizado:', error);
                 this.loadingReadme = false;
             }
         });

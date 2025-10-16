@@ -1,5 +1,10 @@
 @if (isOpen) {
-<div class="modal-overlay" (click)="onOverlayClick($event)" (keydown)="onKeyDown($event)">
+<div
+  class="modal-overlay"
+  [style.visibility]="visible ? 'visible' : 'hidden'"
+  (click)="onOverlayClick($event)"
+  (keydown)="onKeyDown($event)"
+>
   <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
     <!-- Modal Header -->
     <div class="modal-header">
