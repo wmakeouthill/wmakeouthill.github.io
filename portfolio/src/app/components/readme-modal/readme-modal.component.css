@@ -24,6 +24,11 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-color);
   margin-top: 2rem;
+  /* Forçar altura baseada no conteúdo */
+  height: auto;
+  min-height: 0;
+  /* Garantir que o conteúdo não ultrapasse a altura máxima */
+  overflow: hidden;
 }
 
 .modal-header {
@@ -119,13 +124,6 @@
   color: var(--text-primary);
 }
 
-.modal-body {
-  flex: 1;
-  overflow: auto;
-  padding: 2rem;
-  position: relative;
-}
-
 .loading-readme {
   display: flex;
   flex-direction: column;
@@ -159,22 +157,147 @@
   color: var(--text-muted);
 }
 
-/* Markdown Content Styles */
-.markdown-content {
-  line-height: 1.6;
-  color: var(--text-primary);
-  font-size: 16px;
-  transition: transform 0.2s ease;
-  width: 100%;
-  /* Remover espaços extras no final */
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
+/* Eliminar TODAS as margens e paddings do HTML gerado pelo markdown */
+.markdown-content * {
+  box-sizing: border-box !important;
 }
 
-/* Remover espaços extras do último elemento */
+/* Remover margens de TODOS os elementos */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6,
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol,
+.markdown-content li,
+.markdown-content pre,
+.markdown-content code,
+.markdown-content blockquote,
+.markdown-content table,
+.markdown-content div,
+.markdown-content span {
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Restaurar margens apenas para elementos que não são o último */
+.markdown-content h1:not(:last-child),
+.markdown-content h2:not(:last-child),
+.markdown-content h3:not(:last-child),
+.markdown-content h4:not(:last-child),
+.markdown-content h5:not(:last-child),
+.markdown-content h6:not(:last-child),
+.markdown-content p:not(:last-child),
+.markdown-content ul:not(:last-child),
+.markdown-content ol:not(:last-child),
+.markdown-content pre:not(:last-child),
+.markdown-content blockquote:not(:last-child),
+.markdown-content table:not(:last-child),
+.markdown-content div:not(:last-child) {
+  margin-bottom: 1rem !important;
+}
+
+/* Garantir que o último elemento de qualquer tipo não tenha margem */
 .markdown-content > *:last-child {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Garantir que o container do modal tenha exatamente a altura do conteúdo */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2rem 2rem 0 2rem; /* Remover padding-bottom completamente */
+  position: relative;
+  scroll-behavior: smooth;
+  min-height: 0;
+  /* Remover altura fixa e deixar o flexbox controlar */
+  height: auto;
+  /* Garantir que o scroll seja controlado pelo conteúdo */
+  display: block;
+  /* Limitar altura máxima baseada no viewport */
+  max-height: calc(82vh - 120px); /* Altura total menos header */
+  /* Garantir que não há espaços extras */
+  box-sizing: border-box;
+}
+
+/* Garantir que o conteúdo ocupe apenas o espaço necessário */
+.markdown-content {
+  width: 100% !important;
+  /* Remover flexbox e usar display block */
+  display: block !important;
+  /* Forçar altura exata do conteúdo */
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  /* Eliminar qualquer espaço extra */
+  overflow: visible !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  /* Garantir que termine exatamente no fim */
+  position: relative;
+  /* Garantir que não há espaços extras */
+  box-sizing: border-box;
+}
+
+/* Garantir que o último elemento não tenha espaços extras */
+.markdown-content > *:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  /* Remover qualquer espaço extra */
+  border-bottom: none !important;
+}
+
+/* Garantir que elementos SVG (diagramas) não tenham espaços extras */
+.markdown-content svg:last-child,
+.markdown-content .mermaid-diagram:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remover espaços extras de elementos específicos */
+.markdown-content p {
+  margin-bottom: 0.8rem;
+  line-height: 1.7;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-content ul:last-child,
+.markdown-content ol:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-content pre {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.markdown-content pre:last-child {
+  margin-bottom: 0 !important;
 }
 
 /* ========================================
@@ -344,17 +467,6 @@
   font-weight: 600;
 }
 
-.markdown-content p {
-  margin-bottom: 0.8rem;
-  line-height: 1.7;
-}
-
-.markdown-content ul,
-.markdown-content ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
 .markdown-content li {
   margin-bottom: 0.4rem;
   line-height: 1.6;
@@ -368,15 +480,6 @@
   font-size: 0.9em;
   color: var(--accent-color);
   border: 1px solid var(--border-color);
-}
-
-.markdown-content pre {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  overflow-x: auto;
-  margin: 1rem 0;
 }
 
 .markdown-content pre code {
@@ -456,6 +559,10 @@
   font-family: 'Courier New', monospace;
 }
 
+.markdown-content .code-block:last-child {
+  margin-bottom: 0 !important;
+}
+
 .code-header {
   display: flex;
   justify-content: space-between;
@@ -488,6 +595,11 @@
   overflow-x: auto;
   background: transparent;
   border: none;
+}
+
+.markdown-content .code-block pre:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .markdown-content .code-block code {
