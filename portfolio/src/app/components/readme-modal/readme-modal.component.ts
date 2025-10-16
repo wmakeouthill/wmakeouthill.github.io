@@ -21,10 +21,10 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
     markdownZoom = 0.9;
 
     constructor(
-        private markdownService: MarkdownService,
+        private readonly markdownService: MarkdownService,
         public sanitizer: DomSanitizer,
-        private elementRef: ElementRef,
-        private renderer: Renderer2
+        private readonly elementRef: ElementRef,
+        private readonly renderer: Renderer2
     ) { }
 
     ngOnInit() {
@@ -37,13 +37,9 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
 
     ngOnChanges(changes: any) {
         if (changes['isOpen'] && this.isOpen && this.projectName) {
-            // Carregar conteúdo apenas uma vez (na primeira abertura)
-            if (!this.readmeContent) {
-                console.log('📄 Carregando conteúdo do cache...');
-                this.loadReadmeFromCache();
-            } else {
-                console.log('📄 Conteúdo já carregado, mantendo...');
-            }
+            // Sempre carregar o conteúdo específico do projeto
+            console.log(`📄 Carregando conteúdo do cache para ${this.projectName}...`);
+            this.loadReadmeFromCache();
         }
     }
 

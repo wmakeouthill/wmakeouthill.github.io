@@ -80,89 +80,15 @@ export class ProjectsComponent implements OnInit {
     return this.visibleCount < this.filteredProjects.length;
   }
 
-  async openReadmeModal(projectName: string) {
-    this.loadingPreRender = true;
+  openReadmeModal(projectName: string) {
+    console.log(`⚡ Abrindo modal README para: ${projectName} (instantâneo!)`);
     this.currentProjectName = projectName;
 
-    try {
-      // Pré-renderizar diagramas Mermaid antes de abrir o modal
-      console.log(`🚀 Iniciando pré-renderização para ${projectName}...`);
+    // Abrir modal imediatamente - conteúdo já está no cache
+    this.showReadmeModal = true;
+    this.modalVisible = true;
 
-      // Forçar limpeza de cache e pré-renderização
-      await this.markdownService.preRenderMermaidDiagrams(projectName);
-
-      console.log(`✅ Pré-renderização concluída para ${projectName}`);
-
-      // Verificar status do cache
-      this.markdownService.getCacheStatus(projectName);
-
-      // Verificar se o conteúdo está realmente pronto no cache
-      console.log(`🔍 Verificando se conteúdo está pronto no cache...`);
-      let isReady = false;
-      let attempts = 0;
-      const maxAttempts = 5;
-
-      while (!isReady && attempts < maxAttempts) {
-        attempts++;
-        console.log(`⏳ Tentativa ${attempts}/${maxAttempts} de verificação do cache...`);
-
-        // Aguardar um pouco
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Verificar se o conteúdo está no cache
-        const content = await this.markdownService.forceUpdateReadmeContent(projectName).toPromise();
-
-        if (content) {
-          // Verificar se há diagramas ainda carregando
-          const loadingCount = (content.match(/class="mermaid-loading"/g) || []).length;
-          const renderedCount = (content.match(/class="mermaid-content"/g) || []).length;
-
-          console.log(`📊 Status do conteúdo:`);
-          console.log(`  - Diagramas renderizados: ${renderedCount}`);
-          console.log(`  - Diagramas carregando: ${loadingCount}`);
-
-          if (loadingCount === 0 && renderedCount > 0) {
-            console.log(`✅ Conteúdo totalmente pronto!`);
-            isReady = true;
-          } else {
-            console.log(`⏳ Conteúdo ainda não está totalmente pronto, aguardando...`);
-          }
-        } else {
-          console.log(`⚠️ Conteúdo não encontrado no cache, aguardando...`);
-        }
-      }
-
-      if (!isReady) {
-        console.warn(`⚠️ Timeout na verificação do cache após ${maxAttempts} tentativas`);
-      }
-
-      console.log(`🎯 Pronto para abrir modal de ${projectName}`);
-
-    } catch (error) {
-      console.error(`❌ Erro na pré-renderização para ${projectName}:`, error);
-      // Mesmo com erro, abrir o modal (fallback)
-    } finally {
-      this.loadingPreRender = false;
-
-      // Abrir modal invisível primeiro para indexação
-      console.log(`👻 Abrindo modal invisível para indexação...`);
-      this.showReadmeModal = true;
-      this.modalVisible = false;
-
-      // Aguardar um pouco para o modal estar no DOM
-      setTimeout(async () => {
-        console.log(`🔧 Indexando diagramas no modal invisível...`);
-        await this.markdownService.indexMermaidDiagramsInModal();
-
-        // Aguardar um pouco mais para garantir que a indexação foi processada
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Tornar modal visível (sem fechar)
-        console.log(`👁️ Tornando modal visível...`);
-        this.modalVisible = true;
-        console.log(`📱 Modal totalmente pronto para ${projectName}`);
-      }, 500);
-    }
+    console.log(`✅ Modal aberto instantaneamente para ${projectName}`);
   }
 
   closeReadmeModal() {

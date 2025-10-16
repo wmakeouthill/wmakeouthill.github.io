@@ -166,6 +166,15 @@
   font-size: 16px;
   transition: transform 0.2s ease;
   width: 100%;
+  /* Remover espaços extras no final */
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Remover espaços extras do último elemento */
+.markdown-content > *:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /* ========================================

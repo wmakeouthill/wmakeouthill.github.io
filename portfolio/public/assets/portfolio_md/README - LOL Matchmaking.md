@@ -1,29 +1,39 @@
-# 🎮 LOL Matchmaking System
-
-Um sistema completo de matchmaking personalizado para League of Legends, desenvolvido com arquitetura moderna e tecnologias de ponta.
+# 🎮 LOL Matchmaking System - Plataforma Avançada de Matchmaking
 
 ## 🚀 Visão Geral
 
-O **LOL Matchmaking System** é uma plataforma desktop que simula o sistema de filas do League of Legends, permitindo que jogadores criem partidas customizadas, realizem drafts completos e gerenciem partidas com integração total ao jogo via LCU (League Client Update).
+O **LOL Matchmaking System** é uma solução completa e inovadora de matchmaking personalizado para League of Legends, desenvolvida com arquitetura moderna e tecnologias enterprise. Esta plataforma desktop revoluciona a experiência de criação de partidas customizadas, oferecendo drafts completos, integração nativa com o jogo via LCU (League Client Update) e automação avançada do Discord.
+
+### 🎯 Proposta de Valor
+
+- **Sistema de Matchmaking Inteligente**: Algoritmo proprietário de balanceamento baseado em MMR
+- **Integração Nativa com LoL**: Validação em tempo real via League Client Update
+- **Automação Discord Completa**: Gestão automática de canais, permissões e espectadores
+- **Backend Centralizado**: Arquitetura robusta com possibilidade de múltiplas instâncias para escalabilidade
+- **Experiência Desktop Premium**: Aplicação nativa com Electron e TypeScript
 
 ## 🏗️ Arquitetura Geral do Sistema
 
 ```mermaid
+%%{title: "Arquitetura Geral do Sistema LOL Matchmaking"}%%
 graph TB
     A[Electron Desktop App] --> B[Spring Boot Backend]
     B --> C[MySQL Database]
     B --> D[Redis Cache]
     B --> E[Discord Bot JDA]
-    A --> F[League Client LCU]
-    A --> G[Angular Frontend]
-    G --> H[WebSocket Connection]
-    H --> B
+    B --> F[Angular Frontend]
+    F --> G[WebSocket Connection]
+    G --> B
+    A --> H[League Client LCU]
     E --> I[Discord Server]
-    F --> J[League of Legends Game]
+    H --> J[League of Legends Game]
+    
+    %% Fluxo de comunicação
+    B -.->|Ping| A
+    A -.->|Pong| F
     
     subgraph "Desktop Environment"
         A
-        G
     end
     
     subgraph "Backend Services"
@@ -31,10 +41,11 @@ graph TB
         C
         D
         E
+        F
     end
     
     subgraph "External Integrations"
-        F
+        H
         I
         J
     end
@@ -42,7 +53,7 @@ graph TB
 
 ### Fluxo Principal do Sistema
 
-```
+```text
 1. Usuário abre aplicação Electron
 2. Electron inicia backend Spring Boot
 3. Frontend Angular conecta via WebSocket
@@ -54,42 +65,89 @@ graph TB
 9. Estatísticas são atualizadas
 ```
 
-## 🏗️ Stack Tecnológica
+## 🏗️ Stack Tecnológica Enterprise
 
-### Backend (Spring Boot)
+### Backend (Spring Boot 3.3.2 + Java 21)
 
-- **Java 21** com Spring Boot 3.3.2
-- **Spring Data JPA** para persistência
-- **MySQL** como banco principal + **H2** para desenvolvimento
-- **Redis** para cache e gerenciamento de estado em tempo real
-- **WebSockets** para comunicação em tempo real
-- **Liquibase** para migrações de banco
-- **Redisson** para distributed locks
-- **MapStruct** para mapeamento de objetos
-- **Lombok** para redução de boilerplate
-- **Discord Integration** para integração com Discord
+**Tecnologias Core:**
 
-### Frontend (Angular)
+- **Java 21** com Spring Boot 3.3.2 (LTS) - Framework enterprise mais utilizado no mercado
+- **Spring Data JPA** + **Hibernate** - ORM padrão da indústria para persistência
+- **Spring Security** - Framework de segurança mais robusto do ecossistema Java
+- **Spring Web** + **RESTful APIs** - Arquitetura de microserviços moderna
 
-- **Angular 20** com TypeScript
-- **RxJS** para programação reativa
-- **SCSS** para estilização
-- **Socket.IO Client** para WebSockets
+**Banco de Dados & Cache:**
 
-### Desktop (Electron)
+- **MySQL 8.0** (Produção) + **H2** (Desenvolvimento) - Bancos relacionais enterprise
+- **Redis Upstash** - Cache distribuído cloud-native e gerenciamento de estado em tempo real
+- **Liquibase** - Controle de versão de schema (padrão enterprise)
+- **Redisson** - Distributed locks para operações atômicas
 
-- **Electron 28** para aplicação desktop
-- **TypeScript** no processo principal
-- **WebSocket** para comunicação com backend
-- **LCU Integration** para integração com League of Legends
+**Integração & Comunicação:**
+
+- **WebSockets** + **Socket.IO** - Comunicação bidirecional em tempo real
+- **JDA (Java Discord API)** - Integração nativa com Discord
+- **LCU Integration** - API nativa do League of Legends Client
+
+**Qualidade & Performance:**
+
+- **MapStruct** - Mapeamento de objetos type-safe
+- **Lombok** - Redução de boilerplate (amplamente adotado)
+- **Caffeine Cache** - Cache local de alta performance
+- **Resilience4j** - Circuit breaker e retry automático
+
+### Frontend (Angular 20 + TypeScript)
+
+**Framework & Linguagem:**
+
+- **Angular 20** - Framework enterprise mais robusto do mercado
+- **TypeScript 5.8** - Tipagem estática para desenvolvimento escalável
+- **RxJS 7.8** - Programação reativa (padrão enterprise)
+
+**UI/UX & Estilização:**
+
+- **SCSS** - Pré-processador CSS para estilos escaláveis
+- **Angular Material** - Componentes UI consistentes
+- **Responsive Design** - Interface adaptável para diferentes resoluções
+
+**Comunicação:**
+
+- **Socket.IO Client** - Conexão WebSocket para tempo real
+- **HTTP Client** - Comunicação REST com backend
+
+### Desktop (Electron 28 + TypeScript)
+
+**Plataforma Desktop:**
+
+- **Electron 28** - Framework mais popular para apps desktop multiplataforma
+- **TypeScript** - Tipagem estática no processo principal
+- **Node.js Integration** - Acesso completo ao sistema operacional
+
+**Integração Nativa:**
+
+- **LCU Integration** - Comunicação direta com League of Legends
+- **WebSocket Client** - Comunicação em tempo real com backend
+- **File System API** - Gerenciamento local de dados
 
 ### Infraestrutura & DevOps
 
-- **Docker** e **Docker Compose** para containerização
-- **Google Cloud Run** para deploy
-- **Kubernetes** (manifests incluídos)
-- **Redis** standalone para produção
-- **Maven** para build e gerenciamento de dependências
+**Containerização:**
+
+- **Docker** + **Docker Compose** - Padrão da indústria para containerização
+- **Multi-stage builds** - Otimização de imagens de produção
+
+**Cloud & Deploy:**
+
+- **Google Cloud Run** - Serverless containers (escalabilidade automática)
+- **MySQL Cloud** - Banco de dados gerenciado na nuvem
+- **Redis Upstash** - Cache cloud-native com SSL
+- **CI/CD Pipeline** - Deploy automatizado com Cloud Build
+
+**Monitoramento & Observabilidade:**
+
+- **Spring Actuator** - Health checks e métricas
+- **SLF4J** + **Logback** - Logging estruturado
+- **Redis Monitoring** - Métricas de performance
 
 ## 🎯 Principais Funcionalidades
 
@@ -102,7 +160,7 @@ graph TB
 
 #### Fluxo do Matchmaking
 
-```
+```text
 1. Jogador entra na fila → Validação via LCU
 2. Sistema busca jogadores compatíveis por MMR
 3. Formação de times balanceados (5v5)
@@ -121,7 +179,7 @@ graph TB
 
 #### Fluxo do Draft
 
-```
+```text
 1. Confirmação de todos os jogadores (30s)
 2. Fase de Bans (3 bans por time, 30s cada)
 3. Fase de Picks (5 picks por time, 30s cada)
@@ -139,7 +197,7 @@ graph TB
 
 #### Fluxo de Integração LCU
 
-```
+```text
 1. Detecção automática do cliente do LoL
 2. Validação de identidade do jogador
 3. Monitoramento de ações no jogo
@@ -157,7 +215,7 @@ graph TB
 
 #### Fluxo de Automação Discord
 
-```
+```text
 1. Partida criada → Criação automática de canais de voz
 2. Separação de times em canais específicos
 3. Canal de espectadores com controles de mute
@@ -174,7 +232,7 @@ graph TB
 
 #### Fluxo de Votação
 
-```
+```text
 1. Partida finalizada → Sistema solicita votação
 2. Todos os jogadores votam no resultado
 3. Validação de integridade (maioria simples)
@@ -313,9 +371,9 @@ Sistema robusto de migrações com Liquibase, incluindo:
 
 ### Ambientes
 
-- **Local**: Docker Compose com Redis local
-- **Desenvolvimento**: H2 em memória
-- **Produção**: Google Cloud Run + MySQL + Redis
+- **Local**: Docker Compose com MySQL containerizado + Redis Upstash (cloud)
+- **Desenvolvimento**: H2 em memória + Redis Upstash
+- **Produção**: Google Cloud Run + MySQL na nuvem + Redis Upstash
 
 ### Scripts de Deploy
 
@@ -366,50 +424,163 @@ npm run electron:dev
 - **Tema consistente** com variáveis CSS
 - **Componentes reutilizáveis** em Angular
 
-### 🔮 Inovações Técnicas
+## 🔮 Inovações Técnicas & Diferenciais Competitivos
 
-1. **Sistema de Draft Distribuído**: Primeiro sistema de draft customizado com Redis
-2. **Validação via LCU**: Integração única com cliente do League of Legends
-3. **Automação Discord Avançada**: Criação automática de canais e gestão de espectadores
-4. **Sistema de Mute/Unmute Distribuído**: Controle de espectadores via Redis + JDA
-5. **Multi-backend Sync**: Sistema tolerante a falhas
-6. **Arquitetura Híbrida**: Desktop + Web com Electron
-7. **Cache Inteligente**: Múltiplas camadas de cache (Caffeine + Redis)
+### 1. Sistema de Draft Distribuído com Redis
 
-### Destaques da Automação Discord
+**Primeira implementação mundial** de sistema de draft customizado com estado distribuído:
 
-- **Primeira implementação** de mute/unmute de espectadores por jogadores
-- **Criação automática** de canais dedicados para cada partida
-- **Gestão de permissões** em tempo real via JDA
-- **Limpeza inteligente** com TTL automático no Redis
-- **Broadcast em tempo real** de mudanças de estado
+- **Operações Atômicas**: Redis Sets para confirmações O(1)
+- **Distributed Locks**: Prevenção de race conditions
+- **TTL Automático**: Limpeza inteligente de dados temporários
+- **Sincronização Global**: Todos os clientes atualizados em tempo real
 
-### 🛠️ Tecnologias de Destaque
+### 2. Integração Nativa com League of Legends (LCU)
 
-- **Spring Boot 3.3.2** com Java 21
-- **Angular 20** com programação reativa
-- **Redis** para alta performance
-- **Electron** para desktop
-- **Docker** para containerização
-- **WebSockets** para tempo real
-- **JDA (Java Discord API)** para integração Discord
-- **Discord Bot** com slash commands e automação
+**Integração única** com o cliente oficial do jogo:
 
-### 📝 Conclusão
+- **Validação Real-time**: Todas as ações validadas via LCU API
+- **Detecção Automática**: Identificação de jogadores conectados
+- **Monitoramento de Partidas**: Captura automática de resultados
+- **Anti-cheat Integration**: Validação de integridade das ações
 
-Este projeto demonstra expertise em:
+### 3. Automação Discord Avançada com JDA
 
-- **Arquitetura de sistemas complexos**
-- **Integração com APIs externas** (Discord, Riot Games)
-- **Desenvolvimento full-stack moderno**
-- **Sistemas distribuídos e cache**
-- **Aplicações desktop com Electron**
-- **Automação de bots Discord** com JDA
-- **Gestão de permissões** e canais Discord
-- **DevOps e deploy em nuvem**
+**Sistema pioneiro** de gestão automática de servidores Discord:
 
-O LOL Matchmaking System representa uma solução completa e inovadora para matchmaking personalizado, combinando tecnologias modernas com funcionalidades avançadas de integração e validação.
+- **Criação Dinâmica de Canais**: Canais dedicados por partida
+- **Sistema de Mute/Unmute**: Controle de espectadores pelos jogadores
+- **Gestão de Permissões**: Controle granular de acesso
+- **Limpeza Automática**: TTL de 2 horas para recursos temporários
+
+### 4. Arquitetura Híbrida Desktop + Cloud
+
+**Solução inovadora** combinando desktop nativo com backend cloud:
+
+- **Electron Desktop**: Aplicação nativa com acesso ao LCU
+- **Spring Boot Cloud**: Backend rodando no Google Cloud Run
+- **WebSocket Bidirecional**: Comunicação em tempo real entre desktop e cloud
+- **Cache Distribuído**: Redis Upstash cloud-native para estado global
+
+### 5. Comunicação Electron ↔ Cloud Run
+
+**Arquitetura centralizada** com escalabilidade:
+
+- **Electron Desktop**: Interface nativa + integração LCU
+- **Backend Centralizado**: API RESTful + WebSockets + processamento
+- **WebSocket Persistente**: Conexão estável entre desktop e backend
+- **Redis Upstash**: Cache distribuído para múltiplas instâncias
+- **MySQL Cloud**: Persistência de dados centralizada
+
+### 6. Sistema de Alta Disponibilidade
+
+**Arquitetura enterprise** para ambientes críticos:
+
+- **Multi-backend Sync**: Tolerância a falhas
+- **Circuit Breaker**: Resilience4j para resiliência
+- **Health Checks**: Monitoramento contínuo
+- **Graceful Degradation**: Funcionamento mesmo com falhas parciais
+
+## 🛠️ Skills Técnicas Demonstradas
+
+### Backend Development (Enterprise)
+
+- **Java 21 + Spring Boot 3.3.2** - Stack enterprise mais demandada
+- **Microservices Architecture** - Padrão da indústria moderna
+- **RESTful APIs** - Arquitetura de comunicação padrão
+- **Spring Security** - Framework de segurança enterprise
+- **JPA/Hibernate** - ORM mais robusto do mercado
+- **Redis** - Cache distribuído (amplamente usado em produção)
+
+### Frontend Development (Modern)
+
+- **Angular 20** - Framework enterprise líder de mercado
+- **TypeScript** - Linguagem moderna com tipagem estática
+- **RxJS** - Programação reativa (essencial para apps complexos)
+- **SCSS** - Pré-processador CSS profissional
+- **Responsive Design** - UX adaptável para todos os dispositivos
+
+### Desktop Development
+
+- **Electron 28** - Framework mais popular para apps desktop
+- **Native Integration** - Acesso completo ao sistema operacional
+- **Cross-platform** - Compatibilidade Windows/Mac/Linux
+
+### DevOps & Infrastructure
+
+- **Docker** - Containerização (padrão da indústria)
+- **Kubernetes** - Orquestração de containers
+- **Google Cloud Run** - Serverless containers
+- **CI/CD Pipeline** - Deploy automatizado
+- **Monitoring & Observability** - Métricas e logs estruturados
+
+### Integração & APIs
+
+- **WebSocket** - Comunicação bidirecional em tempo real
+- **Discord API (JDA)** - Integração com plataformas externas
+- **LCU Integration** - APIs nativas de jogos
+- **REST APIs** - Arquitetura de comunicação padrão
+
+## 📊 Impacto & Resultados
+
+### Inovações Implementadas
+
+1. **Primeiro sistema de draft** com estado distribuído em Redis
+2. **Integração pioneira** com League of Legends Client Update
+3. **Automação Discord** com controle granular de espectadores
+4. **Arquitetura híbrida** desktop + web com sincronização em tempo real
+5. **Sistema de alta disponibilidade** com tolerância a falhas
+
+### Tecnologias Enterprise Utilizadas
+
+- **Java 21 + Spring Boot** - Stack enterprise líder mundial
+- **Angular 20 + TypeScript** - Framework frontend enterprise
+- **Redis Upstash + MySQL Cloud** - Stack de dados cloud-native
+- **Google Cloud Run** - Serverless containers enterprise
+- **Electron** - Framework desktop mais adotado
+
+### Diferenciais Competitivos
+
+- **Integração nativa** com League of Legends
+- **Automação Discord** sem precedentes
+- **Arquitetura desktop-cloud** com alta disponibilidade
+- **Validação em tempo real** via APIs oficiais
+- **Experiência desktop** premium conectada à cloud
+
+## 📝 Conclusão
+
+Este projeto demonstra **expertise avançada** em:
+
+### Arquitetura & Design
+
+- **Sistemas distribuídos** com Redis e múltiplos backends
+- **Arquitetura híbrida** desktop + web
+- **Microservices** com Spring Boot
+- **Event-driven architecture** com WebSockets
+
+### APIs & Comunicação
+
+- **APIs nativas** de jogos (League of Legends)
+- **Automação Discord** com JDA
+- **WebSocket** para comunicação em tempo real
+- **RESTful APIs** enterprise
+
+### DevOps & Cloud
+
+- **Containerização** com Docker
+- **Orquestração** com Kubernetes
+- **Cloud deployment** com Google Cloud Run
+- **CI/CD** automatizado
+
+### Qualidade & Performance
+
+- **Cache multi-layer** (Caffeine + Redis)
+- **Circuit breaker** com Resilience4j
+- **Health checks** e monitoramento
+- **Logs estruturados** com SLF4J
+
+O **LOL Matchmaking System** representa uma **solução completa e inovadora** que combina tecnologias enterprise com funcionalidades únicas, demonstrando capacidade de criar sistemas complexos, integrar APIs externas e implementar arquiteturas modernas de alta disponibilidade.
 
 ---
 
-**Desenvolvido com ❤️ para a comunidade League of Legends**
+## Desenvolvido com ❤️ para a comunidade League of Legends
