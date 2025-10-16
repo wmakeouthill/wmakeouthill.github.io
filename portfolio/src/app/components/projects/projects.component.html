@@ -54,9 +54,16 @@
                 🚀 Demo
               </a>
               }
-              <button (click)="openReadmeModal(project.name)" class="project-link readme-btn">
+              <button
+                (click)="openReadmeModal(project.name)"
+                class="project-link readme-btn"
+                [disabled]="loadingPreRender"
+              >
+                @if (loadingPreRender && currentProjectName === project.name) {
+                <div class="loading-spinner"></div>
+                Carregando... } @else {
                 <img src="assets/icons/readme.svg" alt="README" width="14" height="14" />
-                README
+                README }
               </button>
             </div>
           </div>

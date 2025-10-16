@@ -36,8 +36,35 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
 
     ngOnChanges(changes: any) {
         if (changes['isOpen'] && this.isOpen && this.projectName) {
-            this.loadReadme();
+            // O conteúdo já foi pré-renderizado, apenas carregar do cache
+            this.loadReadmeFromCache();
         }
+    }
+
+    private loadReadmeFromCache() {
+        this.loadingReadme = true;
+        this.readmeContent = '';
+
+        // Carregar conteúdo (já foi pré-renderizado com diagramas em cache)
+        this.markdownService.forceUpdateReadmeContent(this.projectName).subscribe({
+            next: (content) => {
+                this.readmeContent = content;
+                this.loadingReadme = false;
+
+                // Os diagramas já foram pré-renderizados e estão no cache
+                // Apenas aplicar renderização final se ainda houver diagramas não processados
+                setTimeout(() => {
+                    console.log('🔍 Verificando se há diagramas pendentes...');
+                    this.markdownService.renderMermaidDiagrams().then(() => {
+                        console.log('✅ Renderização final concluída');
+                    });
+                }, 100);
+            },
+            error: (error) => {
+                console.error('Erro ao carregar README atualizado:', error);
+                this.loadingReadme = false;
+            }
+        });
     }
 
     private loadReadme() {

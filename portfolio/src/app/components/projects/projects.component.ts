@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubService } from '../../services/github.service';
 import { GitHubRepository } from '../../models/interfaces';
+import { MarkdownService } from '../../services/markdown.service';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 
 @Component({
@@ -20,9 +21,11 @@ export class ProjectsComponent implements OnInit {
   // Modal properties
   showReadmeModal = false;
   currentProjectName = '';
+  loadingPreRender = false;
 
   constructor(
-    private readonly githubService: GithubService
+    private readonly githubService: GithubService,
+    private readonly markdownService: MarkdownService
   ) { }
 
   ngOnInit() {
@@ -76,9 +79,29 @@ export class ProjectsComponent implements OnInit {
     return this.visibleCount < this.filteredProjects.length;
   }
 
-  openReadmeModal(projectName: string) {
+  async openReadmeModal(projectName: string) {
+    this.loadingPreRender = true;
     this.currentProjectName = projectName;
-    this.showReadmeModal = true;
+
+    try {
+      // Pré-renderizar diagramas Mermaid antes de abrir o modal
+      console.log(`Iniciando pré-renderização para ${projectName}...`);
+
+      // Forçar limpeza de cache e pré-renderização
+      await this.markdownService.preRenderMermaidDiagrams(projectName);
+
+      console.log(`Pré-renderização concluída para ${projectName}`);
+
+      // Aguardar um pouco mais para garantir que tudo está pronto
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+    } catch (error) {
+      console.error(`Erro na pré-renderização para ${projectName}:`, error);
+    } finally {
+      this.loadingPreRender = false;
+      // Só abrir o modal depois que tudo estiver pré-renderizado
+      this.showReadmeModal = true;
+    }
   }
 
   closeReadmeModal() {

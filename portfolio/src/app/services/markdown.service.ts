@@ -17,6 +17,8 @@ import 'prismjs/components/prism-markup';
   providedIn: 'root'
 })
 export class MarkdownService {
+  private cache = new Map<string, string>();
+  private mermaidCache = new Map<string, string>();
 
   constructor(private readonly http: HttpClient) {
     // Configurar marked
@@ -36,7 +38,109 @@ export class MarkdownService {
     });
   }
 
+  // Método para limpar cache
+  public clearCache(projectName?: string): void {
+    if (projectName) {
+      // Limpar cache específico do projeto
+      this.cache.delete(projectName);
+      // Limpar cache de mermaid relacionado ao projeto
+      for (const [key] of this.mermaidCache) {
+        if (key.includes(projectName)) {
+          this.mermaidCache.delete(key);
+        }
+      }
+      // Limpar cache do localStorage relacionado ao projeto
+      this.clearLocalStorageCache(projectName);
+    } else {
+      // Limpar todo o cache
+      this.cache.clear();
+      this.mermaidCache.clear();
+      this.clearAllLocalStorageCache();
+    }
+    console.log(`Cache limpo${projectName ? ` para ${projectName}` : ' completamente'}`);
+  }
+
+  // Método para forçar atualização do conteúdo (ignora cache)
+  public forceUpdateReadmeContent(projectName: string): Observable<string> {
+    console.log(`Forçando atualização do README para ${projectName}`);
+
+    // Limpar cache específico primeiro
+    this.clearCache(projectName);
+
+    // Mapear nomes de projetos para arquivos markdown
+    const readmeFileName = this.getReadmeFileName(projectName);
+
+    if (!readmeFileName) {
+      console.warn(`Nenhum arquivo README mapeado para ${projectName}`);
+      return of('');
+    }
+
+    const readmePath = `assets/portfolio_md/${readmeFileName}`;
+    console.log(`Carregando README de: ${readmePath}`);
+
+    return this.http.get(readmePath, { responseType: 'text' })
+      .pipe(
+        map(content => {
+          const processedContent = this.parseMarkdown(content);
+          // Salvar no cache após processamento
+          this.cache.set(projectName, processedContent);
+          console.log(`README atualizado e salvo no cache para ${projectName}`);
+          return processedContent;
+        }),
+        catchError(error => {
+          console.error(`Erro ao forçar atualização do README para ${projectName}:`, error);
+          return of('');
+        })
+      );
+  }
+
+  // Método para limpar cache específico do localStorage
+  private clearLocalStorageCache(projectName: string): void {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('mermaid_diagram_') && key.includes(projectName.toLowerCase())) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`Removido do localStorage: ${key}`);
+      });
+    } catch (error) {
+      console.warn('Erro ao limpar cache do localStorage:', error);
+    }
+  }
+
+  // Método para limpar todo o cache do localStorage
+  private clearAllLocalStorageCache(): void {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('mermaid_diagram_')) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      console.log(`Removidos ${keysToRemove.length} itens do localStorage`);
+    } catch (error) {
+      console.warn('Erro ao limpar todo o cache do localStorage:', error);
+    }
+  }
+
   getReadmeContent(projectName: string): Observable<string> {
+    // Verificar cache primeiro
+    if (this.cache.has(projectName)) {
+      console.log(`Usando README do cache para ${projectName}`);
+      return of(this.cache.get(projectName)!);
+    }
+
     // Mapear nomes de projetos para arquivos markdown
     const readmeFileName = this.getReadmeFileName(projectName);
 
@@ -48,7 +152,13 @@ export class MarkdownService {
 
     return this.http.get(readmePath, { responseType: 'text' })
       .pipe(
-        map(content => this.parseMarkdown(content)),
+        map(content => {
+          const processedContent = this.parseMarkdown(content);
+          // Salvar no cache
+          this.cache.set(projectName, processedContent);
+          console.log(`README processado e salvo no cache para ${projectName}`);
+          return processedContent;
+        }),
         catchError(error => {
           console.error(`Erro ao carregar README para ${projectName}:`, error);
           return of('');
@@ -57,28 +167,40 @@ export class MarkdownService {
   }
 
   private getReadmeFileName(projectName: string): string | null {
+    console.log(`Buscando arquivo README para projeto: "${projectName}"`);
+
     // Mapear nomes de repositórios para nomes de arquivos markdown
     const projectMappings: { [key: string]: string } = {
       'fazenda-inhouse': 'README - Fazenda inhouse.md',
       'lol-matchmaking': 'README - LOL Matchmaking.md',
       'lol-matchmaking-fazenda': 'README - LOL Matchmaking.md',
       'mercearia-r-v': 'README - Mercearia-R-V.md',
+      'aa_space': 'README - AA_Space.md',
+      'aa-space': 'README - AA_Space.md',
       // Adicione mais mapeamentos conforme necessário
     };
 
+    console.log('Mapeamentos disponíveis:', Object.keys(projectMappings));
+
     // Tentar encontrar por nome exato
-    if (projectMappings[projectName.toLowerCase()]) {
-      return projectMappings[projectName.toLowerCase()];
+    const exactMatch = projectMappings[projectName.toLowerCase()];
+    if (exactMatch) {
+      console.log(`Match exato encontrado: "${exactMatch}"`);
+      return exactMatch;
     }
 
     // Tentar encontrar por nome similar
     const projectNameLower = projectName.toLowerCase();
+    console.log(`Buscando match similar para: "${projectNameLower}"`);
+
     for (const [key, value] of Object.entries(projectMappings)) {
       if (projectNameLower.includes(key) || key.includes(projectNameLower)) {
+        console.log(`Match similar encontrado: "${key}" -> "${value}"`);
         return value;
       }
     }
 
+    console.log(`Nenhum arquivo README encontrado para: "${projectName}"`);
     return null;
   }
 
@@ -185,8 +307,8 @@ export class MarkdownService {
         const diagramHash = this.createHash(cleanDiagramCode);
         const diagramId = `mermaid-diagram-${diagramHash}`;
 
-        // Verificar se já existe no cache
-        const cachedSvg = this.getCachedDiagram(diagramId);
+        // Verificar se já existe no cache em memória primeiro
+        const cachedSvg = this.mermaidCache.get(diagramId) || this.getCachedDiagram(diagramId);
 
         if (cachedSvg) {
           console.log(`Usando diagrama do cache: ${diagramId}`);
@@ -243,12 +365,218 @@ export class MarkdownService {
     }
   }
 
+  // Método para pré-renderizar diagramas Mermaid antes do modal abrir
+  public async preRenderMermaidDiagrams(projectName: string): Promise<void> {
+    console.log(`Pré-renderizando diagramas Mermaid para ${projectName}...`);
+
+    // Limpar cache específico do projeto para forçar re-renderização
+    this.clearCache(projectName);
+
+    // Forçar atualização do conteúdo (ignora cache)
+    const readmeContent = await this.forceUpdateReadmeContent(projectName).toPromise();
+    if (!readmeContent) {
+      console.log(`Nenhum conteúdo README encontrado para ${projectName}`);
+      return;
+    }
+
+    // Extrair códigos Mermaid do HTML
+    const mermaidCodes = this.extractMermaidCodes(readmeContent);
+    console.log(`Encontrados ${mermaidCodes.length} diagramas Mermaid para pré-renderizar`);
+
+    if (mermaidCodes.length === 0) {
+      console.log(`Nenhum diagrama Mermaid encontrado para ${projectName}`);
+      return;
+    }
+
+    // Pré-renderizar cada diagrama
+    const renderPromises = [];
+    for (let i = 0; i < mermaidCodes.length; i++) {
+      const mermaidCode = mermaidCodes[i];
+      const diagramHash = this.createHash(mermaidCode);
+      const diagramId = `mermaid-diagram-${diagramHash}`;
+
+      const renderPromise = this.renderMermaidToSvg(mermaidCode, diagramId)
+        .then(svgContent => {
+          if (svgContent) {
+            // Salvar no cache em memória e localStorage
+            this.mermaidCache.set(diagramId, svgContent);
+            this.saveCachedDiagram(diagramId, svgContent);
+            console.log(`✅ Diagrama ${diagramId} pré-renderizado e salvo no cache`);
+            return { diagramId, success: true };
+          } else {
+            console.warn(`❌ Falha ao pré-renderizar diagrama ${diagramId}`);
+            return { diagramId, success: false };
+          }
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao pré-renderizar diagrama ${diagramId}:`, error);
+          return { diagramId, success: false, error };
+        });
+
+      renderPromises.push(renderPromise);
+    }
+
+    // Aguardar todos os diagramas serem renderizados
+    console.log(`Aguardando renderização de ${renderPromises.length} diagramas...`);
+    const results = await Promise.all(renderPromises);
+
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+
+    console.log(`Pré-renderização concluída para ${projectName}: ${successful} sucessos, ${failed} falhas`);
+
+    // Aguardar um pouco mais para garantir que o cache foi persistido
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+
+  // Método para extrair códigos Mermaid do HTML
+  private extractMermaidCodes(htmlContent: string): string[] {
+    const mermaidCodes: string[] = [];
+    console.log('🔍 Extraindo códigos Mermaid do HTML...');
+    console.log('📄 HTML content preview:', htmlContent.substring(0, 500));
+
+    // Regex mais flexível para capturar blocos mermaid
+    const mermaidRegex = /<pre><code class="[^"]*\b(?:language-)?mermaid\b[^"]*">([\s\S]*?)<\/code><\/pre>/gi;
+
+    let match;
+    let matchCount = 0;
+    while ((match = mermaidRegex.exec(htmlContent)) !== null) {
+      matchCount++;
+      console.log(`🎯 Match ${matchCount} encontrado:`, match[0].substring(0, 150) + '...');
+
+      const cleanCode = match[1]
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+
+      console.log(`🧹 Código limpo ${matchCount}:`, cleanCode.substring(0, 150) + '...');
+      console.log(`📏 Tamanho do código: ${cleanCode.length} caracteres`);
+
+      if (cleanCode) {
+        mermaidCodes.push(cleanCode);
+        console.log(`✅ Código Mermaid ${matchCount} adicionado à lista`);
+
+        // Verificar se é um diagrama válido
+        if (cleanCode.includes('graph') || cleanCode.includes('flowchart') || cleanCode.includes('sequenceDiagram')) {
+          console.log(`📊 Diagrama válido detectado: ${cleanCode.split('\n')[0]}`);
+        } else {
+          console.warn(`⚠️ Possível diagrama inválido: ${cleanCode.split('\n')[0]}`);
+        }
+      }
+    }
+
+    console.log(`📊 Total de códigos Mermaid extraídos: ${mermaidCodes.length}`);
+
+    // Debug específico para Mercearia R-V
+    if (htmlContent.includes('Mercearia') || htmlContent.includes('Electron Desktop App')) {
+      console.log('🏪 Debug específico para Mercearia R-V:');
+      console.log('🔍 Procurando por padrões específicos...');
+
+      // Verificar se há blocos mermaid sem a classe correta
+      const allCodeBlocks = htmlContent.match(/<pre><code[^>]*>[\s\S]*?<\/code><\/pre>/gi);
+      if (allCodeBlocks) {
+        console.log(`📝 Total de blocos de código encontrados: ${allCodeBlocks.length}`);
+        allCodeBlocks.forEach((block, index) => {
+          if (block.includes('graph TB') || block.includes('Electron Desktop App')) {
+            console.log(`🎯 Bloco ${index + 1} parece ser Mermaid:`, block.substring(0, 200) + '...');
+          }
+        });
+      }
+    }
+
+    return mermaidCodes;
+  }
+
+  // Método para renderizar Mermaid para SVG em background
+  private async renderMermaidToSvg(mermaidCode: string, diagramId: string): Promise<string | null> {
+    console.log(`🎨 Iniciando renderização do diagrama ${diagramId}`);
+    console.log(`📝 Código Mermaid:`, mermaidCode.substring(0, 100) + '...');
+
+    try {
+      // Criar container oculto
+      const hiddenContainer = document.createElement('div');
+      hiddenContainer.style.cssText = `
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 800px !important;
+        height: 400px !important;
+      `;
+
+      // Criar div mermaid
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid';
+      mermaidDiv.id = diagramId;
+      mermaidDiv.textContent = mermaidCode;
+
+      hiddenContainer.appendChild(mermaidDiv);
+      document.body.appendChild(hiddenContainer);
+
+      console.log(`📦 Container criado e adicionado ao DOM para ${diagramId}`);
+
+      // Aguardar estabilização
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Inicializar mermaid
+      console.log(`🔧 Inicializando Mermaid para ${diagramId}...`);
+      await mermaid.init(undefined, mermaidDiv);
+      console.log(`✅ Mermaid inicializado para ${diagramId}`);
+
+      // Aguardar renderização
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verificar se o SVG foi gerado
+      const generatedSvg = mermaidDiv.querySelector('svg');
+      if (generatedSvg) {
+        console.log(`🎯 SVG gerado para ${diagramId}:`, {
+          viewBox: generatedSvg.getAttribute('viewBox'),
+          hasContent: generatedSvg.innerHTML.length > 0,
+          width: generatedSvg.getAttribute('width'),
+          height: generatedSvg.getAttribute('height')
+        });
+
+        const svgClone = generatedSvg.cloneNode(true) as SVGSVGElement;
+        svgClone.style.cssText = `
+          max-width: 100% !important;
+          height: auto !important;
+          display: block !important;
+          margin: 0 auto !important;
+        `;
+
+        const svgHtml = svgClone.outerHTML;
+        console.log(`📋 SVG HTML gerado para ${diagramId}:`, svgHtml.length + ' caracteres');
+
+        // Limpar
+        hiddenContainer.remove();
+        console.log(`🧹 Container removido para ${diagramId}`);
+
+        return svgHtml;
+      } else {
+        console.warn(`⚠️ SVG não foi gerado para ${diagramId}`);
+        console.log(`🔍 Conteúdo do container:`, mermaidDiv.innerHTML);
+      }
+
+      hiddenContainer.remove();
+      return null;
+    } catch (error) {
+      console.error(`❌ Erro ao renderizar Mermaid para SVG ${diagramId}:`, error);
+      return null;
+    }
+  }
+
   // Método público para renderizar diagramas mermaid quando o modal for aberto
   public async renderMermaidDiagrams(): Promise<void> {
     console.log('Iniciando renderização de diagramas Mermaid...');
 
     // Aguardar um pouco para o modal estar pronto
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     // Buscar containers de diagramas mermaid
     const containers = document.querySelectorAll('.mermaid-diagram[data-mermaid-code]');
@@ -361,6 +689,8 @@ export class MarkdownService {
         const diagramId = mermaidDiv.id;
         if (diagramId) {
           const svgHtml = svgClone.outerHTML;
+          // Salvar tanto no cache em memória quanto no localStorage
+          this.mermaidCache.set(diagramId, svgHtml);
           this.saveCachedDiagram(diagramId, svgHtml);
         }
 
@@ -480,6 +810,7 @@ export class MarkdownService {
             // Se finalmente funcionou, salvar no cache
             if (finalRect.width > 0 && finalRect.height > 0) {
               const svgHtml = newSvg.outerHTML;
+              this.mermaidCache.set(diagramId, svgHtml);
               this.saveCachedDiagram(diagramId, svgHtml);
             }
           }

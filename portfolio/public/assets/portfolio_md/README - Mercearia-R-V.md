@@ -6,6 +6,47 @@ Um sistema completo de gestão de estoque e vendas para mercearias, com experiê
 
 O Mercearia R&V une uma UI moderna em Angular a um backend Spring Boot embutido e controlado pelo Electron. O aplicativo inicia o backend localmente, serve o frontend e garante que tudo esteja pronto antes de apresentar a interface ao usuário. O banco de dados é PostgreSQL embarcado, evitando dependências externas e facilitando instalações em máquinas simples.
 
+## 🏗️ Arquitetura Geral do Sistema
+
+```mermaid
+graph TB
+    A[Electron Desktop App] --> B[Spring Boot Backend]
+    B --> C[PostgreSQL Database]
+    B --> D[Angular Frontend]
+    D --> E[Product Management]
+    D --> F[Sales Management]
+    D --> G[Stock Control]
+    D --> H[Reports & PDFs]
+    
+    subgraph "Desktop Environment"
+        A
+        B
+        C
+        D
+    end
+    
+    subgraph "Features"
+        E
+        F
+        G
+        H
+    end
+```
+
+### Fluxo Principal do Sistema
+
+```
+1. Usuário abre aplicação Electron
+2. Splash screen durante inicialização
+3. Electron inicia backend Spring Boot
+4. Health check do backend
+5. Frontend Angular é servido
+6. Usuário faz login
+7. Acesso ao sistema de gestão
+8. Operações de estoque/vendas
+9. Geração de relatórios/PDFs
+```
+
 ### Arquitetura do Sistema
 
 ```mermaid
@@ -72,32 +113,102 @@ graph TB
 - Controle de estoque e auditorias
 - Upload de imagens de produtos (armazenadas em `backend-spring/uploads`)
 
-### 1) Vendas e Caixa
+#### Fluxo de Gestão de Produtos
+
+```
+1. Usuário acessa módulo de produtos
+2. Cadastra novo produto com informações básicas
+3. Upload de imagem (opcional)
+4. Define preço e estoque inicial
+5. Produto fica disponível para vendas
+6. Controle automático de estoque
+7. Alertas de estoque baixo
+```
+
+### 2) Vendas e Caixa
 
 - Fluxo de checkout completo
 - Itens de venda, pagamentos, ajustes e estornos
 - Controle de caixa (abertura/fechamento, movimentações)
 
-### 1) Clientes
+#### Fluxo de Vendas
+
+```
+1. Abertura de caixa (usuário admin)
+2. Seleção de produtos para venda
+3. Adição de itens ao carrinho
+4. Aplicação de descontos (opcional)
+5. Seleção de forma de pagamento
+6. Geração de nota fiscal/recibo
+7. Atualização automática de estoque
+8. Registro da venda no histórico
+```
+
+### 3) Clientes
 
 - Cadastro e consulta de clientes
 - Histórico de compras por cliente
 
-### 1) Relatórios e Documentos
+#### Fluxo de Gestão de Clientes
+
+```
+1. Cadastro de novo cliente
+2. Vinculação a vendas (opcional)
+3. Consulta de histórico de compras
+4. Análise de comportamento de compra
+5. Relatórios por cliente
+```
+
+### 4) Relatórios e Documentos
 
 - Geração de nota/recibo em PDF (OpenHTMLToPDF + PDFBox)
 - Gráficos e dashboards (Chart.js)
 
-### 1) Segurança
+#### Fluxo de Relatórios
+
+```
+1. Seleção de período e filtros
+2. Geração de dados do banco
+3. Processamento de estatísticas
+4. Criação de gráficos (Chart.js)
+5. Exportação para PDF
+6. Visualização em dashboard
+```
+
+### 5) Segurança
 
 - Autenticação via JWT
 - Perfis de usuário: `admin` e `user` (seed automático opcional em dev)
 
-### 1) Banco de Dados Local Embarcado
+#### Fluxo de Autenticação
+
+```
+1. Usuário insere credenciais
+2. Validação no backend
+3. Geração de JWT token
+4. Armazenamento do token
+5. Redirecionamento para dashboard
+6. Middleware de autenticação
+7. Controle de acesso por perfil
+```
+
+### 6) Banco de Dados Local Embarcado
 
 - PostgreSQL embarcado com binários e data-dir no app
 - Backups automatizados e scripts de manutenção
 - Nunca usa URL externa por padrão (somente o banco embarcado)
+
+#### Fluxo de Inicialização do Banco
+
+```
+1. Electron inicia aplicação
+2. Verificação de banco existente
+3. Inicialização do PostgreSQL embarcado
+4. Execução de migrações (Liquibase)
+5. Seed de dados iniciais (dev)
+6. Conexão do Spring Boot
+7. Health check de conectividade
+```
 
 ## 🔧 Sistemas Técnicos de Destaque
 

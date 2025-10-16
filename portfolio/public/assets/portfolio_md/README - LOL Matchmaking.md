@@ -6,6 +6,54 @@ Um sistema completo de matchmaking personalizado para League of Legends, desenvo
 
 O **LOL Matchmaking System** é uma plataforma desktop que simula o sistema de filas do League of Legends, permitindo que jogadores criem partidas customizadas, realizem drafts completos e gerenciem partidas com integração total ao jogo via LCU (League Client Update).
 
+## 🏗️ Arquitetura Geral do Sistema
+
+```mermaid
+graph TB
+    A[Electron Desktop App] --> B[Spring Boot Backend]
+    B --> C[MySQL Database]
+    B --> D[Redis Cache]
+    B --> E[Discord Bot JDA]
+    A --> F[League Client LCU]
+    A --> G[Angular Frontend]
+    G --> H[WebSocket Connection]
+    H --> B
+    E --> I[Discord Server]
+    F --> J[League of Legends Game]
+    
+    subgraph "Desktop Environment"
+        A
+        G
+    end
+    
+    subgraph "Backend Services"
+        B
+        C
+        D
+        E
+    end
+    
+    subgraph "External Integrations"
+        F
+        I
+        J
+    end
+```
+
+### Fluxo Principal do Sistema
+
+```
+1. Usuário abre aplicação Electron
+2. Electron inicia backend Spring Boot
+3. Frontend Angular conecta via WebSocket
+4. Usuário faz login e entra na fila
+5. Sistema forma partidas via algoritmo de matchmaking
+6. Draft é executado com validação LCU
+7. Partida é monitorada em tempo real
+8. Resultado é capturado e votado
+9. Estatísticas são atualizadas
+```
+
 ## 🏗️ Stack Tecnológica
 
 ### Backend (Spring Boot)
@@ -52,6 +100,17 @@ O **LOL Matchmaking System** é uma plataforma desktop que simula o sistema de f
 - **Sistema de LP (League Points)** customizado
 - **Integração com Discord** para notificações e gerenciamento de usuários
 
+#### Fluxo do Matchmaking
+
+```
+1. Jogador entra na fila → Validação via LCU
+2. Sistema busca jogadores compatíveis por MMR
+3. Formação de times balanceados (5v5)
+4. Criação automática de canais Discord
+5. Notificação para todos os jogadores
+6. Início do processo de draft
+```
+
 ### 2. Sistema de Draft Avançado
 
 - **Draft completo** com picks e bans
@@ -60,12 +119,33 @@ O **LOL Matchmaking System** é uma plataforma desktop que simula o sistema de f
 - **Persistência de estado** no Redis para alta disponibilidade
 - **Sistema de confirmações** com locks distribuídos
 
+#### Fluxo do Draft
+
+```
+1. Confirmação de todos os jogadores (30s)
+2. Fase de Bans (3 bans por time, 30s cada)
+3. Fase de Picks (5 picks por time, 30s cada)
+4. Validação final via LCU
+5. Início da partida no League of Legends
+6. Monitoramento automático do resultado
+```
+
 ### 3. Integração com League of Legends
 
 - **LCU Integration** para detecção automática de jogadores
 - **Validação de ações** via cliente do jogo
 - **Monitoramento de partidas** em tempo real
 - **Linking automático** de resultados
+
+#### Fluxo de Integração LCU
+
+```
+1. Detecção automática do cliente do LoL
+2. Validação de identidade do jogador
+3. Monitoramento de ações no jogo
+4. Captura automática de resultados
+5. Atualização de estatísticas e LP
+```
 
 ### 4. Automação Avançada do Discord
 
@@ -75,12 +155,32 @@ O **LOL Matchmaking System** é uma plataforma desktop que simula o sistema de f
 - **Limpeza automática** de canais após partidas
 - **Integração completa** com servidor Discord via JDA
 
+#### Fluxo de Automação Discord
+
+```
+1. Partida criada → Criação automática de canais de voz
+2. Separação de times em canais específicos
+3. Canal de espectadores com controles de mute
+4. Movimentação automática durante draft/partida
+5. Limpeza automática após 2 horas (TTL)
+```
+
 ### 5. Sistema de Votação e Resultados
 
 - **Votação democrática** para resultados de partidas
 - **Sistema de integridade** com validação múltipla
 - **Histórico completo** de partidas e estatísticas
 - **Leaderboards** e rankings
+
+#### Fluxo de Votação
+
+```
+1. Partida finalizada → Sistema solicita votação
+2. Todos os jogadores votam no resultado
+3. Validação de integridade (maioria simples)
+4. Atualização de MMR e LP
+5. Registro no histórico de partidas
+```
 
 ### 6. Funcionalidades Avançadas
 
