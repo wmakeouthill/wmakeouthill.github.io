@@ -1,257 +1,211 @@
-# 🧾 Mercearia R&V — Sistema de Gestão de Estoque (Desktop + Web)
+# 🏪 Mercearia R&V - Sistema de Gestão de Estoque
 
-Um sistema completo de gestão de estoque e vendas para mercearias, com experiência desktop (Electron) e web (Angular), backend robusto em Spring Boot e banco de dados PostgreSQL embarcado. Projetado para funcionar 100% offline-first em Windows, com empacotamento do Java e do PostgreSQL dentro do instalador.
+> **Sistema completo de gestão empresarial** desenvolvido com arquitetura full-stack moderna, combinando aplicação desktop (Electron) e web (Angular) com backend robusto em Spring Boot e banco PostgreSQL embarcado.
 
-## 🚀 Visão Geral
+## 📋 Visão Geral
 
-O Mercearia R&V une uma UI moderna em Angular a um backend Spring Boot embutido e controlado pelo Electron. O aplicativo inicia o backend localmente, serve o frontend e garante que tudo esteja pronto antes de apresentar a interface ao usuário. O banco de dados é PostgreSQL embarcado, evitando dependências externas e facilitando instalações em máquinas simples.
+O **Mercearia R&V** é uma solução empresarial completa para gestão de estoque e vendas, projetada para operar 100% offline-first. O sistema integra uma interface moderna em Angular com um backend Spring Boot embutido, controlado via Electron, garantindo uma experiência desktop nativa sem dependências externas.
 
-## 🏗️ Stack Tecnológica
+### 🎯 Principais Características
 
-### Backend (Spring Boot)
+- **Arquitetura Offline-First**: Funciona completamente offline com banco PostgreSQL embarcado
+- **Multiplataforma**: Desktop (Windows) e Web com mesma base de código
+- **Segurança Empresarial**: Autenticação JWT com perfis de usuário diferenciados
+- **Relatórios Avançados**: Geração de PDFs e dashboards com gráficos interativos
+- **Deploy Simplificado**: Instalador único com todas as dependências incluídas
 
-- Java 21 + Spring Boot 3.5.5
-- Spring Web, Spring Data JPA, Spring Security, Validation
-- JWT (jjwt) para autenticação
-- Liquibase para migrações e controle de schema
-- OpenHTMLToPDF + PDFBox para geração de PDFs (notas)
-- PostgreSQL (driver) com binários embarcados
+## 🛠️ Stack Tecnológica
 
-### Frontend (Angular)
+### Backend & API
 
-- Angular 20 + TypeScript
-- Angular Material (UI)
-- SCSS
-- Chart.js via `ng2-charts` (visões e relatórios)
+- **Java 21** - Linguagem principal com recursos modernos
+- **Spring Boot 3.5.5** - Framework principal com starters:
+  - Spring Web (REST APIs)
+  - Spring Data JPA (ORM)
+  - Spring Security (Autenticação/Autorização)
+  - Spring Validation (Validação de dados)
+  - Spring Mail (Notificações por email)
+- **JWT (jjwt 0.11.5)** - Autenticação stateless
+- **Liquibase** - Controle de versão e migração de banco de dados
+- **PostgreSQL** - Banco de dados relacional com driver nativo
+- **OpenHTMLToPDF + PDFBox** - Geração server-side de documentos PDF
+- **Maven** - Gerenciamento de dependências e build
 
-### Desktop (Electron)
+### Frontend & UI
 
-- Electron 27 + TypeScript
-- Empacotamento com `electron-builder`
-- JDK/JRE embarcados para rodar o Spring Boot sem dependências
-- Inicialização coordenada: backend → frontend → exibição (splash + healthcheck)
+- **Angular 20** - Framework SPA com TypeScript
+- **Angular Material** - Componentes de UI seguindo Material Design
+- **SCSS** - Pré-processador CSS para estilos avançados
+- **Chart.js + ng2-charts** - Visualização de dados e relatórios
+- **RxJS** - Programação reativa e gerenciamento de estado
+- **PDF.js** - Visualização de documentos PDF no cliente
 
-### Infraestrutura & DevOps
+### Desktop & Empacotamento
 
-- Mono-repo com scripts Node.js utilitários em `scripts/`
-- Build integrado: copia o `dist` do frontend para o backend antes do empacote Maven
-- Deploy web opcional com NGINX + Certbot (ver `deploy/`)
+- **Electron 27** - Framework para aplicações desktop multiplataforma
+- **TypeScript** - Linguagem tipada para JavaScript
+- **electron-builder** - Empacotamento e distribuição de aplicações
+- **NSIS** - Criador de instaladores Windows
 
-## 🎯 Principais Funcionalidades
+### DevOps & Infraestrutura
 
-### 1) Gestão de Produtos e Estoque
+- **Node.js** - Runtime para scripts de automação
+- **Mono-repo** - Estrutura de projeto unificada
+- **NGINX** - Servidor web para deploy (opcional)
+- **Certbot** - Certificados SSL automáticos
+- **Systemd** - Gerenciamento de serviços Linux
 
-- Cadastro, edição e listagem de produtos
-- Controle de estoque e auditorias
-- Upload de imagens de produtos (armazenadas em `backend-spring/uploads`)
+## 🏗️ Arquitetura do Sistema
 
-### 1) Vendas e Caixa
+### Padrões Arquiteturais Implementados
 
-- Fluxo de checkout completo
-- Itens de venda, pagamentos, ajustes e estornos
-- Controle de caixa (abertura/fechamento, movimentações)
+- **Arquitetura em Camadas**: Separação clara entre apresentação, lógica de negócio e persistência
+- **API REST**: Endpoints organizados por domínio (produtos, vendas, clientes, relatórios)
+- **Repository Pattern**: Abstração de acesso a dados com Spring Data JPA
+- **Dependency Injection**: Inversão de controle com Spring IoC
+- **JWT Authentication**: Autenticação stateless com refresh tokens
+- **CORS Configuration**: Configuração de políticas de origem cruzada
 
-### 1) Clientes
+### Estrutura de Domínios
 
-- Cadastro e consulta de clientes
-- Histórico de compras por cliente
+```
+📦 Sistema de Gestão
+├── 🛍️ Gestão de Produtos
+│   ├── Cadastro e edição
+│   ├── Controle de estoque
+│   └── Upload de imagens
+├── 💰 Vendas e Caixa
+│   ├── Fluxo de checkout
+│   ├── Controle de pagamentos
+│   └── Gestão de caixa
+├── 👥 Gestão de Clientes
+│   ├── Cadastro completo
+│   └── Histórico de compras
+├── 📊 Relatórios e Analytics
+│   ├── Dashboards interativos
+│   ├── Geração de PDFs
+│   └── Gráficos de vendas
+└── 🔐 Segurança
+    ├── Autenticação JWT
+    └── Perfis de usuário
+```
 
-### 1) Relatórios e Documentos
+## 🚀 Funcionalidades Principais
 
-- Geração de nota/recibo em PDF (OpenHTMLToPDF + PDFBox)
-- Gráficos e dashboards (Chart.js)
+### Gestão de Estoque
 
-### 1) Segurança
+- ✅ Cadastro completo de produtos com categorização
+- ✅ Controle de estoque com alertas de baixa
+- ✅ Upload e gestão de imagens de produtos
+- ✅ Auditoria de movimentações
 
-- Autenticação via JWT
-- Perfis de usuário: `admin` e `user` (seed automático opcional em dev)
+### Sistema de Vendas
 
-### 1) Banco de Dados Local Embarcado
+- ✅ Interface de ponto de venda (PDV) intuitiva
+- ✅ Múltiplas formas de pagamento
+- ✅ Gestão de trocas e devoluções
+- ✅ Controle de caixa com abertura/fechamento
 
-- PostgreSQL embarcado com binários e data-dir no app
-- Backups automatizados e scripts de manutenção
-- Nunca usa URL externa por padrão (somente o banco embarcado)
+### Relatórios Empresariais
 
-## 🔧 Sistemas Técnicos de Destaque
+- ✅ Dashboards com métricas em tempo real
+- ✅ Relatórios de vendas com filtros avançados
+- ✅ Geração de notas fiscais em PDF
+- ✅ Gráficos interativos de performance
 
-### Orquestração via Electron
+### Segurança e Controle
 
-- Splash screen informativa durante o boot
-- Health-check do backend em `/health` antes de navegar para `http://<host>:3000/app/`
-- Logs persistidos em arquivo para facilitar suporte
-- Encerramento limpo do backend e dos processos PostgreSQL ao fechar o app
+- ✅ Autenticação JWT com refresh tokens
+- ✅ Perfis de usuário (Admin/Operador)
+- ✅ Controle de acesso por funcionalidade
+- ✅ Logs de auditoria completos
 
-### Backend Spring Boot
+## 🔧 Destaques Técnicos
 
-- API REST organizada por domínios: produtos, vendas, caixa, clientes, relatórios
-- Liquibase habilitado em desenvolvimento e desabilitado para builds empacotados
-- Inicialização condicional de dados (seed) via `DataInitializer`
+### Orquestração Desktop
+
+- **Splash Screen**: Interface informativa durante inicialização
+- **Health Checks**: Verificação automática de serviços antes da exibição
+- **Logs Estruturados**: Sistema de logging para facilitar suporte
+- **Cleanup Automático**: Encerramento limpo de processos
 
 ### Banco de Dados Embarcado
 
-- Diretório de dados controlado pelo aplicativo (persistente entre sessões)
-- Ferramentas `pg_dump` e `pg_restore` empacotadas e expostas ao backend via env
+- **PostgreSQL Nativo**: Binários incluídos no instalador
+- **Backup Automático**: Sistema de backup integrado
+- **Migração de Dados**: Liquibase para controle de schema
+- **Zero Configuração**: Banco inicializa automaticamente
 
-## 🗂️ Estrutura do Repositório
+### Build e Deploy
 
-- `backend-spring/`: aplicação Spring Boot (Maven)
-- `frontend/`: aplicação Angular
-- `electron/`: processo principal, preload e configuração do builder
-- `scripts/`: utilitários de build, deploy, manutenção e análise
-- `deploy/`: arquivos NGINX, systemd e guias de implantação
-- `db/`: `dump_data.sql` e docs do banco (uso em dev)
+- **Mono-repo**: Estrutura unificada com scripts automatizados
+- **Build Integrado**: Frontend copiado automaticamente para backend
+- **Instalador Único**: Todas as dependências incluídas (JDK, PostgreSQL)
+- **Deploy Web Opcional**: Configuração NGINX + SSL incluída
 
-## ▶️ Como Executar (Desenvolvimento)
+## 📈 Métricas e Qualidade
 
-Pré-requisitos:
-
-- Node.js LTS e npm
-- Java 21 (apenas para rodar o backend em dev; o app empacotado inclui JDK)
-- Maven (para build do backend em dev)
-
-Passos rápidos:
-
-1) Instalar dependências nas partes do monorepo:
-
-```bash
-npm run install:all
-```
-
-1) Levantar tudo em modo dev (backend + frontend + electron):
-
-```bash
-npm run dev
-```
-
-- O backend inicia em `http://localhost:3000`
-- O frontend dev server inicia em `http://localhost:4200` (o Electron detecta e abre)
-
-Dicas úteis:
-
-- Logs (dev) gravam no diretório raiz do workspace: `frontend.log` e `backend.log`
-- Caso o Angular esteja em HTTPS de dev, o Electron aceita certificados self-signed
-
-## 📦 Build de Produção (Instalador Desktop)
-
-- Build completo e empacotamento para Windows:
-
-```bash
-npm run dist:win
-```
-
-- Build genérico (multi-plataforma, se hosted em ambiente compatível):
-
-```bash
-npm run dist
-```
-
-O `electron-builder` copia:
-
-- JAR do backend (`backend-spring/target/backend-spring-0.0.1-SNAPSHOT.jar`)
-- `frontend/dist/sistema-estoque/browser` para `resources/frontend`
-- Binários do PostgreSQL e dados
-- JDK/JRE para execução do backend
-
-Observações importantes:
-
-- O backend em produção é iniciado pelo Electron e usa somente o PostgreSQL embarcado
-- Liquibase e seed automático ficam desativados no build empacotado (DB já provisionado)
-
-## 🧪 Comandos Úteis
-
-- Build apenas do frontend:
-
-```bash
-npm run build:frontend
-```
-
-- Build do backend (gera o JAR):
-
-```bash
-npm run build:backend
-```
-
-- Build de tudo (backend → frontend → electron):
-
-```bash
-npm run build:all
-```
-
-- Servir frontend de produção localmente (útil para testes sem Electron):
-
-```bash
-npm run serve:frontend
-```
-
-## 🔐 Autenticação e Perfis
-
-- Login via JWT
-- Usuários padrão em dev (seed condicional): `admin` (pode controlar caixa) e `user`
-- Senhas padrão podem ser definidas por envs: `DEFAULT_ADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`
-
-## 🗃️ Banco de Dados
-
-- Postgres embarcado: binários em `backend-spring/pg/<plataforma>`
-- Diretório de dados gerenciado pelo app em `resources/data/pg` (produção) ou caminho configurado em dev
-- Backups em `backend-spring/backups` (e correspondente nos recursos empacotados)
-- Dump opcional para desenvolvimento em `db/dump_data.sql`
-
-Política do projeto:
-
-- Sempre usar o Postgres embarcado local; não cair em URLs externas para o banco
-
-## 🪵 Logs e Suporte
-
-- Frontend: `frontend.log`
-- Backend: `backend.log` e também `backend-stdout.log`/`backend-stderr.log` quando em dev
-- Em produção empacotada, os logs são salvos ao lado da pasta `resources` do aplicativo
-
-## 🚀 Deploy Web (Opcional)
-
-Para hospedagem web do frontend com backend como serviço:
-
-- Consulte `deploy/README_DEPLOY.md` (guia NGINX + Certbot + systemd)
-- Arquivos prontos em `deploy/nginx/` e `deploy/systemd/`
-- Scripts auxiliares em `deploy/scripts/`
-
-## 📈 Métricas, Health e Qualidade
-
-- Health check simples em `/health` (usado pelo Electron)
-- Logs estruturados via SLF4J
-- Scripts de verificação e limpeza em `scripts/`
+- **Health Check Endpoint**: Monitoramento de saúde da aplicação
+- **Logs Estruturados**: SLF4J com diferentes níveis de log
+- **Testes Automatizados**: Suíte de testes para componentes críticos
+- **Validação de Dados**: Validação server-side e client-side
 
 ## 🎨 Interface do Usuário
 
-- Tema Angular Material
-- Layout responsivo
-- Gráficos integrados em páginas de relatório
+- **Material Design**: Interface moderna seguindo padrões Google
+- **Responsivo**: Adaptação automática para diferentes resoluções
+- **Acessibilidade**: Componentes com suporte a navegação por teclado
+- **Tema Customizável**: Cores e estilos adaptáveis
 
-## 🔮 Destaques Técnicos
+## 📦 Instalação e Execução
 
-1) Desktop-first com backend Spring Boot embutido (JDK/JRE inclusos)
-2) PostgreSQL embarcado com gestão de dados e backups
-3) Orquestração robusta via Electron (splash, health-check, logs, cleaning)
-4) Geração de PDFs server-side para notas e comprovantes
-5) Mono-repo com automações de build e deploy
+### Desenvolvimento
 
-## 📝 Conclusão
+```bash
+# Instalar dependências
+npm run install:all
 
-Este projeto demonstra experiência prática em:
+# Executar em modo desenvolvimento
+npm run dev
+```
 
-- Arquitetura full-stack moderna (Angular + Spring Boot + Electron)
-- Aplicações desktop com backend embutido e banco de dados local
-- Segurança com JWT e profiles de acesso
-- Automação de build/empacotamento e integração de recursos nativos
-- Operação offline-first e suporte simplificado (logs, backups, reset)
+### Produção
 
-— Desenvolvido com foco em confiabilidade e usabilidade para o dia a dia de uma mercearia.
+```bash
+# Build completo para Windows
+npm run dist:win
+
+# Build genérico multiplataforma
+npm run dist
+```
+
+## 🔐 Segurança
+
+- **JWT Authentication**: Tokens seguros com expiração configurável
+- **CORS Policy**: Configuração de políticas de origem cruzada
+- **Input Validation**: Validação rigorosa de dados de entrada
+- **SQL Injection Protection**: Uso de prepared statements via JPA
+
+## 📊 Tecnologias de Mercado Utilizadas
+
+Este projeto demonstra proficiência em tecnologias amplamente utilizadas no mercado:
+
+- **Java/Spring Boot**: Stack mais popular para desenvolvimento enterprise
+- **Angular**: Framework líder para SPAs empresariais
+- **PostgreSQL**: Banco relacional robusto e escalável
+- **Electron**: Padrão para aplicações desktop multiplataforma
+- **Docker/Containerização**: Preparado para deploy em containers
+- **JWT**: Padrão de autenticação para APIs modernas
+- **REST APIs**: Arquitetura padrão para integração de sistemas
+
+## 🎯 Impacto e Resultados
+
+- **Redução de Dependências**: Sistema 100% autônomo sem necessidade de instalações externas
+- **Facilidade de Deploy**: Instalador único com todas as dependências
+- **Manutenibilidade**: Código organizado com padrões enterprise
+- **Escalabilidade**: Arquitetura preparada para crescimento
+- **Experiência do Usuário**: Interface moderna e intuitiva
 
 ---
 
-Referências internas úteis:
-
-- `deploy/README_DEPLOY.md` — guia de deploy web (NGINX + Certbot + systemd)
-- `db/README.md` — anotações sobre estrutura e dados do banco em dev
-- `backend-spring/pom.xml` — dependências e build do backend
-- `electron/package.json` — configuração do empacotador e recursos extras
-- Scripts em `scripts/` — utilitários de build, deploy e manutenção
+> **Desenvolvido com foco em qualidade, segurança e usabilidade empresarial**, este projeto demonstra competência em tecnologias modernas e padrões de desenvolvimento profissional.

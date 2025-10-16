@@ -63,10 +63,36 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 1200px;
   padding: 2rem;
+}
+
+/* Desktop layout - text on left, image on right */
+.hero-text {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+.hero-image {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+}
+
+/* Mobile-specific sections - hidden on desktop */
+.hero-greeting-section {
+  display: none;
+}
+
+.hero-mobile-content {
+  display: none;
 }
 
 .hero-stats-wrapper {
@@ -395,11 +421,31 @@
   .hero-content {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
-    align-items: start;
+    align-items: center;
   }
 
+  /* Keep desktop layout for tablets - text left, image right */
   .hero-text {
+    grid-column: 1;
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .hero-image {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .hero-greeting-section {
+    display: none;
+  }
+
+  .hero-mobile-content {
+    display: none;
   }
 
   .hero-tagline {
@@ -444,6 +490,28 @@
   .scroll-indicator-inline {
     display: flex;
   }
+
+  /* Ensure desktop layout - text left, image right */
+  .hero-content {
+    grid-template-columns: 1fr 1fr;
+    align-items: flex-start;
+  }
+
+  .hero-text {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+  }
+
+  .hero-image {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -455,19 +523,34 @@
     grid-template-columns: 1fr;
     gap: 2rem;
     grid-template-areas:
-      "text"
-      "image";
+      "greeting"
+      "image"
+      "mobile-content";
   }
 
-  .hero-text {
+  /* Show mobile-specific sections */
+  .hero-greeting-section {
+    display: block;
+    grid-area: greeting;
     text-align: center;
-    grid-area: text;
+  }
+
+  .hero-mobile-content {
+    display: block;
+    grid-area: mobile-content;
+    text-align: center;
+  }
+
+  /* Hide desktop sections */
+  .hero-text {
+    display: none;
   }
 
   .hero-image {
     grid-area: image;
     display: flex;
     justify-content: center;
+    align-items: center;
     margin-top: 3rem;
   }
 

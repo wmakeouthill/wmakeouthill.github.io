@@ -1,237 +1,302 @@
-# 🌌 AA Space — Plataforma de Comunidade e Chat em Tempo Real
+# 🌌 AA Space — Plataforma de Comunidade em Tempo Real
 
 ## 🚀 Visão Geral
 
-O **AA Space** é uma plataforma completa de comunidade e comunicação em tempo real, desenvolvida com arquitetura moderna full-stack. Esta solução oferece um ambiente seguro e acolhedor para compartilhar experiências, com sistema de chat avançado, fórum interativo e gestão de usuários, tudo integrado em uma experiência web responsiva e intuitiva.
+O **AA Space** é uma plataforma completa de comunidade e comunicação em tempo real, desenvolvida com arquitetura moderna full-stack. A solução oferece um ambiente seguro para compartilhar experiências, com sistema de chat avançado, fórum interativo e gestão de usuários, tudo integrado em uma experiência web responsiva.
 
-### 🎯 Proposta de Valor
+### 🎯 Principais Funcionalidades
 
 - **Sistema de Chat Completo**: Conversas privadas e em grupo com controle avançado
 - **Fórum Interativo**: Posts, comentários e sistema de curtidas
 - **Gestão de Usuários**: Perfis personalizáveis com upload de imagens
-- **Tempo Real**: Comunicação instantânea via WebSockets
+- **Comunicação em Tempo Real**: Via WebSockets com Socket.IO
 - **Interface Moderna**: Design responsivo com Angular 19
 - **Backend Robusto**: API RESTful com Node.js e Express
 
-## 🏗️ Arquitetura Geral do Sistema
+## 🏗️ Arquitetura do Sistema
 
 ```mermaid
-%%{title: "Arquitetura Geral do Sistema AA Space"}%%
+%%{title: "Arquitetura Geral do AA_Space"}%%
 graph TB
-    A[Angular Frontend] --> B[Node.js Backend]
+    A[Angular 19 Frontend] --> B[Node.js + Express Backend]
     B --> C[SQLite Database]
     B --> D[Socket.IO Server]
     D --> A
-    A --> E[User Management]
-    A --> F[Chat System]
-    A --> G[Forum System]
     
-    subgraph "Frontend Layer"
+    subgraph "Frontend"
         A
-        E
-        F
-        G
+        E[Chat System]
+        F[Forum System]
+        G[User Management]
     end
     
-    subgraph "Backend Services"
+    subgraph "Backend"
         B
         C
         D
+        H[JWT Authentication]
+        I[TypeORM]
     end
 ```
 
-### Fluxo Principal do Sistema
+## 🔄 Fluxos de Comunicação em Tempo Real
 
-```text
-1. Usuário acessa a aplicação web
-2. Sistema de autenticação JWT
-3. Interface principal com chat e fórum
-4. Comunicação em tempo real via WebSockets
-5. Gestão de conversas e posts
-6. Upload e gerenciamento de arquivos
-7. Notificações em tempo real
+### Sistema de Chat Híbrido (Privado + Grupo)
+
+```mermaid
+%%{title: "Fluxo de Chat em Tempo Real com WebSockets"}%%
+sequenceDiagram
+    participant U1 as User 1
+    participant U2 as User 2
+    participant F as Frontend
+    participant B as Backend
+    participant S as Socket.IO
+    participant DB as SQLite
+    
+    Note over U1,DB: Chat Privado
+    
+    U1->>F: Envia mensagem para User 2
+    F->>S: socket.emit('send_message', data)
+    S->>B: Processa mensagem
+    B->>DB: Salva mensagem no banco
+    DB-->>B: Mensagem salva (ID: 123)
+    B->>S: socket.to(roomId).emit('new_message', message)
+    S->>F: Recebe nova mensagem
+    F->>U1: Atualiza interface
+    F->>U2: Atualiza interface (se online)
+    
+    Note over U1,DB: Chat em Grupo
+    
+    U1->>F: Envia mensagem no grupo
+    F->>S: socket.emit('send_group_message', data)
+    S->>B: Processa mensagem de grupo
+    B->>DB: Salva mensagem no grupo
+    DB-->>B: Mensagem salva
+    B->>S: socket.to(groupRoomId).emit('new_group_message', message)
+    S->>F: Broadcast para todos no grupo
+    F->>U1: Atualiza interface
+    F->>U2: Atualiza interface
+    F->>U3: Atualiza interface (outros membros)
 ```
 
-## 🏗️ Stack Tecnológica Moderna
+### Sistema de Fórum Interativo
 
-### Frontend (Angular 19 + TypeScript)
+```mermaid
+%%{title: "Fluxo do Sistema de Fórum com Interações"}%%
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant DB as SQLite
+    participant WS as WebSocket
+    
+    Note over U,WS: Criação de Post
+    
+    U->>F: Cria novo post
+    F->>B: POST /api/posts
+    B->>B: Validar dados + autenticação
+    B->>DB: INSERT INTO posts
+    DB-->>B: Post criado (ID: 456)
+    B->>WS: Broadcast novo post
+    WS->>F: Todos usuários recebem notificação
+    F->>U: Confirmação + post visível
+    
+    Note over U,WS: Sistema de Curtidas
+    
+    U->>F: Clica em "Curtir" post
+    F->>B: POST /api/posts/456/like
+    B->>DB: Verifica se já curtiu
+    alt Já curtiu
+        DB-->>B: Remove curtida
+        B->>DB: DELETE FROM likes
+    else Não curtiu
+        DB-->>B: Adiciona curtida
+        B->>DB: INSERT INTO likes
+    end
+    DB-->>B: Operação concluída
+    B->>WS: Broadcast atualização de likes
+    WS->>F: Atualiza contador em tempo real
+    
+    Note over U,WS: Comentários em Tempo Real
+    
+    U->>F: Adiciona comentário
+    F->>B: POST /api/posts/456/comments
+    B->>DB: Salva comentário
+    DB-->>B: Comentário salvo
+    B->>WS: Broadcast novo comentário
+    WS->>F: Todos veem comentário instantaneamente
+```
 
-**Framework & Linguagem:**
+## 🔐 Sistema de Autenticação e Sessões
 
-- **Angular 19** - Framework enterprise mais robusto do mercado
-- **TypeScript 5.7** - Tipagem estática para desenvolvimento escalável
-- **RxJS 7.8** - Programação reativa (padrão enterprise)
+### Fluxo JWT com Refresh Tokens
 
-**UI/UX & Estilização:**
+```mermaid
+%%{title: "Sistema de Autenticação JWT com Refresh Tokens"}%%
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant DB as SQLite
+    
+    Note over U,DB: Login Inicial
+    
+    U->>F: Insere credenciais
+    F->>B: POST /api/auth/login
+    B->>B: Validar credenciais
+    B->>DB: SELECT user WHERE email/password
+    DB-->>B: Usuário encontrado
+    B->>B: Gerar JWT access token (15min)
+    B->>B: Gerar refresh token (7 dias)
+    B->>DB: Salvar refresh token
+    DB-->>B: Token salvo
+    B-->>F: {accessToken, refreshToken, user}
+    F->>F: Armazenar tokens no localStorage
+    
+    Note over U,DB: Requisições Autenticadas
+    
+    F->>B: GET /api/profile (com access token)
+    B->>B: Verificar JWT
+    alt Token válido
+        B-->>F: Dados do perfil
+    else Token expirado
+        B-->>F: 401 Unauthorized
+        F->>B: POST /api/auth/refresh (com refresh token)
+        B->>DB: Verificar refresh token
+        DB-->>B: Token válido
+        B->>B: Gerar novo access token
+        B-->>F: Novo access token
+        F->>B: GET /api/profile (com novo token)
+        B-->>F: Dados do perfil
+    end
+    
+    Note over U,DB: Logout
+    
+    U->>F: Clica logout
+    F->>B: POST /api/auth/logout
+    B->>DB: Remover refresh token
+    DB-->>B: Token removido
+    B-->>F: Logout confirmado
+    F->>F: Limpar localStorage
+```
 
-- **CSS3** - Estilização moderna e responsiva
-- **Responsive Design** - Interface adaptável para diferentes dispositivos
-- **Component Architecture** - Arquitetura de componentes reutilizáveis
+## 🛠️ Stack Tecnológica
 
-**Comunicação & Integração:**
+### Frontend
 
-- **Socket.IO Client** - Conexão WebSocket para tempo real
-- **HTTP Client** - Comunicação REST com backend
-- **File Upload** - Sistema de upload de imagens
+- **Angular 19** - Framework enterprise com TypeScript 5.7
+- **RxJS 7.8** - Programação reativa
+- **Socket.IO Client** - Comunicação WebSocket
+- **CSS3** - Interface responsiva e moderna
 
-### Backend (Node.js + Express + TypeScript)
+### Backend
 
-**Tecnologias Core:**
+- **Node.js** - Runtime JavaScript server-side
+- **Express.js 4.18** - Framework web
+- **TypeScript 5.8** - Tipagem estática
+- **Socket.IO 4.8** - Servidor WebSocket
 
-- **Node.js** - Runtime JavaScript server-side líder de mercado
-- **Express.js 4.18** - Framework web mais popular do Node.js
-- **TypeScript 5.8** - Tipagem estática para desenvolvimento robusto
-- **RESTful APIs** - Arquitetura de comunicação padrão
-
-**Banco de Dados & ORM:**
+### Banco de Dados
 
 - **SQLite3** - Banco relacional embarcado
 - **TypeORM 0.3.22** - ORM moderno com TypeScript
 - **Migrations** - Controle de versão de schema
-- **Entity Management** - Gerenciamento de entidades
 
-**Segurança & Autenticação:**
+### Segurança & Autenticação
 
-- **JWT (jsonwebtoken)** - Tokens seguros para autenticação
+- **JWT** - Tokens seguros para autenticação
 - **bcrypt** - Criptografia de senhas
 - **CORS** - Controle de acesso cross-origin
 - **Input Validation** - Validação robusta de dados
 
-**Comunicação em Tempo Real:**
-
-- **Socket.IO 4.8** - WebSockets bidirecionais
-- **WebSocket Server** - Servidor de tempo real
-- **Event-driven Architecture** - Arquitetura baseada em eventos
-
-### Infraestrutura & DevOps
-
-**Desenvolvimento & Build:**
+### DevOps & Desenvolvimento
 
 - **TypeScript Compiler** - Compilação type-safe
 - **ts-node** - Execução TypeScript em desenvolvimento
-- **nodemon** - Hot reload para desenvolvimento
+- **nodemon** - Hot reload
 - **Concurrently** - Execução paralela de processos
 
-**Qualidade & Monitoramento:**
+## 🎯 Funcionalidades Técnicas
 
-- **Structured Logging** - Logs organizados
-- **Error Handling** - Tratamento robusto de erros
-- **Health Checks** - Monitoramento de saúde da aplicação
+### 1. Sistema de Chat Avançado
 
-## 🎯 Principais Funcionalidades
+- **Conversas Privadas**: One-to-one com histórico persistente
+- **Chat em Grupo**: Múltiplos participantes com avatares personalizáveis
+- **Tempo Real**: Comunicação instantânea via WebSockets
+- **Status de Mensagens**: Entrega e leitura em tempo real
+- **Gerenciamento de Participantes**: Adicionar/remover usuários
 
-### 1. Sistema de Autenticação e Gestão de Usuários
+### 2. Sistema de Fórum
 
-**Autenticação Segura:**
+- **Posts e Comentários**: Sistema completo de interação
+- **Sistema de Curtidas**: Para posts e comentários
+- **Atualizações em Tempo Real**: Notificações instantâneas
+- **Moderação de Conteúdo**: Controle administrativo
 
-- **JWT Authentication** - Tokens seguros e stateless
-- **Password Encryption** - Criptografia bcrypt
-- **User Registration** - Registro de novos usuários
-- **Login/Logout** - Sistema de sessão seguro
+### 3. Gestão de Usuários
 
-**Gestão de Perfis:**
+- **Autenticação JWT**: Sistema stateless seguro
+- **Upload de Imagens**: Fotos de perfil e avatares de grupo
+- **Informações de Contato**: Email e telefone
+- **Sistema de Roles**: Administradores e usuários comuns
 
-- **Profile Pictures** - Upload e exibição de imagens
-- **User Information** - Dados pessoais e contato
-- **Admin Management** - Sistema de administração
-- **Role-based Access** - Controle de permissões
+### 4. Sistema de Upload e Gestão de Arquivos
 
-#### Fluxo de Autenticação
+- **Validação de Arquivos**: Tipos e tamanhos permitidos
+- **Armazenamento Local**: Integração com sistema de arquivos
+- **Processamento de Imagens**: Otimização automática
 
-```text
-1. Usuário registra conta ou faz login
-2. Validação de credenciais no backend
-3. Geração de JWT token
-4. Armazenamento do token no frontend
-5. Middleware de autenticação para rotas protegidas
-6. Controle de acesso baseado em roles
+#### Fluxo de Upload com Validação
+
+```mermaid
+%%{title: "Sistema de Upload com Validação e Processamento"}%%
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant FS as File System
+    participant DB as SQLite
+    
+    Note over U,DB: Upload de Imagem de Perfil
+    
+    U->>F: Seleciona arquivo de imagem
+    F->>F: Validação client-side (tipo, tamanho)
+    F->>B: POST /api/upload/profile-image (multipart/form-data)
+    B->>B: Middleware de validação
+    alt Arquivo válido
+        B->>FS: Salvar arquivo temporário
+        FS-->>B: Arquivo salvo
+        B->>B: Processar imagem (redimensionar, otimizar)
+        B->>FS: Salvar versão otimizada
+        FS-->>B: Imagem processada salva
+        B->>DB: UPDATE user SET profile_image = filename
+        DB-->>B: Banco atualizado
+        B-->>F: {success: true, imageUrl: '/uploads/profile_123.jpg'}
+        F->>F: Atualizar interface com nova imagem
+    else Arquivo inválido
+        B-->>F: {error: 'Tipo de arquivo não permitido'}
+        F->>U: Exibe erro de validação
+    end
+    
+    Note over U,DB: Upload de Avatar para Grupo
+    
+    U->>F: Seleciona avatar para grupo
+    F->>B: POST /api/upload/group-avatar
+    B->>FS: Salvar avatar do grupo
+    FS-->>B: Avatar salvo
+    B->>DB: UPDATE groups SET avatar = filename
+    DB-->>B: Grupo atualizado
+    B->>B: Broadcast para membros do grupo
+    B-->>F: Avatar atualizado
+    F->>F: Atualizar interface do grupo
 ```
 
-### 2. Sistema de Chat Avançado
+## 🔧 Implementações Técnicas
 
-**Conversas Privadas:**
-
-- **One-to-One Chat** - Conversas entre dois usuários
-- **Real-time Messaging** - Mensagens instantâneas
-- **Message Status** - Status de entrega e leitura
-- **Message History** - Histórico persistente
-
-**Chat em Grupo:**
-
-- **Group Creation** - Criação de grupos
-- **Multiple Participants** - Múltiplos usuários
-- **Group Avatars** - Avatares personalizados para grupos
-- **Admin Controls** - Controle de administradores
-
-**Recursos Avançados:**
-
-- **Message Broadcasting** - Broadcast para todos os participantes
-- **Participant Management** - Adicionar/remover participantes
-- **Group Permissions** - Controle de permissões em grupos
-- **Real-time Updates** - Atualizações instantâneas
-
-#### Fluxo do Sistema de Chat
-
-```text
-1. Usuário inicia conversa privada ou grupo
-2. Criação de canal de comunicação
-3. Adição de participantes
-4. Troca de mensagens em tempo real
-5. Persistência no banco de dados
-6. Notificações para usuários offline
-```
-
-### 3. Sistema de Fórum Interativo
-
-**Posts e Comentários:**
-
-- **Post Creation** - Criação de posts públicos
-- **Comment System** - Sistema de comentários
-- **Like/Unlike** - Sistema de curtidas
-- **Post Categories** - Categorização de conteúdo
-
-**Interatividade:**
-
-- **Real-time Updates** - Atualizações em tempo real
-- **User Engagement** - Sistema de engajamento
-- **Content Moderation** - Moderação de conteúdo
-- **Search Functionality** - Busca de posts e comentários
-
-#### Fluxo do Fórum
-
-```text
-1. Usuário cria post ou comentário
-2. Validação e persistência no banco
-3. Broadcast para todos os usuários online
-4. Atualização da interface em tempo real
-5. Sistema de curtidas e interações
-6. Histórico e busca de conteúdo
-```
-
-### 4. Sistema de Upload e Gerenciamento de Arquivos
-
-**Upload de Imagens:**
-
-- **Profile Pictures** - Upload de fotos de perfil
-- **Group Avatars** - Avatares para grupos
-- **File Validation** - Validação de tipos de arquivo
-- **Storage Management** - Gerenciamento de armazenamento
-
-**Recursos Técnicos:**
-
-- **File System Integration** - Integração com sistema de arquivos
-- **Image Processing** - Processamento de imagens
-- **Storage Optimization** - Otimização de armazenamento
-- **Security Validation** - Validação de segurança
-
-## 🔧 Sistemas Técnicos de Destaque
-
-### Arquitetura de Comunicação em Tempo Real
-
-**Socket.IO Implementation:**
+### Comunicação WebSocket
 
 ```typescript
-// Servidor WebSocket
+// Servidor Socket.IO
 io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
@@ -243,16 +308,7 @@ io.on('connection', (socket) => {
 });
 ```
 
-**Características Técnicas:**
-
-- **Room Management** - Gerenciamento de salas de chat
-- **Event-driven** - Arquitetura baseada em eventos
-- **Scalable** - Suporte a múltiplas conexões
-- **Reliable** - Reconexão automática
-
-### Sistema de Banco de Dados com TypeORM
-
-**Entity Management:**
+### Entidades TypeORM
 
 ```typescript
 @Entity()
@@ -263,33 +319,14 @@ export class User {
   @Column({ unique: true })
   username: string;
   
-  @Column()
-  email: string;
-  
   @OneToMany(() => ChatMessage, message => message.sender)
   messages: ChatMessage[];
 }
 ```
 
-**Características:**
-
-- **Type Safety** - Tipagem estática com TypeScript
-- **Migrations** - Controle de versão de schema
-- **Relationships** - Relacionamentos entre entidades
-- **Query Builder** - Construtor de queries type-safe
-
-### Sistema de Autenticação JWT
-
-**Token Management:**
+### Autenticação JWT
 
 ```typescript
-// Geração de token
-const token = jwt.sign(
-  { userId: user.id, username: user.username },
-  process.env.JWT_SECRET,
-  { expiresIn: '24h' }
-);
-
 // Middleware de autenticação
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization'];
@@ -303,105 +340,36 @@ const authenticateToken = (req, res, next) => {
 };
 ```
 
-## 🛠️ Skills Técnicas Demonstradas
-
-### Frontend Development (Modern)
-
-- **Angular 19** - Framework enterprise líder de mercado
-- **TypeScript** - Linguagem moderna com tipagem estática
-- **RxJS** - Programação reativa (essencial para apps complexos)
-- **Socket.IO Client** - Comunicação em tempo real
-- **Responsive Design** - UX adaptável para todos os dispositivos
-
-### Backend Development (Node.js)
-
-- **Node.js + Express** - Stack JavaScript server-side líder
-- **TypeScript** - Tipagem estática para desenvolvimento robusto
-- **TypeORM** - ORM moderno com TypeScript
-- **JWT Authentication** - Autenticação stateless
-- **Socket.IO Server** - Servidor WebSocket
-
-### Database & Persistence
-
-- **SQLite3** - Banco relacional embarcado
-- **TypeORM** - ORM com TypeScript
-- **Migrations** - Controle de versão de schema
-- **Entity Relationships** - Relacionamentos complexos
-
-### Real-time Communication
-
-- **WebSockets** - Comunicação bidirecional
-- **Socket.IO** - Framework WebSocket mais popular
-- **Event-driven Architecture** - Arquitetura baseada em eventos
-- **Room Management** - Gerenciamento de salas
-
-### Security & Authentication
-
-- **JWT** - Tokens seguros para autenticação
-- **bcrypt** - Criptografia de senhas
-- **CORS** - Controle de acesso cross-origin
-- **Input Validation** - Validação de dados
-
-## 📊 Impacto & Resultados
+## 📊 Diferenciais Técnicos
 
 ### Inovações Implementadas
 
 1. **Sistema de chat híbrido** com conversas privadas e em grupo
 2. **Integração WebSocket** para comunicação em tempo real
-3. **Sistema de upload** de imagens com validação
-4. **Arquitetura TypeScript** full-stack
-5. **Sistema de fórum** interativo com curtidas
+3. **Arquitetura TypeScript** full-stack com tipagem estática
+4. **Sistema de upload** com validação de segurança
+5. **Interface responsiva** adaptável para todos os dispositivos
 
-### Tecnologias Modernas Utilizadas
+### Skills Demonstradas
 
-- **Angular 19** - Framework frontend enterprise
-- **Node.js + Express** - Stack JavaScript server-side
-- **TypeScript** - Linguagem moderna com tipagem
-- **SQLite + TypeORM** - Persistência de dados
-- **Socket.IO** - Comunicação em tempo real
+- **Full-stack Development** com Angular e Node.js
+- **Real-time Communication** com WebSockets
+- **TypeScript** em frontend e backend
+- **ORM Moderno** com TypeORM
+- **Autenticação Segura** com JWT
+- **Arquitetura de Componentes** com Angular
+- **Programação Reativa** com RxJS
+- **Controle de Versão** de banco de dados
 
-### Diferenciais Competitivos
+## 🚀 Resultado Final
 
-- **Comunicação em tempo real** com WebSockets
-- **Interface moderna** com Angular
-- **Sistema de chat avançado** com grupos
-- **Upload de arquivos** integrado
-- **Arquitetura type-safe** com TypeScript
+O **AA Space** demonstra capacidade avançada em:
 
-## 📝 Conclusão
+- **Desenvolvimento Full-stack** moderno
+- **Comunicação em Tempo Real** com WebSockets
+- **Arquitetura TypeScript** type-safe
+- **Sistemas de Chat** complexos
+- **Gestão de Usuários** e autenticação
+- **Interface Responsiva** e moderna
 
-Este projeto demonstra expertise avançada em:
-
-### Arquitetura & Design
-
-- **Full-stack TypeScript** com tipagem estática
-- **Real-time communication** com WebSockets
-- **Event-driven architecture** baseada em eventos
-- **Component-based design** com Angular
-
-### Integração & APIs
-
-- **RESTful APIs** com Express
-- **WebSocket communication** com Socket.IO
-- **JWT Authentication** stateless
-- **File upload** e gerenciamento
-
-### Persistência de Dados
-
-- **TypeORM** com TypeScript
-- **SQLite** para desenvolvimento e produção
-- **Migrations** para controle de schema
-- **Entity relationships** complexas
-
-### User Experience
-
-- **Real-time updates** para melhor UX
-- **Responsive design** para todos os dispositivos
-- **Interactive features** como chat e fórum
-- **File management** integrado
-
-O **AA Space** representa uma solução completa de comunidade que demonstra capacidade de criar sistemas de comunicação em tempo real, integrar tecnologias modernas e implementar arquiteturas full-stack robustas com foco na experiência do usuário.
-
----
-
-## Desenvolvido com foco em comunicação, interatividade e experiência do usuário
+Uma solução completa que integra tecnologias modernas do mercado para criar uma experiência de comunidade robusta e escalável.

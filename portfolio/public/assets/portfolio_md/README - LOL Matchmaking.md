@@ -65,7 +65,86 @@ graph TB
 9. Estatísticas são atualizadas
 ```
 
-## 🏗️ Stack Tecnológica Enterprise
+## 🔄 Arquitetura de Comunicação e Cache
+
+### Sistema de Comunicação Electron ↔ Backend ↔ Frontend
+
+```mermaid
+%%{title: "Arquitetura de Comunicação e Cache Distribuído"}%%
+sequenceDiagram
+    participant E as Electron App
+    participant B as Spring Boot Backend
+    participant R as Redis Cache
+    participant F as Angular Frontend
+    participant L as League LCU
+    
+    Note over E,L: Sistema de Identificação por Ping-Pong
+    
+    E->>B: Inicia aplicação
+    B->>R: Verifica cache de sessões
+    R-->>B: Estado atual do cache
+    
+    Note over B,E: Identificação de Players
+    B->>E: PING - Solicita identificação
+    E->>L: Valida jogador conectado
+    L-->>E: Dados do jogador (summonerName, puuid)
+    E->>F: PONG - Envia dados + sessionId
+    F->>B: Confirma sessão + dados do jogador
+    
+    Note over B,R: Cache e Locks Distribuídos
+    B->>R: SET session:{sessionId} playerData
+    B->>R: SETNX lock:matchmaking:{playerId}
+    R-->>B: Confirma lock adquirido
+    
+    Note over B,F: Comunicação WebSocket
+    B->>F: WebSocket - Player identificado
+    F->>B: WebSocket - Entrar na fila
+    B->>R: SADD queue:players playerId
+    R-->>B: Confirma entrada na fila
+```
+
+### Sistema de Cache e Invalidação com Redis
+
+```mermaid
+%%{title: "Sistema de Cache Distribuído e Invalidação"}%%
+graph TB
+    A[Spring Boot Backend] --> B[Redis Upstash]
+    
+    subgraph "Cache Layers"
+        B --> C[Session Cache]
+        B --> D[Matchmaking Cache]
+        B --> E[Discord Cache]
+        B --> F[Player Stats Cache]
+    end
+    
+    subgraph "Cache Keys Structure"
+        C --> C1[session:{sessionId}]
+        C --> C2[player:{puuid}:data]
+        D --> D1[queue:players]
+        D --> D2[match:{matchId}:state]
+        D --> D3[draft:{matchId}:phase]
+        E --> E1[discord:match:{matchId}:channels]
+        E --> E2[discord:match:{matchId}:players]
+        F --> F1[player:{puuid}:stats]
+        F --> F2[player:{puuid}:mmr]
+    end
+    
+    subgraph "Cache Operations"
+        G[TTL Management] --> H[Auto Expiration]
+        I[Distributed Locks] --> J[Atomic Operations]
+        K[Cache Invalidation] --> L[Event-Driven Updates]
+    end
+    
+    B --> G
+    B --> I
+    B --> K
+    
+    style A fill:#e3f2fd
+    style B fill:#ffebee
+    style G fill:#e8f5e8
+    style I fill:#fff3e0
+    style K fill:#f3e5f5
+```
 
 ### Backend (Spring Boot 3.3.2 + Java 21)
 
@@ -250,18 +329,18 @@ graph TB
 
 ## 🔧 Sistemas Técnicos de Destaque
 
-### Sistema de Draft
+### Sistema de Draft Distribuído com Redis
 
 O sistema de draft é uma das funcionalidades mais complexas e inovadoras do projeto:
 
-### Arquitetura do Draft
+**Arquitetura do Draft:**
 
 ```java
 // Fluxo principal do draft
 QueueManagementService → MatchFoundService → DraftFlowService → GameInProgressService
 ```
 
-### Características Técnicas
+**Características Técnicas:**
 
 - **Redis como estado central**: Operações atômicas para confirmações e timers
 - **Distributed locks**: Prevenção de ações simultâneas
@@ -269,7 +348,7 @@ QueueManagementService → MatchFoundService → DraftFlowService → GameInProg
 - **Validação via Electron**: Todas as ações são validadas via LCU
 - **WebSockets**: Sincronização em tempo real entre todos os clientes
 
-### Operações Atômicas
+**Operações Atômicas:**
 
 ```java
 // Confirmações instantâneas via Redis Sets
@@ -284,7 +363,7 @@ Long newValue = redisTemplate.opsForValue().decrement(key); // Atômico
 
 O sistema de automação do Discord é uma das funcionalidades mais avançadas, oferecendo integração completa com servidores Discord:
 
-### Criação Automática de Canais
+**Criação Automática de Canais:**
 
 ```java
 // Criação automática de canais dedicados para cada partida
@@ -297,7 +376,7 @@ public void createMatchVoiceChannel(String matchId, List<String> playerNames) {
 }
 ```
 
-### Sistema de Mute/Unmute de Espectadores
+**Sistema de Mute/Unmute de Espectadores:**
 
 ```java
 // Jogadores podem mutar/desmutar espectadores durante partidas
@@ -312,14 +391,14 @@ public boolean muteSpectator(Long matchId, String discordId) {
 }
 ```
 
-### Gestão Inteligente de Permissões
+**Gestão Inteligente de Permissões:**
 
 - **Canais dedicados** criados automaticamente para cada partida
 - **Permissões específicas** para jogadores e espectadores
 - **Movimentação automática** de jogadores entre canais
 - **Limpeza automática** após conclusão da partida (TTL de 2 horas)
 
-### Integração com Redis
+**Integração com Redis:**
 
 ```java
 // Estado persistente de canais Discord no Redis
@@ -386,37 +465,37 @@ Sistema robusto de migrações com Liquibase, incluindo:
 #### Build
 
 ```bash
-| Build completo (Frontend + Backend) |
+# Build completo (Frontend + Backend)
 mvn clean package
 
-| Build apenas frontend |
+# Build apenas frontend
 cd frontend && npm run build:prod
 
-| Build Electron |
+# Build Electron
 npm run build:electron
 ```
 
 #### Execução Local
 
 ```bash
-| Backend |
+# Backend
 mvn spring-boot:run
 
-| Frontend (desenvolvimento) |
+# Frontend (desenvolvimento)
 cd frontend && npm start
 
-| Electron |
+# Electron
 npm run electron:dev
 ```
 
-### 📈 Métricas e Monitoramento
+## 📈 Métricas e Monitoramento
 
 - **Health checks** via Spring Actuator
 - **Logs estruturados** com diferentes níveis
 - **Métricas de performance** do Redis
 - **Monitoramento de conexões** WebSocket
 
-### 🎨 Interface do Usuário
+## 🎨 Interface do Usuário
 
 - **Design moderno** com SCSS
 - **Responsivo** para diferentes resoluções

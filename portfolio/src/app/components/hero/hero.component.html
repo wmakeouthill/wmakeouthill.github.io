@@ -5,6 +5,7 @@
   </div>
 
   <div class="hero-content container">
+    <!-- Desktop layout: full text section -->
     <div class="hero-text fade-in-up">
       <p class="hero-greeting">Olá, eu sou</p>
       <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
@@ -53,11 +54,62 @@
       </div>
     </div>
 
+    <!-- Image section -->
     <div class="hero-image fade-in-right">
       <div class="image-wrapper">
         <div class="image-glow"></div>
         <img src="/wesley-photo.png" alt="Profile" class="profile-image" />
         <div class="image-decoration"></div>
+      </div>
+    </div>
+
+    <!-- Mobile layout: greeting and name first -->
+    <div class="hero-greeting-section fade-in-up">
+      <p class="hero-greeting">Olá, eu sou</p>
+      <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
+    </div>
+
+    <!-- Mobile layout: title, tagline, cta and stats -->
+    <div class="hero-mobile-content fade-in-up">
+      <div class="hero-title">
+        <span class="typing-text">{{ displayedText }}</span>
+        <span class="cursor">|</span>
+      </div>
+
+      <p class="hero-tagline">
+        Transformando ideias em código. Criando experiências digitais incríveis com tecnologias
+        modernas e design elegante.
+      </p>
+
+      <div class="hero-cta">
+        <button class="btn btn-accent" (click)="scrollToSection('projects')">
+          <span>Ver Projetos</span>
+          <span class="btn-icon">→</span>
+        </button>
+        <button class="btn btn-outline" (click)="openCvModal()">
+          <span>Meu Currículo</span>
+          <span class="btn-icon">📄</span>
+        </button>
+        <button class="btn btn-outline" (click)="scrollToSection('contact')">
+          <span>Entre em Contato</span>
+        </button>
+      </div>
+
+      <div class="hero-stats-wrapper">
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Anos de Experiência</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Projetos Completos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">10+</span>
+            <span class="stat-label">Tecnologias que tive contato e experiência</span>
+          </div>
+        </div>
       </div>
     </div>
     <!-- indicador inline agora posicionado após a imagem para não afetar o layout da mesma -->

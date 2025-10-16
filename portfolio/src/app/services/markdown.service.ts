@@ -83,6 +83,27 @@ export class MarkdownService {
     console.log(`✅ Re-renderização completa concluída para ${projectName}`);
   }
 
+  // Método para limpar cache de diagramas com IDs conflitantes
+  public clearConflictingDiagramCache(projectName: string): void {
+    console.log(`🧹 Limpando cache de diagramas conflitantes para ${projectName}`);
+
+    // Limpar cache específico do projeto
+    this.cache.delete(projectName);
+
+    // Limpar cache de mermaid relacionado ao projeto
+    for (const [key] of this.mermaidCache) {
+      if (key.includes(projectName)) {
+        this.mermaidCache.delete(key);
+        console.log(`🗑️ Removido diagrama conflitante do cache: ${key}`);
+      }
+    }
+
+    // Limpar cache do localStorage relacionado ao projeto
+    this.clearLocalStorageCache(projectName);
+
+    console.log(`✅ Cache de diagramas conflitantes limpo para ${projectName}`);
+  }
+
   // Método para verificar se cache é válido (não expirado)
   private isCacheValid(timestamp: number): boolean {
     return Date.now() - timestamp < this.CACHE_TTL;
@@ -409,12 +430,38 @@ export class MarkdownService {
         }
 
         const diagramId = this.generateUniqueDiagramId(projectName || '', diagramTitle, cleanDiagramCode);
+        const legacyId = this.sanitizeTitle(diagramTitle); // ID antigo (apenas título)
 
         console.log(`🎯 Processando diagrama: ${diagramTitle} (ID: ${diagramId}) para projeto: ${projectName || 'N/A'}`);
 
-        // Verificar se já existe no cache em memória primeiro
-        const cacheData = this.mermaidCache.get(diagramId);
-        const cachedSvg = cacheData ? (this.isCacheValid(cacheData.timestamp) ? cacheData.svg : null) : this.getCachedDiagram(diagramId);
+        // Verificar se já existe no cache com novo ID primeiro
+        let cacheData = this.mermaidCache.get(diagramId);
+        let cachedSvg = cacheData ? (this.isCacheValid(cacheData.timestamp) ? cacheData.svg : null) : this.getCachedDiagram(diagramId);
+
+        // Se não encontrou com novo ID, tentar com ID legado
+        if (!cachedSvg) {
+          console.log(`🔄 Tentando buscar com ID legado: ${legacyId}`);
+          const legacyCacheData = this.mermaidCache.get(legacyId);
+          const legacyCachedSvg = legacyCacheData ? (this.isCacheValid(legacyCacheData.timestamp) ? legacyCacheData.svg : null) : this.getCachedDiagram(legacyId);
+
+          if (legacyCachedSvg) {
+            console.log(`✅ Encontrado com ID legado, migrando para novo ID: ${legacyId} → ${diagramId}`);
+            // Migrar para novo ID
+            this.mermaidCache.set(diagramId, {
+              svg: legacyCachedSvg,
+              timestamp: legacyCacheData?.timestamp || Date.now(),
+              projectName: projectName || ''
+            });
+            // Salvar no localStorage com novo ID
+            this.saveCachedDiagram(diagramId, legacyCachedSvg);
+            // Remover ID legado
+            this.mermaidCache.delete(legacyId);
+            this.removeCachedDiagram(legacyId);
+
+            cachedSvg = legacyCachedSvg;
+            cacheData = this.mermaidCache.get(diagramId);
+          }
+        }
 
         console.log(`🔍 Verificando cache para diagrama ${diagramTitle} (ID: ${diagramId}):`);
         console.log(`  - Cache em memória: ${this.mermaidCache.has(diagramId) ? '✅' : '❌'}`);
@@ -507,7 +554,9 @@ export class MarkdownService {
     }
 
     // Se não encontrar título, tentar inferir do conteúdo
-    if (mermaidCode.includes('Electron Desktop App')) {
+    if (mermaidCode.includes('Redis') && mermaidCode.includes('Cache')) {
+      return 'Sistema de Cache e Invalidação';
+    } else if (mermaidCode.includes('Electron Desktop App')) {
       return 'Arquitetura Desktop App';
     } else if (mermaidCode.includes('Electron App')) {
       return 'Arquitetura Sistema';
@@ -526,8 +575,11 @@ export class MarkdownService {
   // Método para gerar ID único do diagrama baseado no título
   private generateUniqueDiagramId(projectName: string, diagramTitle: string | null, mermaidCode: string): string {
     if (diagramTitle) {
-      // Usar apenas o título sanitizado como ID (mais simples e legível)
-      return this.sanitizeTitle(diagramTitle);
+      // Criar ID único combinando projeto, título e hash do conteúdo
+      const projectPrefix = projectName ? `${this.sanitizeTitle(projectName)}-` : '';
+      const titleSanitized = this.sanitizeTitle(diagramTitle);
+      const contentHash = this.createHash(mermaidCode).substring(0, 8);
+      return `${projectPrefix}${titleSanitized}-${contentHash}`;
     } else {
       // Se não tem título, usar hash do código como fallback
       const contentHash = this.createHash(mermaidCode).substring(0, 12);
@@ -575,6 +627,17 @@ export class MarkdownService {
     } catch (error) {
       console.warn('Erro ao recuperar diagrama do cache:', error);
       return null;
+    }
+  }
+
+  // Método para remover diagrama do cache
+  private removeCachedDiagram(diagramId: string): void {
+    try {
+      const cacheKey = `mermaid_diagram_${diagramId}`;
+      localStorage.removeItem(cacheKey);
+      console.log(`Diagrama removido do cache: ${diagramId}`);
+    } catch (error) {
+      console.warn('Erro ao remover diagrama do cache:', error);
     }
   }
 
