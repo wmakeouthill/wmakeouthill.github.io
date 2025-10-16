@@ -411,6 +411,7 @@ public class PDFService {
 ### Principais Endpoints REST
 
 ```mermaid
+%%{title: "Endpoints"}%%
 graph TD
     A[API Gateway] --> B[Authentication Endpoints]
     A --> C[Product Management]
@@ -711,6 +712,7 @@ npm run dist:win
 ### Estratégias de Performance Implementadas
 
 ```mermaid
+%%{title: "Estratégias de Performance e Otimizações"}%%
 graph LR
     A[Frontend Optimizations] --> B[Lazy Loading]
     A --> C[Tree Shaking]

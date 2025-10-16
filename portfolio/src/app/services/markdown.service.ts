@@ -38,7 +38,8 @@ export class MarkdownService {
       securityLevel: 'loose',
       fontFamily: 'Arial, sans-serif',
       deterministicIds: true,
-      deterministicIDSeed: 'mermaid-diagram'
+      deterministicIDSeed: 'mermaid-diagram',
+      maxTextSize: 100000 // Aumentar limite de caracteres para 100k
     });
 
     // Configurar funções globais de controle dos diagramas
@@ -359,10 +360,13 @@ export class MarkdownService {
         // Usar PrismJS para syntax highlighting
         const highlightedCode = this.highlightCode(cleanCode, language);
 
+        // Usar encodeURIComponent para escapar de forma mais segura
+        const encodedCode = encodeURIComponent(cleanCode);
+
         return `<div class="code-block" style="margin: 1.5rem 0 !important; background: #2a2a2a !important; border-radius: 8px !important; overflow: hidden !important; border: 1px solid #333 !important; font-family: 'Courier New', monospace !important;">
                     <div class="code-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 0.75rem 1rem !important; background: #1a1a1a !important; border-bottom: 1px solid #333 !important;">
                         <span class="code-language" style="font-size: 0.875rem !important; font-weight: 600 !important; color: #DBC27D !important; text-transform: uppercase !important;">${language}</span>
-                        <button class="copy-code-btn" onclick="navigator.clipboard.writeText('${cleanCode.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="background: none !important; border: 1px solid #333 !important; color: #ccc !important; padding: 0.25rem 0.5rem !important; border-radius: 4px !important; cursor: pointer !important; font-size: 0.75rem !important;">📋</button>
+                        <button class="copy-code-btn" data-code="${encodedCode}" onclick="navigator.clipboard.writeText(decodeURIComponent(this.dataset.code))" style="background: none !important; border: 1px solid #333 !important; color: #ccc !important; padding: 0.25rem 0.5rem !important; border-radius: 4px !important; cursor: pointer !important; font-size: 0.75rem !important;">📋</button>
                     </div>
                     <pre style="margin: 0 !important; padding: 1rem !important; overflow-x: auto !important; background: transparent !important; border: none !important;"><code class="language-${language}" style="background: none !important; padding: 0 !important; border: none !important; font-family: inherit !important; font-size: 0.9rem !important; line-height: 1.5 !important; color: #d4d4d4 !important;">${highlightedCode}</code></pre>
                 </div>`;
@@ -438,9 +442,11 @@ export class MarkdownService {
         let cacheData = this.mermaidCache.get(diagramId);
         let cachedSvg = cacheData ? (this.isCacheValid(cacheData.timestamp) ? cacheData.svg : null) : this.getCachedDiagram(diagramId);
 
-        // Se não encontrou com novo ID, tentar com ID legado
+        // Se não encontrou com novo ID, tentar com IDs legados
         if (!cachedSvg) {
-          console.log(`🔄 Tentando buscar com ID legado: ${legacyId}`);
+          console.log(`🔄 Tentando buscar com IDs legados...`);
+
+          // Tentar com ID legado (apenas título)
           const legacyCacheData = this.mermaidCache.get(legacyId);
           const legacyCachedSvg = legacyCacheData ? (this.isCacheValid(legacyCacheData.timestamp) ? legacyCacheData.svg : null) : this.getCachedDiagram(legacyId);
 
@@ -460,6 +466,21 @@ export class MarkdownService {
 
             cachedSvg = legacyCachedSvg;
             cacheData = this.mermaidCache.get(diagramId);
+          } else {
+            // Tentar buscar por título similar no cache existente
+            console.log(`🔍 Buscando por título similar: "${diagramTitle}"`);
+            for (const [cachedId, cachedData] of this.mermaidCache) {
+              if (cachedId.includes(this.sanitizeTitle(diagramTitle)) && this.isCacheValid(cachedData.timestamp)) {
+                console.log(`✅ Encontrado diagrama similar no cache: ${cachedId} → ${diagramId}`);
+                // Migrar para novo ID
+                this.mermaidCache.set(diagramId, cachedData);
+                this.saveCachedDiagram(diagramId, cachedData.svg);
+
+                cachedSvg = cachedData.svg;
+                cacheData = this.mermaidCache.get(diagramId);
+                break;
+              }
+            }
           }
         }
 
@@ -514,6 +535,9 @@ export class MarkdownService {
   private extractMermaidTitle(mermaidCode: string): string | null {
     const lines = mermaidCode.split('\n').map(line => line.trim());
 
+    console.log(`🔍 Analisando código Mermaid para extrair título (${lines.length} linhas):`);
+    console.log(`📝 Primeiras 3 linhas:`, lines.slice(0, 3));
+
     // Procurar por diferentes padrões de título
     for (const line of lines) {
       // Padrão 1: %%{title: "Título do Diagrama"}%%
@@ -549,42 +573,78 @@ export class MarkdownService {
     if (firstLine.startsWith('%%') && firstLine.endsWith('%%')) {
       const comment = firstLine.slice(2, -2).trim();
       if (comment && !comment.includes('init:') && !comment.includes('config:')) {
+        console.log(`📝 Usando primeiro comentário como título: ${comment}`);
         return comment;
       }
     }
 
     // Se não encontrar título, tentar inferir do conteúdo
     if (mermaidCode.includes('Redis') && mermaidCode.includes('Cache')) {
+      console.log(`📝 Título inferido do conteúdo: Sistema de Cache e Invalidação`);
       return 'Sistema de Cache e Invalidação';
     } else if (mermaidCode.includes('Electron Desktop App')) {
+      console.log(`📝 Título inferido do conteúdo: Arquitetura Desktop App`);
       return 'Arquitetura Desktop App';
     } else if (mermaidCode.includes('Electron App')) {
+      console.log(`📝 Título inferido do conteúdo: Arquitetura Sistema`);
       return 'Arquitetura Sistema';
     } else if (mermaidCode.includes('Spring Boot')) {
+      console.log(`📝 Título inferido do conteúdo: Arquitetura Backend`);
       return 'Arquitetura Backend';
     } else if (mermaidCode.includes('Angular Frontend') && mermaidCode.includes('Node.js Backend')) {
+      console.log(`📝 Título inferido do conteúdo: Arquitetura Geral do Sistema`);
       return 'Arquitetura Geral do Sistema';
     } else if (mermaidCode.includes('Electron Desktop App') && mermaidCode.includes('Spring Boot Backend')) {
+      console.log(`📝 Título inferido do conteúdo: Arquitetura Geral do Sistema`);
       return 'Arquitetura Geral do Sistema';
     }
 
-    console.log(`🔍 Nenhum título inferido para diagrama com conteúdo:`, mermaidCode.substring(0, 100) + '...');
+    console.log(`🔍 Nenhum título encontrado para diagrama com conteúdo:`, mermaidCode.substring(0, 100) + '...');
     return null;
   }
 
   // Método para gerar ID único do diagrama baseado no título
   private generateUniqueDiagramId(projectName: string, diagramTitle: string | null, mermaidCode: string): string {
     if (diagramTitle) {
-      // Criar ID único combinando projeto, título e hash do conteúdo
-      const projectPrefix = projectName ? `${this.sanitizeTitle(projectName)}-` : '';
+      // Normalizar nome do projeto para evitar IDs duplicados
+      const normalizedProjectName = this.normalizeProjectName(projectName);
+      const projectPrefix = normalizedProjectName ? `${this.sanitizeTitle(normalizedProjectName)}-` : '';
       const titleSanitized = this.sanitizeTitle(diagramTitle);
       const contentHash = this.createHash(mermaidCode).substring(0, 8);
-      return `${projectPrefix}${titleSanitized}-${contentHash}`;
+      const diagramId = `${projectPrefix}${titleSanitized}-${contentHash}`;
+
+      console.log(`🔍 ID gerado: "${diagramId}" (${diagramId.length} caracteres) - Projeto: ${projectName} -> ${normalizedProjectName}`);
+      return diagramId;
     } else {
       // Se não tem título, usar hash do código como fallback
       const contentHash = this.createHash(mermaidCode).substring(0, 12);
-      return `mermaid-diagram-${contentHash}`;
+      const diagramId = `mermaid-diagram-${contentHash}`;
+
+      console.log(`🔍 ID gerado (sem título): "${diagramId}" (${diagramId.length} caracteres)`);
+      return diagramId;
     }
+  }
+
+  // Método para normalizar nomes de projetos para evitar IDs duplicados
+  private normalizeProjectName(projectName: string): string {
+    const projectNameLower = projectName.toLowerCase();
+
+    // Mapear variações de nomes para um nome padrão
+    if (projectNameLower.includes('lol-matchmaking') || projectNameLower.includes('lol-matchmaking-fazenda')) {
+      return 'lol-matchmaking';
+    }
+    if (projectNameLower.includes('aa-space') || projectNameLower.includes('aa_space')) {
+      return 'aa-space';
+    }
+    if (projectNameLower.includes('mercearia-r-v')) {
+      return 'mercearia-r-v';
+    }
+    if (projectNameLower.includes('fazenda-inhouse')) {
+      return 'fazenda-inhouse';
+    }
+
+    // Retornar nome original se não houver mapeamento
+    return projectNameLower;
   }
 
   // Método para sanitizar título para usar como ID

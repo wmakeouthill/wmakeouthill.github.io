@@ -118,15 +118,15 @@ graph TB
     end
     
     subgraph "Cache Keys Structure"
-        C --> C1[session:{sessionId}]
-        C --> C2[player:{puuid}:data]
-        D --> D1[queue:players]
-        D --> D2[match:{matchId}:state]
-        D --> D3[draft:{matchId}:phase]
-        E --> E1[discord:match:{matchId}:channels]
-        E --> E2[discord:match:{matchId}:players]
-        F --> F1[player:{puuid}:stats]
-        F --> F2[player:{puuid}:mmr]
+        C --> C1["session:{sessionId}"]
+        C --> C2["player:{puuid}:data"]
+        D --> D1["queue:players"]
+        D --> D2["match:{matchId}:state"]
+        D --> D3["draft:{matchId}:phase"]
+        E --> E1["discord:match:{matchId}:channels"]
+        E --> E2["discord:match:{matchId}:players"]
+        F --> F1["player:{puuid}:stats"]
+        F --> F2["player:{puuid}:mmr"]
     end
     
     subgraph "Cache Operations"

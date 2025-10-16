@@ -44,7 +44,7 @@ graph TB
 ### Sistema de Chat Híbrido (Privado + Grupo)
 
 ```mermaid
-%%{title: "Fluxo de Chat em Tempo Real com WebSockets"}%%
+%%{title: "Chat em Tempo Real com WebSockets"}%%
 sequenceDiagram
     participant U1 as User 1
     participant U2 as User 2
