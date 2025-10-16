@@ -20,6 +20,8 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
   loadingReadme = false;
   // usar 1.0 como zoom padrão (100%)
   markdownZoom = 1.0;
+  // Tema claro/escuro do modal (false = padrão escuro)
+  isLightMode = false;
 
   constructor(
     private readonly markdownService: MarkdownService,
@@ -53,6 +55,35 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
       console.log(`📄 Carregando conteúdo do cache para ${this.projectName}...`);
       this.loadReadmeFromCache();
     }
+  }
+
+  toggleTheme() {
+    this.isLightMode = !this.isLightMode;
+
+    // Aplicar classe ao body do modal para estilos CSS
+    const modalContent = this.elementRef.nativeElement.querySelector('.modal-content') as HTMLElement;
+    if (modalContent) {
+      if (this.isLightMode) {
+        modalContent.classList.add('light-mode');
+        // Aplicar variáveis inline para garantir prioridade sobre :root e estilos globais
+        modalContent.style.setProperty('--bg-primary', '#f7f7f7');
+        modalContent.style.setProperty('--bg-secondary', '#ffffff');
+        modalContent.style.setProperty('--text-primary', '#0b1420');
+        modalContent.style.setProperty('--text-secondary', '#333333');
+        modalContent.style.setProperty('--border-color', 'rgba(0,0,0,0.06)');
+      } else {
+        modalContent.classList.remove('light-mode');
+        // Remover overrides inline quando voltar ao modo escuro
+        modalContent.style.removeProperty('--bg-primary');
+        modalContent.style.removeProperty('--bg-secondary');
+        modalContent.style.removeProperty('--text-primary');
+        modalContent.style.removeProperty('--text-secondary');
+        modalContent.style.removeProperty('--border-color');
+      }
+    }
+
+    // Reajustar scroll/altura após troca de tema
+    setTimeout(() => this.fixScrollHeight(), 80);
   }
 
   private loadReadmeFromCache() {
@@ -218,8 +249,13 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
       const tagName = htmlElement.tagName.toLowerCase();
 
       // Não remover elementos SVG principais (svg, g com conteúdo)
+      // Se este elemento estiver dentro de um <svg>, pular: defs, style, marker, circle, path etc são válidos dentro do SVG
+      if (htmlElement.closest && htmlElement.closest('svg')) {
+        return; // Pular qualquer elemento que pertença a um SVG para evitar quebrar o diagrama
+      }
+
       if (tagName === 'svg' || (tagName === 'g' && rect.height > 0)) {
-        return; // Pular elementos SVG importantes
+        return; // Pular elementos SVG principais (caso não tenha sido pego pelo closest)
       }
 
       // Remover elementos HTML invisíveis (exceto SVG internos)

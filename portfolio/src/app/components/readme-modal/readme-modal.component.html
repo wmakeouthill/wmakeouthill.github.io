@@ -11,6 +11,8 @@
       <h2>{{ projectName }} - README</h2>
       <div class="modal-controls">
         <div class="zoom-controls">
+          <!-- Theme toggle (light/dark) placed to the left of zoom controls -->
+          <button class="theme-toggle" (click)="toggleTheme()" [attr.title]="isLightMode ? 'Modo Escuro' : 'Modo Claro'">{{ isLightMode ? '🔆' : '🌙' }}</button>
           <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
           <span class="zoom-level">{{ markdownZoom * 100 | number : '1.0-0' }}%</span>
           <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>

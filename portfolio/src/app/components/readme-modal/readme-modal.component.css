@@ -88,6 +88,25 @@
   background: var(--text-secondary);
 }
 
+/* Theme toggle button */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-primary);
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.02);
+}
+
 .zoom-level {
   font-size: 0.9rem;
   font-weight: 500;
@@ -227,6 +246,98 @@
   max-height: calc(82vh - 120px); /* Altura total menos header */
   /* Garantir que não há espaços extras */
   box-sizing: border-box;
+}
+
+/* Light mode overrides for modal: makes reading background claro */
+.modal-content.light-mode {
+  background: #f7f7f7;
+  color: #0b1420;
+}
+
+.modal-content.light-mode .modal-header {
+  background: #ffffff;
+}
+
+.modal-content.light-mode .markdown-content {
+  background: #ffffff;
+  color: #0b1420;
+  --md-scale: var(--md-scale, 1);
+}
+
+.modal-content.light-mode .markdown-content .mermaid-diagram {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.06);
+}
+
+/* Ensure mermaid fullscreen SVG contrasts correctly when light-mode is active */
+.modal-content.light-mode .mermaid-content svg {
+  background: transparent !important;
+}
+
+/* Prevent parent color from leaking into inline SVGs (stop currentColor overrides) */
+.modal-content.light-mode .mermaid-content,
+.modal-content.light-mode .mermaid-content svg,
+.modal-content.light-mode .mermaid-content svg * {
+  color: initial !important;
+}
+
+/* Strong overrides for injected content (innerHTML) to ensure contrast in light-mode */
+.modal-content.light-mode .markdown-content h1,
+.modal-content.light-mode .markdown-content h2,
+.modal-content.light-mode .markdown-content h3,
+.modal-content.light-mode .markdown-content h4,
+.modal-content.light-mode .markdown-content h5,
+.modal-content.light-mode .markdown-content h6,
+.modal-content.light-mode .markdown-content .mermaid-title,
+.modal-content.light-mode .markdown-content .mermaid-diagram::before {
+  color: #0b1420 !important;
+}
+
+/* Additional explicit overrides to fix remaining light-mode contrast issues */
+.modal-content.light-mode .modal-header h2 {
+  color: #0b1420 !important;
+}
+
+.modal-content.light-mode .markdown-content p,
+.modal-content.light-mode .markdown-content li,
+.modal-content.light-mode .markdown-content a,
+.modal-content.light-mode .markdown-content code,
+.modal-content.light-mode .markdown-content pre,
+.modal-content.light-mode .markdown-content strong,
+.modal-content.light-mode .markdown-content em,
+.modal-content.light-mode .markdown-content td,
+.modal-content.light-mode .markdown-content th {
+  color: #0b1420 !important;
+}
+
+/* Ensure links are readable in light mode */
+.modal-content.light-mode .markdown-content a {
+  color: var(--color-primary) !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Não impor regras globais de fill/color em SVGs no modo claro.
+   SVGs devem manter seus fills/strokes originais para não quebrar
+   a renderização dos diagramas Mermaid. */
+
+/* Não force cores dentro de SVGs: SVGs devem manter seus próprios fills/strokes
+   (especialmente diagramas Mermaid). Evitar regras que alterem <text>/<tspan> globalmente. */
+
+/* Zoom buttons legíveis em light-mode */
+.modal-content.light-mode .zoom-btn {
+  background: var(--bg-primary) !important; /* manter contraste */
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+.modal-content.light-mode .zoom-btn.reset-zoom {
+  background: var(--text-muted) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Fullscreen close button appearance when light-mode is active */
+.modal-content.light-mode .fullscreen-close-btn {
+  background: #DBC27D !important;
+  color: #002e59 !important;
 }
 
 /* Garantir que o conteúdo ocupe apenas o espaço necessário */

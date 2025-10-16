@@ -1835,14 +1835,17 @@ export class MarkdownService {
     // Função global para fullscreen
     (window as any).toggleFullscreen = (diagramId: string) => {
       const container = document.getElementById(`${diagramId}-container`);
-      if (!container) {
-        console.error(`Container não encontrado para diagrama: ${diagramId}`);
+      const cachedSvg = this.mermaidCache.get(diagramId)?.svg || this.getCachedDiagram(diagramId) || null;
+
+      if (!container && !cachedSvg) {
+        console.error(`Container não encontrado para diagrama e sem cache: ${diagramId}`);
         return;
       }
 
-      const svgElement = container.querySelector('svg');
-      if (!svgElement) {
-        console.error(`SVG não encontrado no diagrama: ${diagramId}`);
+      const svgElement = container ? (container.querySelector('svg') as SVGSVGElement | null) : null;
+
+      if (!svgElement && !cachedSvg) {
+        console.error(`SVG não encontrado no diagrama e sem cache: ${diagramId}`);
         return;
       }
 
@@ -1865,7 +1868,6 @@ export class MarkdownService {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        cursor: pointer !important;
       `;
 
       const svgContainer = document.createElement('div');
@@ -1877,48 +1879,190 @@ export class MarkdownService {
         padding: 2rem !important;
         position: relative !important;
         overflow: auto !important;
+        box-sizing: border-box !important;
       `;
 
       const closeBtn = document.createElement('button');
       closeBtn.innerHTML = '✕';
+      closeBtn.setAttribute('aria-label', 'Fechar');
+      // Fixed positioning keeps the button visible on all viewports
       closeBtn.style.cssText = `
-        position: absolute !important;
-        top: 0.5rem !important;
-        right: 0.5rem !important;
-        background: var(--color-accent, #ff6b35) !important;
+        position: fixed !important;
+        top: 1rem !important;
+        right: 1rem !important;
+        background: var(--color-accent, #DBC27D) !important;
         border: none !important;
-        color: white !important;
-        width: 2rem !important;
-        height: 2rem !important;
+        color: #002e59 !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
         border-radius: 50% !important;
         cursor: pointer !important;
         font-size: 1rem !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        z-index: 10 !important;
+        z-index: 11001 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
       `;
 
-      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-      svgClone.style.cssText = `
-        max-width: 100% !important;
-        height: auto !important;
-        display: block !important;
-      `;
+      // Unified approach: produce svgString (from DOM clone or from cache) and embed via <object> blob
+      let blobUrl: string | null = null;
+      try {
+        let svgString: string | null = null;
+
+        if (svgElement) {
+          const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+          // Remove any width/height/style that could force a small box
+          svgClone.removeAttribute('width');
+          svgClone.removeAttribute('height');
+          svgClone.removeAttribute('style');
+          if (!svgClone.getAttribute('viewBox')) {
+            const vb = svgElement.getAttribute('viewBox') || svgElement.getAttribute('width') || '0 0 800 400';
+            svgClone.setAttribute('viewBox', vb);
+          }
+          svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+          svgString = svgClone.outerHTML;
+        } else if (cachedSvg) {
+          svgString = cachedSvg;
+        }
+
+        if (svgString) {
+          const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+          blobUrl = URL.createObjectURL(blob);
+
+          const obj = document.createElement('object');
+          obj.type = 'image/svg+xml';
+          obj.data = blobUrl;
+          // try to encourage the object to fill the available container and be visible
+          obj.style.cssText = `display:block; margin:0 auto; max-width:100%; max-height:80vh; width:100%; height:100%; background:transparent;`;
+          obj.setAttribute('aria-label', `Diagrama ${diagramId}`);
+
+          // ensure the container doesn't leak theme color into the object host
+          svgContainer.style.color = 'initial';
+          svgContainer.style.background = 'transparent';
+
+          // append object and add robust load/error handling with fallback
+          svgContainer.appendChild(obj);
+
+          // fallback routine: remove object and try an <img> with the same blob URL
+          const doFallbackToImg = (reason?: string) => {
+            try {
+              // if obj still present, remove it
+              if (svgContainer.contains(obj)) svgContainer.removeChild(obj);
+            } catch (e) { /* ignore */ }
+
+            // create an <img> fallback (broad browser support)
+            try {
+              const img = document.createElement('img');
+              img.src = blobUrl as string;
+              img.alt = `Diagrama ${diagramId}`;
+              img.style.cssText = `display:block; margin:0 auto; max-width:100%; max-height:80vh; width:auto; height:auto; background:transparent;`;
+              svgContainer.appendChild(img);
+              console.log(`🔁 Fullscreen fallback to <img> for ${diagramId} (${reason || 'timeout/error'})`);
+            } catch (imgErr) {
+              console.warn('⚠️ Fallback <img> também falhou, tentando <iframe>...', imgErr);
+              try {
+                const iframe = document.createElement('iframe');
+                iframe.src = blobUrl as string;
+                iframe.style.cssText = `display:block; margin:0 auto; max-width:100%; max-height:80vh; width:100%; height:100%; border:0; background:transparent;`;
+                svgContainer.appendChild(iframe);
+                console.log(`🔁 Fullscreen fallback to <iframe> for ${diagramId}`);
+              } catch (iframeErr) {
+                console.error('❌ Todos os fallbacks falharam ao exibir SVG em fullscreen:', iframeErr);
+                const msg = document.createElement('div');
+                msg.textContent = 'Não foi possível exibir o diagrama em tela cheia.';
+                msg.style.cssText = 'color:#ddd; padding:1rem;';
+                svgContainer.appendChild(msg);
+              }
+            }
+          };
+
+          let loadTimeout: any = null;
+
+          const cleanupBlob = () => {
+            if (blobUrl) {
+              try { URL.revokeObjectURL(blobUrl); } catch (e) { /* ignore */ }
+              blobUrl = null;
+            }
+          };
+
+          // onload: try to inspect contentDocument to ensure the SVG actually rendered
+          obj.onload = () => {
+            try {
+              if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
+              // contentDocument should contain the SVG root when successful
+              const doc = (obj as HTMLObjectElement).contentDocument;
+              const svgRoot = doc && doc.querySelector ? doc.querySelector('svg') : null;
+              if (svgRoot) {
+                // if SVG exists, try to expand object to fit nicely; otherwise fallback
+                const vb = svgRoot.getAttribute('viewBox');
+                // prefer letting the object size itself; but ensure visibility
+                obj.style.visibility = 'visible';
+                obj.style.background = 'transparent';
+                console.log(`✅ <object> carregou SVG para ${diagramId} (viewBox: ${vb})`);
+                // we keep blob URL until modal closed (revoked on close)
+                return;
+              } else {
+                console.warn(`⚠️ <object> carregou mas não contém <svg> (diagramId=${diagramId}) - fazendo fallback`);
+                doFallbackToImg('no-svg-in-object');
+                cleanupBlob();
+              }
+            } catch (e) {
+              console.warn('Erro durante onload do <object>:', e);
+              doFallbackToImg('onload-exception');
+              cleanupBlob();
+            }
+          };
+
+          obj.onerror = () => {
+            try {
+              if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
+            } catch (e) { /* ignore */ }
+            console.warn(`⚠️ Erro ao carregar <object> para ${diagramId} - fallback para <img>`);
+            doFallbackToImg('object-error');
+            // keep blobUrl for img/iframe fallback revocation handled on close
+          };
+
+          // If object doesn't fire load/error in reasonable time, fallback
+          loadTimeout = setTimeout(() => {
+            console.warn(`⏱️ Timeout aguardando <object> carregar para ${diagramId} - executando fallback`);
+            try { obj.onload = null; obj.onerror = null; } catch (e) { /* ignore */ }
+            doFallbackToImg('timeout');
+            // keep blobUrl for fallback revocation
+          }, 1500);
+        } else {
+          const msg = document.createElement('div');
+          msg.textContent = 'Diagrama indisponível para exibição em tela cheia.';
+          msg.style.cssText = 'color:#ddd; padding:1rem;';
+          svgContainer.appendChild(msg);
+        }
+      } catch (err) {
+        console.warn('Erro ao preparar SVG para fullscreen (blob/object):', err);
+        const msg = document.createElement('div');
+        msg.textContent = 'Erro ao exibir diagrama em tela cheia.';
+        msg.style.cssText = 'color:#ddd; padding:1rem;';
+        svgContainer.appendChild(msg);
+      }
 
       closeBtn.onclick = () => {
-        document.body.removeChild(fullscreenModal);
+        // Remove modal first to avoid layout thrashing
+        if (document.body.contains(fullscreenModal)) document.body.removeChild(fullscreenModal);
+        // Revoke the blob URL after a short tick so any fallback elements had time to reference it
+        setTimeout(() => {
+          try { if (blobUrl) { URL.revokeObjectURL(blobUrl); } } catch (e) { /* ignore */ }
+          blobUrl = null;
+        }, 50);
       };
 
       fullscreenModal.onclick = (e) => {
         if (e.target === fullscreenModal) {
-          document.body.removeChild(fullscreenModal);
+          if (document.body.contains(fullscreenModal)) document.body.removeChild(fullscreenModal);
         }
       };
 
-      svgContainer.appendChild(closeBtn);
-      svgContainer.appendChild(svgClone);
+      // Appending order: container holds the svg (or message). Close button is fixed and appended to modal so it stays above content.
       fullscreenModal.appendChild(svgContainer);
+      fullscreenModal.appendChild(closeBtn);
       document.body.appendChild(fullscreenModal);
 
       console.log(`✅ Fullscreen ativado para diagrama: ${diagramId}`);
