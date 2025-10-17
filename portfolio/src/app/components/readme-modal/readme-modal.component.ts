@@ -540,45 +540,18 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
   }
 
   closeModal() {
-    this.enableBodyScroll();
     this.close.emit();
   }
 
   private disableBodyScroll() {
-    // Salva a posição atual do scroll
-    const scrollY = window.scrollY;
-
-    // Aplica estilos para bloquear o scroll sem mover a página
+    // Apenas bloqueia o scroll do body sem alterar layout/posição
+    // Evita "salto" de rolagem ao abrir/fechar o modal
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-
-    // Salva a posição para restaurar depois
-    document.body.setAttribute('data-scroll-y', scrollY.toString());
   }
 
   private enableBodyScroll() {
-    // Recupera a posição salva
-    const scrollY = document.body.getAttribute('data-scroll-y');
-
-    // Remove os estilos de bloqueio
+    // Libera o scroll do body; nenhuma restauração é necessária
     document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.removeAttribute('data-scroll-y');
-
-    // Restaura a posição do scroll no próximo frame de renderização
-    if (scrollY) {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, parseInt(scrollY));
-      });
-    }
   }
 }
 

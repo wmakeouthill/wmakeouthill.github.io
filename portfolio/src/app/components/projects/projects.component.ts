@@ -34,6 +34,24 @@ export class ProjectsComponent implements OnInit {
   }
 
   loadProjects() {
+    // 1) Tenta ler dados pré-gerados de assets/github_data.json
+    this.githubService.getRepositoriesFromAssets().subscribe({
+      next: (assetRepos: GitHubRepository[]) => {
+        if (assetRepos && assetRepos.length > 0) {
+          this.projects = assetRepos;
+          // Se já vieram linguagens no JSON, não precisa buscar de novo
+          this.loadLanguagesForProjects();
+          this.loading = false;
+        } else {
+          // 2) Fallback: busca da API (com cache 24h no service)
+          this.loadFromApi();
+        }
+      },
+      error: () => this.loadFromApi()
+    });
+  }
+
+  private loadFromApi() {
     this.githubService.getRepositories(12).subscribe({
       next: (repos: GitHubRepository[]) => {
         this.projects = repos;
@@ -49,6 +67,10 @@ export class ProjectsComponent implements OnInit {
 
   loadLanguagesForProjects() {
     this.projects.forEach(project => {
+      // Se já existe no JSON estático, não chama API
+      if (project.languages && project.languages.length > 0) {
+        return;
+      }
       this.githubService.getRepositoryLanguages(project.name).subscribe({
         next: (languages) => {
           project.languages = languages;

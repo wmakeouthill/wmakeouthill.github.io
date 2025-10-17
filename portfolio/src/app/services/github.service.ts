@@ -23,6 +23,39 @@ export class GithubService {
   constructor(private readonly http: HttpClient) { }
 
   /**
+   * Lê dados pré-gerados de repositórios a partir de assets/github_data.json
+   * Retorna [] se o arquivo não existir ou estiver inválido
+   */
+  getRepositoriesFromAssets(): Observable<GitHubRepository[]> {
+    const path = 'assets/github_data.json';
+    return this.http.get<any>(path).pipe(
+      map(payload => {
+        if (!payload || !Array.isArray(payload.repositories)) return [];
+        // Tipagem defensiva: garante formato esperado
+        const repos: GitHubRepository[] = payload.repositories.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          full_name: r.full_name ?? r.name,
+          description: r.description ?? null,
+          html_url: r.html_url,
+          homepage: r.homepage ?? null,
+          stargazers_count: r.stargazers_count ?? 0,
+          forks_count: r.forks_count ?? 0,
+          language: r.language ?? null,
+          topics: Array.isArray(r.topics) ? r.topics : [],
+          created_at: r.created_at ?? '',
+          updated_at: r.updated_at ?? '',
+          pushed_at: r.pushed_at ?? '',
+          fork: !!r.fork,
+          languages: Array.isArray(r.languages) ? r.languages : []
+        }));
+        return repos;
+      }),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
    * Verifica se o cache está válido
    * @param timestamp Timestamp do cache
    * @returns true se o cache ainda é válido
