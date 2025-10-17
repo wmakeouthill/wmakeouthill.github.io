@@ -133,13 +133,30 @@ export class MarkdownService {
     // 2) Parse markdown to HTML
     let html = marked.parse(mdWithTokens) as string;
 
+    // Wrap markdown content with specific class to avoid affecting code blocks
+    html = html.replace(/<h([1-6])>/g, '<h$1 class="markdown-text">');
+    html = html.replace(/<p>/g, '<p class="markdown-text">');
+    html = html.replace(/<li>/g, '<li class="markdown-text">');
+    html = html.replace(/<ul>/g, '<ul class="markdown-text">');
+    html = html.replace(/<ol>/g, '<ol class="markdown-text">');
+    html = html.replace(/<span>/g, '<span class="markdown-text">');
+    html = html.replace(/<strong>/g, '<strong class="markdown-text">');
+    html = html.replace(/<em>/g, '<em class="markdown-text">');
+    html = html.replace(/<table>/g, '<table class="markdown-text">');
+    html = html.replace(/<th>/g, '<th class="markdown-text">');
+    html = html.replace(/<td>/g, '<td class="markdown-text">');
+    html = html.replace(/<tr>/g, '<tr class="markdown-text">');
+    html = html.replace(/<a /g, '<a class="markdown-text" ');
+    html = html.replace(/<blockquote>/g, '<blockquote class="markdown-text">');
+    html = html.replace(/<div>/g, '<div class="markdown-text">');
+
     // 3) Enhance code blocks with proper structure - header OUTSIDE the pre
     html = html.replace(
-      /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g, 
+      /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g,
       '<div class="code-block-enhanced"><div class="code-block-header"><span class="code-language">$1</span><button class="copy-btn" onclick="this.copyCode()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copiar</span></button></div><pre><code class="language-$1">$2</code></pre></div>'
     );
     html = html.replace(
-      /<pre><code>([\s\S]*?)<\/code><\/pre>/g, 
+      /<pre><code>([\s\S]*?)<\/code><\/pre>/g,
       '<div class="code-block-enhanced"><div class="code-block-header"><span class="code-language">TEXT</span><button class="copy-btn" onclick="this.copyCode()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copiar</span></button></div><pre><code class="language-text">$1</code></pre></div>'
     );
 

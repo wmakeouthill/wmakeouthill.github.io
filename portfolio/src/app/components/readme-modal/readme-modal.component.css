@@ -283,12 +283,12 @@
   z-index: 1;
 }
 
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3,
-.markdown-content h4,
-.markdown-content h5,
-.markdown-content h6 {
+.markdown-content h1:not(.markdown-text),
+.markdown-content h2:not(.markdown-text),
+.markdown-content h3:not(.markdown-text),
+.markdown-content h4:not(.markdown-text),
+.markdown-content h5:not(.markdown-text),
+.markdown-content h6:not(.markdown-text) {
   color: #DBC27D;
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -309,7 +309,7 @@
   margin-top: 0;
 }
 
-.markdown-content p {
+.markdown-content p:not(.markdown-text) {
   margin-bottom: 1rem;
   color: #ffffff;
   font-size: 1em;
@@ -683,4 +683,46 @@
     overflow-y: auto;
     overflow-x: hidden;
   }
+}
+
+/* Light mode styles - only affect .markdown-text elements */
+.markdown-content.light-mode {
+  background: #ffffff !important; /* White background for markdown content */
+}
+
+.markdown-content.light-mode .markdown-text h1,
+.markdown-content.light-mode .markdown-text h2,
+.markdown-content.light-mode .markdown-text h3,
+.markdown-content.light-mode .markdown-text h4,
+.markdown-content.light-mode .markdown-text h5,
+.markdown-content.light-mode .markdown-text h6 {
+  color: #000000 !important; /* Pure black for headings */
+}
+
+.markdown-content.light-mode .markdown-text p,
+.markdown-content.light-mode .markdown-text li,
+.markdown-content.light-mode .markdown-text ul,
+.markdown-content.light-mode .markdown-text ol,
+.markdown-content.light-mode .markdown-text span,
+.markdown-content.light-mode .markdown-text strong,
+.markdown-content.light-mode .markdown-text em,
+.markdown-content.light-mode .markdown-text table,
+.markdown-content.light-mode .markdown-text th,
+.markdown-content.light-mode .markdown-text td,
+.markdown-content.light-mode .markdown-text tr,
+.markdown-content.light-mode .markdown-text div {
+  color: #1f2937 !important; /* Gray-800 - very dark gray for text */
+}
+
+.markdown-content.light-mode .markdown-text a {
+  color: #1d4ed8 !important; /* blue-700 */
+}
+
+.markdown-content.light-mode .markdown-text a:hover {
+  color: #1e40af !important; /* blue-800 */
+}
+
+.markdown-content.light-mode .markdown-text blockquote {
+  border-left-color: #eab308 !important; /* amber-500 */
+  color: #374151 !important; /* gray-700 */
 }

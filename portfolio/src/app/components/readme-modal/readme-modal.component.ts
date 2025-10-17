@@ -24,6 +24,7 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
   loadingReadme = false;
   markdownZoom = 1.0;
   rawMarkdown = '';
+  isLightMode = false;
 
   constructor(
     private readonly markdownService: MarkdownService,
@@ -78,7 +79,15 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     if (typeof (window as any).Prism !== 'undefined') {
       const codeBlocks = this.markdownContent.nativeElement.querySelectorAll('pre code');
       codeBlocks.forEach((codeBlock: HTMLElement) => {
+        // Forçar aplicação do PrismJS
         (window as any).Prism.highlightElement(codeBlock);
+
+        // Se não tiver classe de linguagem, tentar detectar
+        if (!codeBlock.className.includes('language-')) {
+          const language = this.detectLanguage(codeBlock.textContent || '');
+          codeBlock.className = `language-${language}`;
+          (window as any).Prism.highlightElement(codeBlock);
+        }
       });
     }
 
@@ -511,6 +520,32 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
       // Propaga escala para headings via CSS var consumida em styles.css
       el.style.setProperty('--md-scale', String(this.markdownZoom));
     }
+  }
+
+  toggleTheme() {
+    this.isLightMode = !this.isLightMode;
+    const el = this.markdownContent?.nativeElement as HTMLElement | undefined;
+    if (!el) return;
+    if (this.isLightMode) {
+      el.classList.add('light-mode');
+    } else {
+      el.classList.remove('light-mode');
+    }
+  }
+
+  private detectLanguage(code: string): string {
+    // Detectar linguagem baseada em padrões comuns
+    if (code.includes('function') && code.includes('=>')) return 'javascript';
+    if (code.includes('import ') && code.includes('from ')) return 'javascript';
+    if (code.includes('console.log')) return 'javascript';
+    if (code.includes('def ') && code.includes(':')) return 'python';
+    if (code.includes('import ') && code.includes('as ')) return 'python';
+    if (code.includes('class ') && code.includes('{')) return 'java';
+    if (code.includes('public static void main')) return 'java';
+    if (code.includes('<html') || code.includes('<div')) return 'html';
+    if (code.includes('SELECT ') || code.includes('FROM ')) return 'sql';
+    if (code.includes('{') && code.includes('}') && code.includes('color:')) return 'css';
+    return 'text';
   }
 
   downloadMarkdown() {

@@ -5,6 +5,13 @@
       <h2>{{ projectName }} - README</h2>
       <div class="modal-controls">
         <div class="zoom-controls">
+          <button
+            class="zoom-btn theme-toggle"
+            (click)="toggleTheme()"
+            [title]="isLightMode ? 'Alternar para modo escuro' : 'Alternar para modo claro'"
+          >
+            <span>{{ isLightMode ? '🌙' : '☀️' }}</span>
+          </button>
           <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13H5v-2h14v2z" />
@@ -49,11 +56,7 @@
           <p>Carregando README...</p>
         </div>
         } @else if (readmeContent) {
-        <div
-          #markdownContent
-          class="markdown-content"
-          [innerHTML]="readmeContent"
-        ></div>
+        <div #markdownContent class="markdown-content" [innerHTML]="readmeContent"></div>
         } @else {
         <div class="no-readme">
           <p>README não encontrado para este projeto.</p>
