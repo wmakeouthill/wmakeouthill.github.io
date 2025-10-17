@@ -1,40 +1,65 @@
 @if (isOpen) {
-<div
-  class="modal-overlay"
-  [style.visibility]="visible ? 'visible' : 'hidden'"
-  (click)="closeModal()"
-  (keydown)="$event.key === 'Escape' && closeModal()"
-  tabindex="0"
->
-  <div
-    class="modal-content"
-    (click)="$event.stopPropagation()"
-    (keydown)="$event.key === 'Escape' && closeModal()"
-    tabindex="0"
-  >
+<div class="modal-overlay" (click)="closeModal()" (keydown)="onKeyDown($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
     <div class="modal-header">
       <h2>{{ projectName }} - README</h2>
       <div class="modal-controls">
-        <button class="close-btn" (click)="closeModal()">&times;</button>
+        <div class="zoom-controls">
+          <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13H5v-2h14v2z" />
+            </svg>
+          </button>
+          <span class="zoom-level">{{
+            markdownZoom === 1 ? 'Auto' : (markdownZoom * 100 | number : '1.0-0') + '%'
+          }}</span>
+          <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </button>
+          <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+              />
+            </svg>
+          </button>
+        </div>
+        <button class="download-btn" (click)="downloadMarkdown()" title="Baixar README">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+          </svg>
+          <span>Download</span>
+        </button>
+        <button class="close-btn" (click)="closeModal()" title="Fechar modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </button>
       </div>
     </div>
-
-    <div class="modal-body">
-      @if (loadingReadme) {
-      <div class="loading-readme">
-        <div class="spinner"></div>
-        <p>Carregando README...</p>
+    <div class="modal-body" (keydown)="onKeyDown($event)">
+      <div class="markdown-container" (wheel)="onMouseWheel($event)">
+        @if (loadingReadme) {
+        <div class="loading-readme">
+          <div class="spinner"></div>
+          <p>Carregando README...</p>
+        </div>
+        } @else if (readmeContent) {
+        <div
+          #markdownContent
+          class="markdown-content"
+          [innerHTML]="readmeContent"
+        ></div>
+        } @else {
+        <div class="no-readme">
+          <p>README não encontrado para este projeto.</p>
+        </div>
+        }
       </div>
-      } @else if (readmeContent) {
-      <div
-        class="markdown-content"
-        [innerHTML]="readmeContent"
-      ></div>
-      } @else {
-      <div class="no-readme">
-        <p>README não encontrado para este projeto.</p>
-      </div>
-      }
     </div>
   </div>
 </div>

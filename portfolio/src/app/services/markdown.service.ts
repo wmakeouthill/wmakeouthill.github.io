@@ -75,7 +75,7 @@ export class MarkdownService {
     return `readme_html_${project}`;
   }
 
-  private mapProjectToFile(project: string): string | null {
+  mapProjectToFile(project: string): string | null {
     const m: Record<string, string> = {
       'aa_space': 'aa_space.md',
       'lol-matchmaking-fazenda': 'lol-matchmaking-fazenda.md',
@@ -133,7 +133,17 @@ export class MarkdownService {
     // 2) Parse markdown to HTML
     let html = marked.parse(mdWithTokens) as string;
 
-    // 3) Render each mermaid block to inline SVG and inject container
+    // 3) Enhance code blocks with proper structure - header OUTSIDE the pre
+    html = html.replace(
+      /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g, 
+      '<div class="code-block-enhanced"><div class="code-block-header"><span class="code-language">$1</span><button class="copy-btn" onclick="this.copyCode()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copiar</span></button></div><pre><code class="language-$1">$2</code></pre></div>'
+    );
+    html = html.replace(
+      /<pre><code>([\s\S]*?)<\/code><\/pre>/g, 
+      '<div class="code-block-enhanced"><div class="code-block-header"><span class="code-language">TEXT</span><button class="copy-btn" onclick="this.copyCode()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copiar</span></button></div><pre><code class="language-text">$1</code></pre></div>'
+    );
+
+    // 5) Render each mermaid block to inline SVG and inject container
     for (const b of blocks) {
       const tempId = `m_${b.id}`;
       const { svg } = await mermaid.render(tempId, b.code);
