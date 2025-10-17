@@ -274,7 +274,6 @@
 /* Markdown Content */
 .markdown-content {
   padding: 2rem;
-  color: #ffffff;
   line-height: 1.6;
   font-size: 1rem;
   width: 100%;
@@ -282,6 +281,8 @@
   position: relative;
   z-index: 1;
 }
+
+/* Removed global white color to prevent interference with PrismJS */
 
 .markdown-content h1:not(.markdown-text),
 .markdown-content h2:not(.markdown-text),
@@ -314,6 +315,19 @@
   color: #ffffff;
   font-size: 1em;
   line-height: 1.6;
+}
+
+.markdown-content:not(.light-mode) p:not(.markdown-text),
+.markdown-content:not(.light-mode) li:not(.markdown-text),
+.markdown-content:not(.light-mode) span:not(.markdown-text),
+.markdown-content:not(.light-mode) strong:not(.markdown-text),
+.markdown-content:not(.light-mode) em:not(.markdown-text),
+.markdown-content:not(.light-mode) table:not(.markdown-text),
+.markdown-content:not(.light-mode) th:not(.markdown-text),
+.markdown-content:not(.light-mode) td:not(.markdown-text),
+.markdown-content:not(.light-mode) tr:not(.markdown-text),
+.markdown-content:not(.light-mode) div:not(.markdown-text) {
+  color: #ffffff;
 }
 
 .markdown-content a {
@@ -350,7 +364,7 @@
   line-height: 1.6;
 }
 
-.markdown-content code {
+.markdown-content code:not(.code-block-enhanced code) {
   background: #2a2a2a;
   color: #DBC27D;
   padding: 0.2rem 0.4rem;
@@ -375,7 +389,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: #454545;
+  background: #2a2a2a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   border-radius: 12px 12px 0 0;
@@ -393,7 +407,7 @@
 }
 
 .code-language {
-  color: #DBC27D;
+  color: #DBC27D !important;
   font-weight: 700;
   font-size: 0.9rem;
   text-transform: uppercase;
@@ -478,7 +492,6 @@
 
 .code-block-enhanced code {
   background: none;
-  color: #abb2bf;
   padding: 0;
   border-radius: 0;
   font-size: 0.9em;
@@ -488,17 +501,24 @@
   white-space: pre;
 }
 
-/* PrismJS Syntax Highlighting Overrides */
+/* Force PrismJS to work by overriding the base color */
+.code-block-enhanced code[class*="language-"] {
+  color: inherit !important;
+}
+
+/* Let PrismJS handle colors naturally */
+
+/* Ensure PrismJS tokens get their colors */
 .code-block-enhanced .token.comment,
 .code-block-enhanced .token.prolog,
 .code-block-enhanced .token.doctype,
 .code-block-enhanced .token.cdata {
-  color: #5c6370;
+  color: #5c6370 !important;
   font-style: italic;
 }
 
 .code-block-enhanced .token.punctuation {
-  color: #abb2bf;
+  color: #abb2bf !important;
 }
 
 .code-block-enhanced .token.property,
@@ -508,7 +528,7 @@
 .code-block-enhanced .token.constant,
 .code-block-enhanced .token.symbol,
 .code-block-enhanced .token.deleted {
-  color: #e06c75;
+  color: #e06c75 !important;
 }
 
 .code-block-enhanced .token.selector,
@@ -517,7 +537,7 @@
 .code-block-enhanced .token.char,
 .code-block-enhanced .token.builtin,
 .code-block-enhanced .token.inserted {
-  color: #98c379;
+  color: #98c379 !important;
 }
 
 .code-block-enhanced .token.operator,
@@ -525,25 +545,27 @@
 .code-block-enhanced .token.url,
 .code-block-enhanced .language-css .token.string,
 .code-block-enhanced .style .token.string {
-  color: #56b6c2;
+  color: #56b6c2 !important;
 }
 
 .code-block-enhanced .token.atrule,
 .code-block-enhanced .token.attr-value,
 .code-block-enhanced .token.keyword {
-  color: #c678dd;
+  color: #c678dd !important;
 }
 
 .code-block-enhanced .token.function,
 .code-block-enhanced .token.class-name {
-  color: #61afef;
+  color: #61afef !important;
 }
 
 .code-block-enhanced .token.regex,
 .code-block-enhanced .token.important,
 .code-block-enhanced .token.variable {
-  color: #e5c07b;
+  color: #e5c07b !important;
 }
+
+/* PrismJS Syntax Highlighting - Let the theme handle colors */
 
 /* Mermaid Diagrams */
 .mermaid-diagram {
@@ -690,39 +712,39 @@
   background: #ffffff !important; /* White background for markdown content */
 }
 
-.markdown-content.light-mode .markdown-text h1,
-.markdown-content.light-mode .markdown-text h2,
-.markdown-content.light-mode .markdown-text h3,
-.markdown-content.light-mode .markdown-text h4,
-.markdown-content.light-mode .markdown-text h5,
-.markdown-content.light-mode .markdown-text h6 {
+.markdown-content.light-mode h1.markdown-text,
+.markdown-content.light-mode h2.markdown-text,
+.markdown-content.light-mode h3.markdown-text,
+.markdown-content.light-mode h4.markdown-text,
+.markdown-content.light-mode h5.markdown-text,
+.markdown-content.light-mode h6.markdown-text {
   color: #000000 !important; /* Pure black for headings */
 }
 
-.markdown-content.light-mode .markdown-text p,
-.markdown-content.light-mode .markdown-text li,
-.markdown-content.light-mode .markdown-text ul,
-.markdown-content.light-mode .markdown-text ol,
-.markdown-content.light-mode .markdown-text span,
-.markdown-content.light-mode .markdown-text strong,
-.markdown-content.light-mode .markdown-text em,
-.markdown-content.light-mode .markdown-text table,
-.markdown-content.light-mode .markdown-text th,
-.markdown-content.light-mode .markdown-text td,
-.markdown-content.light-mode .markdown-text tr,
-.markdown-content.light-mode .markdown-text div {
+.markdown-content.light-mode p.markdown-text,
+.markdown-content.light-mode li.markdown-text,
+.markdown-content.light-mode ul.markdown-text,
+.markdown-content.light-mode ol.markdown-text,
+.markdown-content.light-mode span.markdown-text,
+.markdown-content.light-mode strong.markdown-text,
+.markdown-content.light-mode em.markdown-text,
+.markdown-content.light-mode table.markdown-text,
+.markdown-content.light-mode th.markdown-text,
+.markdown-content.light-mode td.markdown-text,
+.markdown-content.light-mode tr.markdown-text,
+.markdown-content.light-mode div.markdown-text {
   color: #1f2937 !important; /* Gray-800 - very dark gray for text */
 }
 
-.markdown-content.light-mode .markdown-text a {
+.markdown-content.light-mode a.markdown-text {
   color: #1d4ed8 !important; /* blue-700 */
 }
 
-.markdown-content.light-mode .markdown-text a:hover {
+.markdown-content.light-mode a.markdown-text:hover {
   color: #1e40af !important; /* blue-800 */
 }
 
-.markdown-content.light-mode .markdown-text blockquote {
+.markdown-content.light-mode blockquote.markdown-text {
   border-left-color: #eab308 !important; /* amber-500 */
   color: #374151 !important; /* gray-700 */
 }
