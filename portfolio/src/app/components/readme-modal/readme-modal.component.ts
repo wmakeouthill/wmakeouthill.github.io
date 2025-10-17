@@ -31,8 +31,13 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
   ) { }
 
   ngOnChanges(changes: any) {
-    if (changes['isOpen'] && this.isOpen) {
-      this.loadFromCache();
+    if (changes['isOpen']) {
+      if (this.isOpen) {
+        this.loadFromCache();
+        this.disableBodyScroll();
+      } else {
+        this.enableBodyScroll();
+      }
     }
   }
 
@@ -400,14 +405,14 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
       isDragging = true;
       startX = e.clientX - translateX;
       startY = e.clientY - translateY;
-      
+
       svgContainerEl.style.cursor = 'grabbing';
       e.preventDefault();
     };
 
     const drag = (e: MouseEvent) => {
       if (!isDragging) return;
-      
+
       translateX = e.clientX - startX;
       translateY = e.clientY - startY;
       updateTransform();
@@ -453,7 +458,7 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     const updateCursor = () => {
       svgContainerEl.style.cursor = 'grab';
     };
-    
+
     // Atualizar função de zoom para incluir cursor
     updateZoom = (newScale: number) => {
       currentScale = Math.max(minScale, Math.min(maxScale, newScale));
@@ -535,7 +540,45 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
   }
 
   closeModal() {
+    this.enableBodyScroll();
     this.close.emit();
+  }
+
+  private disableBodyScroll() {
+    // Salva a posição atual do scroll
+    const scrollY = window.scrollY;
+
+    // Aplica estilos para bloquear o scroll sem mover a página
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+
+    // Salva a posição para restaurar depois
+    document.body.setAttribute('data-scroll-y', scrollY.toString());
+  }
+
+  private enableBodyScroll() {
+    // Recupera a posição salva
+    const scrollY = document.body.getAttribute('data-scroll-y');
+
+    // Remove os estilos de bloqueio
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.removeAttribute('data-scroll-y');
+
+    // Restaura a posição do scroll no próximo frame de renderização
+    if (scrollY) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, parseInt(scrollY));
+      });
+    }
   }
 }
 

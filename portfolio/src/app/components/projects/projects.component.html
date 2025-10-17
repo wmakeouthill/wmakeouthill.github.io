@@ -86,7 +86,29 @@
             }
           </div>
 
-          @if (project.topics && project.topics.length > 0) {
+          @if (project.languages && project.languages.length > 0) {
+          <div class="languages-section">
+            <div class="languages-bar">
+              @for (lang of project.languages; track lang.name) {
+              <div
+                class="language-segment"
+                [style.background-color]="lang.color"
+                [style.width.%]="lang.percentage"
+                [title]="lang.name + ': ' + lang.percentage + '%'"
+              ></div>
+              }
+            </div>
+            <div class="languages-legend">
+              @for (lang of project.languages; track lang.name) {
+              <div class="language-item">
+                <span class="language-color" [style.background-color]="lang.color"></span>
+                <span class="language-name">{{ lang.name }}</span>
+                <span class="language-percentage">{{ lang.percentage }}%</span>
+              </div>
+              }
+            </div>
+          </div>
+          } @if (project.topics && project.topics.length > 0) {
           <div class="project-topics">
             @for (topic of project.topics.slice(0, 3); track topic) {
             <span class="topic-tag">{{ topic }}</span>

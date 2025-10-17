@@ -37,12 +37,26 @@ export class ProjectsComponent implements OnInit {
     this.githubService.getRepositories(12).subscribe({
       next: (repos: GitHubRepository[]) => {
         this.projects = repos;
+        this.loadLanguagesForProjects();
         this.loading = false;
       },
       error: (error: any) => {
         console.error('Erro ao carregar projetos:', error);
         this.loading = false;
       }
+    });
+  }
+
+  loadLanguagesForProjects() {
+    this.projects.forEach(project => {
+      this.githubService.getRepositoryLanguages(project.name).subscribe({
+        next: (languages) => {
+          project.languages = languages;
+        },
+        error: (error) => {
+          console.error(`Erro ao carregar linguagens para ${project.name}:`, error);
+        }
+      });
     });
   }
 

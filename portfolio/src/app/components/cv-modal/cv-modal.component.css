@@ -12,7 +12,7 @@
   justify-content: center;
   align-items: flex-start;
   z-index: 1000;
-  padding: 4.5rem 1rem 1rem 1rem;
+  padding: 3rem 1rem 3rem 1rem;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -31,10 +31,10 @@
 .modal-content {
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
   border-radius: 20px;
-  max-height: 85vh;
+  max-height: calc(100vh - 6rem);
   width: 100%;
-  max-width: 1200px;
-  height: 85vh;
+  max-width: 1400px;
+  height: calc(100vh - 6rem);
   display: flex;
   flex-direction: column;
   box-shadow:
@@ -63,7 +63,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: #000000;
   border-radius: 20px 20px 0 0;
@@ -232,19 +232,7 @@
   box-sizing: border-box;
 }
 
-.pdf-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  border-radius: 0 0 20px 20px;
-}
+/* Removed problematic ::before pseudo-element */
 
 /* PDF Viewer */
 .pdf-viewer {
@@ -268,14 +256,14 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .modal-overlay {
-    padding: 2rem 0.5rem 0.5rem 0.5rem;
+    padding: 2.5rem 0.5rem 2.5rem 0.5rem;
   }
 
   .modal-content {
     max-width: 98vw;
-    max-height: 90vh;
-    height: 90vh;
-    margin-top: 1rem;
+    max-height: calc(100vh - 5rem);
+    height: calc(100vh - 5rem);
+    margin-top: 0;
     border-radius: 16px;
   }
 
@@ -322,9 +310,7 @@
     transform: scale(1.1);
   }
 
-  .pdf-container::before {
-    border-radius: 0 0 16px 16px;
-  }
+  /* Removed ::before reference */
 
   .pdf-viewer {
     border-radius: 8px;
