@@ -7,6 +7,7 @@
 	overflow:auto; /* permite scroll vertical */
 	background: transparent; /* fundo transparente */
 	padding: 0; /* remove padding que causava border visual */
+	min-width: 0; /* permite que o conteúdo seja menor que o container */
 }
 .pdf-viewer-frame{
 	background: transparent; /* sem moldura branca */
@@ -14,10 +15,18 @@
 	border-radius: 0;
 	padding: 0;
 	display:flex;
-	align-items:center;
+	align-items:flex-start;
 	justify-content:center; /* centraliza o canvas */
+	width: 100%;
+	max-width: 100%;
 }
-.pdf-canvas{display:block;max-width:none;width:auto;height:auto}
+.pdf-canvas{
+	display:block;
+	max-width:100%;
+	width:auto;
+	height:auto;
+	margin: 0 auto;
+}
 
 .pdf-loading{
 	position:absolute;

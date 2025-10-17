@@ -5,30 +5,55 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 30, 0.95));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   z-index: 1000;
-  padding: 4.5rem 1rem 1rem 1rem;
+  padding: 3rem 1rem 1rem 1rem; /* Padding reduzido no topo */
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
 }
 
 .modal-content {
-  background: var(--bg-primary);
-  border-radius: 12px;
-  max-height: 82vh;
+  background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+  border-radius: 20px;
+  max-height: 85vh;
   width: 100%;
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
-  margin-top: 2rem;
-  /* Forçar altura baseada no conteúdo */
-  height: auto;
-  min-height: 0;
-  /* Garantir que o conteúdo não ultrapasse a altura máxima */
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 1rem; /* Margem reduzida */
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-header {
@@ -36,10 +61,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #000000;
+  border-radius: 20px 20px 0 0;
   flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .modal-controls {
@@ -52,40 +78,49 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--bg-primary);
+  background: #002E59;
   padding: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 46, 89, 0.3);
 }
 
 .zoom-btn {
-  background: var(--accent-color);
-  color: white;
+  background: #DBC27D;
+  color: #000000;
   border: none;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 4px;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(219, 194, 125, 0.3);
 }
 
 .zoom-btn:hover {
-  background: var(--accent-hover);
-  transform: scale(1.05);
+  background: #C9A96E;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(219, 194, 125, 0.4);
+}
+
+.zoom-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(219, 194, 125, 0.3);
 }
 
 .zoom-btn.reset-zoom {
-  background: var(--text-muted);
+  background: #DBC27D;
   font-size: 0.8rem;
 }
 
 .zoom-btn.reset-zoom:hover {
-  background: var(--text-secondary);
+  background: #C9A96E;
 }
 
 /* Theme toggle button */
@@ -109,38 +144,46 @@
 
 .zoom-level {
   font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: #ffffff;
   min-width: 3rem;
   text-align: center;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: var(--text-primary);
-  font-size: calc(var(--md-scale) * 1.5rem);
-  font-weight: 600;
+  color: #DBC27D;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: var(--text-muted);
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  font-size: 1.5rem;
+  color: #dc3545;
   cursor: pointer;
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
 }
 
 .close-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
+  background: rgba(220, 53, 69, 0.2);
+  color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.close-btn:active {
+  transform: translateY(0);
 }
 
 .loading-readme {
@@ -148,8 +191,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
-  color: var(--text-muted);
+  padding: 1rem; /* Padding reduzido */
+  color: #e0e0e0;
+  margin: 0; /* Remover margens */
 }
 
 .loading-readme .spinner {
@@ -172,8 +216,9 @@
 
 .no-readme {
   text-align: center;
-  padding: 3rem;
-  color: var(--text-muted);
+  padding: 1rem; /* Padding reduzido */
+  color: #e0e0e0;
+  margin: 0; /* Remover margens */
 }
 
 /* Eliminar TODAS as margens e paddings do HTML gerado pelo markdown */
@@ -229,24 +274,22 @@
   padding-top: 0 !important;
 }
 
-/* Garantir que o container do modal tenha exatamente a altura do conteúdo */
+/* Modal body com scroll interno */
 .modal-body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2rem 2rem 0 2rem; /* Remover padding-bottom completamente */
+  padding: 0.5rem; /* Padding reduzido para ficar mais próximo do PDF */
   position: relative;
   scroll-behavior: smooth;
   min-height: 0;
-  /* Remover altura fixa e deixar o flexbox controlar */
-  height: auto;
-  /* Garantir que o scroll seja controlado pelo conteúdo */
-  display: block;
-  /* Limitar altura máxima baseada no viewport */
-  max-height: calc(82vh - 120px); /* Altura total menos header */
-  /* Garantir que não há espaços extras */
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  display: block; /* Mudança para block para permitir crescimento natural */
+  border-radius: 0 0 20px 20px;
   box-sizing: border-box;
 }
+
+/* Elemento ::before removido para evitar sobreposição visual */
 
 /* Light mode overrides for modal: makes reading background claro */
 .modal-content.light-mode {
@@ -264,10 +307,6 @@
   --md-scale: var(--md-scale, 1);
 }
 
-.modal-content.light-mode .markdown-content .mermaid-diagram {
-  background: #ffffff;
-  border-color: rgba(0,0,0,0.06);
-}
 
 /* Ensure mermaid fullscreen SVG contrasts correctly when light-mode is active */
 .modal-content.light-mode .mermaid-content svg {
@@ -316,12 +355,12 @@
   border-bottom-color: transparent !important;
 }
 
-/* Não impor regras globais de fill/color em SVGs no modo claro.
-   SVGs devem manter seus fills/strokes originais para não quebrar
-   a renderização dos diagramas Mermaid. */
 
-/* Não force cores dentro de SVGs: SVGs devem manter seus próprios fills/strokes
-   (especialmente diagramas Mermaid). Evitar regras que alterem <text>/<tspan> globalmente. */
+
+
+
+
+
 
 /* Zoom buttons legíveis em light-mode */
 .modal-content.light-mode .zoom-btn {
@@ -343,19 +382,18 @@
 /* Garantir que o conteúdo ocupe apenas o espaço necessário */
 .markdown-content {
   width: 100% !important;
-  /* Remover flexbox e usar display block */
+  /* Usar display block para crescimento natural */
   display: block !important;
-  /* Forçar altura exata do conteúdo */
-  height: auto !important;
-  min-height: 0 !important;
+  /* Altura automática baseada no conteúdo */
+  min-height: auto !important;
   max-height: none !important;
   /* Eliminar qualquer espaço extra */
   overflow: visible !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
+  padding: 0.5rem 3rem 0.5rem 3rem !important; /* Margens muito reduzidas como no PDF */
   border-bottom: none !important;
   /* Garantir que termine exatamente no fim */
   position: relative;
+  z-index: 2; /* Garantir que fica acima do ::before (z-index: 0) */
   /* Garantir que não há espaços extras */
   box-sizing: border-box;
   /* Melhorias para transforms (especialmente no Firefox) */
@@ -365,17 +403,19 @@
   --md-scale: 1;
   /* Base font-size em px que será multiplicada por --md-scale (Firefox usa essa variável) */
   font-size: calc(var(--md-scale) * 16px);
+  /* Fundo para o conteúdo */
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(219, 194, 125, 0.2);
+  margin: 0.25rem auto !important; /* Margem muito reduzida como no PDF */
+  /* Garantir que o container cresce com o conteúdo */
+  flex-shrink: 0;
+  /* Largura máxima para evitar que fique muito largo */
+  max-width: 100%;
+  /* Garantir que o conteúdo determina a altura */
+  height: fit-content;
 }
 
-/* Garantir que o último elemento não tenha espaços extras */
-.markdown-content > *:last-child {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  /* Remover qualquer espaço extra */
-  border-bottom: none !important;
-}
 
 /* Garantir que elementos SVG (diagramas) não tenham espaços extras */
 .markdown-content svg:last-child,
@@ -388,6 +428,7 @@
 .markdown-content p {
   margin-bottom: 0.8rem;
   line-height: 1.7;
+  color: #e0e0e0;
 }
 
 .markdown-content p:last-child {
@@ -397,7 +438,7 @@
 .markdown-content ul,
 .markdown-content ol {
   margin-bottom: 1rem;
-  padding-left: 1.5rem;
+  padding-left: 2rem; /* Mais espaço para as bolinhas ficarem dentro */
 }
 
 .markdown-content ul:last-child,
@@ -405,9 +446,18 @@
   margin-bottom: 0 !important;
 }
 
+/* Garantir que as bolinhas das listas ficam dentro do container */
+.markdown-content ul {
+  list-style-position: inside;
+}
+
+.markdown-content ol {
+  list-style-position: inside;
+}
+
 .markdown-content pre {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: #2a2a2a;
+  border: 1px solid #555555;
   border-radius: 8px;
   padding: 1rem;
   overflow-x: auto;
@@ -544,40 +594,41 @@
 .markdown-content h6 {
   margin-top: calc(var(--md-scale) * 1.25rem);
   margin-bottom: calc(var(--md-scale) * 0.75rem);
-  color: var(--text-primary);
+  color: #ffffff;
   font-weight: 600;
 }
 
 .markdown-content li {
   margin-bottom: 0.4rem;
   line-height: 1.6;
+  color: #e0e0e0;
 }
 
 .markdown-content code {
-  background-color: var(--bg-secondary);
+  background-color: #3a3a3a;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9em;
-  color: var(--accent-color);
-  border: 1px solid var(--border-color);
+  color: #DBC27D;
+  border: 1px solid #555555;
 }
 
 .markdown-content pre code {
   background: none;
   border: none;
   padding: 0;
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .markdown-content strong {
   font-weight: 600;
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .markdown-content em {
   font-style: italic;
-  color: var(--text-secondary);
+  color: #d0d0d0;
 }
 
 .markdown-content a {
@@ -585,30 +636,31 @@
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-bottom 0.2s ease;
+  color: #DBC27D;
 }
 
 .markdown-content a:hover {
-  border-bottom-color: var(--accent-color);
+  border-bottom-color: #DBC27D;
 }
 
 .markdown-content blockquote {
-  border-left: 4px solid var(--accent-color);
+  border-left: 4px solid #DBC27D;
   padding-left: 1rem;
   margin: 1rem 0;
-  color: var(--text-secondary);
+  color: #d0d0d0;
   font-style: italic;
 }
 
 /* Table Styles */
 .markdown-content h1 {
   font-size: calc(var(--md-scale) * 2rem);
-  border-bottom: 2px solid var(--accent-color);
+  border-bottom: 2px solid #DBC27D;
   padding-bottom: calc(var(--md-scale) * 0.4rem);
   margin-top: calc(var(--md-scale) * 1.3rem);
 }
 .markdown-content h2 {
   font-size: calc(var(--md-scale) * 1.5rem);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #555555;
   padding-bottom: calc(var(--md-scale) * 0.3rem);
   margin-top: calc(var(--md-scale) * 1.2rem);
 }
@@ -632,7 +684,7 @@
   background: #2a2a2a;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid #555555;
   font-family: 'Courier New', monospace;
 }
 
@@ -646,7 +698,7 @@
   align-items: center;
   padding: 0.75rem 1rem;
   background: #1a1a1a;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #444444;
 }
 
 .code-language {
@@ -658,8 +710,8 @@
 
 .copy-code-btn {
   background: none;
-  border: 1px solid #333;
-  color: #ccc;
+  border: 1px solid #555555;
+  color: #e0e0e0;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   cursor: pointer;
@@ -686,7 +738,7 @@
   font-family: inherit;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #d4d4d4;
+  color: #ffffff;
 }
 
 /* Responsive Styles */

@@ -46,14 +46,22 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Limpeza se necessário
+    // Garantir que o scroll seja reativado caso o componente seja destruído
+    this.enableBodyScroll();
   }
 
   ngOnChanges(changes: any) {
-    if (changes['isOpen'] && this.isOpen && this.projectName) {
-      // Sempre carregar o conteúdo específico do projeto
-      console.log(`📄 Carregando conteúdo do cache para ${this.projectName}...`);
-      this.loadReadmeFromCache();
+    if (changes['isOpen']) {
+      if (this.isOpen) {
+        this.disableBodyScroll();
+        if (this.projectName) {
+          // Sempre carregar o conteúdo específico do projeto
+          console.log(`📄 Carregando conteúdo do cache para ${this.projectName}...`);
+          this.loadReadmeFromCache();
+        }
+      } else {
+        this.enableBodyScroll();
+      }
     }
   }
 
@@ -310,7 +318,26 @@ export class ReadmeModalComponent implements OnInit, OnDestroy {
     });
   }
 
+  private disableBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+  }
+
+  private enableBodyScroll() {
+    const scrollY = document.body.style.top;
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+  }
+
   closeModal() {
+    this.enableBodyScroll();
     this.close.emit();
   }
 

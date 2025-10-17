@@ -46,13 +46,13 @@ export class CvModalComponent implements OnChanges, OnDestroy {
     }
 
     increaseZoom() {
-        if (this.pdfZoom < 2.0) {
+        if (this.pdfZoom < 1.3) {
             this.pdfZoom += 0.1;
         }
     }
 
     decreaseZoom() {
-        if (this.pdfZoom > 0.5) {
+        if (this.pdfZoom > 0.7) {
             this.pdfZoom -= 0.1;
         }
     }
@@ -84,9 +84,9 @@ export class CvModalComponent implements OnChanges, OnDestroy {
         // Apenas zoom com Ctrl+scroll, sem interferir no scroll do PDF
         if (event.ctrlKey) {
             event.preventDefault();
-            if (event.deltaY < 0) {
+            if (event.deltaY < 0 && this.pdfZoom < 1.3) {
                 this.increaseZoom();
-            } else {
+            } else if (event.deltaY > 0 && this.pdfZoom > 0.7) {
                 this.decreaseZoom();
             }
         }
