@@ -149,7 +149,21 @@ export class MarkdownService {
       const { svg } = await mermaid.render(tempId, b.code);
       const container =
         `<div class="mermaid-diagram" id="${b.id}-container" data-project="${project}" data-diagram-id="${b.id}">` +
+        `<div class="mermaid-header">` +
         `<div class="mermaid-title">${b.title}</div>` +
+        `<div class="mermaid-controls">` +
+        `<button class="mermaid-download-btn" onclick="this.downloadMermaid('${b.id}')" title="Baixar diagrama">` +
+        `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">` +
+        `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>` +
+        `</svg>` +
+        `</button>` +
+        `<button class="mermaid-fullscreen-btn" onclick="this.openMermaidFullscreen('${b.id}')" title="Ver em tela cheia">` +
+        `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">` +
+        `<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>` +
+        `</svg>` +
+        `</button>` +
+        `</div>` +
+        `</div>` +
         `<div class="mermaid-content">${svg}</div>` +
         `</div>`;
       html = html.replace(`<!--MERMAID:${b.id}-->`, container);

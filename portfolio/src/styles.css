@@ -737,3 +737,87 @@ a:hover {
   display: block;
   white-space: pre;
 }
+
+/* Mermaid Diagrams */
+.mermaid-diagram {
+  margin: 2rem 0;
+  text-align: center;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.mermaid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #2a2a2a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 1rem;
+}
+
+.mermaid-title {
+  color: #DBC27D;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  flex: 1;
+  text-align: left;
+}
+
+.mermaid-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.mermaid-download-btn,
+.mermaid-fullscreen-btn {
+  background: linear-gradient(135deg, #DBC27D, #C9A96E);
+  color: #000000;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(219, 194, 125, 0.3);
+  width: 36px;
+  height: 36px;
+}
+
+.mermaid-download-btn:hover,
+.mermaid-fullscreen-btn:hover {
+  background: linear-gradient(135deg, #C9A96E, #B8965F);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(219, 194, 125, 0.4);
+}
+
+.mermaid-download-btn:active,
+.mermaid-fullscreen-btn:active {
+  transform: translateY(0);
+  background: linear-gradient(135deg, #B8965F, #A68B4F);
+}
+
+.mermaid-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 1.5rem;
+}
+
+.mermaid-content svg {
+  max-width: 100%;
+  height: auto;
+}
