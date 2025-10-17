@@ -1,805 +1,145 @@
-/* README Modal Styles */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 30, 0.95));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  z-index: 1000;
-  padding: 3rem 1rem 1rem 1rem; /* Padding reduzido no topo */
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(10px);
-  }
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
 }
 
 .modal-content {
-  background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
-  border-radius: 20px;
-  max-height: 85vh;
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
-  box-shadow:
-    0 25px 80px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem; /* Margem reduzida */
-  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+	width: min(1000px, 92vw);
+	max-height: 90vh;
+	background: var(--bg-primary, #0b1420);
+	color: var(--text-primary, #e6e6e6);
+	border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+	border-radius: 10px;
+	box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 }
 
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #000000;
-  border-radius: 20px 20px 0 0;
-  flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.modal-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #002E59;
-  padding: 0.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 46, 89, 0.3);
-}
-
-.zoom-btn {
-  background: #DBC27D;
-  color: #000000;
-  border: none;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(219, 194, 125, 0.3);
-}
-
-.zoom-btn:hover {
-  background: #C9A96E;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(219, 194, 125, 0.4);
-}
-
-.zoom-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(219, 194, 125, 0.3);
-}
-
-.zoom-btn.reset-zoom {
-  background: #DBC27D;
-  font-size: 0.8rem;
-}
-
-.zoom-btn.reset-zoom:hover {
-  background: #C9A96E;
-}
-
-/* Theme toggle button */
-.theme-toggle {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.06);
-  color: var(--text-primary);
-  width: 2rem;
-  height: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.theme-toggle:hover {
-  background: rgba(255,255,255,0.02);
-}
-
-.zoom-level {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #ffffff;
-  min-width: 3rem;
-  text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.75rem 1rem;
+	background: var(--bg-secondary, #121b27);
+	border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
 }
 
 .modal-header h2 {
-  margin: 0;
-  color: #DBC27D;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.modal-controls {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
 }
 
 .close-btn {
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.2);
-  font-size: 1.5rem;
-  color: #dc3545;
-  cursor: pointer;
-  padding: 0.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 600;
+	appearance: none;
+	border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+	background: transparent;
+	color: inherit;
+	width: 32px;
+	height: 32px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 1.2rem;
+	line-height: 1;
 }
 
 .close-btn:hover {
-  background: rgba(220, 53, 69, 0.2);
-  color: #c82333;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+	background: rgba(255, 255, 255, 0.06);
 }
 
-.close-btn:active {
-  transform: translateY(0);
+.modal-body {
+	position: relative;
+	overflow: auto;
+	padding: 1rem;
 }
 
 .loading-readme {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem; /* Padding reduzido */
-  color: #e0e0e0;
-  margin: 0; /* Remover margens */
-}
-
-.loading-readme .spinner {
-  margin-bottom: 1rem;
+	display: grid;
+	place-items: center;
+	gap: 0.75rem;
+	padding: 2rem 0;
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border-color);
-  border-top: 3px solid var(--color-accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+	width: 28px;
+	height: 28px;
+	border: 3px solid rgba(255,255,255,0.2);
+	border-top-color: rgba(255,255,255,0.9);
+	border-radius: 50%;
+	animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+	to { transform: rotate(360deg); }
 }
 
-.no-readme {
-  text-align: center;
-  padding: 1rem; /* Padding reduzido */
-  color: #e0e0e0;
-  margin: 0; /* Remover margens */
-}
-
-/* Eliminar TODAS as margens e paddings do HTML gerado pelo markdown */
-.markdown-content * {
-  box-sizing: border-box !important;
-}
-
-/* Remover margens de TODOS os elementos */
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3,
-.markdown-content h4,
-.markdown-content h5,
-.markdown-content h6,
-.markdown-content p,
-.markdown-content ul,
-.markdown-content ol,
-.markdown-content li,
-.markdown-content pre,
-.markdown-content code,
-.markdown-content blockquote,
-.markdown-content table,
-.markdown-content div,
-.markdown-content span {
-  margin-bottom: 0 !important;
-  margin-top: 0 !important;
-  padding-bottom: 0 !important;
-  padding-top: 0 !important;
-}
-
-/* Restaurar margens apenas para elementos que não são o último */
-.markdown-content h1:not(:last-child),
-.markdown-content h2:not(:last-child),
-.markdown-content h3:not(:last-child),
-.markdown-content h4:not(:last-child),
-.markdown-content h5:not(:last-child),
-.markdown-content h6:not(:last-child),
-.markdown-content p:not(:last-child),
-.markdown-content ul:not(:last-child),
-.markdown-content ol:not(:last-child),
-.markdown-content pre:not(:last-child),
-.markdown-content blockquote:not(:last-child),
-.markdown-content table:not(:last-child),
-.markdown-content div:not(:last-child) {
-  margin-bottom: 1rem !important;
-}
-
-/* Garantir que o último elemento de qualquer tipo não tenha margem */
-.markdown-content > *:last-child {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
-
-/* Modal body com scroll interno */
-.modal-body {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.5rem; /* Padding reduzido para ficar mais próximo do PDF */
-  position: relative;
-  scroll-behavior: smooth;
-  min-height: 0;
-  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-  display: block; /* Mudança para block para permitir crescimento natural */
-  border-radius: 0 0 20px 20px;
-  box-sizing: border-box;
-}
-
-/* Elemento ::before removido para evitar sobreposição visual */
-
-/* Light mode overrides for modal: makes reading background claro */
-.modal-content.light-mode {
-  background: #f7f7f7;
-  color: #0b1420;
-}
-
-.modal-content.light-mode .modal-header {
-  background: #ffffff;
-}
-
-.modal-content.light-mode .markdown-content {
-  background: #ffffff;
-  color: #0b1420;
-  --md-scale: var(--md-scale, 1);
-}
-
-
-/* Ensure mermaid fullscreen SVG contrasts correctly when light-mode is active */
-.modal-content.light-mode .mermaid-content svg {
-  background: transparent !important;
-}
-
-/* Prevent parent color from leaking into inline SVGs (stop currentColor overrides) */
-.modal-content.light-mode .mermaid-content,
-.modal-content.light-mode .mermaid-content svg,
-.modal-content.light-mode .mermaid-content svg * {
-  color: initial !important;
-}
-
-/* Strong overrides for injected content (innerHTML) to ensure contrast in light-mode */
-.modal-content.light-mode .markdown-content h1,
-.modal-content.light-mode .markdown-content h2,
-.modal-content.light-mode .markdown-content h3,
-.modal-content.light-mode .markdown-content h4,
-.modal-content.light-mode .markdown-content h5,
-.modal-content.light-mode .markdown-content h6,
-.modal-content.light-mode .markdown-content .mermaid-title,
-.modal-content.light-mode .markdown-content .mermaid-diagram::before {
-  color: #0b1420 !important;
-}
-
-/* Additional explicit overrides to fix remaining light-mode contrast issues */
-.modal-content.light-mode .modal-header h2 {
-  color: #0b1420 !important;
-}
-
-.modal-content.light-mode .markdown-content p,
-.modal-content.light-mode .markdown-content li,
-.modal-content.light-mode .markdown-content a,
-.modal-content.light-mode .markdown-content code,
-.modal-content.light-mode .markdown-content pre,
-.modal-content.light-mode .markdown-content strong,
-.modal-content.light-mode .markdown-content em,
-.modal-content.light-mode .markdown-content td,
-.modal-content.light-mode .markdown-content th {
-  color: #0b1420 !important;
-}
-
-/* Ensure links are readable in light mode */
-.modal-content.light-mode .markdown-content a {
-  color: var(--color-primary) !important;
-  border-bottom-color: transparent !important;
-}
-
-
-
-
-
-
-
-
-/* Zoom buttons legíveis em light-mode */
-.modal-content.light-mode .zoom-btn {
-  background: var(--bg-primary) !important; /* manter contraste */
-  color: var(--text-primary) !important;
-  border-color: var(--border-color) !important;
-}
-.modal-content.light-mode .zoom-btn.reset-zoom {
-  background: var(--text-muted) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Fullscreen close button appearance when light-mode is active */
-.modal-content.light-mode .fullscreen-close-btn {
-  background: #DBC27D !important;
-  color: #002e59 !important;
-}
-
-/* Garantir que o conteúdo ocupe apenas o espaço necessário */
 .markdown-content {
-  width: 100% !important;
-  /* Usar display block para crescimento natural */
-  display: block !important;
-  /* Altura automática baseada no conteúdo */
-  min-height: auto !important;
-  max-height: none !important;
-  /* Eliminar qualquer espaço extra */
-  overflow: visible !important;
-  padding: 0.5rem 3rem 0.5rem 3rem !important; /* Margens muito reduzidas como no PDF */
-  border-bottom: none !important;
-  /* Garantir que termine exatamente no fim */
-  position: relative;
-  z-index: 2; /* Garantir que fica acima do ::before (z-index: 0) */
-  /* Garantir que não há espaços extras */
-  box-sizing: border-box;
-  /* Melhorias para transforms (especialmente no Firefox) */
-  transform-box: fill-box;
-  will-change: transform;
-  /* Variável para escala no Firefox: base 1 -> 100% */
-  --md-scale: 1;
-  /* Base font-size em px que será multiplicada por --md-scale (Firefox usa essa variável) */
-  font-size: calc(var(--md-scale) * 16px);
-  /* Fundo para o conteúdo */
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 12px;
-  border: 1px solid rgba(219, 194, 125, 0.2);
-  margin: 0.25rem auto !important; /* Margem muito reduzida como no PDF */
-  /* Garantir que o container cresce com o conteúdo */
-  flex-shrink: 0;
-  /* Largura máxima para evitar que fique muito largo */
-  max-width: 100%;
-  /* Garantir que o conteúdo determina a altura */
-  height: fit-content;
+	font-size: 0.95rem;
+	line-height: 1.6;
 }
 
-
-/* Garantir que elementos SVG (diagramas) não tenham espaços extras */
-.markdown-content svg:last-child,
-.markdown-content .mermaid-diagram:last-child {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+.markdown-content img {
+	max-width: 100%;
+	height: auto;
 }
 
-/* Remover espaços extras de elementos específicos */
-.markdown-content p {
-  margin-bottom: 0.8rem;
-  line-height: 1.7;
-  color: #e0e0e0;
+.mermaid-diagram {
+	margin: 1rem 0;
+	background: var(--bg-secondary, #121b27);
+	border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+	border-radius: 8px;
+	overflow: hidden;
 }
 
-.markdown-content p:last-child {
-  margin-bottom: 0 !important;
+.mermaid-title {
+	padding: 0.5rem 0.75rem;
+	font-weight: 600;
+	color: #dbc27d;
+	border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
 }
 
-.markdown-content ul,
-.markdown-content ol {
-  margin-bottom: 1rem;
-  padding-left: 2rem; /* Mais espaço para as bolinhas ficarem dentro */
+.mermaid-content {
+	padding: 0.75rem;
+	overflow: auto;
 }
 
-.markdown-content ul:last-child,
-.markdown-content ol:last-child {
-  margin-bottom: 0 !important;
-}
-
-/* Garantir que as bolinhas das listas ficam dentro do container */
-.markdown-content ul {
-  list-style-position: inside;
-}
-
-.markdown-content ol {
-  list-style-position: inside;
-}
-
-.markdown-content pre {
-  background-color: #2a2a2a;
-  border: 1px solid #555555;
-  border-radius: 8px;
-  padding: 1rem;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-.markdown-content pre:last-child {
-  margin-bottom: 0 !important;
-}
-
-/* ========================================
-   MERMAID DIAGRAM STYLES (Separado de Code Blocks)
-   ======================================== */
-
-/* Container principal para diagramas Mermaid */
-.markdown-content .mermaid-diagram {
-  display: block;
-  width: 100%;
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 2px solid var(--color-accent);
-  box-shadow: 0 4px 12px rgba(219, 194, 125, 0.1);
-  overflow-x: auto;
-  overflow-y: visible;
-  max-height: 75vh;
-  position: relative;
-}
-
-/* Título para diagramas Mermaid */
-.markdown-content .mermaid-diagram::before {
-  content: "📊 Diagrama de Fluxo";
-  display: block;
-  font-size: calc(var(--md-scale) * 0.9rem);
-  font-weight: 600;
-  color: var(--color-accent);
-  margin-bottom: 1rem;
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
-}
-
-/* Container de conteúdo do diagrama */
-.markdown-content .mermaid-content {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  max-height: 60vh;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(219, 194, 125, 0.2);
-  display: block !important;
-  text-align: center;
-  min-height: 200px;
-}
-
-/* SVG dos diagramas Mermaid */
-.markdown-content .mermaid-diagram svg,
-.markdown-content .mermaid-content svg {
-  max-width: 100% !important;
-  height: auto !important;
-  display: block !important;
-  margin: 0 auto !important;
-  background: transparent !important;
-  border-radius: 4px;
-}
-
-/* Scroll horizontal para diagramas grandes */
-.markdown-content .mermaid-diagram::-webkit-scrollbar,
-.markdown-content .mermaid-content::-webkit-scrollbar {
-  height: 8px;
-}
-
-.markdown-content .mermaid-diagram::-webkit-scrollbar-track,
-.markdown-content .mermaid-content::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-  border-radius: 4px;
-}
-
-.markdown-content .mermaid-diagram::-webkit-scrollbar-thumb,
-.markdown-content .mermaid-content::-webkit-scrollbar-thumb {
-  background: var(--color-accent);
-  border-radius: 4px;
-}
-
-.markdown-content .mermaid-diagram::-webkit-scrollbar-thumb:hover,
-.markdown-content .mermaid-content::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-hover);
-}
-
-/* Responsividade para diagramas */
-@media (max-width: 768px) {
-  .markdown-content .mermaid-diagram {
-    margin: 1rem 0;
-    padding: 1rem;
-    max-height: 60vh;
-  }
-
-  .markdown-content .mermaid-content {
-    max-height: 50vh;
-    padding: 0.5rem;
-  }
-
-  .markdown-content .mermaid-diagram::before {
-    font-size: 0.8rem;
-    margin-bottom: 0.5rem;
-  }
-}
-
-/* Estados especiais para diagramas */
-.markdown-content .mermaid-diagram.loading {
-  background: var(--bg-secondary);
-  border-color: var(--border-color);
-}
-
-.markdown-content .mermaid-diagram.error {
-  background: rgba(255, 0, 0, 0.05);
-  border-color: rgba(255, 0, 0, 0.3);
-}
-
-.markdown-content .mermaid-diagram.error::before {
-  content: "❌ Erro no Diagrama";
-  color: #ff6b6b;
-}
-
-/* Tipografia baseada em --md-scale para forçar reflow no Firefox */
+/* Escala e tipografia do conteúdo markdown exibido no modal */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  margin-top: calc(var(--md-scale) * 1.25rem);
-  margin-bottom: calc(var(--md-scale) * 0.75rem);
-  color: #ffffff;
-  font-weight: 600;
+	font-size: calc(var(--md-scale, 1) * 1rem);
+	line-height: 1.2;
+	font-weight: 700;
+	color: var(--text-primary);
 }
 
-.markdown-content li {
-  margin-bottom: 0.4rem;
-  line-height: 1.6;
-  color: #e0e0e0;
-}
+.markdown-content h1 { font-size: calc(var(--md-scale, 1) * 2rem); }
+.markdown-content h2 { font-size: calc(var(--md-scale, 1) * 1.5rem); }
+.markdown-content h3 { font-size: calc(var(--md-scale, 1) * 1.25rem); }
+.markdown-content h4 { font-size: calc(var(--md-scale, 1) * 1.05rem); }
+.markdown-content h5 { font-size: calc(var(--md-scale, 1) * 0.95rem); }
+.markdown-content h6 { font-size: calc(var(--md-scale, 1) * 0.9rem); }
 
-.markdown-content code {
-  background-color: #3a3a3a;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-  color: #DBC27D;
-  border: 1px solid #555555;
-}
-
-.markdown-content pre code {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #ffffff;
-}
-
-.markdown-content strong {
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.markdown-content em {
-  font-style: italic;
-  color: #d0d0d0;
-}
-
-.markdown-content a {
-  margin-bottom: calc(var(--md-scale) * 0.8rem);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-bottom 0.2s ease;
-  color: #DBC27D;
-}
-
-.markdown-content a:hover {
-  border-bottom-color: #DBC27D;
-}
-
-.markdown-content blockquote {
-  border-left: 4px solid #DBC27D;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: #d0d0d0;
-  font-style: italic;
-}
-
-/* Table Styles */
-.markdown-content h1 {
-  font-size: calc(var(--md-scale) * 2rem);
-  border-bottom: 2px solid #DBC27D;
-  padding-bottom: calc(var(--md-scale) * 0.4rem);
-  margin-top: calc(var(--md-scale) * 1.3rem);
-}
-.markdown-content h2 {
-  font-size: calc(var(--md-scale) * 1.5rem);
-  border-bottom: 1px solid #555555;
-  padding-bottom: calc(var(--md-scale) * 0.3rem);
-  margin-top: calc(var(--md-scale) * 1.2rem);
-}
-.markdown-content h3 {
-  font-size: calc(var(--md-scale) * 1.25rem);
-  margin-top: calc(var(--md-scale) * 1rem);
-  font-weight: 600;
-}
-
-.markdown-content tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.markdown-content tr:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Code Block Styles */
-.markdown-content .code-block {
-  margin: 1.5rem 0;
-  background: #2a2a2a;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #555555;
-  font-family: 'Courier New', monospace;
-}
-
-.markdown-content .code-block:last-child {
-  margin-bottom: 0 !important;
-}
-
-.code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background: #1a1a1a;
-  border-bottom: 1px solid #444444;
-}
-
-.code-language {
-  font-size: calc(var(--md-scale) * 0.875rem);
-  font-weight: 600;
-  color: #DBC27D;
-  text-transform: uppercase;
-}
-
-.copy-code-btn {
-  background: none;
-  border: 1px solid #555555;
-  color: #e0e0e0;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.75rem;
-}
-
-.markdown-content .code-block pre {
-  margin: 0;
-  padding: 1rem;
-  overflow-x: auto;
-  background: transparent;
-  border: none;
-}
-
-.markdown-content .code-block pre:last-child {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-.markdown-content .code-block code {
-  background: none;
-  padding: 0;
-  border: none;
-  font-family: inherit;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: #ffffff;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: 3rem 0.5rem 0.5rem 0.5rem;
-  }
-
-  .modal-content {
-    max-width: 98vw;
-    max-height: 82vh;
-    margin-top: 1rem;
-  }
-
-  .modal-header {
-    padding: 1rem 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .modal-header h2 {
-    font-size: calc(var(--md-scale) * 1.25rem);
-  }
-
-  .modal-controls {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .zoom-controls {
-    padding: 0.3rem;
-    gap: 0.3rem;
-  }
-
-  .zoom-btn {
-    width: 1.8rem;
-    height: 1.8rem;
-    font-size: 0.9rem;
-  }
-
-  .modal-body {
-    padding: 1.5rem;
-  }
-
-  .markdown-content p {
-    margin-bottom: calc(var(--md-scale) * 0.8rem);
-    line-height: 1.7;
-  }
-
-  .markdown-content p:last-child {
-    margin-bottom: 0 !important;
-  }
-  .markdown-content h2 {
-    font-size: calc(var(--md-scale) * 1.05rem);
-  }
-
-  .markdown-content h3 {
-    font-size: calc(var(--md-scale) * 0.95rem);
-  }
-
-  .markdown-content h4 {
-    font-size: calc(var(--md-scale) * 0.9rem);
-  }
+/* Título dos blocos mermaid dentro do modal */
+.mermaid-title {
+	font-size: calc(var(--md-scale, 1) * 0.9rem);
+	font-weight: 600;
+	color: var(--color-accent);
+	margin-bottom: calc(var(--md-scale, 1) * 0.5rem);
+	text-align: center;
 }

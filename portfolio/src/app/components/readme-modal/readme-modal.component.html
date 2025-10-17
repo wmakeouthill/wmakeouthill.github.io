@@ -2,28 +2,24 @@
 <div
   class="modal-overlay"
   [style.visibility]="visible ? 'visible' : 'hidden'"
-  (click)="onOverlayClick($event)"
-  (keydown)="onKeyDown($event)"
+  (click)="closeModal()"
+  (keydown)="$event.key === 'Escape' && closeModal()"
+  tabindex="0"
 >
-  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
-    <!-- Modal Header -->
+  <div
+    class="modal-content"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.key === 'Escape' && closeModal()"
+    tabindex="0"
+  >
     <div class="modal-header">
       <h2>{{ projectName }} - README</h2>
       <div class="modal-controls">
-        <div class="zoom-controls">
-          <!-- Theme toggle (light/dark) placed to the left of zoom controls -->
-          <button class="theme-toggle" (click)="toggleTheme()" [attr.title]="isLightMode ? 'Modo Escuro' : 'Modo Claro'">{{ isLightMode ? '🔆' : '🌙' }}</button>
-          <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">-</button>
-          <span class="zoom-level">{{ markdownZoom * 100 | number : '1.0-0' }}%</span>
-          <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">+</button>
-          <button class="zoom-btn reset-zoom" (click)="resetZoom()" title="Resetar zoom">↺</button>
-        </div>
         <button class="close-btn" (click)="closeModal()">&times;</button>
       </div>
     </div>
 
-    <!-- Modal Body -->
-    <div class="modal-body" (wheel)="onMouseWheel($event)" (keydown)="onKeyDown($event)">
+    <div class="modal-body">
       @if (loadingReadme) {
       <div class="loading-readme">
         <div class="spinner"></div>
@@ -32,10 +28,8 @@
       } @else if (readmeContent) {
       <div
         class="markdown-content"
-        [innerHTML]="sanitizer.bypassSecurityTrustHtml(readmeContent)"
-        [style.--md-scale]="markdownZoom"
-        [ngStyle]="isFirefox ? {'width': '100%'} : {'zoom': markdownZoom}">
-      </div>
+        [innerHTML]="readmeContent"
+      ></div>
       } @else {
       <div class="no-readme">
         <p>README não encontrado para este projeto.</p>
