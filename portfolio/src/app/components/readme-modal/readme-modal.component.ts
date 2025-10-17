@@ -506,7 +506,10 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
 
   private applyZoom() {
     if (this.markdownContent?.nativeElement) {
-      this.markdownContent.nativeElement.style.fontSize = `${this.markdownZoom}em`;
+      const el = this.markdownContent.nativeElement as HTMLElement;
+      el.style.fontSize = `${this.markdownZoom}em`;
+      // Propaga escala para headings via CSS var consumida em styles.css
+      el.style.setProperty('--md-scale', String(this.markdownZoom));
     }
   }
 

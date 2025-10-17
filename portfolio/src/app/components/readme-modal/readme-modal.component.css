@@ -293,7 +293,15 @@
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 700;
+  line-height: 1.2;
 }
+
+.markdown-content h1 { font-size: 2.5em; }
+.markdown-content h2 { font-size: 2em; }
+.markdown-content h3 { font-size: 1.75em; }
+.markdown-content h4 { font-size: 1.5em; }
+.markdown-content h5 { font-size: 1.25em; }
+.markdown-content h6 { font-size: 1.125em; }
 
 .markdown-content h1:first-child,
 .markdown-content h2:first-child,
@@ -304,6 +312,8 @@
 .markdown-content p {
   margin-bottom: 1rem;
   color: #ffffff;
+  font-size: 1em;
+  line-height: 1.6;
 }
 
 .markdown-content a {
@@ -326,6 +336,8 @@
 .markdown-content li {
   margin-bottom: 0.5rem;
   color: #ffffff;
+  font-size: 1em;
+  line-height: 1.6;
 }
 
 .markdown-content blockquote {
@@ -334,6 +346,8 @@
   margin: 1.5rem 0;
   color: #cccccc;
   font-style: italic;
+  font-size: 1em;
+  line-height: 1.6;
 }
 
 .markdown-content code {
