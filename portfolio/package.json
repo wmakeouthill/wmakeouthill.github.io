@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-  "postinstall": "mkdir -p public/assets && cp ./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ./public/assets/pdf.worker.min.mjs || true",
+    "postinstall": "mkdir -p public/assets && cp ./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ./public/assets/pdf.worker.min.mjs || true",
     "start:network": "ng serve --host 0.0.0.0 --port 4200",
     "start:local": "ng serve --host localhost --port 4200",
     "build": "ng build",
@@ -25,7 +25,6 @@
   },
   "private": true,
   "dependencies": {
-  "pdfjs-dist": "^4.0.0",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
@@ -34,8 +33,10 @@
     "@angular/router": "^20.3.0",
     "@emailjs/browser": "^4.4.1",
     "@types/prismjs": "^1.26.5",
+    "lottie-web": "^5.13.0",
     "marked": "^16.4.0",
     "mermaid": "^11.12.0",
+    "pdfjs-dist": "^4.0.0",
     "prismjs": "^1.30.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

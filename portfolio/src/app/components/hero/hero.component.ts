@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CvModalComponent } from '../cv-modal/cv-modal.component';
+import lottie from 'lottie-web';
 
 @Component({
   selector: 'app-hero',
@@ -9,13 +10,18 @@ import { CvModalComponent } from '../cv-modal/cv-modal.component';
   templateUrl: './hero.component.html',
   styleUrl: './hero.component.css'
 })
-export class HeroComponent implements OnInit, OnDestroy {
+export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('octocatLottie', { static: false }) octocatLottie!: ElementRef<HTMLDivElement>;
+
   displayedText = '';
   // Texto exibido na animação do hero
   fullText = 'Desenvolvedor Full Stack';
   typingSpeed = 100;
   private typingInterval: any;
   private loopInterval: any;
+  private lottieAnimation: any;
+  private hasPlayedInitial = false;
+  private isInitialPlayComplete = false;
 
   // Modal CV properties
   showCvModal = false;
@@ -29,12 +35,48 @@ export class HeroComponent implements OnInit, OnDestroy {
     }, 10000);
   }
 
+  ngAfterViewInit() {
+    // Inicializa a animação Lottie
+    if (this.octocatLottie?.nativeElement) {
+      this.lottieAnimation = lottie.loadAnimation({
+        container: this.octocatLottie.nativeElement,
+        renderer: 'svg',
+        loop: false, // Não loop infinito
+        autoplay: false, // Não reproduz automaticamente
+        path: '/octocat.json',
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid slice'
+        }
+      });
+
+      // Reproduz uma vez na inicialização
+      this.playLottieOnce();
+      this.hasPlayedInitial = true;
+
+      // Aguarda a primeira reprodução terminar para marcar como completa
+      this.lottieAnimation.addEventListener('complete', () => {
+        this.isInitialPlayComplete = true;
+      });
+    }
+  }
+
+  private playLottieOnce() {
+    if (this.lottieAnimation) {
+      // Para a animação atual e volta para o início
+      this.lottieAnimation.stop();
+      this.lottieAnimation.goToAndPlay(0, true);
+    }
+  }
+
   ngOnDestroy() {
     if (this.typingInterval) {
       clearInterval(this.typingInterval);
     }
     if (this.loopInterval) {
       clearInterval(this.loopInterval);
+    }
+    if (this.lottieAnimation) {
+      this.lottieAnimation.destroy();
     }
   }
 
@@ -55,6 +97,11 @@ export class HeroComponent implements OnInit, OnDestroy {
         // terminou de digitar: limpa o intervalo de digitação
         clearInterval(this.typingInterval);
         this.typingInterval = null;
+
+        // Reproduz o Lottie quando termina a digitação (apenas após a primeira reprodução completa)
+        if (this.isInitialPlayComplete) {
+          this.playLottieOnce();
+        }
       }
     }, this.typingSpeed);
   }
