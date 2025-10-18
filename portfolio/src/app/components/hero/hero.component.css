@@ -84,6 +84,8 @@
   justify-content: center;
   align-items: flex-start;
   height: 100%;
+  align-self: start;
+  margin-top: 2rem;
 }
 
 /* Mobile-specific sections - hidden on desktop */
@@ -208,10 +210,6 @@
 }
 
 /* garante que a coluna da imagem fique alinhada ao topo da célula do grid */
-.hero-image {
-  align-self: start;
-  margin-top: 2rem;
-}
 
 .image-wrapper {
   position: relative; /* necessário para posicionar decorações absolutas dentro */
@@ -263,6 +261,24 @@
   animation: subtle-pulse 3s ease-in-out infinite;
 }
 
+.octocat-video {
+  position: absolute;
+  top: -28px;
+  right: -25px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  z-index: 0.5; /* fica na frente do círculo ornamental mas atrás da foto */
+  pointer-events: none;
+  display: block;
+  background: transparent;
+}
+
+.octocat-video:hover {
+  opacity: 1;
+}
+
 @keyframes subtle-pulse {
   0%, 100% {
     box-shadow: 0 0 20px rgba(219, 194, 125, 0.4);
@@ -294,6 +310,13 @@
     height: 100px;
     box-shadow: 0 0 15px rgba(219, 194, 125, 0.4);
   }
+
+  .octocat-video {
+    top: -18px;
+    right: -18px;
+    width: 100px;
+    height: 100px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -312,6 +335,13 @@
     width: 80px;
     height: 80px;
     box-shadow: 0 0 12px rgba(219, 194, 125, 0.4);
+  }
+
+  .octocat-video {
+    top: -14px;
+    right: -14px;
+    width: 80px;
+    height: 80px;
   }
 }
 
@@ -473,6 +503,11 @@
   }
 
   .image-decoration {
+    width: 100px;
+    height: 100px;
+  }
+
+  .octocat-video {
     width: 100px;
     height: 100px;
   }
