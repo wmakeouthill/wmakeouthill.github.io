@@ -23,7 +23,7 @@ export class MarkdownService {
 
   // Compat: pré-carrega todos os projetos conhecidos
   async preloadAllMermaidDiagrams(): Promise<void> {
-    const projects = ['aa_space', 'lol-matchmaking-fazenda', 'mercearia-r-v'];
+    const projects = ['aa_space', 'lol-matchmaking-fazenda', 'mercearia-r-v', 'traffic_manager', 'first-angular-app', 'investment_calculator'];
     for (const p of projects) {
       try {
         await this.preloadProject(p);
@@ -80,7 +80,6 @@ export class MarkdownService {
       'aa_space': 'aa_space.md',
       'lol-matchmaking-fazenda': 'lol-matchmaking-fazenda.md',
       'mercearia-r-v': 'mercearia-r-v.md',
-      'lol-matchmaking': 'lol-matchmaking-fazenda.md',
       'traffic_manager': 'traffic_manager.md',
       'first-angular-app': 'first-angular-app.md',
       'investment_calculator': 'investment_calculator.md'
