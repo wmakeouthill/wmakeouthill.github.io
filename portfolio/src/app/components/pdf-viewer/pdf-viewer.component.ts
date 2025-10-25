@@ -22,16 +22,16 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
   // Não aplicar fit automático por padrão; 1.0 === 100% exatamente.
   @Input() fitToContainer = false;
 
-  async ngAfterViewInit() {
-    await this.loadPdf();
+  ngAfterViewInit() {
+    this.loadPdf();
   }
 
-  async ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes['src'] && !changes['src'].firstChange) {
-      await this.loadPdf();
+      this.loadPdf();
     }
     if (changes['zoom'] && !changes['zoom'].firstChange) {
-      await this.renderPage();
+      this.renderPage();
     }
   }
 
@@ -48,7 +48,7 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
       // @ts-ignore
       pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
 
-      const loadingTask = (pdfjs as any).getDocument(this.src);
+      const loadingTask = pdfjs.getDocument(this.src);
       this.pdf = await loadingTask.promise;
       this.pageNumber = 1;
       await this.renderPage();
@@ -67,26 +67,39 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     this.loading = true;
     const page = await this.pdf.getPage(this.pageNumber);
 
-    // determinar scale desejado
-    // Se zoom for 1.0 (Auto), usar um scale maior por padrão para melhor visualização
-    // Para outros valores, multiplicar por 1.5 para manter a proporção
+    // determinar scale desejado com otimização para mobile
     let targetScale = this.zoom === 1.0 ? 1.5 : this.zoom * 1.5;
+
+    // Otimização para mobile: reduzir escala base em telas pequenas
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      targetScale = this.zoom === 1.0 ? 1.2 : this.zoom * 1.2;
+    }
+
+    // Otimização adicional para telas muito pequenas
+    const isSmallMobile = window.innerWidth <= 480;
+    if (isSmallMobile) {
+      targetScale = this.zoom === 1.0 ? 1.0 : this.zoom * 1.0;
+    }
 
     const viewport = page.getViewport({ scale: targetScale });
     const canvas = this.canvasRef.nativeElement;
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // high-DPI support
+    // high-DPI support com otimização para mobile
     const outputScale = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(viewport.width * outputScale);
-    canvas.height = Math.floor(viewport.height * outputScale);
+    // Reduzir escala de output em mobile para melhor performance
+    const finalOutputScale = isMobile ? Math.min(outputScale, 1.5) : outputScale;
+
+    canvas.width = Math.floor(viewport.width * finalOutputScale);
+    canvas.height = Math.floor(viewport.height * finalOutputScale);
     // CSS size (keeps it fitting inside container)
     canvas.style.width = `${Math.floor(viewport.width)}px`;
     canvas.style.height = `${Math.floor(viewport.height)}px`;
 
     // ensure crisp rendering on HiDPI
-    context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+    context.setTransform(finalOutputScale, 0, 0, finalOutputScale, 0, 0);
 
     const renderContext = {
       canvasContext: context,

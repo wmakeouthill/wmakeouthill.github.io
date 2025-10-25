@@ -26,6 +26,64 @@
 	width:auto;
 	height:auto;
 	margin: 0 auto;
+	/* Otimizações para mobile */
+	box-sizing: border-box;
+}
+
+/* Media queries para otimização mobile */
+@media (max-width: 768px) {
+	.pdf-viewer-root {
+		padding: 0;
+	}
+
+	.pdf-viewer-frame {
+		padding: 0;
+		max-width: 100%;
+	}
+
+	.pdf-canvas {
+		max-width: 100%;
+		width: auto;
+		height: auto;
+	}
+}
+
+@media (max-width: 480px) {
+	.pdf-viewer-root {
+		padding: 0;
+		overflow-x: hidden;
+	}
+
+	.pdf-viewer-frame {
+		padding: 0;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+
+	.pdf-canvas {
+		max-width: 100%;
+		width: auto;
+		height: auto;
+	}
+}
+
+@media (max-width: 320px) {
+	.pdf-viewer-root {
+		padding: 0;
+		overflow-x: hidden;
+	}
+
+	.pdf-viewer-frame {
+		padding: 0;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+
+	.pdf-canvas {
+		max-width: 100%;
+		width: auto;
+		height: auto;
+	}
 }
 
 .pdf-loading{
