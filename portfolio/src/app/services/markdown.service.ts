@@ -81,7 +81,9 @@ export class MarkdownService {
       'lol-matchmaking-fazenda': 'lol-matchmaking-fazenda.md',
       'mercearia-r-v': 'mercearia-r-v.md',
       'lol-matchmaking': 'lol-matchmaking-fazenda.md',
-      'aa-space': 'aa_space.md'
+      'traffic_manager': 'traffic_manager.md',
+      'first-angular-app': 'first-angular-app.md',
+      'investment_calculator': 'investment_calculator.md'
     };
     return m[project] || null;
   }

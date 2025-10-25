@@ -1,8 +1,8 @@
 /**
  * Generate static GitHub data JSON for the portfolio frontend.
- * Usage (Windows PowerShell):
- *   $env:GITHUB_TOKEN="<token>"; node portfolio/scripts/generate-github-data.mjs wmakeouthill
- * Usage (bash):
+ * Uses public API by default, with optional token for higher rate limits.
+ * Usage:
+ *   node portfolio/scripts/generate-github-data.mjs wmakeouthill
  *   GITHUB_TOKEN="<token>" node portfolio/scripts/generate-github-data.mjs wmakeouthill
  */
 
@@ -15,17 +15,22 @@ if (!USERNAME) {
   );
   process.exit(1);
 }
-if (!TOKEN) {
-  console.error('ERROR: Missing GITHUB_TOKEN environment variable.');
-  process.exit(1);
-}
 
 const API = 'https://api.github.com';
 const headers = {
-  Authorization: `Bearer ${TOKEN}`,
   Accept: 'application/vnd.github+json',
   'X-GitHub-Api-Version': '2022-11-28',
 };
+
+// Add token if available (optional)
+if (TOKEN) {
+  headers.Authorization = `Bearer ${TOKEN}`;
+  console.log('🔑 Using authenticated API (5,000 requests/hour)');
+} else {
+  console.log(
+    '⚠️  Using public API (60 requests/hour) - consider adding GITHUB_TOKEN for better rate limits'
+  );
+}
 
 const languageColors = {
   TypeScript: '#3178c6',
@@ -80,7 +85,22 @@ const colorOf = (name) => languageColors[name] || languageColors.Other;
 
 async function gh(path) {
   const res = await fetch(`${API}${path}`, { headers });
-  if (!res.ok) throw new Error(`GitHub API ${res.status} on ${path}`);
+
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
+      const resetTime = new Date(parseInt(res.headers.get('x-ratelimit-reset')) * 1000);
+      throw new Error(`Rate limit exceeded. Reset at: ${resetTime.toLocaleString()}`);
+    }
+    throw new Error(`GitHub API ${res.status} on ${path}`);
+  }
+
+  // Log rate limit info
+  const remaining = res.headers.get('x-ratelimit-remaining');
+  const limit = res.headers.get('x-ratelimit-limit');
+  if (remaining && parseInt(remaining) < 10) {
+    console.log(`⚠️  Rate limit warning: ${remaining}/${limit} requests remaining`);
+  }
+
   return res.json();
 }
 
@@ -96,11 +116,18 @@ function calcLanguagePercentages(languages) {
 }
 
 async function main() {
+  console.log(`📡 Fetching repositories for ${USERNAME}...`);
   const repos = (await gh(`/users/${USERNAME}/repos?per_page=100&sort=updated`)).filter(
-    (r) => !r.fork
+    (r) => !r.fork && r.name !== USERNAME // Exclude profile README repository
   );
+
+  console.log(`📊 Processing ${repos.length} repositories...`);
   const enriched = [];
-  for (const r of repos) {
+
+  for (let i = 0; i < repos.length; i++) {
+    const r = repos[i];
+    console.log(`  ${i + 1}/${repos.length}: ${r.name}`);
+
     const langs = await gh(`/repos/${USERNAME}/${r.name}/languages`).catch(() => ({}));
     const languages = calcLanguagePercentages(langs);
     enriched.push({
@@ -120,14 +147,19 @@ async function main() {
       fork: r.fork,
       languages,
     });
+
+    // Add delay for public API to avoid rate limiting
+    if (!TOKEN && i < repos.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
+    }
   }
   const payload = { generatedAt: new Date().toISOString(), repositories: enriched };
 
   // Write file
   const fs = await import('node:fs');
-  fs.mkdirSync('portfolio/src/assets', { recursive: true });
-  fs.writeFileSync('portfolio/src/assets/github_data.json', JSON.stringify(payload, null, 2));
-  console.log('✔ Wrote portfolio/src/assets/github_data.json');
+  fs.mkdirSync('portfolio/public/assets', { recursive: true });
+  fs.writeFileSync('portfolio/public/assets/github_data.json', JSON.stringify(payload, null, 2));
+  console.log(`✅ Successfully generated github_data.json with ${enriched.length} repositories`);
 }
 
 main().catch((e) => {
