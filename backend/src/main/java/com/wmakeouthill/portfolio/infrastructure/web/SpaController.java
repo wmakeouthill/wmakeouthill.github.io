@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * Controller para servir arquivos estáticos do frontend e index.html para rotas
@@ -92,7 +93,7 @@ public class SpaController {
             Path caminho = caminhoBase.resolve(caminhoArquivo).toAbsolutePath().normalize();
 
             if (Files.exists(caminho) && Files.isRegularFile(caminho)) {
-                return new UrlResource(caminho.toUri());
+                return new UrlResource(Objects.requireNonNull(caminho.toUri()));
             }
         } catch (Exception e) {
             // Ignora e usa fallback
@@ -119,7 +120,7 @@ public class SpaController {
         }
 
         return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
+                .contentType(Objects.requireNonNull(MediaType.TEXT_HTML))
                 .body(index);
     }
 
@@ -151,7 +152,7 @@ public class SpaController {
 
             Path caminho = caminhoBase.resolve("index.html").toAbsolutePath().normalize();
             if (Files.exists(caminho)) {
-                return new UrlResource(caminho.toUri());
+                return new UrlResource(Objects.requireNonNull(caminho.toUri()));
             }
         } catch (Exception e) {
             // Ignora e usa fallback

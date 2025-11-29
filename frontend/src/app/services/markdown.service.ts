@@ -68,8 +68,41 @@ export class MarkdownService {
     }
 
     if (!markdown) return '';
-    const html = await this.renderMarkdownToHtml(markdown, normalized);
+    const html = await this.renderMarkdownToHtmlInternal(markdown, normalized);
     this.setCache(normalized, html);
+    return html;
+  }
+
+  /**
+   * Renderiza markdown básico para HTML com classes markdown-text.
+   * Método público para reutilização (DRY).
+   * @deprecated Use renderMarkdownToHtml para funcionalidades completas
+   */
+  async renderMarkdownBase(markdown: string): Promise<string> {
+    const html = marked.parse(markdown) as string;
+    return this.applyMarkdownTextClasses(html);
+  }
+
+  /**
+   * Aplica classes markdown-text em todos os elementos HTML.
+   * Método público para reutilização (DRY).
+   */
+  applyMarkdownTextClasses(html: string): string {
+    html = html.replace(/<h([1-6])>/g, '<h$1 class="markdown-text">');
+    html = html.replace(/<p>/g, '<p class="markdown-text">');
+    html = html.replace(/<li>/g, '<li class="markdown-text">');
+    html = html.replace(/<ul>/g, '<ul class="markdown-text">');
+    html = html.replace(/<ol>/g, '<ol class="markdown-text">');
+    html = html.replace(/<span>/g, '<span class="markdown-text">');
+    html = html.replace(/<strong>/g, '<strong class="markdown-text">');
+    html = html.replace(/<em>/g, '<em class="markdown-text">');
+    html = html.replace(/<table>/g, '<table class="markdown-text">');
+    html = html.replace(/<th>/g, '<th class="markdown-text">');
+    html = html.replace(/<td>/g, '<td class="markdown-text">');
+    html = html.replace(/<tr>/g, '<tr class="markdown-text">');
+    html = html.replace(/<a /g, '<a class="markdown-text" ');
+    html = html.replace(/<blockquote>/g, '<blockquote class="markdown-text">');
+    html = html.replace(/<div>/g, '<div class="markdown-text">');
     return html;
   }
 
@@ -138,15 +171,24 @@ export class MarkdownService {
     return null;
   }
 
-  private async renderMarkdownToHtml(markdown: string, project: string): Promise<string> {
+  /**
+   * Renderiza markdown completo para HTML com todas as funcionalidades:
+   * - Mermaid diagrams
+   * - Code blocks melhorados
+   * - Classes markdown-text
+   * Método público para reutilização (DRY).
+   * @param markdown Texto markdown a ser renderizado
+   * @param contextId ID de contexto para gerar IDs únicos (ex: 'chat', 'project-name')
+   */
+  async renderMarkdownToHtml(markdown: string, contextId: string = 'default'): Promise<string> {
     // 1) Convert fences to placeholders we can replace after marked
-    const fence = /```[ \t]*mermaid[^\n]*\r?\n([\s\S]*?)\r?\n```/gim; // parentheses already isolate the capture group
+    const fence = /```[ \t]*mermaid[^\n]*\r?\n([\s\S]*?)\r?\n```/gim;
     const blocks: { code: string; title: string; id: string }[] = [];
     const mdWithTokens = markdown.replace(fence, (_m, code) => {
       const clean = String(code).replace(/\r/g, '').trim();
       const title = this.extractTitle(clean);
-      if (!title) return _m; // keep original if no title
-      const id = this.generateId(project, title);
+      if (!title) return _m;
+      const id = this.generateId(contextId, title);
       blocks.push({ code: clean, title, id });
       return `<!--MERMAID:${id}-->`;
     });
@@ -155,21 +197,7 @@ export class MarkdownService {
     let html = marked.parse(mdWithTokens) as string;
 
     // Wrap markdown content with specific class to avoid affecting code blocks
-    html = html.replace(/<h([1-6])>/g, '<h$1 class="markdown-text">');
-    html = html.replace(/<p>/g, '<p class="markdown-text">');
-    html = html.replace(/<li>/g, '<li class="markdown-text">');
-    html = html.replace(/<ul>/g, '<ul class="markdown-text">');
-    html = html.replace(/<ol>/g, '<ol class="markdown-text">');
-    html = html.replace(/<span>/g, '<span class="markdown-text">');
-    html = html.replace(/<strong>/g, '<strong class="markdown-text">');
-    html = html.replace(/<em>/g, '<em class="markdown-text">');
-    html = html.replace(/<table>/g, '<table class="markdown-text">');
-    html = html.replace(/<th>/g, '<th class="markdown-text">');
-    html = html.replace(/<td>/g, '<td class="markdown-text">');
-    html = html.replace(/<tr>/g, '<tr class="markdown-text">');
-    html = html.replace(/<a /g, '<a class="markdown-text" ');
-    html = html.replace(/<blockquote>/g, '<blockquote class="markdown-text">');
-    html = html.replace(/<div>/g, '<div class="markdown-text">');
+    html = this.applyMarkdownTextClasses(html);
 
     // 3) Enhance code blocks with proper structure - header OUTSIDE the pre
     html = html.replace(
@@ -181,12 +209,12 @@ export class MarkdownService {
       '<div class="code-block-enhanced"><div class="code-block-header"><span class="code-language">TEXT</span><button class="copy-btn" onclick="this.copyCode()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copiar</span></button></div><pre><code class="language-text">$1</code></pre></div>'
     );
 
-    // 5) Render each mermaid block to inline SVG and inject container
+    // 4) Render each mermaid block to inline SVG and inject container
     for (const b of blocks) {
       const tempId = `m_${b.id}`;
       const { svg } = await mermaid.render(tempId, b.code);
       const container =
-        `<div class="mermaid-diagram" id="${b.id}-container" data-project="${project}" data-diagram-id="${b.id}">` +
+        `<div class="mermaid-diagram" id="${b.id}-container" data-context="${contextId}" data-diagram-id="${b.id}">` +
         `<div class="mermaid-header">` +
         `<div class="mermaid-title">${b.title}</div>` +
         `<div class="mermaid-controls">` +
@@ -208,6 +236,10 @@ export class MarkdownService {
     }
 
     return html;
+  }
+
+  private async renderMarkdownToHtmlInternal(markdown: string, project: string): Promise<string> {
+    return this.renderMarkdownToHtml(markdown, project);
   }
 }
 

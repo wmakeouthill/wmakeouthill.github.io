@@ -45,7 +45,8 @@ public class GithubApiAdapter implements GithubProjectsPort {
     int perPage = 100;
 
     try {
-      while (true) {
+      boolean continuar = true;
+      while (continuar) {
         String url = DEFAULT_API_URL + "/users/" + username + "/repos?per_page=" + perPage
             + "&page=" + pagina + "&sort=updated";
         HttpRequest request = HttpRequest.newBuilder()
@@ -58,19 +59,17 @@ public class GithubApiAdapter implements GithubProjectsPort {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
           List<GithubRepositoryDto> reposDaPagina = mapRepositories(response.body());
-          if (reposDaPagina.isEmpty()) {
-            break;
+          if (reposDaPagina.isEmpty() || reposDaPagina.size() < perPage) {
+            continuar = false;
           }
-          todosRepositorios.addAll(reposDaPagina);
-
-          if (reposDaPagina.size() < perPage) {
-            break;
+          if (!reposDaPagina.isEmpty()) {
+            todosRepositorios.addAll(reposDaPagina);
+            pagina++;
           }
-          pagina++;
         } else {
           log.error("Erro ao buscar repositórios do GitHub: status={}, body={}",
               response.statusCode(), response.body());
-          break;
+          continuar = false;
         }
       }
 
@@ -104,26 +103,26 @@ public class GithubApiAdapter implements GithubProjectsPort {
       log.debug("Token GitHub carregado via propriedade github.api.token");
       return tokenFromConfig;
     }
-    
+
     // 2. Tenta variáveis de ambiente (ordem de prioridade)
     String githubApiToken = System.getenv("GITHUB_API_TOKEN");
     if (githubApiToken != null && !githubApiToken.isBlank()) {
       log.debug("Token GitHub carregado via variável de ambiente GITHUB_API_TOKEN");
       return githubApiToken;
     }
-    
+
     String githubToken = System.getenv("GITHUB_TOKEN");
     if (githubToken != null && !githubToken.isBlank()) {
       log.debug("Token GitHub carregado via variável de ambiente GITHUB_TOKEN");
       return githubToken;
     }
-    
+
     String ghToken = System.getenv("GH_TOKEN");
     if (ghToken != null && !ghToken.isBlank()) {
       log.debug("Token GitHub carregado via variável de ambiente GH_TOKEN");
       return ghToken;
     }
-    
+
     log.warn("Token GitHub NÃO encontrado! Usando API sem autenticação (limite de 60 req/hora). " +
         "Configure github.api.token no configmap-secrets-local.properties ou variável de ambiente GITHUB_API_TOKEN");
     return "";
@@ -175,8 +174,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
           pushedAt,
           fork,
           languages,
-          totalSizeBytes
-      );
+          totalSizeBytes);
       result.add(dto);
     }
     return result;
@@ -227,7 +225,8 @@ public class GithubApiAdapter implements GithubProjectsPort {
     return new LinguagensResult(List.of(), 0L);
   }
 
-  private record LinguagensResult(List<LanguageShareDto> languages, long totalBytes) {}
+  private record LinguagensResult(List<LanguageShareDto> languages, long totalBytes) {
+  }
 
   private LinguagensResult mapLanguages(String body) throws IOException {
     JsonNode root = objectMapper.readTree(body);
@@ -259,5 +258,3 @@ public class GithubApiAdapter implements GithubProjectsPort {
     return new LinguagensResult(languages, totalBytes);
   }
 }
-
-

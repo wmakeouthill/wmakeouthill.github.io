@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -23,25 +24,53 @@ import java.util.Optional;
 public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
 
   private static final String MARKDOWN_LOCATION_PATTERN = "classpath*:portfolio-content/*.md";
-  private static final String PROJECT_MARKDOWN_PATTERN =
-      "classpath*:portfolio-content/projects/%s.md";
+  private static final String PROJECT_MARKDOWN_PATTERN = "classpath*:portfolio-content/projects/*.md";
+  private static final String PROJECT_MARKDOWN_PATTERN_SINGLE = "classpath*:portfolio-content/projects/%s.md";
   private static final int MAX_CHARS_PER_FILE = 4000;
 
-  private final PathMatchingResourcePatternResolver resolver =
-      new PathMatchingResourcePatternResolver();
+  private final PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
   @Override
   public List<String> carregarConteudosMarkdown() {
     List<String> conteudos = new ArrayList<>();
 
     try {
-      Resource[] resources = resolver.getResources(MARKDOWN_LOCATION_PATTERN);
-      for (Resource resource : resources) {
-        String conteudo = lerRecursoComoTexto(resource);
-        if (!conteudo.isBlank()) {
-          conteudos.add(limitadorDeTamanho(conteudo));
+      // 1) Carrega markdowns gerais (portfolio-content/*.md) - apenas na raiz, não em subpastas
+      Resource[] generalResources = resolver.getResources(MARKDOWN_LOCATION_PATTERN);
+      int generalCount = 0;
+      for (Resource resource : generalResources) {
+        try {
+          String uri = resource.getURI().toString();
+          // Verifica se está na raiz de portfolio-content (não em subpastas como projects/)
+          if (uri.contains("/portfolio-content/") && !uri.contains("/portfolio-content/projects/")) {
+            String conteudo = lerRecursoComoTexto(resource);
+            if (!conteudo.isBlank()) {
+              conteudos.add(limitadorDeTamanho(conteudo));
+              generalCount++;
+            }
+          }
+        } catch (Exception e) {
+          log.debug("Erro ao processar recurso {}", resource, e);
         }
       }
+
+      // 2) Carrega TODOS os markdowns de projetos (portfolio-content/projects/*.md)
+      Resource[] projectResources = resolver.getResources(PROJECT_MARKDOWN_PATTERN);
+      int projectCount = 0;
+      for (Resource resource : projectResources) {
+        try {
+          String conteudo = lerRecursoComoTexto(resource);
+          if (!conteudo.isBlank()) {
+            conteudos.add(limitadorDeTamanho(conteudo));
+            projectCount++;
+          }
+        } catch (Exception e) {
+          log.debug("Erro ao processar recurso de projeto {}", resource, e);
+        }
+      }
+
+      log.info("Carregados {} markdowns gerais e {} markdowns de projetos para contexto da IA (total: {})", 
+          generalCount, projectCount, conteudos.size());
     } catch (IOException e) {
       log.warn("Não foi possível carregar markdowns de portfolio-content", e);
     }
@@ -51,9 +80,9 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
 
   @Override
   public Optional<String> carregarMarkdownPorProjeto(String nomeProjetoNormalizado) {
-    String location = PROJECT_MARKDOWN_PATTERN.formatted(nomeProjetoNormalizado);
+    String location = PROJECT_MARKDOWN_PATTERN_SINGLE.formatted(nomeProjetoNormalizado);
     try {
-      Resource[] resources = resolver.getResources(location);
+      Resource[] resources = resolver.getResources(Objects.requireNonNull(location));
       if (resources.length == 0) {
         return Optional.empty();
       }
@@ -87,6 +116,3 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
     return conteudo.substring(0, MAX_CHARS_PER_FILE);
   }
 }
-
-
-

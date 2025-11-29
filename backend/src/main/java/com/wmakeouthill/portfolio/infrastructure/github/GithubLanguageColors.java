@@ -7,6 +7,8 @@ import java.util.Map;
  */
 final class GithubLanguageColors {
 
+  private static final String OTHER_LANGUAGE = "Other";
+
   private static final Map<String, String> COLORS = Map.ofEntries(
       Map.entry("TypeScript", "#3178c6"),
       Map.entry("JavaScript", "#f1e05a"),
@@ -54,18 +56,15 @@ final class GithubLanguageColors {
       Map.entry("Crystal", "#000100"),
       Map.entry("Zig", "#f7a41d"),
       Map.entry("Assembly", "#6e4c13"),
-      Map.entry("Other", "#6c757d")
-  );
+      Map.entry(OTHER_LANGUAGE, "#6c757d"));
 
   private GithubLanguageColors() {
   }
 
   static String colorOf(String language) {
     if (language == null || language.isBlank()) {
-      return COLORS.get("Other");
+      return COLORS.get(OTHER_LANGUAGE);
     }
-    return COLORS.getOrDefault(language, COLORS.get("Other"));
+    return COLORS.getOrDefault(language, COLORS.get(OTHER_LANGUAGE));
   }
 }
-
-

@@ -46,7 +46,11 @@
             [class.chat-message-user]="message.from === 'user'"
             [class.chat-message-assistant]="message.from === 'assistant'"
           >
-            <p>{{ message.text }}</p>
+            @if (message.from === 'assistant' && message.html) {
+              <div [innerHTML]="message.html"></div>
+            } @else {
+              <p>{{ message.text }}</p>
+            }
           </div>
         }
 
@@ -65,6 +69,7 @@
         autocomplete="off"
       >
         <input
+          #chatInput
           type="text"
           class="chat-input"
           [disabled]="isLoading()"

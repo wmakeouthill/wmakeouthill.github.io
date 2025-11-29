@@ -19,9 +19,8 @@ public class ListarProjetosGithubUseCase {
 
     return repositorios.stream()
         .sorted(Comparator
-            .comparing((GithubRepositoryDto repo) -> calcularTamanhoCodigo(repo))
-            .thenComparing((GithubRepositoryDto repo) -> 
-                repo.stargazersCount() + repo.forksCount())
+            .comparing(this::calcularTamanhoCodigo)
+            .thenComparing((GithubRepositoryDto repo) -> repo.stargazersCount() + repo.forksCount())
             .thenComparing(GithubRepositoryDto::pushedAt)
             .reversed())
         .toList();
@@ -35,5 +34,3 @@ public class ListarProjetosGithubUseCase {
     return repo.totalSizeBytes();
   }
 }
-
-

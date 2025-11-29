@@ -30,7 +30,8 @@ public class OpenAIAdapter implements AIChatPort {
     private static final Logger log = LoggerFactory.getLogger(OpenAIAdapter.class);
     private static final String DEFAULT_API_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODELO_PADRAO = "gpt-3.5-turbo";
-    private static final int MAX_TOKENS = 300;
+    private static final int MAX_TOKENS = 800;
+    private static final String KEY_CONTENT = "content";
 
     private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -80,13 +81,13 @@ public class OpenAIAdapter implements AIChatPort {
     private List<Map<String, Object>> construirMensagens(String systemPrompt, List<MensagemChat> historico,
             String mensagemAtual) {
         List<Map<String, Object>> mensagens = new ArrayList<>();
-        mensagens.add(Map.of("role", "system", "content", systemPrompt));
+        mensagens.add(Map.of("role", "system", KEY_CONTENT, systemPrompt));
 
         for (MensagemChat msg : historico) {
-            mensagens.add(Map.of("role", msg.role(), "content", msg.content()));
+            mensagens.add(Map.of("role", msg.role(), KEY_CONTENT, msg.content()));
         }
 
-        mensagens.add(Map.of("role", "user", "content", mensagemAtual));
+        mensagens.add(Map.of("role", "user", KEY_CONTENT, mensagemAtual));
         return mensagens;
     }
 
@@ -111,14 +112,15 @@ public class OpenAIAdapter implements AIChatPort {
     private ChatResponse processarResposta(HttpResponse<String> resp) throws IOException {
         if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
             JsonNode root = mapper.readTree(resp.body());
-            JsonNode first = root.path("choices").path(0).path("message").path("content");
+            JsonNode first = root.path("choices").path(0).path("message").path(KEY_CONTENT);
             String reply = first.isMissingNode() ? "" : first.asText();
             if (reply == null || reply.isBlank()) {
                 reply = "(sem resposta)";
             }
             return new ChatResponse(reply.trim());
         } else {
-            log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), resp.body());
+            String body = resp.body();
+            log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), body);
             return new ChatResponse("Erro ao chamar API de IA: status=" + resp.statusCode());
         }
     }
