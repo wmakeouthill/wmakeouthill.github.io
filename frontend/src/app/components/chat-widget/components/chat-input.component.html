@@ -1,0 +1,24 @@
+<form
+  class="chat-input-area"
+  (ngSubmit)="handleSubmit()"
+  autocomplete="off"
+>
+  <input
+    #chatInput
+    type="text"
+    class="chat-input"
+    [disabled]="isLoading()"
+    [ngModel]="inputText()"
+    (ngModelChange)="handleInputChange($event)"
+    name="chatInput"
+    placeholder="Ex.: Me explica o projeto LoL Matchmaking ou o Traffic Manager..."
+  />
+  <button
+    type="submit"
+    class="chat-send-button"
+    [disabled]="!canSend()"
+  >
+    Enviar
+  </button>
+</form>
+

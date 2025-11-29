@@ -1,0 +1,44 @@
+.chat-floating-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--radius-full);
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  color: var(--color-dark);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-accent);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chat-floating-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(219, 194, 125, 0.45);
+}
+
+.chat-floating-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-md);
+}
+
+.chat-icon {
+  font-size: 1.1rem;
+}
+
+.chat-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.chat-label-badge {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+}
+

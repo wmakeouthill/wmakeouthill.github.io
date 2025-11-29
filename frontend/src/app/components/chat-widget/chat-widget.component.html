@@ -1,91 +1,32 @@
 <div class="chat-widget-container" [class.scroll-top-visible]="scrollToTopVisible()">
-  <!-- Botão flutuante -->
-  <button
-    class="chat-floating-button"
-    type="button"
-    (click)="toggleOpen()"
-    aria-label="Abrir chat com IA sobre o Wesley"
-    >
-    <span class="chat-icon">💬</span>
-    <span class="chat-label-badge">
-      <span class="chat-label">Chat IA</span>
-    </span>
-  </button>
+  <app-chat-floating-button (onClick)="toggleOpen()" />
 
-  <!-- Painel de chat -->
   @if (isOpen()) {
     <section class="chat-panel" aria-label="Chat com IA sobre o Wesley">
-      <header class="chat-header">
-        <div class="chat-header-info">
-          <h2>Chat com a IA do Wesley</h2>
-          <p>Faça perguntas sobre experiência, projetos e stack.</p>
-        </div>
-        <button
-          type="button"
-          class="chat-close-button"
-          (click)="toggleOpen()"
-          aria-label="Fechar chat"
-        >
-          ✕
-        </button>
-      </header>
+      <app-chat-header (onClose)="toggleOpen()" />
 
       <div class="chat-messages" role="log" #messagesContainer>
         @if (messages().length === 0) {
-          <div class="chat-message chat-message-assistant chat-message-initial">
-            <p>
-              Olá! Eu sou a IA treinada com o portfólio do Wesley. Pode perguntar sobre
-              tecnologias que ele domina, projetos que já fez ou experiências profissionais.
-            </p>
-          </div>
+          <app-chat-message [message]="initialMessage" />
         }
 
         @for (message of messages(); track message.timestamp) {
-          <div
-            class="chat-message"
-            [class.chat-message-user]="message.from === 'user'"
-            [class.chat-message-assistant]="message.from === 'assistant'"
-          >
-            @if (message.from === 'assistant' && message.html) {
-              <div [innerHTML]="message.html"></div>
-            } @else {
-              <p>{{ message.text }}</p>
-            }
-          </div>
+          <app-chat-message [message]="message" />
         }
 
         @if (isLoading()) {
-          <div class="chat-message chat-message-assistant chat-loading">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
+          <app-chat-loading />
         }
       </div>
 
-      <form
-        class="chat-input-area"
-        (ngSubmit)="sendMessage()"
-        autocomplete="off"
-      >
-        <input
-          #chatInput
-          type="text"
-          class="chat-input"
-          [disabled]="isLoading()"
-          [ngModel]="inputText()"
-          (ngModelChange)="handleInputChange($event)"
-          name="chatInput"
-          placeholder="Ex.: Me explica o projeto LoL Matchmaking ou o Traffic Manager..."
-        />
-        <button
-          type="submit"
-          class="chat-send-button"
-          [disabled]="!canSend()"
-        >
-          Enviar
-        </button>
-      </form>
+      <app-chat-input
+        [isLoading]="isLoading()"
+        [inputText]="inputText()"
+        [canSend]="canSend()"
+        [shouldFocus]="isOpen()"
+        (onInputChange)="handleInputChange($event)"
+        (onSend)="sendMessage()"
+      />
     </section>
   }
 </div>

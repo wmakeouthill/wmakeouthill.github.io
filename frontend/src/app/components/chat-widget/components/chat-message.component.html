@@ -1,0 +1,12 @@
+<div
+  class="chat-message"
+  [class.chat-message-user]="message().from === 'user'"
+  [class.chat-message-assistant]="message().from === 'assistant'"
+>
+  @if (message().from === 'assistant' && message().html) {
+    <div [innerHTML]="message().html"></div>
+  } @else {
+    <p>{{ message().text }}</p>
+  }
+</div>
+

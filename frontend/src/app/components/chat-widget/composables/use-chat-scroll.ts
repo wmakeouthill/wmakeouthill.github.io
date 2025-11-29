@@ -1,8 +1,9 @@
 import { effect, ElementRef, Signal } from '@angular/core';
+import { ChatMessage } from '../components/chat-message.component';
 
 export function useChatScroll(
   messagesContainer: ElementRef<HTMLDivElement> | undefined,
-  messages: Signal<any[]>,
+  messages: Signal<ChatMessage[]>,
   isOpen: Signal<boolean>
 ): void {
   effect(() => {
