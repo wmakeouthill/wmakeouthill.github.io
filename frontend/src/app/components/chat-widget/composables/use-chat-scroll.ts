@@ -14,12 +14,37 @@ export function useChatScroll(
       return;
     }
 
-    queueMicrotask(() => {
-      const element = messagesContainer?.nativeElement;
-      if (!element) {
-        return;
-      }
-      element.scrollTop = element.scrollHeight;
+    // Aguarda múltiplos frames para garantir que o DOM foi completamente renderizado
+    // Isso é necessário porque o markdown e syntax highlighting são aplicados de forma assíncrona
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const element = messagesContainer?.nativeElement;
+          if (!element) {
+            return;
+          }
+          element.scrollTo({
+            top: element.scrollHeight,
+            behavior: 'smooth'
+          });
+        }, 100);
+      });
+    });
+  });
+}
+
+export function scrollToBottom(messagesContainer: ElementRef<HTMLDivElement> | undefined): void {
+  if (!messagesContainer?.nativeElement) {
+    return;
+  }
+  
+  const element = messagesContainer.nativeElement;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      element.scrollTo({
+        top: element.scrollHeight,
+        behavior: 'smooth'
+      });
     });
   });
 }

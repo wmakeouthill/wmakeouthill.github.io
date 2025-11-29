@@ -18,7 +18,7 @@ import { ChatHeaderComponent } from './components/chat-header.component';
 import { ChatMessageComponent, ChatMessage } from './components/chat-message.component';
 import { ChatInputComponent } from './components/chat-input.component';
 import { ChatLoadingComponent } from './components/chat-loading.component';
-import { useChatScroll } from './composables/use-chat-scroll';
+import { useChatScroll, scrollToBottom } from './composables/use-chat-scroll';
 import { useOutsideClick } from './composables/use-outside-click';
 import { usePageScrollBlock } from './composables/use-page-scroll-block';
 import { useSyntaxHighlighting } from './composables/use-syntax-highlighting';
@@ -70,12 +70,19 @@ export class ChatWidgetComponent implements OnDestroy {
     this.isLoading,
     this.markdownChatService,
     this.sanitizer,
-    () => this.applySyntaxHighlighting()
+    () => {
+      this.applySyntaxHighlighting();
+      // Garante scroll após syntax highlighting
+      setTimeout(() => {
+        scrollToBottom(this.messagesContainer);
+      }, 150);
+    }
   );
 
   constructor() {
     useChatScroll(this.messagesContainer, this.messages, this.isOpen);
     this.configureChatOpenEffects();
+    this.configureLoadingEffects();
   }
 
   ngOnDestroy(): void {
@@ -100,6 +107,11 @@ export class ChatWidgetComponent implements OnDestroy {
     this.chatMessagesHandlers.addUserMessage(text);
     this.inputText.set('');
     this.isLoading.set(true);
+
+    // Scroll após mensagem do usuário
+    setTimeout(() => {
+      scrollToBottom(this.messagesContainer);
+    }, 50);
 
     this.chatService.enviarMensagem(text).subscribe({
       next: (response: ChatResponse) => {
@@ -127,6 +139,18 @@ export class ChatWidgetComponent implements OnDestroy {
 
   private applySyntaxHighlighting(): void {
     useSyntaxHighlighting(this.messagesContainer);
+  }
+
+  private configureLoadingEffects(): void {
+    // Quando o loading termina, garante scroll para a última mensagem
+    effect(() => {
+      const loading = this.isLoading();
+      if (!loading && this.messages().length > 0) {
+        setTimeout(() => {
+          scrollToBottom(this.messagesContainer);
+        }, 200);
+      }
+    });
   }
 }
 
