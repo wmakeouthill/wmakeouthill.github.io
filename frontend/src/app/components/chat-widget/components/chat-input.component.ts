@@ -1,4 +1,4 @@
-import { Component, input, output, ViewChild, ElementRef, effect, afterNextRender } from '@angular/core';
+import { Component, input, output, ViewChild, ElementRef, effect, afterNextRender, inject, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,6 +10,8 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./chat-input.component.css']
 })
 export class ChatInputComponent {
+  private readonly injector = inject(Injector);
+  
   @ViewChild('chatInput') chatInput?: ElementRef<HTMLInputElement>;
 
   readonly isLoading = input<boolean>(false);
@@ -22,12 +24,14 @@ export class ChatInputComponent {
 
   constructor() {
     afterNextRender(() => {
-      effect(() => {
-        if (this.shouldFocus() && this.chatInput) {
-          queueMicrotask(() => {
-            this.chatInput?.nativeElement?.focus();
-          });
-        }
+      runInInjectionContext(this.injector, () => {
+        effect(() => {
+          if (this.shouldFocus() && this.chatInput) {
+            queueMicrotask(() => {
+              this.chatInput?.nativeElement?.focus();
+            });
+          }
+        });
       });
     });
   }

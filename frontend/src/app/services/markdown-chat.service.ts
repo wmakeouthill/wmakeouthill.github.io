@@ -207,7 +207,7 @@ export class MarkdownChatService {
 
   private applyChatStyles(html: string): string {
     // Adiciona classes do chat sem remover classes markdown-text existentes
-    return html
+    let styledHtml = html
       .replace(/<a class="markdown-text"/g, '<a class="markdown-text chat-link" target="_blank" rel="noopener noreferrer"')
       .replace(/<a /g, '<a class="chat-link" target="_blank" rel="noopener noreferrer" ')
       .replace(/<p class="markdown-text">/g, '<p class="markdown-text chat-paragraph">')
@@ -222,6 +222,72 @@ export class MarkdownChatService {
       .replace(/<ol(\s|>)/g, '<ol class="chat-list"$1')
       .replace(/<li class="markdown-text"/g, '<li class="markdown-text chat-list-item"')
       .replace(/<li(\s|>)/g, '<li class="chat-list-item"$1');
+
+    // Aplicar estilos inline diretamente nas listas e itens para remover marker nativo imediatamente
+    // Isso garante que o marker nativo seja removido ANTES do CSS ser aplicado (problema de timing)
+    styledHtml = styledHtml
+      .replace(/<ul([^>]*)>/gi, (match, attributes) => {
+        // Verifica se já tem style
+        if (attributes && attributes.includes('style=')) {
+          return match.replace(/style="([^"]*)"/, 'style="$1; list-style: none !important; list-style-type: none !important; display: block;"');
+        }
+        // Adiciona style inline se não tiver
+        const styleAttr = attributes ? ` style="list-style: none !important; list-style-type: none !important; display: block;"` : ' style="list-style: none !important; list-style-type: none !important; display: block;"';
+        return `<ul${attributes}${styleAttr}>`;
+      })
+      .replace(/<ol([^>]*)>/gi, (match, attributes) => {
+        // Verifica se já tem style
+        if (attributes && attributes.includes('style=')) {
+          return match.replace(/style="([^"]*)"/, 'style="$1; list-style: none !important; list-style-type: none !important; display: block;"');
+        }
+        // Adiciona style inline se não tiver
+        const styleAttr = attributes ? ` style="list-style: none !important; list-style-type: none !important; display: block;"` : ' style="list-style: none !important; list-style-type: none !important; display: block;"';
+        return `<ol${attributes}${styleAttr}>`;
+      })
+      .replace(/<li([^>]*)>/gi, (match, attributes) => {
+        // Verifica se já tem style
+        if (attributes && attributes.includes('style=')) {
+          return match.replace(/style="([^"]*)"/, 'style="$1; list-style: none !important; list-style-type: none !important; display: block !important;"');
+        }
+        // Adiciona style inline se não tiver - força remoção do marker nativo
+        const styleAttr = attributes ? ` style="list-style: none !important; list-style-type: none !important; display: block !important;"` : ' style="list-style: none !important; list-style-type: none !important; display: block !important;"';
+        return `<li${attributes}${styleAttr}>`;
+      });
+
+    // Adicionar bullet diretamente no conteúdo dos <li> 
+    // Processa de forma recursiva para lidar com listas aninhadas
+    styledHtml = this.addBulletsToListItem(styledHtml);
+
+    return styledHtml;
+  }
+
+  private addBulletsToListItem(html: string): string {
+    let processedHtml = html;
+    let counter = 0;
+
+    // Para listas não ordenadas - adiciona bullet após cada <li>
+    processedHtml = processedHtml.replace(/<ul([^>]*)>([\s\S]*?)<\/ul>/gi, (ulMatch: string, ulAttributes: string, ulContent: string) => {
+      // Processa cada <li> dentro deste <ul>
+      const processedContent = ulContent.replace(/<li([^>]*)>/gi, (liOpen: string, liAttrs: string) => {
+        // Adiciona bullet logo após abrir o <li>
+        return `${liOpen}<span style="display: inline; color: var(--text-primary, inherit);">• </span>`;
+      });
+      return `<ul${ulAttributes}>${processedContent}</ul>`;
+    });
+
+    // Para listas ordenadas - adiciona números sequenciais
+    processedHtml = processedHtml.replace(/<ol([^>]*)>([\s\S]*?)<\/ol>/gi, (olMatch: string, olAttributes: string, olContent: string) => {
+      counter = 0; // Reset contador para cada <ol>
+      // Processa cada <li> dentro deste <ol>
+      const processedContent = olContent.replace(/<li([^>]*)>/gi, (liOpen: string, liAttrs: string) => {
+        counter++;
+        // Adiciona número logo após abrir o <li>
+        return `${liOpen}<span style="display: inline; color: var(--text-primary, inherit);">${counter}. </span>`;
+      });
+      return `<ol${olAttributes}>${processedContent}</ol>`;
+    });
+
+    return processedHtml;
   }
 
   private fallbackEscape(markdown: string): string {
