@@ -1,0 +1,86 @@
+# Multi-stage build otimizado para Google Cloud Run - Obaid Revival
+# Estrutura simplificada: backend único + frontend Angular
+# Stage 1: Build do Frontend Angular
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app/frontend
+
+# Copiar package files
+COPY frontend/package*.json ./
+
+# Instalar dependências
+RUN npm ci
+
+# Copiar código fonte do frontend
+COPY frontend ./
+
+# Build do frontend (outputPath: dist)
+RUN npm run build -- --configuration=production
+
+# Stage 2: Build do Maven (com frontend já buildado)
+FROM maven:3.9-eclipse-temurin-17 AS maven-build
+
+WORKDIR /app
+
+# Copiar arquivo de configuração Maven primeiro (cache layer)
+COPY backend/pom.xml ./backend/
+
+# Baixar dependências (cache layer)
+RUN cd backend && mvn dependency:go-offline -B
+
+# Copiar código fonte do backend
+COPY backend ./backend
+
+# Copiar frontend buildado para o caminho relativo correto (../frontend/dist relativo ao backend)
+# O pom.xml espera ../frontend/dist a partir do diretório do backend
+COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+
+# Desabilitar frontend-maven-plugin modificando o pom.xml para adicionar <skip>true</skip>
+# Usando sed com sintaxe correta para Alpine Linux (inserir após workingDirectory)
+RUN cd backend && \
+    sed -i '/workingDirectory.*frontend/a\                    <skip>true</skip>' pom.xml && \
+    mvn clean package -DskipTests -B
+
+# Stage 3: Imagem final otimizada para Cloud Run
+FROM eclipse-temurin:17-jre-alpine
+
+# Instalar apenas dependências necessárias (SEM MySQL - aplicação stateless)
+RUN apk add --no-cache \
+    bash \
+    tini \
+    && rm -rf /var/cache/apk/*
+
+# Criar diretório da aplicação
+RUN mkdir -p /app
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 appuser && \
+    adduser -D -u 1001 -G appuser appuser
+
+# Copiar JAR do backend (já contém o frontend dentro do JAR em classpath:/static/)
+COPY --from=maven-build /app/backend/target/diabo-chat-backend-*.jar /app/app.jar
+
+# Ajustar permissões
+RUN chown -R appuser:appuser /app
+
+# Variáveis de ambiente padrão
+# IMPORTANTE: OPENAI_API_KEY será fornecido via Secret Manager
+# Configurado para free tier: 512Mi memória (ajustar JVM para usar menos memória)
+ENV SERVER_PORT=8080
+ENV LOG_LEVEL=INFO
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+
+# Expor porta
+EXPOSE 8080
+
+# Mudar para usuário não-root
+USER appuser
+
+# Usar tini como init system
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Comando para iniciar a aplicação
+# Otimizado para free tier (512Mi): MaxRAMPercentage=75.0 = ~384Mi para heap
+CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar"]
+

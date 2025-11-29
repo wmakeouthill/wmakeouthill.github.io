@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Portfólio profissional Angular workspace",
   "scripts": {
-    "start": "cd portfolio && ng serve",
-    "build": "cd portfolio && ng build --configuration production && cd .. && (if exist docs rmdir /s /q docs) && mkdir docs && xcopy portfolio\\dist\\portfolio\\browser\\* docs\\ /s /e /y",
+    "start": "cd frontend && ng serve",
+    "build": "cd frontend && ng build --configuration production && cd .. && (if exist docs rmdir /s /q docs) && mkdir docs && xcopy frontend\\dist\\portfolio\\browser\\* docs\\ /s /e /y",
     "deploy": "./deploy.sh",
-    "test": "cd portfolio && ng test",
-    "lint": "cd portfolio && ng lint"
+    "test": "cd frontend && ng test",
+    "lint": "cd frontend && ng lint"
   },
   "repository": {
     "type": "git",

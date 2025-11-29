@@ -1,0 +1,32 @@
+<!-- Portfolio Application -->
+
+<!-- Main Portfolio Container -->
+<app-header></app-header>
+
+<main class="portfolio-main">
+  <app-hero></app-hero>
+  <app-about></app-about>
+  <app-skills></app-skills>
+  <app-experience></app-experience>
+  <app-education></app-education>
+  <app-projects></app-projects>
+  <app-certifications></app-certifications>
+  <app-contact></app-contact>
+</main>
+
+<app-footer></app-footer>
+
+<!-- Scroll to Top Button -->
+<button 
+  class="scroll-to-top" 
+  [class.visible]="showScrollToTop()"
+  (click)="scrollToTop()" 
+  aria-label="Scroll to top"
+>
+  ↑
+</button>
+
+<!-- Widget de chat com IA sobre o Wesley -->
+<app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
+
+<router-outlet />
