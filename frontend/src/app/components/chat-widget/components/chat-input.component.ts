@@ -50,5 +50,13 @@ export class ChatInputComponent {
   iniciarNovaConversa(): void {
     this.onNewConversation.emit();
   }
+
+  focus(): void {
+    if (this.chatInput?.nativeElement) {
+      queueMicrotask(() => {
+        this.chatInput?.nativeElement?.focus();
+      });
+    }
+  }
 }
 

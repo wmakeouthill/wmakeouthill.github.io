@@ -18,10 +18,11 @@ export class GithubService {
 
   /**
    * URL do backend que expõe os projetos do GitHub.
-   * Em desenvolvimento local, costuma ser http://localhost:8080/api/projects.
-   * Em produção, a URL pode ser ajustada para o domínio público do backend.
+   * Usa URL relativa para funcionar tanto em desenvolvimento quanto em produção.
+   * Em desenvolvimento: http://localhost:8080/api/projects
+   * Em produção: /api/projects (mesmo domínio do frontend)
    */
-  private readonly backendProjectsApi = 'http://localhost:8080/api/projects';
+  private readonly backendProjectsApi = '/api/projects';
 
   // Cache para repositórios
   private repositoriesCache: { data: GitHubRepository[], timestamp: number } | null = null;

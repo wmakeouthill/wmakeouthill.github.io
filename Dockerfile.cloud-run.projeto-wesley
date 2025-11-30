@@ -1,23 +1,9 @@
 # Multi-stage build otimizado para Google Cloud Run - Projeto Wesley Portfolio
-# Estrutura: backend Spring Boot + frontend Angular
-# Stage 1: Build do Frontend Angular
-FROM node:20-alpine AS frontend-build
+# Estrutura: backend Spring Boot + frontend Angular (já buildado)
+# O frontend deve estar buildado em frontend/dist/portfolio/browser antes do build Docker
+# O Maven copia o frontend buildado para dentro do JAR em classes/static
 
-WORKDIR /app/frontend
-
-# Copiar package files
-COPY frontend/package*.json ./
-
-# Instalar dependências
-RUN npm ci
-
-# Copiar código fonte do frontend
-COPY frontend ./
-
-# Build do frontend (outputPath: dist/portfolio/browser)
-RUN npm run build -- --configuration=production
-
-# Stage 2: Build do Maven (com frontend já buildado)
+# Stage 1: Build do Maven (com frontend já buildado)
 FROM maven:3.9-eclipse-temurin-17 AS maven-build
 
 WORKDIR /app
@@ -33,9 +19,11 @@ COPY backend ./backend
 
 # Copiar frontend buildado para o caminho relativo correto (../frontend/dist relativo ao backend)
 # O pom.xml espera ../frontend/dist/portfolio/browser a partir do diretório do backend
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+# IMPORTANTE: O frontend deve estar buildado antes (npm run build no frontend)
+COPY frontend/dist ./frontend/dist
 
 # Desabilitar frontend-maven-plugin modificando o pom.xml para adicionar <skip>true</skip>
+# Como o frontend já está buildado, não precisamos que o Maven build ele novamente
 # Usando sed com sintaxe correta para Alpine Linux (inserir após workingDirectory)
 RUN cd backend && \
     sed -i '/workingDirectory.*frontend/a\                    <skip>true</skip>' pom.xml && \

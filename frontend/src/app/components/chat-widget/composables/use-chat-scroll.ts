@@ -6,11 +6,22 @@ export function useChatScroll(
   messages: Signal<ChatMessage[]>,
   isOpen: Signal<boolean>
 ): void {
+  let wasOpen = false;
+
   effect(() => {
     const _messages = messages();
     const isPanelOpen = isOpen();
     
-    if (!isPanelOpen || _messages.length === 0) {
+    if (!isPanelOpen) {
+      wasOpen = false;
+      return;
+    }
+
+    // Se acabou de abrir (não estava aberto antes), scroll instantâneo
+    const justOpened = !wasOpen;
+    wasOpen = true;
+
+    if (_messages.length === 0) {
       return;
     }
 
@@ -23,9 +34,10 @@ export function useChatScroll(
           if (!element) {
             return;
           }
+          // Scroll instantâneo se acabou de abrir, suave caso contrário
           element.scrollTo({
             top: element.scrollHeight,
-            behavior: 'smooth'
+            behavior: justOpened ? 'auto' : 'smooth'
           });
         }, 100);
       });
@@ -33,17 +45,19 @@ export function useChatScroll(
   });
 }
 
-export function scrollToBottom(messagesContainer: ElementRef<HTMLDivElement> | undefined): void {
+export function scrollToBottom(messagesContainer: ElementRef<HTMLDivElement> | undefined, instant: boolean = false): void {
   if (!messagesContainer?.nativeElement) {
     return;
   }
   
   const element = messagesContainer.nativeElement;
+  const scrollBehavior: ScrollBehavior = instant ? 'auto' : 'smooth';
+  
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       element.scrollTo({
         top: element.scrollHeight,
-        behavior: 'smooth'
+        behavior: scrollBehavior
       });
     });
   });

@@ -1,6 +1,6 @@
 # Script PowerShell completo: Build + Push + Deploy para Cloud Run - Projeto Wesley Portfolio
 # Uso: .\deploy-completo-projeto-wesley.ps1 [PROJECT_ID] [REGION]
-# Exemplo: .\deploy-completo-projeto-wesley.ps1 projeto-wesley southamerica-east1
+# Exemplo: .\deploy-completo-projeto-wesley.ps1 portfolio-wesley-479723 southamerica-east1
 #
 # IMPORTANTE: Este script é adaptado para o projeto-wesley (Portfolio Wesley)
 # - Estrutura: backend Spring Boot + frontend Angular
@@ -75,67 +75,96 @@ try {
     exit 1
 }
 
-# Verificar e habilitar APIs
+# Verificar e habilitar APIs (com fallback se não tiver permissão)
 Write-Host ""
-Write-Host "[3/7] Verificando e habilitando APIs necessarias..." -ForegroundColor Green
+Write-Host "[3/7] Verificando APIs necessarias..." -ForegroundColor Green
 $apis = @(
     "containerregistry.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com"
 )
 
-$failedApis = @()
-$enabledApis = @()
+# Tentar verificar se tem permissão para listar serviços
+Write-Host "   Verificando permissoes..." -ForegroundColor Yellow
+$testPermission = gcloud services list --enabled --limit=1 --project=$PROJECT_ID 2>&1 | Out-Null
+$hasPermission = $LASTEXITCODE -eq 0
 
-foreach ($api in $apis) {
-    # Verificar se a API já está habilitada
-    Write-Host "   Verificando $api..." -ForegroundColor Yellow
-    $status = gcloud services list --enabled --filter="name:$api" --project=$PROJECT_ID --format="value(name)" 2>&1
-    
-    if ($status -match $api) {
-        Write-Host "   OK: $api ja esta habilitada" -ForegroundColor Green
-        $enabledApis += $api
-    } else {
-        # Tentar habilitar a API
-        Write-Host "   Habilitando $api..." -ForegroundColor Yellow
-        $enableOutput = gcloud services enable $api --project=$PROJECT_ID 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "   OK: $api habilitada com sucesso" -ForegroundColor Green
+if (-not $hasPermission) {
+    Write-Host "   AVISO: Sem permissao para verificar status das APIs" -ForegroundColor Yellow
+    Write-Host "   Assumindo que as APIs ja estao habilitadas (voce mencionou que ativou manualmente)" -ForegroundColor Yellow
+    Write-Host "   Continuando com o deploy..." -ForegroundColor Green
+} else {
+    # Tem permissão, verificar cada API
+    $failedApis = @()
+    $enabledApis = @()
+
+    foreach ($api in $apis) {
+        Write-Host "   Verificando $api..." -ForegroundColor Yellow
+        $status = gcloud services list --enabled --filter="name:$api" --project=$PROJECT_ID --format="value(name)" 2>&1
+        
+        if ($status -match $api) {
+            Write-Host "   OK: $api ja esta habilitada" -ForegroundColor Green
             $enabledApis += $api
         } else {
-            # Verificar se o erro é de permissão ou se a API já está habilitada
-            if ($enableOutput -match "PERMISSION_DENIED") {
-                Write-Host "   AVISO: Sem permissao para habilitar $api" -ForegroundColor Yellow
-                Write-Host "   (Se ja estiver habilitada manualmente, pode continuar)" -ForegroundColor Yellow
-                $failedApis += $api
+            # Tentar habilitar a API
+            Write-Host "   Tentando habilitar $api..." -ForegroundColor Yellow
+            $isSuccess = $false
+            $enableOutput = ""
+            
+            try {
+                $ErrorActionPreference = "SilentlyContinue"
+                $enableOutput = gcloud services enable $api --project=$PROJECT_ID 2>&1 | Out-String
+                $exitCode = $LASTEXITCODE
+                $ErrorActionPreference = "Stop"
+                
+                # Verificar se a operação foi bem-sucedida
+                # O gcloud pode retornar sucesso mesmo que o PowerShell mostre como erro
+                if ($exitCode -eq 0) {
+                    $isSuccess = $true
+                } elseif ($enableOutput -match "finished successfully" -or $enableOutput -match "already enabled" -or $enableOutput -match "Operation.*finished successfully") {
+                    $isSuccess = $true
+                }
+            } catch {
+                # Capturar exceções do PowerShell (que podem ocorrer mesmo com sucesso)
+                $errorMessage = $_.Exception.Message
+                if ($errorMessage -match "finished successfully" -or $errorMessage -match "already enabled" -or $errorMessage -match "Operation.*finished successfully") {
+                    $isSuccess = $true
+                    $enableOutput = $errorMessage
+                }
+            }
+            
+            if ($isSuccess) {
+                Write-Host "   OK: $api habilitada com sucesso" -ForegroundColor Green
+                $enabledApis += $api
             } else {
-                Write-Host "   AVISO: Erro ao habilitar $api" -ForegroundColor Yellow
+                Write-Host "   AVISO: Nao foi possivel habilitar $api automaticamente" -ForegroundColor Yellow
+                Write-Host "   (Se ja estiver habilitada manualmente, pode continuar)" -ForegroundColor Yellow
                 $failedApis += $api
             }
         }
     }
-}
 
-if ($failedApis.Count -gt 0) {
-    Write-Host ""
-    Write-Host "AVISO: Algumas APIs nao puderam ser verificadas/habilitadas automaticamente." -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "APIs que falharam:" -ForegroundColor Yellow
-    foreach ($api in $failedApis) {
-        Write-Host "  - $api" -ForegroundColor Yellow
+    if ($failedApis.Count -gt 0) {
+        Write-Host ""
+        Write-Host "AVISO: Algumas APIs nao puderam ser verificadas/habilitadas automaticamente." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "APIs que falharam:" -ForegroundColor Yellow
+        foreach ($api in $failedApis) {
+            Write-Host "  - $api" -ForegroundColor Yellow
+        }
+        Write-Host ""
+        Write-Host "Se voce ja habilitou essas APIs manualmente, pode continuar." -ForegroundColor Cyan
+        Write-Host ""
+        $continue = Read-Host "Deseja continuar mesmo assim? (S/N)"
+        if ($continue -ne "S" -and $continue -ne "s" -and $continue -ne "Y" -and $continue -ne "y") {
+            Write-Host "Deploy cancelado. Verifique as APIs e tente novamente." -ForegroundColor Yellow
+            Write-Host "Console Web: https://console.cloud.google.com/apis/library?project=$PROJECT_ID" -ForegroundColor Cyan
+            exit 0
+        }
+    } else {
+        Write-Host ""
+        Write-Host "OK: Todas as APIs necessarias estao habilitadas" -ForegroundColor Green
     }
-    Write-Host ""
-    Write-Host "Se voce ja habilitou essas APIs manualmente, pode continuar." -ForegroundColor Cyan
-    Write-Host ""
-    $continue = Read-Host "Deseja continuar mesmo assim? (S/N)"
-    if ($continue -ne "S" -and $continue -ne "s" -and $continue -ne "Y" -and $continue -ne "y") {
-        Write-Host "Deploy cancelado. Verifique as APIs e tente novamente." -ForegroundColor Yellow
-        Write-Host "Console Web: https://console.cloud.google.com/apis/library?project=$PROJECT_ID" -ForegroundColor Cyan
-        exit 0
-    }
-} else {
-    Write-Host ""
-    Write-Host "OK: Todas as APIs necessarias estao habilitadas" -ForegroundColor Green
 }
 
 # Configurar Docker
@@ -143,13 +172,34 @@ Write-Host ""
 Write-Host "[4/7] Configurando credenciais Docker..." -ForegroundColor Green
 gcloud auth configure-docker gcr.io --quiet
 
+# Verificar se o frontend está buildado
+Write-Host ""
+Write-Host "[5/7] Verificando se o frontend esta buildado..." -ForegroundColor Green
+$frontendDistPath = "frontend/dist/portfolio/browser"
+if (-not (Test-Path $frontendDistPath)) {
+    Write-Host "   AVISO: Frontend nao esta buildado em $frontendDistPath" -ForegroundColor Yellow
+    Write-Host "   Fazendo build do frontend agora..." -ForegroundColor Yellow
+    Push-Location frontend
+    npm run build -- --configuration=production
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO: Falha no build do frontend" -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
+    Pop-Location
+    Write-Host "   OK: Frontend buildado com sucesso" -ForegroundColor Green
+} else {
+    Write-Host "   OK: Frontend ja esta buildado" -ForegroundColor Green
+}
+
 # Build da imagem
 Write-Host ""
-Write-Host "[5/7] Fazendo build da imagem Docker..." -ForegroundColor Green
+Write-Host "[6/7] Fazendo build da imagem Docker..." -ForegroundColor Green
 $IMAGE_NAME = "gcr.io/$PROJECT_ID/projeto-wesley:latest"
 $TIMESTAMP_TAG = "gcr.io/$PROJECT_ID/projeto-wesley:$(Get-Date -Format 'yyyyMMddHHmmss')"
 
 Write-Host "   Usando Dockerfile.cloud-run.projeto-wesley" -ForegroundColor Yellow
+Write-Host "   O Docker vai copiar o frontend ja buildado (nao vai buildar novamente)" -ForegroundColor Yellow
 Write-Host "   Isso pode levar varios minutos..." -ForegroundColor Yellow
 
 docker build -f Dockerfile.cloud-run.projeto-wesley -t $IMAGE_NAME -t $TIMESTAMP_TAG .
@@ -163,7 +213,7 @@ Write-Host "   OK: Build concluido" -ForegroundColor Green
 
 # Push da imagem
 Write-Host ""
-Write-Host "[6/7] Fazendo push da imagem para Container Registry..." -ForegroundColor Green
+Write-Host "[7/7] Fazendo push da imagem para Container Registry..." -ForegroundColor Green
 Write-Host "   Isso pode levar alguns minutos..." -ForegroundColor Yellow
 
 docker push $IMAGE_NAME

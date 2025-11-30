@@ -76,9 +76,9 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
 
   private async loadRawMarkdown() {
     try {
-      // 1) Tenta buscar do backend primeiro
+      // 1) Tenta buscar do backend primeiro (URL relativa para funcionar em dev e produção)
       const normalized = this.projectName.toLowerCase();
-      const backendUrl = `http://localhost:8080/api/projects/${normalized}/markdown`;
+      const backendUrl = `/api/projects/${normalized}/markdown`;
       try {
         const response = await fetch(backendUrl);
         if (response.ok) {

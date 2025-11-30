@@ -19,7 +19,8 @@ interface ContactResponse {
 })
 export class EmailService {
     private readonly http = inject(HttpClient);
-    private readonly apiUrl = 'http://localhost:8080/api/contact';
+    // URL relativa para funcionar tanto em desenvolvimento quanto em produção
+    private readonly apiUrl = '/api/contact';
 
     sendEmail(emailData: EmailData): Observable<boolean> {
         return this.http.post<ContactResponse>(this.apiUrl, emailData).pipe(

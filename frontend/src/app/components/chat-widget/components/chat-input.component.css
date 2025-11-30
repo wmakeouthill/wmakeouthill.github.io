@@ -1,7 +1,7 @@
 .chat-input-area {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 0.04rem;
   padding: 0.7rem 0.85rem 0.8rem;
   border-top: 1px solid rgba(219, 194, 125, 0.25);
   background: rgba(10, 10, 10, 0.96);

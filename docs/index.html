@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Wesley</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            z-index: 9999;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <h1>Carregando Portfolio...</h1>
+        </div>
+    </div>
+    <iframe 
+        id="portfolioFrame"
+        src="https://projeto-wesley-263590688560.southamerica-east1.run.app"
+        title="Portfolio Wesley"
+        allow="fullscreen"
+        loading="eager"
+        onload="document.getElementById('loading').classList.add('hidden')"
+    ></iframe>
+    <script>
+        // Fallback: se o iframe não carregar em 10 segundos, redireciona
+        setTimeout(function() {
+            const loading = document.getElementById('loading');
+            if (loading && !loading.classList.contains('hidden')) {
+                window.location.href = 'https://projeto-wesley-263590688560.southamerica-east1.run.app';
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
+

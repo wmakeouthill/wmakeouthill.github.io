@@ -9,7 +9,8 @@ import mermaid from 'mermaid';
 })
 export class MarkdownService {
   private readonly http = inject(HttpClient);
-  private readonly backendProjectsApi = 'http://localhost:8080/api/projects';
+  // URL relativa para funcionar tanto em desenvolvimento quanto em produção
+  private readonly backendProjectsApi = '/api/projects';
 
   private readonly memoryCache = new Map<string, string>();
 

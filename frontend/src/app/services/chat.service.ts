@@ -18,10 +18,11 @@ export class ChatService {
 
   /**
    * URL do backend do chat.
-   * Em desenvolvimento, você pode apontar para http://localhost:8080/api/chat.
-   * Em produção (GitHub Pages), use a URL pública do backend deployado (ex: Cloud Run/Render).
+   * Usa URL relativa para funcionar tanto em desenvolvimento quanto em produção.
+   * Em desenvolvimento: http://localhost:8080/api/chat
+   * Em produção: /api/chat (mesmo domínio do frontend)
    */
-  private readonly apiUrl = 'http://localhost:8080/api/chat';
+  private readonly apiUrl = '/api/chat';
 
   /**
    * Envia uma mensagem para o chat.

@@ -93,6 +93,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }
   );
 
+  @ViewChild(ChatInputComponent) private readonly chatInputComponent?: ChatInputComponent;
+
   constructor() {
     useChatScroll(this.messagesContainer, this.messages, this.isOpen);
     this.configureChatOpenEffects();
@@ -111,6 +113,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   toggleOpen(): void {
     this.isOpen.update((v) => !v);
+    // Garante scroll para o final quando abrir (instantâneo)
+    if (this.isOpen()) {
+      setTimeout(() => {
+        scrollToBottom(this.messagesContainer, true); // instant = true ao abrir
+        this.focarInput();
+      }, 150);
+    }
   }
 
   handleInputChange(value: string): void {
@@ -132,13 +141,26 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       scrollToBottom(this.messagesContainer);
     }, 50);
 
+    // Mantém foco no input após enviar
+    this.focarInput();
+
     this.chatService.enviarMensagem(text, this.sessionId).subscribe({
       next: (response: ChatResponse) => {
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
         });
+        // Mantém foco após resposta
+        setTimeout(() => {
+          this.focarInput();
+        }, 100);
       },
-      error: () => this.chatMessagesHandlers.handleAssistantError()
+      error: () => {
+        this.chatMessagesHandlers.handleAssistantError();
+        // Mantém foco mesmo em caso de erro
+        setTimeout(() => {
+          this.focarInput();
+        }, 100);
+      }
     });
   }
 
@@ -149,10 +171,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private configureChatOpenEffects(): void {
     effect(() => {
       if (this.isOpen()) {
+        // Aguarda renderização completa do DOM
         setTimeout(() => {
           this.applySyntaxHighlighting();
-        }, 200);
+          // Scroll instantâneo para o final ao abrir (sem animação)
+          scrollToBottom(this.messagesContainer, true);
+          // Foca no input para facilitar digitação
+          this.focarInput();
+        }, 150);
       }
+    });
+  }
+
+  private focarInput(): void {
+    // Usa o método público do componente para focar
+    queueMicrotask(() => {
+      this.chatInputComponent?.focus();
     });
   }
 
@@ -177,6 +211,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (mensagensSalvas.length > 0) {
       const mensagensConvertidas = await this.converterMensagensSalvas(mensagensSalvas);
       this.messages.set(mensagensConvertidas);
+      // Se o chat já estiver aberto, garante scroll para o final
+      if (this.isOpen()) {
+        setTimeout(() => {
+          scrollToBottom(this.messagesContainer, true);
+        }, 100);
+      }
     } else {
       this.messages.set([this.initialMessage]);
     }

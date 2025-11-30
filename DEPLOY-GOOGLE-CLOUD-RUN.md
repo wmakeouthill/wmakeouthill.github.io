@@ -29,7 +29,7 @@ O projeto precisa dos seguintes secrets configurados no Google Cloud Secret Mana
 **Comando para criar:**
 
 ```bash
-echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=- --project=projeto-wesley
+echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=- --project=portfolio-wesley-479723
 ```
 
 ### 2. `gmail-username`
@@ -41,7 +41,7 @@ echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=-
 **Comando para criar:**
 
 ```bash
-echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file=- --project=projeto-wesley
+echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file=- --project=portfolio-wesley-479723
 ```
 
 ### 3. `gmail-app-password`
@@ -59,7 +59,7 @@ echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file
 **Comando para criar:**
 
 ```bash
-echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-file=- --project=projeto-wesley
+echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-file=- --project=portfolio-wesley-479723
 ```
 
 ### 4. `email-recipient`
@@ -71,7 +71,7 @@ echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-
 **Comando para criar:**
 
 ```bash
-echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-file=- --project=projeto-wesley
+echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-file=- --project=portfolio-wesley-479723
 ```
 
 ### 5. `github-api-token`
@@ -90,7 +90,7 @@ echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-fil
 **Comando para criar:**
 
 ```bash
-echo -n 'ghp_seu-token-aqui' | gcloud secrets create github-api-token --data-file=- --project=projeto-wesley
+echo -n 'ghp_seu-token-aqui' | gcloud secrets create github-api-token --data-file=- --project=portfolio-wesley-479723
 ```
 
 ## 📝 Resumo dos Secrets
@@ -108,13 +108,13 @@ echo -n 'ghp_seu-token-aqui' | gcloud secrets create github-api-token --data-fil
 Se você precisar atualizar o valor de um secret:
 
 ```bash
-echo -n 'novo-valor' | gcloud secrets versions add NOME_DO_SECRET --data-file=- --project=projeto-wesley
+echo -n 'novo-valor' | gcloud secrets versions add NOME_DO_SECRET --data-file=- --project=portfolio-wesley-479723
 ```
 
 **Exemplo:**
 
 ```bash
-echo -n 'sk-nova-chave' | gcloud secrets versions add openai-api-key --data-file=- --project=projeto-wesley
+echo -n 'sk-nova-chave' | gcloud secrets versions add openai-api-key --data-file=- --project=portfolio-wesley-479723
 ```
 
 ## 📋 Listar Secrets
@@ -122,7 +122,7 @@ echo -n 'sk-nova-chave' | gcloud secrets versions add openai-api-key --data-file
 Para ver todos os secrets criados:
 
 ```bash
-gcloud secrets list --project=projeto-wesley
+gcloud secrets list --project=portfolio-wesley-479723
 ```
 
 ## 🚀 Deploy
@@ -130,7 +130,7 @@ gcloud secrets list --project=projeto-wesley
 ### Opção 1: Script Automático (Recomendado)
 
 ```powershell
-.\deploy-completo-projeto-wesley.ps1 projeto-wesley southamerica-east1
+.\deploy-completo-projeto-wesley.ps1 portfolio-wesley-479723 southamerica-east1
 ```
 
 O script irá:
@@ -149,14 +149,14 @@ Se preferir fazer o deploy manualmente:
 
 ```bash
 # 1. Build da imagem
-docker build -f Dockerfile.cloud-run.projeto-wesley -t gcr.io/projeto-wesley/projeto-wesley:latest .
+docker build -f Dockerfile.cloud-run.projeto-wesley -t gcr.io/portfolio-wesley-479723/projeto-wesley:latest .
 
 # 2. Push da imagem
-docker push gcr.io/projeto-wesley/projeto-wesley:latest
+docker push gcr.io/portfolio-wesley-479723/projeto-wesley:latest
 
 # 3. Deploy no Cloud Run
 gcloud run deploy projeto-wesley \
-  --image gcr.io/projeto-wesley/projeto-wesley:latest \
+  --image gcr.io/portfolio-wesley-479723/projeto-wesley:latest \
   --region southamerica-east1 \
   --platform managed \
   --allow-unauthenticated \
@@ -168,7 +168,7 @@ gcloud run deploy projeto-wesley \
   --port 8080 \
   --set-secrets="OPENAI_API_KEY=openai-api-key:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,EMAIL_RECIPIENT=email-recipient:latest,GITHUB_API_TOKEN=github-api-token:latest" \
   --set-env-vars="SERVER_PORT=8080,SPRING_PROFILES_ACTIVE=prod,LOG_LEVEL=INFO,GITHUB_USERNAME=wmakeouthill" \
-  --project=projeto-wesley
+  --project=portfolio-wesley-479723
 ```
 
 ## ⚙️ Configuração do Cloud Run
@@ -186,13 +186,13 @@ gcloud run deploy projeto-wesley \
 Após o deploy, você pode verificar o status:
 
 ```bash
-gcloud run services describe projeto-wesley --region southamerica-east1 --project=projeto-wesley
+gcloud run services describe projeto-wesley --region southamerica-east1 --project=portfolio-wesley-479723
 ```
 
 Para ver os logs:
 
 ```bash
-gcloud run services logs read projeto-wesley --region southamerica-east1 --project=projeto-wesley
+gcloud run services logs read projeto-wesley --region southamerica-east1 --project=portfolio-wesley-479723
 ```
 
 ## 🌐 Acessar a Aplicação
@@ -223,7 +223,7 @@ ERROR: (gcloud.services.enable) PERMISSION_DENIED: Permission denied to enable s
 **Soluções:**
 
 1. **Habilitar APIs manualmente via Console Web:**
-   - Acesse: <https://console.cloud.google.com/apis/library?project=projeto-wesley>
+   - Acesse: <https://console.cloud.google.com/apis/library?project=portfolio-wesley-479723>
    - Procure e habilite:
      - Container Registry API (`containerregistry.googleapis.com`)
      - Cloud Run API (`run.googleapis.com`)
@@ -235,13 +235,13 @@ ERROR: (gcloud.services.enable) PERMISSION_DENIED: Permission denied to enable s
 
 3. **Se você é o dono do projeto:**
    - Verifique se está usando o projeto correto: `gcloud config get-value project`
-   - Se necessário, mude o projeto: `gcloud config set project projeto-wesley`
+   - Se necessário, mude o projeto: `gcloud config set project portfolio-wesley-479723`
 
 ### Erro: "Permission denied" ao acessar secrets
 
 - Verifique se o Cloud Run Service Account tem permissão para acessar os secrets
-- Execute: `gcloud projects add-iam-policy-binding projeto-wesley --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" --role="roles/secretmanager.secretAccessor"`
-- Para descobrir o PROJECT_NUMBER: `gcloud projects describe projeto-wesley --format="value(projectNumber)"`
+- Execute: `gcloud projects add-iam-policy-binding portfolio-wesley-479723 --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" --role="roles/secretmanager.secretAccessor"`
+- Para descobrir o PROJECT_NUMBER: `gcloud projects describe portfolio-wesley-479723 --format="value(projectNumber)"`
 
 ### Erro: "Build failed"
 
