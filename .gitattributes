@@ -1,0 +1,27 @@
+# Linguagem detectada pelo GitHub
+# Arquivos .mjs são workers/scripts e não devem ser contados como código fonte principal
+# Nota: pdf.worker.min.mjs está no .gitignore (é gerado automaticamente do node_modules)
+*.mjs linguist-detectable=false
+
+# Arquivos de build não devem ser contados
+frontend/dist/** linguist-generated=true
+backend/target/** linguist-generated=true
+**/node_modules/** linguist-vendored=true
+
+# Arquivos de documentação
+*.md linguist-documentation=true
+docs/** linguist-documentation=true
+
+# Arquivos de configuração
+*.json linguist-detectable=false
+*.yml linguist-detectable=false
+*.yaml linguist-detectable=false
+*.properties linguist-detectable=false
+
+# Scripts de deploy
+*.ps1 linguist-detectable=false
+*.sh linguist-detectable=false
+
+# Docker
+Dockerfile* linguist-detectable=false
+
