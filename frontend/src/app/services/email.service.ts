@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, catchError, of } from 'rxjs';
+import { resolveApiUrl } from '../utils/api-url.util';
 
 export interface EmailData {
     name: string;
@@ -19,8 +20,7 @@ interface ContactResponse {
 })
 export class EmailService {
     private readonly http = inject(HttpClient);
-    // URL relativa para funcionar tanto em desenvolvimento quanto em produção
-    private readonly apiUrl = '/api/contact';
+    private readonly apiUrl = resolveApiUrl('/api/contact');
 
     sendEmail(emailData: EmailData): Observable<boolean> {
         return this.http.post<ContactResponse>(this.apiUrl, emailData).pipe(

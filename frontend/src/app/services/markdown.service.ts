@@ -3,14 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { marked } from 'marked';
 import { lastValueFrom } from 'rxjs';
 import mermaid from 'mermaid';
+import { resolveApiUrl } from '../utils/api-url.util';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MarkdownService {
   private readonly http = inject(HttpClient);
-  // URL relativa para funcionar tanto em desenvolvimento quanto em produção
-  private readonly backendProjectsApi = '/api/projects';
+  private readonly backendProjectsApi = resolveApiUrl('/api/projects');
 
   private readonly memoryCache = new Map<string, string>();
 
