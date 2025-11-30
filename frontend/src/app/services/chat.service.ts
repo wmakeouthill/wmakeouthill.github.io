@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface ChatRequest {
@@ -23,9 +23,35 @@ export class ChatService {
    */
   private readonly apiUrl = 'http://localhost:8080/api/chat';
 
-  enviarMensagem(mensagem: string): Observable<ChatResponse> {
+  /**
+   * Envia uma mensagem para o chat.
+   * 
+   * @param mensagem texto da mensagem
+   * @param sessionId identificador da sessão (enviado no header X-Session-ID)
+   */
+  enviarMensagem(mensagem: string, sessionId?: string): Observable<ChatResponse> {
     const body: ChatRequest = { message: mensagem };
-    return this.http.post<ChatResponse>(this.apiUrl, body);
+    
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+    
+    return this.http.post<ChatResponse>(this.apiUrl, body, { headers });
+  }
+
+  /**
+   * Limpa o histórico de mensagens no backend para a sessão especificada.
+   * 
+   * @param sessionId identificador da sessão
+   */
+  limparHistorico(sessionId?: string): Observable<void> {
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+    
+    return this.http.post<void>(`${this.apiUrl}/clear`, {}, { headers });
   }
 }
 

@@ -6,10 +6,6 @@
       <app-chat-header (onClose)="toggleOpen()" />
 
       <div class="chat-messages" role="log" #messagesContainer>
-        @if (messages().length === 0) {
-          <app-chat-message [message]="initialMessage" />
-        }
-
         @for (message of messages(); track message.timestamp) {
           <app-chat-message [message]="message" />
         }
@@ -26,6 +22,7 @@
         [shouldFocus]="isOpen()"
         (onInputChange)="handleInputChange($event)"
         (onSend)="sendMessage()"
+        (onNewConversation)="iniciarNovaConversa()"
       />
     </section>
   }

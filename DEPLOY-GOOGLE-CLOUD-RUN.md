@@ -8,69 +8,87 @@ Este documento explica como fazer o deploy do projeto no Google Cloud Run.
 2. **Docker** instalado e rodando
 3. **Conta Google Cloud** com projeto criado
 4. **Autenticação** configurada: `gcloud auth login`
+5. **Permissões necessárias** no projeto:
+   - `roles/serviceusage.serviceUsageAdmin` (para habilitar APIs) OU
+   - `roles/editor` (permissão mais ampla)
+   - `roles/secretmanager.admin` (para criar/gerenciar secrets)
+   - `roles/run.admin` (para fazer deploy no Cloud Run)
+   - `roles/storage.admin` (para fazer push de imagens Docker)
 
 ## 🔐 Secrets do Secret Manager
 
 O projeto precisa dos seguintes secrets configurados no Google Cloud Secret Manager:
 
 ### 1. `openai-api-key`
+
 **Descrição:** Chave da API da OpenAI para o chat do portfólio  
 **Tipo:** String  
 **Valor:** Sua chave da OpenAI (formato: `sk-...`)  
-**Onde obter:** https://platform.openai.com/api-keys
+**Onde obter:** <https://platform.openai.com/api-keys>
 
 **Comando para criar:**
+
 ```bash
 echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=- --project=projeto-wesley
 ```
 
 ### 2. `gmail-username`
+
 **Descrição:** Email Gmail usado para enviar emails do formulário de contato  
 **Tipo:** String  
 **Valor:** Seu email Gmail completo (ex: `seu-email@gmail.com`)
 
 **Comando para criar:**
+
 ```bash
 echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file=- --project=projeto-wesley
 ```
 
 ### 3. `gmail-app-password`
+
 **Descrição:** Senha de aplicativo do Gmail (NUNCA use sua senha pessoal!)  
 **Tipo:** String  
 **Valor:** Senha de app gerada no Google (formato: `xxxx xxxx xxxx xxxx`)  
-**Onde obter:** https://myaccount.google.com/apppasswords
+**Onde obter:** <https://myaccount.google.com/apppasswords>
 
-**⚠️ IMPORTANTE:** 
+**⚠️ IMPORTANTE:**
+
 - Use sempre **senha de aplicativo**, nunca sua senha pessoal
 - Para criar: Google Account > Segurança > Verificação em duas etapas > Senhas de app
 
 **Comando para criar:**
+
 ```bash
 echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-file=- --project=projeto-wesley
 ```
 
 ### 4. `email-recipient`
+
 **Descrição:** Email que receberá as mensagens enviadas pelo formulário de contato  
 **Tipo:** String  
 **Valor:** Email de destino (pode ser o mesmo do `gmail-username`)
 
 **Comando para criar:**
+
 ```bash
 echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-file=- --project=projeto-wesley
 ```
 
 ### 5. `github-api-token`
+
 **Descrição:** Personal Access Token (PAT) do GitHub para buscar informações dos repositórios  
 **Tipo:** String  
 **Valor:** Token do GitHub (formato: `ghp_...`)  
-**Onde obter:** https://github.com/settings/tokens
+**Onde obter:** <https://github.com/settings/tokens>
 
 **⚠️ IMPORTANTE:**
+
 - Use token com permissão **somente leitura** (read-only)
 - Não precisa de permissões de escrita ou admin
 - Scopes recomendados: `public_repo` (se repositórios públicos) ou `repo` (se privados)
 
 **Comando para criar:**
+
 ```bash
 echo -n 'ghp_seu-token-aqui' | gcloud secrets create github-api-token --data-file=- --project=projeto-wesley
 ```
@@ -94,6 +112,7 @@ echo -n 'novo-valor' | gcloud secrets versions add NOME_DO_SECRET --data-file=- 
 ```
 
 **Exemplo:**
+
 ```bash
 echo -n 'sk-nova-chave' | gcloud secrets versions add openai-api-key --data-file=- --project=projeto-wesley
 ```
@@ -115,6 +134,7 @@ gcloud secrets list --project=projeto-wesley
 ```
 
 O script irá:
+
 1. ✅ Verificar autenticação
 2. ✅ Configurar projeto
 3. ✅ Habilitar APIs necessárias
@@ -178,6 +198,7 @@ gcloud run services logs read projeto-wesley --region southamerica-east1 --proje
 ## 🌐 Acessar a Aplicação
 
 Após o deploy bem-sucedido, você receberá uma URL do tipo:
+
 ```
 https://projeto-wesley-xxxxx-xx.a.run.app
 ```
@@ -185,19 +206,51 @@ https://projeto-wesley-xxxxx-xx.a.run.app
 ## 🐛 Troubleshooting
 
 ### Erro: "Secret not found"
+
 - Verifique se todos os secrets foram criados
 - Use `gcloud secrets list` para listar os secrets
 
-### Erro: "Permission denied"
+### Erro: "Permission denied" ao habilitar APIs
+
+**Sintoma:**
+
+```
+ERROR: (gcloud.services.enable) PERMISSION_DENIED: Permission denied to enable service [containerregistry.googleapis.com]
+```
+
+**Causa:** Sua conta não tem permissões suficientes para habilitar APIs no projeto.
+
+**Soluções:**
+
+1. **Habilitar APIs manualmente via Console Web:**
+   - Acesse: <https://console.cloud.google.com/apis/library?project=projeto-wesley>
+   - Procure e habilite:
+     - Container Registry API (`containerregistry.googleapis.com`)
+     - Cloud Run API (`run.googleapis.com`)
+     - Secret Manager API (`secretmanager.googleapis.com`)
+
+2. **Pedir permissão ao administrador do projeto:**
+   - O administrador deve conceder a role `roles/serviceusage.serviceUsageAdmin` à sua conta
+   - Ou a role `roles/editor` (mais ampla, mas funciona)
+
+3. **Se você é o dono do projeto:**
+   - Verifique se está usando o projeto correto: `gcloud config get-value project`
+   - Se necessário, mude o projeto: `gcloud config set project projeto-wesley`
+
+### Erro: "Permission denied" ao acessar secrets
+
 - Verifique se o Cloud Run Service Account tem permissão para acessar os secrets
 - Execute: `gcloud projects add-iam-policy-binding projeto-wesley --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" --role="roles/secretmanager.secretAccessor"`
+- Para descobrir o PROJECT_NUMBER: `gcloud projects describe projeto-wesley --format="value(projectNumber)"`
 
 ### Erro: "Build failed"
+
 - Verifique se o Docker está rodando
 - Verifique se há espaço em disco suficiente
 - Verifique os logs do build
 
 ### Erro: "Out of memory"
+
 - Aumente a memória no Cloud Run (mas isso pode sair do free tier)
 - Verifique se há vazamentos de memória no código
 
@@ -206,4 +259,3 @@ https://projeto-wesley-xxxxx-xx.a.run.app
 - [Google Cloud Run Documentation](https://cloud.google.com/run/docs)
 - [Secret Manager Documentation](https://cloud.google.com/secret-manager/docs)
 - [Container Registry Documentation](https://cloud.google.com/container-registry/docs)
-

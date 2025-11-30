@@ -21,6 +21,7 @@ export class ChatInputComponent {
 
   readonly onInputChange = output<string>();
   readonly onSend = output<void>();
+  readonly onNewConversation = output<void>();
 
   constructor() {
     afterNextRender(() => {
@@ -44,6 +45,10 @@ export class ChatInputComponent {
     if (this.canSend()) {
       this.onSend.emit();
     }
+  }
+
+  iniciarNovaConversa(): void {
+    this.onNewConversation.emit();
   }
 }
 

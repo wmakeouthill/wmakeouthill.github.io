@@ -16,23 +16,32 @@ public class ChatUseCase {
     private final GerenciarHistoricoChatPort gerenciarHistoricoChatPort;
     private final PortfolioPromptService portfolioPromptService;
 
-    public ChatResponse execute(ChatRequest request) {
+    public ChatResponse execute(ChatRequest request, String sessionId) {
         String mensagemUsuarioTexto = normalizarMensagem(request);
         if (mensagemUsuarioTexto.isBlank()) {
             return new ChatResponse("");
         }
 
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = gerarSessionIdFallback();
+        }
+
         MensagemChat mensagemUsuario = MensagemChat.criarMensagemUsuario(mensagemUsuarioTexto);
-        gerenciarHistoricoChatPort.adicionarMensagem(mensagemUsuario);
+        gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemUsuario);
 
         // Carrega system prompt otimizado baseado na mensagem do usuário (on-demand)
         String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemUsuarioTexto);
-        var historico = gerenciarHistoricoChatPort.obterHistorico();
+        var historico = gerenciarHistoricoChatPort.obterHistorico(sessionId);
 
         ChatResponse resposta = aiChatPort.chat(systemPrompt, historico, mensagemUsuarioTexto);
-        registrarRespostaNoHistorico(resposta);
+        registrarRespostaNoHistorico(sessionId, resposta);
 
         return resposta;
+    }
+    
+    private String gerarSessionIdFallback() {
+        return "session-" + System.currentTimeMillis() + "-" + 
+               Thread.currentThread().getId();
     }
 
     private String normalizarMensagem(ChatRequest request) {
@@ -43,11 +52,24 @@ public class ChatUseCase {
         return mensagem.trim();
     }
 
-    private void registrarRespostaNoHistorico(ChatResponse resposta) {
+    private void registrarRespostaNoHistorico(String sessionId, ChatResponse resposta) {
         if (resposta.reply() == null || resposta.reply().isBlank()) {
             return;
         }
         MensagemChat mensagemAssistente = MensagemChat.criarMensagemAssistente(resposta.reply());
-        gerenciarHistoricoChatPort.adicionarMensagem(mensagemAssistente);
+        gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemAssistente);
+    }
+    
+    /**
+     * Limpa o histórico de mensagens da sessão especificada.
+     * Usado quando o usuário inicia uma nova conversa.
+     * 
+     * @param sessionId identificador da sessão
+     */
+    public void limparHistorico(String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return;
+        }
+        gerenciarHistoricoChatPort.limparHistorico(sessionId);
     }
 }

@@ -75,12 +75,68 @@ try {
     exit 1
 }
 
-# Habilitar APIs
+# Verificar e habilitar APIs
 Write-Host ""
-Write-Host "[3/7] Habilitando APIs necessarias..." -ForegroundColor Green
-gcloud services enable containerregistry.googleapis.com --project=$PROJECT_ID
-gcloud services enable run.googleapis.com --project=$PROJECT_ID
-gcloud services enable secretmanager.googleapis.com --project=$PROJECT_ID
+Write-Host "[3/7] Verificando e habilitando APIs necessarias..." -ForegroundColor Green
+$apis = @(
+    "containerregistry.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com"
+)
+
+$failedApis = @()
+$enabledApis = @()
+
+foreach ($api in $apis) {
+    # Verificar se a API já está habilitada
+    Write-Host "   Verificando $api..." -ForegroundColor Yellow
+    $status = gcloud services list --enabled --filter="name:$api" --project=$PROJECT_ID --format="value(name)" 2>&1
+    
+    if ($status -match $api) {
+        Write-Host "   OK: $api ja esta habilitada" -ForegroundColor Green
+        $enabledApis += $api
+    } else {
+        # Tentar habilitar a API
+        Write-Host "   Habilitando $api..." -ForegroundColor Yellow
+        $enableOutput = gcloud services enable $api --project=$PROJECT_ID 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "   OK: $api habilitada com sucesso" -ForegroundColor Green
+            $enabledApis += $api
+        } else {
+            # Verificar se o erro é de permissão ou se a API já está habilitada
+            if ($enableOutput -match "PERMISSION_DENIED") {
+                Write-Host "   AVISO: Sem permissao para habilitar $api" -ForegroundColor Yellow
+                Write-Host "   (Se ja estiver habilitada manualmente, pode continuar)" -ForegroundColor Yellow
+                $failedApis += $api
+            } else {
+                Write-Host "   AVISO: Erro ao habilitar $api" -ForegroundColor Yellow
+                $failedApis += $api
+            }
+        }
+    }
+}
+
+if ($failedApis.Count -gt 0) {
+    Write-Host ""
+    Write-Host "AVISO: Algumas APIs nao puderam ser verificadas/habilitadas automaticamente." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "APIs que falharam:" -ForegroundColor Yellow
+    foreach ($api in $failedApis) {
+        Write-Host "  - $api" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    Write-Host "Se voce ja habilitou essas APIs manualmente, pode continuar." -ForegroundColor Cyan
+    Write-Host ""
+    $continue = Read-Host "Deseja continuar mesmo assim? (S/N)"
+    if ($continue -ne "S" -and $continue -ne "s" -and $continue -ne "Y" -and $continue -ne "y") {
+        Write-Host "Deploy cancelado. Verifique as APIs e tente novamente." -ForegroundColor Yellow
+        Write-Host "Console Web: https://console.cloud.google.com/apis/library?project=$PROJECT_ID" -ForegroundColor Cyan
+        exit 0
+    }
+} else {
+    Write-Host ""
+    Write-Host "OK: Todas as APIs necessarias estao habilitadas" -ForegroundColor Green
+}
 
 # Configurar Docker
 Write-Host ""

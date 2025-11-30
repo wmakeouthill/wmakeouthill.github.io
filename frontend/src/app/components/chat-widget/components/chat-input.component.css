@@ -1,10 +1,83 @@
 .chat-input-area {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0;
   padding: 0.7rem 0.85rem 0.8rem;
   border-top: 1px solid rgba(219, 194, 125, 0.25);
   background: rgba(10, 10, 10, 0.96);
+}
+
+.chat-new-conversation-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 0.35rem;
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: auto;
+  height: auto;
+  min-height: 2rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.chat-new-conversation-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.8;
+}
+
+/* Tooltip customizado - aparece mais rápido */
+.chat-new-conversation-button::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.6rem;
+  background: rgba(20, 20, 20, 0.95);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  border-radius: 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease-in-out;
+  z-index: 1000;
+  border: 1px solid rgba(219, 194, 125, 0.3);
+}
+
+.chat-new-conversation-button::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 0.3rem);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(219, 194, 125, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease-in-out;
+  z-index: 1000;
+}
+
+.chat-new-conversation-button:hover::before,
+.chat-new-conversation-button:hover::after {
+  opacity: 1;
+}
+
+.chat-new-conversation-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.new-conversation-icon {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  display: block;
 }
 
 .chat-input {

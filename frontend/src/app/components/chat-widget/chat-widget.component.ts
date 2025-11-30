@@ -7,6 +7,7 @@ import {
   signal,
   computed,
   effect,
+  OnInit,
   OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -23,6 +24,18 @@ import { useOutsideClick } from './composables/use-outside-click';
 import { usePageScrollBlock } from './composables/use-page-scroll-block';
 import { useSyntaxHighlighting } from './composables/use-syntax-highlighting';
 import { useChatMessages } from './composables/use-chat-messages';
+import {
+  obterOuGerarSessionId,
+  salvarMensagens,
+  carregarMensagens,
+  limparSessionStorage
+} from '../../utils/session-storage.util';
+
+interface ChatMessageRaw {
+  from: 'user' | 'assistant';
+  text: string;
+  timestamp: string | Date;
+}
 
 @Component({
   selector: 'app-chat-widget',
@@ -38,7 +51,7 @@ import { useChatMessages } from './composables/use-chat-messages';
   templateUrl: './chat-widget.component.html',
   styleUrls: ['./chat-widget.component.css']
 })
-export class ChatWidgetComponent implements OnDestroy {
+export class ChatWidgetComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   private readonly sanitizer = inject(DomSanitizer);
@@ -52,6 +65,7 @@ export class ChatWidgetComponent implements OnDestroy {
   isLoading = signal(false);
   inputText = signal('');
   messages = signal<ChatMessage[]>([]);
+  private sessionId = obterOuGerarSessionId();
 
   readonly initialMessage: ChatMessage = {
     from: 'assistant',
@@ -83,6 +97,11 @@ export class ChatWidgetComponent implements OnDestroy {
     useChatScroll(this.messagesContainer, this.messages, this.isOpen);
     this.configureChatOpenEffects();
     this.configureLoadingEffects();
+    this.configurarPersistenciaMensagens();
+  }
+
+  ngOnInit(): void {
+    this.carregarMensagensSalvas();
   }
 
   ngOnDestroy(): void {
@@ -113,7 +132,7 @@ export class ChatWidgetComponent implements OnDestroy {
       scrollToBottom(this.messagesContainer);
     }, 50);
 
-    this.chatService.enviarMensagem(text).subscribe({
+    this.chatService.enviarMensagem(text, this.sessionId).subscribe({
       next: (response: ChatResponse) => {
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
@@ -151,6 +170,82 @@ export class ChatWidgetComponent implements OnDestroy {
         }, 200);
       }
     });
+  }
+
+  private async carregarMensagensSalvas(): Promise<void> {
+    const mensagensSalvas = carregarMensagens<ChatMessageRaw>();
+    if (mensagensSalvas.length > 0) {
+      const mensagensConvertidas = await this.converterMensagensSalvas(mensagensSalvas);
+      this.messages.set(mensagensConvertidas);
+    } else {
+      this.messages.set([this.initialMessage]);
+    }
+  }
+
+  private async converterMensagensSalvas(mensagensRaw: ChatMessageRaw[]): Promise<ChatMessage[]> {
+    const mensagens: ChatMessage[] = [];
+    
+    for (const msg of mensagensRaw) {
+      const timestamp = typeof msg.timestamp === 'string' 
+        ? new Date(msg.timestamp) 
+        : msg.timestamp;
+      
+      if (msg.from === 'assistant' && msg.text) {
+        // Re-renderiza HTML para mensagens de assistente
+        const html = await this.markdownChatService.renderMarkdownToHtml(msg.text);
+        mensagens.push({
+          from: msg.from,
+          text: msg.text,
+          html: this.sanitizer.bypassSecurityTrustHtml(html),
+          timestamp
+        });
+      } else {
+        // Mensagens de usuário não precisam HTML
+        mensagens.push({
+          from: msg.from,
+          text: msg.text,
+          timestamp
+        });
+      }
+    }
+    
+    return mensagens;
+  }
+
+  private configurarPersistenciaMensagens(): void {
+    effect(() => {
+      const currentMessages = this.messages();
+      if (currentMessages.length > 0) {
+        // Remove HTML antes de salvar (não é serializável)
+        const mensagensParaSalvar = currentMessages.map(msg => ({
+          from: msg.from,
+          text: msg.text,
+          timestamp: msg.timestamp.toISOString()
+        }));
+        salvarMensagens(mensagensParaSalvar);
+      }
+    });
+  }
+
+  iniciarNovaConversa(): void {
+    // Salva o sessionId ANTIGO antes de limpar para limpar o histórico correto no backend
+    const sessionIdAntigo = this.sessionId;
+    
+    // Limpa mensagens no frontend
+    this.messages.set([this.initialMessage]);
+    
+    // Limpa sessionStorage (remove sessionId e mensagens)
+    limparSessionStorage();
+    
+    // Gera novo sessionId
+    this.sessionId = obterOuGerarSessionId();
+    
+    // Limpa o histórico ANTIGO no backend antes de começar nova conversa
+    if (sessionIdAntigo) {
+      this.chatService.limparHistorico(sessionIdAntigo).subscribe({
+        error: () => console.warn('Erro ao limpar histórico no backend')
+      });
+    }
   }
 }
 
