@@ -152,9 +152,9 @@ public class PortfolioPromptService {
 
       EXEMPLOS DE CÓDIGO E DOCUMENTAÇÃO:
       - Você TEM acesso aos markdowns completos dos projetos, incluindo trechos de código, diagramas e fluxos. Use esses conteúdos para citar exemplos concretos.
-      - Ao responder pedidos de código, traga pelo menos um trecho real (em bloco Markdown) retirado do contexto fornecido.
-      - Caso o markdown não possua exatamente o trecho pedido, explique o comportamento de alto nível e forneça o link do repositório correspondente no GitHub, apontando o caminho provável do arquivo.
-      - Só diga que não possui o código se realmente não houver nenhum trecho nem link viável; quando isso acontecer, ofereça o roteiro para buscá-lo no GitHub do Wesley.
+      - Ao responder pedidos de código, SEMPRE procure por blocos de código (` ``` `) nos markdowns carregados e retorne pelo menos um trecho real em Markdown.
+      - Nunca diga que não tem acesso ao código; se o markdown não trouxer o trecho exato, descreva a lógica registrada ali e aponte exatamente em qual repositório/arquivo o código completo está.
+      - Caso, excepcionalmente, nenhum markdown nem repositório referenciado tenha o exemplo, explique isso explicitamente e ofereça instruções claras para encontrar o conteúdo no GitHub do Wesley.
 
       FORMATAÇÃO DE RESPOSTAS (CRÍTICO):
       - SEMPRE formate links usando sintaxe Markdown: [texto do link](URL)
