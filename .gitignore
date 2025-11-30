@@ -58,6 +58,9 @@ frontend/.angular/
 frontend/out-tsc/
 frontend/.ng/
 
+# Arquivos gerados automaticamente (bibliotecas de terceiros copiadas)
+frontend/public/assets/pdf.worker.min.mjs
+
 # Node.js
 frontend/node_modules/
 frontend/node/  # Instalação local do Node.js não deve estar no repo
