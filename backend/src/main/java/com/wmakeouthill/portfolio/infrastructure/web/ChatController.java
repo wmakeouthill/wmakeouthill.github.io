@@ -7,13 +7,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/chat")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
 @RequiredArgsConstructor
 public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
@@ -24,17 +27,34 @@ public class ChatController {
     public ResponseEntity<ChatResponse> chat(
             @Valid @RequestBody ChatRequest request,
             HttpServletRequest httpRequest) {
-        
-        String sessionId = extrairSessionId(httpRequest);
-        ChatResponse response = chatUseCase.execute(request, sessionId);
-        return ResponseEntity.ok(response);
+        try {
+            String sessionId = extrairSessionId(httpRequest);
+            ChatResponse response = chatUseCase.execute(request, sessionId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Log do erro para debug
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                .error("Erro ao processar mensagem de chat", e);
+            // Retorna resposta de erro amigável
+            return ResponseEntity
+                    .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ChatResponse("Erro ao processar mensagem. Tente novamente."));
+        }
     }
     
     @PostMapping("/clear")
     public ResponseEntity<Void> limparHistorico(HttpServletRequest httpRequest) {
-        String sessionId = extrairSessionId(httpRequest);
-        chatUseCase.limparHistorico(sessionId);
-        return ResponseEntity.ok().build();
+        try {
+            String sessionId = extrairSessionId(httpRequest);
+            chatUseCase.limparHistorico(sessionId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            // Log do erro para debug
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                .error("Erro ao limpar histórico", e);
+            // Retorna 200 mesmo em caso de erro para não quebrar o frontend
+            return ResponseEntity.ok().build();
+        }
     }
     
     /**

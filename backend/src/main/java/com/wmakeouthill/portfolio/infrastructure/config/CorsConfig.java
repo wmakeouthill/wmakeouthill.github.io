@@ -19,13 +19,17 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins(
+                        // Permite apenas domínios específicos (mais seguro)
+                        .allowedOriginPatterns(
                                 "https://wmakeouthill.github.io",
-                                "http://localhost:4200",
-                                "http://127.0.0.1:4200")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                                "https://projeto-wesley-263590688560.southamerica-east1.run.app",
+                                "http://localhost:*",
+                                "http://127.0.0.1:*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
-                        .allowCredentials(false);
+                        .exposedHeaders("*")
+                        .allowCredentials(false)
+                        .maxAge(3600); // Cache preflight por 1 hora
             }
         };
     }
