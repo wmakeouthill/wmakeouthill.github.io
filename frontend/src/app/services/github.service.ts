@@ -1,11 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { EMPTY, Observable, catchError, expand, map, of, reduce, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, concatMap, expand, from, map, of, reduce, tap } from 'rxjs';
 import { GitHubRepository, LanguageInfo } from '../models/interfaces';
 
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
+}
+
+interface RepositoryLanguagesData {
+  languages: LanguageInfo[];
+  totalBytes: number;
 }
 
 /**
@@ -64,23 +69,17 @@ export class GithubService {
   }
 
   /**
-   * Enriquece os repositórios com informações de linguagens
-   * @param repos Array de repositórios
-   * @returns Array de repositórios enriquecidos
-   */
-  private enrichRepositoriesWithLanguages(repos: GitHubRepository[]): GitHubRepository[] {
-    return repos.map(repo => ({
-      ...repo,
-      languages: [] // Será preenchido assincronamente
-    }));
-  }
-
-  /**
    * Busca as linguagens de um repositório específico (com cache)
    * @param repoName Nome do repositório
    * @returns Observable com array de linguagens e suas porcentagens
    */
   getRepositoryLanguages(repoName: string): Observable<LanguageInfo[]> {
+    return this.fetchLanguagesWithCache(repoName).pipe(
+      map(data => data.languages)
+    );
+  }
+
+  private fetchLanguagesWithCache(repoName: string): Observable<RepositoryLanguagesData> {
     const cached = this.loadLanguagesFromCache(repoName);
     if (cached) {
       console.log(`📦 Retornando linguagens do cache para ${repoName}`);
@@ -88,17 +87,22 @@ export class GithubService {
     }
 
     console.log(`🌐 Buscando linguagens do GitHub para ${repoName}...`);
+    return this.fetchLanguagesFromApi(repoName).pipe(
+      tap(data => {
+        this.saveLanguagesToCache(repoName, data);
+        console.log(`💾 Linguagens salvas no cache para ${repoName}`);
+      })
+    );
+  }
+
+  private fetchLanguagesFromApi(repoName: string): Observable<RepositoryLanguagesData> {
     const url = `${this.GITHUB_API}/repos/${this.username}/${repoName}/languages`;
 
     return this.http.get<{ [key: string]: number }>(url, { headers: this.buildHeaders() }).pipe(
-      map(languages => this.calculateLanguagePercentages(languages)),
-      tap(languages => {
-        this.saveLanguagesToCache(repoName, languages);
-        console.log(`💾 Linguagens salvas no cache para ${repoName}`);
-      }),
+      map(response => this.buildLanguageData(response)),
       catchError(error => {
         console.error(`Erro ao buscar linguagens para ${repoName}:`, error);
-        return of([]);
+        return of({ languages: [], totalBytes: 0 });
       })
     );
   }
@@ -108,16 +112,22 @@ export class GithubService {
    * @param languages Objeto com linguagens e bytes
    * @returns Array com linguagens e suas porcentagens
    */
-  private calculateLanguagePercentages(languages: { [key: string]: number }): LanguageInfo[] {
-    const totalBytes = Object.values(languages).reduce((sum, bytes) => sum + bytes, 0);
+  private buildLanguageData(payload: { [key: string]: number }): RepositoryLanguagesData {
+    const totalBytes = Object.values(payload).reduce((sum, bytes) => sum + bytes, 0);
 
-    return Object.entries(languages)
+    if (totalBytes === 0) {
+      return { languages: [], totalBytes: 0 };
+    }
+
+    const languages = Object.entries(payload)
       .map(([name, bytes]) => ({
         name,
         percentage: Math.round((bytes / totalBytes) * 100),
         color: this.getLanguageColor(name)
       }))
       .sort((a, b) => b.percentage - a.percentage);
+
+    return { languages, totalBytes };
   }
 
   /**
@@ -279,7 +289,8 @@ export class GithubService {
       }),
       reduce((acc, repos) => acc.concat(repos), [] as GitHubRepository[]),
       map(repos => repos.filter(repo => !repo.fork)),
-      map(repos => this.enrichRepositoriesWithLanguages(repos))
+      concatMap(repos => this.populateRepositoriesWithLanguages(repos)),
+      map(repos => this.sortRepositoriesBySize(repos))
     );
   }
 
@@ -305,6 +316,52 @@ export class GithubService {
     return repos.slice(0, limit);
   }
 
+  private populateRepositoriesWithLanguages(repos: GitHubRepository[]): Observable<GitHubRepository[]> {
+    if (repos.length === 0) {
+      return of([]);
+    }
+
+    return from(repos).pipe(
+      concatMap(repo =>
+        this.fetchLanguagesWithCache(repo.name).pipe(
+          map(data => ({
+            ...repo,
+            languages: data.languages,
+            totalLanguageBytes: data.totalBytes
+          }))
+        )
+      ),
+      reduce((acc, repo) => {
+        acc.push(repo);
+        return acc;
+      }, [] as GitHubRepository[])
+    );
+  }
+
+  private sortRepositoriesBySize(repos: GitHubRepository[]): GitHubRepository[] {
+    return [...repos].sort((a, b) => {
+      const sizeDiff = this.resolveCodeSize(b) - this.resolveCodeSize(a);
+      if (sizeDiff !== 0) {
+        return sizeDiff;
+      }
+      const starDiff = b.stargazers_count - a.stargazers_count;
+      if (starDiff !== 0) {
+        return starDiff;
+      }
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+  }
+
+  private resolveCodeSize(repo: GitHubRepository): number {
+    if (typeof repo.totalLanguageBytes === 'number') {
+      return repo.totalLanguageBytes;
+    }
+    if (typeof repo.size === 'number') {
+      return repo.size * 1024;
+    }
+    return 0;
+  }
+
   private loadRepositoriesFromCache(): GitHubRepository[] | null {
     const cached = this.readCache<GitHubRepository[]>(this.STORAGE_KEY_REPOSITORIES);
     if (!cached || !this.isCacheValid(cached.timestamp)) {
@@ -317,18 +374,18 @@ export class GithubService {
     this.writeCache(this.STORAGE_KEY_REPOSITORIES, repos);
   }
 
-  private loadLanguagesFromCache(repoName: string): LanguageInfo[] | null {
+  private loadLanguagesFromCache(repoName: string): RepositoryLanguagesData | null {
     const cacheKey = this.languageCacheKey(repoName);
-    const cached = this.readCache<LanguageInfo[]>(cacheKey);
+    const cached = this.readCache<RepositoryLanguagesData>(cacheKey);
     if (!cached || !this.isCacheValid(cached.timestamp)) {
       return null;
     }
     return cached.data;
   }
 
-  private saveLanguagesToCache(repoName: string, languages: LanguageInfo[]): void {
+  private saveLanguagesToCache(repoName: string, data: RepositoryLanguagesData): void {
     const cacheKey = this.languageCacheKey(repoName);
-    this.writeCache(cacheKey, languages);
+    this.writeCache(cacheKey, data);
   }
 
   private languageCacheKey(repoName: string): string {
@@ -380,7 +437,7 @@ export class GithubService {
       if (!key || !key.startsWith(this.LANGUAGE_CACHE_PREFIX)) {
         continue;
       }
-      const cached = this.readCache<LanguageInfo[]>(key);
+      const cached = this.readCache<RepositoryLanguagesData>(key);
       if (!cached || !this.isCacheValid(cached.timestamp)) {
         keysToRemove.push(key);
       }
