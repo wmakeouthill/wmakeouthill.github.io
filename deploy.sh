@@ -4,7 +4,7 @@
 echo "🚀 Iniciando deploy para GitHub Pages..."
 
 # Entrar no diretório do projeto Angular
-cd portfolio
+cd frontend
 
 # Build da aplicação
 echo "📦 Fazendo build da aplicação..."
@@ -24,7 +24,7 @@ mkdir -p docs
 
 # Copiar arquivos do dist para docs
 echo "📂 Copiando arquivos para docs/..."
-cp -r portfolio/dist/portfolio/browser/* docs/
+cp -r frontend/dist/portfolio/browser/* docs/
 
 # Criar arquivo .nojekyll para GitHub Pages
 touch docs/.nojekyll

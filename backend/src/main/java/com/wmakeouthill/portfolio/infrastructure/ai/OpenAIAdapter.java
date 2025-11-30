@@ -1,0 +1,167 @@
+package com.wmakeouthill.portfolio.infrastructure.ai;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wmakeouthill.portfolio.application.dto.ChatResponse;
+import com.wmakeouthill.portfolio.application.port.out.AIChatPort;
+import com.wmakeouthill.portfolio.domain.entity.MensagemChat;
+import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Adapter para integração com a API da OpenAI.
+ * A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
+ * ou via propriedade `-Dopenai.api.key=...`.
+ */
+@Component
+public class OpenAIAdapter implements AIChatPort {
+    private static final Logger log = LoggerFactory.getLogger(OpenAIAdapter.class);
+    private static final String DEFAULT_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String MODELO_PADRAO = "gpt-3.5-turbo";
+    private static final int MAX_TOKENS = 800;
+    private static final String KEY_CONTENT = "content";
+
+    private final HttpClient http = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final TokenCounter tokenCounter = TokenCounter.getInstance();
+    private final String apiKey;
+
+    public OpenAIAdapter(@Value("${openai.api.key:}") String openaiApiKey) {
+        if (openaiApiKey != null && !openaiApiKey.isBlank()) {
+            this.apiKey = openaiApiKey;
+            log.info("OpenAI key carregada via Spring property 'openai.api.key'");
+        } else {
+            String envKey = System.getenv("OPENAI_API_KEY");
+            if (envKey != null && !envKey.isBlank()) {
+                this.apiKey = envKey;
+                log.info("OpenAI key carregada via environment variable 'OPENAI_API_KEY'");
+            } else {
+                this.apiKey = null;
+                log.warn("OpenAI key NÃO encontrada! Verifique:");
+                log.warn("  1. Variável de ambiente OPENAI_API_KEY");
+                log.warn("  2. Propriedade openai.api.key no application.properties");
+                log.warn("  3. Arquivo configmap-local.properties carregado via spring.config.additional-location");
+            }
+        }
+    }
+
+    @Override
+    public ChatResponse chat(String systemPrompt, List<MensagemChat> historico, String mensagemAtual) {
+        if (apiKey == null || apiKey.isBlank()) {
+            return new ChatResponse("Serviço de IA não configurado. Defina a variável OPENAI_API_KEY.");
+        }
+
+        try {
+            List<Map<String, Object>> mensagens = construirMensagens(systemPrompt, historico, mensagemAtual);
+            
+            // Log de tokens de entrada antes da requisição
+            int tokensEntrada = tokenCounter.estimarTokensEntrada(systemPrompt, mensagens);
+            log.info("Tokens estimados de entrada: {} (system prompt: {}, mensagens: {}, histórico: {})", 
+                tokensEntrada,
+                tokenCounter.estimarTokensSystemPrompt(systemPrompt),
+                mensagens.size(),
+                historico.size());
+            
+            Map<String, Object> payload = criarPayload(mensagens);
+            String body = mapper.writeValueAsString(payload);
+
+            HttpRequest req = criarRequisicao(body);
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+
+            ChatResponse resposta = processarResposta(resp);
+            
+            // Log de tokens de saída após a requisição
+            int tokensSaida = tokenCounter.estimarTokensResposta(resposta.reply());
+            log.info("Tokens estimados de saída: {}, total estimado: {}", 
+                tokensSaida, tokensEntrada + tokensSaida);
+            
+            return resposta;
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Erro ao comunicar com OpenAI", e);
+            return new ChatResponse("Erro ao comunicar com IA: " + e.getMessage());
+        }
+    }
+
+    private List<Map<String, Object>> construirMensagens(String systemPrompt, List<MensagemChat> historico,
+            String mensagemAtual) {
+        List<Map<String, Object>> mensagens = new ArrayList<>();
+        mensagens.add(Map.of("role", "system", KEY_CONTENT, systemPrompt));
+
+        for (MensagemChat msg : historico) {
+            mensagens.add(Map.of("role", msg.role(), KEY_CONTENT, msg.content()));
+        }
+
+        mensagens.add(Map.of("role", "user", KEY_CONTENT, mensagemAtual));
+        return mensagens;
+    }
+
+    private Map<String, Object> criarPayload(List<Map<String, Object>> mensagens) {
+        return Map.of(
+                "model", MODELO_PADRAO,
+                "messages", mensagens,
+                "max_tokens", MAX_TOKENS,
+                "temperature", 0.9);
+    }
+
+    private HttpRequest criarRequisicao(String body) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create(DEFAULT_API_URL))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+    }
+
+    private ChatResponse processarResposta(HttpResponse<String> resp) throws IOException {
+        if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+            JsonNode root = mapper.readTree(resp.body());
+            JsonNode first = root.path("choices").path(0).path("message").path(KEY_CONTENT);
+            String reply = first.isMissingNode() ? "" : first.asText();
+            if (reply == null || reply.isBlank()) {
+                reply = "(sem resposta)";
+            }
+            
+            // Tenta extrair informações de uso de tokens da resposta (se disponível)
+            logarUsoTokens(root);
+            
+            return new ChatResponse(reply.trim());
+        } else {
+            String body = resp.body();
+            log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), body);
+            return new ChatResponse("Erro ao chamar API de IA: status=" + resp.statusCode());
+        }
+    }
+    
+    private void logarUsoTokens(JsonNode root) {
+        try {
+            JsonNode usage = root.path("usage");
+            if (!usage.isMissingNode()) {
+                int promptTokens = usage.path("prompt_tokens").asInt(0);
+                int completionTokens = usage.path("completion_tokens").asInt(0);
+                int totalTokens = usage.path("total_tokens").asInt(0);
+                
+                if (totalTokens > 0) {
+                    log.info("Uso de tokens (da API OpenAI): entrada={}, saída={}, total={}", 
+                        promptTokens, completionTokens, totalTokens);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Não foi possível extrair informações de uso de tokens da resposta", e);
+        }
+    }
+}

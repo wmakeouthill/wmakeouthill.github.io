@@ -1,0 +1,35 @@
+.chat-header {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid rgba(219, 194, 125, 0.25);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: rgba(10, 10, 10, 0.96);
+}
+
+.chat-header-info h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.chat-header-info p {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chat-close-button {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.15rem;
+}
+
+.chat-close-button:hover {
+  color: var(--color-accent);
+}
+

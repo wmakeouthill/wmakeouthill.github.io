@@ -1,17 +1,81 @@
 <!DOCTYPE html>
-<html lang="en" data-beasties-container>
-  <head>
-    <meta charset="utf-8">
-    <title>Portfolio</title>
-    <base href="/">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="https://unpkg.com/prismjs/themes/prism-okaidia.css">
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
-  <style>:root{--color-primary:#002E59;--color-accent:#DBC27D;--color-dark:#1a1a1a;--color-medium:#4a4a4a;--color-light:#e5e5e5;--color-white:#ffffff;--color-black:#000000;--color-primary-dark:#001a33;--color-primary-light:#004080;--color-accent-light:#f0e5c4;--color-accent-dark:#c5a85a;--bg-primary:#0a0a0a;--bg-secondary:#1a1a1a;--bg-card:#202020;--bg-hover:#2a2a2a;--text-primary:#ffffff;--text-secondary:#b0b0b0;--text-muted:#808080;--spacing-xs:.5rem;--spacing-sm:1rem;--spacing-md:2rem;--spacing-lg:4rem;--spacing-xl:6rem;--radius-sm:4px;--radius-md:8px;--radius-lg:16px;--radius-full:9999px;--shadow-sm:0 2px 8px rgba(0, 0, 0, .1);--shadow-md:0 4px 16px rgba(0, 0, 0, .2);--shadow-lg:0 8px 32px rgba(0, 0, 0, .3);--shadow-accent:0 4px 20px rgba(219, 194, 125, .3);--transition-fast:.2s ease;--transition-normal:.3s ease;--transition-slow:.5s ease;--font-primary:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;--font-size-xs:.75rem;--font-size-sm:.875rem;--font-size-base:1rem;--font-size-lg:1.125rem;--font-size-xl:1.25rem;--font-size-2xl:1.5rem;--font-size-3xl:1.875rem;--font-size-4xl:2.25rem;--font-size-5xl:3rem;--font-size-6xl:4rem;--z-dropdown:1000;--z-sticky:1020;--z-fixed:1030;--z-modal-backdrop:1040;--z-modal:1050;--z-popover:1060;--z-tooltip:1070}*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-primary);background-color:var(--bg-primary);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}body:not(.light-mode){color:var(--text-primary)}@media (max-width: 1024px){:root{--font-size-5xl:2.5rem;--font-size-4xl:2rem;--font-size-3xl:1.75rem}}@media (max-width: 768px){:root{--font-size-5xl:2rem;--font-size-4xl:1.75rem;--font-size-3xl:1.5rem;--spacing-lg:3rem;--spacing-xl:4rem}}@media (max-width: 480px){:root{--font-size-5xl:1.75rem;--font-size-4xl:1.5rem;--font-size-3xl:1.25rem}}</style><link rel="stylesheet" href="styles-UJA6FVI4.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-UJA6FVI4.css"></noscript></head>
-  <body>
-    <app-root></app-root>
-  <link rel="modulepreload" href="chunk-5GXM7VGB.js"><link rel="modulepreload" href="chunk-5K5UJSFT.js"><link rel="modulepreload" href="chunk-MOFZY53X.js"><link rel="modulepreload" href="chunk-VX5EMMFH.js"><link rel="modulepreload" href="chunk-GNF5XNYD.js"><link rel="modulepreload" href="chunk-YFAARUYZ.js"><link rel="modulepreload" href="chunk-M3EI4B2V.js"><link rel="modulepreload" href="chunk-5UJXG7UJ.js"><link rel="modulepreload" href="chunk-TJGNGVF5.js"><link rel="modulepreload" href="chunk-36WC3TMA.js"><script src="polyfills-5CFQRCPP.js" type="module"></script><script src="main-244MVWJ7.js" type="module"></script></body>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Wesley</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            z-index: 9999;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <h1>Carregando Portfolio...</h1>
+        </div>
+    </div>
+    <iframe 
+        id="portfolioFrame"
+        src="https://projeto-wesley-263590688560.southamerica-east1.run.app"
+        title="Portfolio Wesley"
+        allow="fullscreen"
+        loading="eager"
+        onload="document.getElementById('loading').classList.add('hidden')"
+    ></iframe>
+    <script>
+        // Fallback: se o iframe não carregar em 10 segundos, redireciona
+        setTimeout(function() {
+            const loading = document.getElementById('loading');
+            if (loading && !loading.classList.contains('hidden')) {
+                window.location.href = 'https://projeto-wesley-263590688560.southamerica-east1.run.app';
+            }
+        }, 10000);
+    </script>
+</body>
 </html>
+

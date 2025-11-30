@@ -1,0 +1,70 @@
+.chat-widget-container {
+  position: fixed;
+  /* Posição padrão: alinhado com scroll-to-top quando ele não está visível */
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: var(--z-fixed);
+  font-family: var(--font-primary);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Quando scroll-to-top está visível, move o chat para a esquerda na MESMA LINHA (mesmo bottom) */
+.chat-widget-container.scroll-top-visible {
+  bottom: 0.75rem;
+  /* Mesma linha do scroll-to-top */
+  right: calc(0.75rem + 50px + 0.75rem);
+  /* Move para a esquerda */
+}
+
+.chat-panel {
+  position: absolute;
+  bottom: 0;
+  right: calc(100% + 0.75rem);
+  width: 520px;
+  max-height: calc(100vh - 2.5rem);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(219, 194, 125, 0.25);
+}
+
+.chat-messages {
+  padding: 0.85rem 0.85rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  max-height: 520px;
+  scrollbar-width: thin;
+}
+
+.chat-message-initial {
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .chat-panel {
+    width: calc(100vw - 1.5rem);
+    right: calc(100% + 0.75rem);
+    max-height: calc(100vh - 2rem);
+  }
+
+  .chat-widget-container {
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .chat-widget-container.scroll-top-visible {
+    /* Em mobile, scroll-to-top é menor (40px) - mesma linha */
+    bottom: 0.75rem;
+    /* Mesma linha do scroll-to-top em mobile */
+    right: calc(0.75rem + 40px + 0.5rem);
+    /* Move para a esquerda */
+  }
+}

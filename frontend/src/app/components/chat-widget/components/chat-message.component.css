@@ -1,0 +1,467 @@
+.chat-message {
+  max-width: 92%;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+/* Alinhamento base para texto - usado como referência para bullets */
+.chat-message-assistant > div > *:first-child,
+.chat-message-assistant p:first-child {
+  padding-left: 0;
+}
+
+.chat-message-user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  color: var(--color-white);
+  border-bottom-right-radius: 0.25rem;
+}
+
+.chat-message-assistant {
+  align-self: flex-start;
+  background: var(--bg-card);
+  border: 1px solid rgba(219, 194, 125, 0.18);
+  border-bottom-left-radius: 0.25rem;
+}
+
+/* Garantir que todo conteúdo markdown dentro da mensagem respeite os limites */
+.chat-message-assistant > div {
+  max-width: 100%;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+  overflow-x: visible;
+  overflow-y: visible;
+  min-width: 0;
+}
+
+/* Garantir que listas sejam renderizadas como blocos únicos */
+.chat-message-assistant > div ul,
+.chat-message-assistant > div ol {
+  display: block;
+  list-style: none !important; /* Remover marker nativo completamente */
+  list-style-type: none !important;
+}
+
+/* Remover marker nativo de todas as listas dentro da div */
+.chat-message-assistant > div ul li::marker,
+.chat-message-assistant > div ol li::marker {
+  content: '' !important;
+  display: none !important;
+}
+
+/* Estilos para parágrafos diretos do markdown (sem classe) */
+.chat-message-assistant p {
+  margin: 0.4rem 0;
+  line-height: 1.5;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.chat-message-assistant p:first-child {
+  margin-top: 0;
+}
+
+.chat-message-assistant p:last-child {
+  margin-bottom: 0;
+}
+
+/* Estilos para elementos Markdown renderizados no chat */
+.chat-message-assistant .chat-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(219, 194, 125, 0.5);
+  text-underline-offset: 2px;
+  transition: all var(--transition-fast);
+}
+
+.chat-message-assistant .chat-link:hover {
+  color: var(--color-accent-light);
+  text-decoration-color: var(--color-accent);
+}
+
+.chat-message-assistant .chat-paragraph {
+  margin: 0.4rem 0;
+  line-height: 1.5;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.chat-message-assistant .chat-paragraph:first-child {
+  margin-top: 0;
+}
+
+.chat-message-assistant .chat-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Espaçamento após títulos */
+.chat-message-assistant h1 + .chat-paragraph,
+.chat-message-assistant h2 + .chat-paragraph,
+.chat-message-assistant h3 + .chat-paragraph,
+.chat-message-assistant h4 + .chat-paragraph,
+.chat-message-assistant h5 + .chat-paragraph,
+.chat-message-assistant h6 + .chat-paragraph {
+  margin-top: 0.25rem;
+}
+
+.chat-message-assistant h1 + p,
+.chat-message-assistant h2 + p,
+.chat-message-assistant h3 + p,
+.chat-message-assistant h4 + p,
+.chat-message-assistant h5 + p,
+.chat-message-assistant h6 + p {
+  margin-top: 0.25rem;
+}
+
+.chat-message-assistant .chat-strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chat-message-assistant .chat-em {
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+/* Garantir que listas não quebrem o layout - bullets alinhados com texto normal */
+/* Marker dentro do bloco da mensagem junto com o list-item */
+/* Marker dentro do bloco da mensagem junto com o list-item */
+.chat-message-assistant ul,
+.chat-message-assistant ol {
+  margin: 0.4rem 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1.5rem; /* Padding na lista agrupa todo o conteúdo incluindo markers */
+  padding-right: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  display: block;
+  list-style: none !important; /* Remover marker nativo completamente */
+  list-style-type: none !important;
+}
+
+.chat-message-assistant ul {
+  list-style-type: none; /* Remover marker nativo - usar apenas ::before */
+}
+
+.chat-message-assistant ol {
+  list-style-type: none; /* Remover marker nativo - usar apenas ::before */
+  counter-reset: list-counter-general;
+}
+
+.chat-message-assistant ul li,
+.chat-message-assistant ol li {
+  margin: 0.2rem 0;
+  padding-left: 0; /* Removido - o marker vem antes do texto */
+  padding-right: 0;
+  line-height: 1.35;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  display: block !important; /* Forçar block - não list-item */
+  max-width: 100%;
+  box-sizing: border-box;
+  list-style: none !important; /* Remover marker nativo completamente */
+  list-style-type: none !important;
+}
+
+/* Remover marker nativo de li gerais - forçar remoção completa */
+.chat-message-assistant ul li::marker,
+.chat-message-assistant ol li::marker {
+  content: '' !important;
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* Marker customizado para ul gerais - parte do conteúdo inline */
+.chat-message-assistant ul li::before {
+  content: '• ';
+  color: var(--text-primary);
+  display: inline;
+  margin-right: 0.3em;
+}
+
+/* Marker customizado para ol gerais - parte do conteúdo inline */
+.chat-message-assistant ol li {
+  counter-increment: list-counter-general;
+}
+
+.chat-message-assistant ol li::before {
+  content: counter(list-counter-general) '. ';
+  color: var(--text-primary);
+  display: inline;
+  margin-right: 0.3em;
+}
+
+/* Regras específicas para listas com classes - chat-list abarca todos os chat-list-item */
+.chat-message-assistant .chat-list {
+  margin: 0.4rem 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1.5rem; /* Padding cria o bloco que agrupa todos os itens */
+  padding-right: 0;
+  color: var(--text-primary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  display: block;
+  /* Remover completamente comportamento de lista para evitar ::marker nativo */
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
+.chat-message-assistant .chat-list:is(ul) {
+  counter-reset: none;
+}
+
+.chat-message-assistant .chat-list:is(ol) {
+  counter-reset: list-counter; /* Iniciar contador para ol */
+}
+
+.chat-message-assistant .chat-list-item {
+  margin: 0.2rem 0;
+  padding-left: 0;
+  padding-right: 0;
+  line-height: 1.35;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  display: block !important; /* Forçar block - não list-item para evitar ::marker nativo */
+  max-width: 100%;
+  box-sizing: border-box;
+  /* Remover completamente marker nativo */
+  list-style: none !important;
+  list-style-type: none !important;
+  /* Garantir que o conteúdo (marker customizado + texto) fique junto */
+  position: relative;
+}
+
+/* Remover marker nativo explicitamente - forçar remoção completa */
+.chat-message-assistant .chat-list-item::marker {
+  content: '' !important; /* Remover conteúdo do marker */
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* Marker customizado dentro do chat-list-item para ul - parte do conteúdo inline */
+/* Este ::before está DENTRO do chat-list-item, junto com o texto */
+.chat-message-assistant .chat-list:is(ul) .chat-list-item::before {
+  content: '• ';
+  color: var(--text-primary);
+  display: inline;
+  margin-right: 0.3em;
+  /* Este marker faz parte do conteúdo do chat-list-item */
+}
+
+/* Marker customizado dentro do chat-list-item para ol - parte do conteúdo inline */
+.chat-message-assistant .chat-list:is(ol) .chat-list-item {
+  counter-increment: list-counter;
+}
+
+.chat-message-assistant .chat-list:is(ol) .chat-list-item::before {
+  content: counter(list-counter) '. ';
+  color: var(--text-primary);
+  display: inline;
+  margin-right: 0.3em;
+}
+
+
+/* Listas aninhadas (tópicos dentro de tópicos) */
+.chat-message-assistant ul ul,
+.chat-message-assistant ol ol,
+.chat-message-assistant ul ol,
+.chat-message-assistant ol ul {
+  margin: 0.25rem 0;
+  margin-left: 0;
+  padding-left: 1.5rem;
+  min-width: 0;
+  list-style: none !important; /* Remover marker nativo */
+}
+
+.chat-message-assistant ul ul {
+  list-style-type: none !important;
+}
+
+.chat-message-assistant ul ul ul {
+  list-style-type: none !important;
+}
+
+.chat-message-assistant ul ul li,
+.chat-message-assistant ol ol li,
+.chat-message-assistant ul ol li,
+.chat-message-assistant ol ul li {
+  margin: 0.15rem 0;
+  font-size: 0.95em;
+  padding-left: 0;
+  list-style: none !important; /* Remover marker nativo */
+  display: block !important;
+}
+
+/* Remover marker nativo de listas aninhadas */
+.chat-message-assistant ul ul li::marker,
+.chat-message-assistant ol ol li::marker {
+  content: '' !important;
+  display: none !important;
+}
+
+/* Marker customizado para listas aninhadas */
+.chat-message-assistant ul ul li::before {
+  content: '○ ';
+  display: inline;
+  margin-right: 0.3em;
+}
+
+/* Listas aninhadas com classes chat */
+.chat-message-assistant .chat-list .chat-list,
+.chat-message-assistant .chat-list ul,
+.chat-message-assistant .chat-list ol {
+  margin: 0.25rem 0;
+  margin-left: 0;
+  padding-left: 1.5rem;
+  min-width: 0;
+  list-style: none !important; /* Remover marker nativo */
+}
+
+.chat-message-assistant .chat-list ul {
+  list-style-type: none !important;
+}
+
+.chat-message-assistant .chat-list ul ul {
+  list-style-type: none !important;
+}
+
+.chat-message-assistant .chat-list-item .chat-list-item,
+.chat-message-assistant .chat-list li {
+  margin: 0.15rem 0;
+  font-size: 0.95em;
+  padding-left: 0;
+  list-style: none !important; /* Remover marker nativo */
+  display: block !important;
+}
+
+/* Remover marker nativo de chat-list-item aninhados */
+.chat-message-assistant .chat-list-item .chat-list-item::marker,
+.chat-message-assistant .chat-list li::marker {
+  content: '' !important;
+  display: none !important;
+}
+
+/* Títulos */
+.chat-message-assistant h1,
+.chat-message-assistant h2,
+.chat-message-assistant h3,
+.chat-message-assistant h4,
+.chat-message-assistant h5,
+.chat-message-assistant h6 {
+  margin: 0.35rem 0 0.25rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1.25;
+}
+
+.chat-message-assistant h1,
+.chat-message-assistant h2 {
+  font-size: 0.8rem;
+}
+
+.chat-message-assistant h3,
+.chat-message-assistant h4,
+.chat-message-assistant h5,
+.chat-message-assistant h6 {
+  font-size: 0.75rem;
+}
+
+.chat-message-assistant h1:first-child,
+.chat-message-assistant h2:first-child,
+.chat-message-assistant h3:first-child,
+.chat-message-assistant h4:first-child,
+.chat-message-assistant h5:first-child,
+.chat-message-assistant h6:first-child {
+  margin-top: 0;
+}
+
+.chat-message-assistant code {
+  background: rgba(219, 194, 125, 0.15);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85em;
+  color: var(--color-accent);
+}
+
+.chat-message-assistant pre {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(219, 194, 125, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  position: relative;
+}
+
+.chat-message-assistant pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-primary);
+  display: block;
+  overflow-x: auto;
+}
+
+/* Syntax highlighting com PrismJS no chat */
+.chat-message-assistant pre code[class*="language-"] {
+  background: transparent;
+}
+
+.chat-message-assistant pre code .token {
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+}
+
+/* Code inline (não em blocos) mantém o estilo original */
+.chat-message-assistant :not(pre) > code {
+  background: rgba(219, 194, 125, 0.15);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85em;
+  color: var(--color-accent);
+}
+
+/* Garantir que tokens do PrismJS dentro de pre code tenham cor adequada */
+.chat-message-assistant pre code .token.comment,
+.chat-message-assistant pre code .token.prolog,
+.chat-message-assistant pre code .token.doctype,
+.chat-message-assistant pre code .token.cdata {
+  opacity: 0.7;
+}
+

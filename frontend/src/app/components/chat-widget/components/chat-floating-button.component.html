@@ -1,0 +1,13 @@
+<img
+  src="/ai-avatar.png"
+  alt="Avatar IA"
+  class="chat-avatar"
+  [class.chat-open]="isOpen()"
+  (click)="onClick.emit()"
+  role="button"
+  tabindex="0"
+  (keydown.enter)="onClick.emit()"
+  (keydown.space)="onClick.emit()"
+  aria-label="Abrir chat com IA sobre o Wesley"
+/>
+

@@ -1,0 +1,176 @@
+<section id="projects" class="section projects" #projectsSection>
+  <div class="container">
+    <div class="section-title">
+      <h2>Projetos & Portfólio</h2>
+      <p class="section-subtitle">Meus trabalhos recentes do GitHub</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      @for (lang of availableLanguages; track lang) {
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === lang"
+        (click)="filterProjects(lang)"
+      >
+        {{ lang === 'all' ? 'Todos' : lang }}
+      </button>
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando projetos...</p>
+    </div>
+    }
+
+    <!-- Projects Grid -->
+    @if (!loading && filteredProjects.length > 0) {
+    <div class="projects-grid">
+      @for (project of paginatedProjects; track project.id) {
+      <div class="project-card">
+        <div class="project-image">
+          <img [src]="getProjectImage(project.name)" [alt]="project.name" />
+          <div class="project-overlay">
+            <div class="project-links">
+              <a
+                [href]="project.html_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link"
+              >
+                <img src="assets/icons/github-octocat.svg" alt="GitHub" width="14" height="14" />
+                GitHub
+              </a>
+              @if (project.homepage) {
+              <a
+                [href]="project.homepage"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link"
+              >
+                🚀 Demo
+              </a>
+              }
+              <button
+                (click)="openReadmeModal(project.name)"
+                class="project-link readme-btn"
+                [disabled]="loadingPreRender"
+              >
+                @if (loadingPreRender && currentProjectName === project.name) {
+                <div class="loading-spinner"></div>
+                Carregando... } @else {
+                <img src="assets/icons/readme.svg" alt="README" width="14" height="14" />
+                README }
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-content">
+          <h3 class="project-title">{{ project.name }}</h3>
+          <p class="project-description">
+            {{ project.description || 'Sem descrição disponível' }}
+          </p>
+
+          <div class="project-footer">
+            <div class="project-stats">
+              <span class="stat">⭐ {{ project.stargazers_count }}</span>
+              <span class="stat">🔱 {{ project.forks_count }}</span>
+            </div>
+
+            @if (project.language) {
+            <span class="language-badge">{{ project.language }}</span>
+            }
+          </div>
+
+          @if (project.languages && project.languages.length > 0) {
+          <div class="languages-section">
+            <div class="languages-bar">
+              @for (lang of project.languages; track lang.name) {
+              <div
+                class="language-segment"
+                [style.background-color]="lang.color"
+                [style.width.%]="lang.percentage"
+                [title]="lang.name + ': ' + lang.percentage + '%'"
+              ></div>
+              }
+            </div>
+            <div class="languages-legend">
+              @for (lang of project.languages; track lang.name) {
+              <div class="language-item">
+                <span class="language-color" [style.background-color]="lang.color"></span>
+                <span class="language-name">{{ lang.name }}</span>
+                <span class="language-percentage">{{ lang.percentage }}%</span>
+              </div>
+              }
+            </div>
+          </div>
+          } @if (project.topics && project.topics.length > 0) {
+          <div class="project-topics">
+            @for (topic of project.topics.slice(0, 3); track topic) {
+            <span class="topic-tag">{{ topic }}</span>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+    <div class="pagination">
+      <button
+        class="pagination-btn"
+        [class.disabled]="currentPage === 1"
+        (click)="previousPage()"
+        aria-label="Página anterior"
+      >
+        ‹
+      </button>
+
+      @for (page of pageNumbers; track page) {
+        @if (page === -1) {
+        <span class="pagination-ellipsis">...</span>
+        } @else {
+        <button
+          class="pagination-btn"
+          [class.active]="currentPage === page"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+        }
+      }
+
+      <button
+        class="pagination-btn"
+        [class.disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+        aria-label="Próxima página"
+      >
+        ›
+      </button>
+    </div>
+    } }
+
+    <!-- Empty State -->
+    @if (!loading && filteredProjects.length === 0) {
+    <div class="empty-state">
+      <p>Nenhum projeto encontrado para este filtro.</p>
+    </div>
+    }
+  </div>
+
+  <!-- README Modal -->
+  <app-readme-modal
+    [isOpen]="showReadmeModal"
+    [projectName]="currentProjectName"
+    [visible]="modalVisible"
+    (close)="closeReadmeModal()"
+  >
+  </app-readme-modal>
+</section>

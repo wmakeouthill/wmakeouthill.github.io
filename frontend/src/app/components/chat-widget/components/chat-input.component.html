@@ -1,0 +1,38 @@
+<form
+  class="chat-input-area"
+  (ngSubmit)="handleSubmit()"
+  autocomplete="off"
+>
+  <input
+    #chatInput
+    type="text"
+    class="chat-input"
+    [disabled]="isLoading()"
+    [ngModel]="inputText()"
+    (ngModelChange)="handleInputChange($event)"
+    name="chatInput"
+    placeholder="Ex: Quais stacks o Wesley usa atualmente no trabalho?"
+  />
+  <button
+    type="button"
+    class="chat-new-conversation-button"
+    (click)="iniciarNovaConversa()"
+    [disabled]="isLoading()"
+    aria-label="Iniciar nova conversa"
+    data-tooltip="Iniciar nova conversa"
+  >
+    <img 
+      src="/new_conversation.png" 
+      alt="Nova conversa" 
+      class="new-conversation-icon"
+    />
+  </button>
+  <button
+    type="submit"
+    class="chat-send-button"
+    [disabled]="!canSend()"
+  >
+    Enviar
+  </button>
+</form>
+

@@ -1,29 +1,146 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/e2e/test-output/
-/.angular/
+# ============================================
+# IDEs e Editores
+# ============================================
+.idea/
+.vscode/
+.cursorrules
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
+
+# ============================================
+# Backend - Java / Maven / Spring Boot
+# ============================================
+# Maven
+backend/target/
+backend/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven wrapper (opcional - mantenha se usar)
+# backend/.mvn/wrapper/maven-wrapper.jar
+
+# Arquivos compilados
+**/classes/
+**/test-classes/
+**/generated-sources/
+**/generated-test-sources/
+**/maven-archiver/
+**/maven-status/
+
+# Arquivos de configuração local (manter apenas .example)
+backend/container/configmap-local.properties
+backend/container/configmap-secrets-local.properties
+backend/container/application-secrets.properties
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-dev.properties
+
+# Arquivos de build do Angular copiados para static (gerados automaticamente)
+# Toda a pasta static contém arquivos gerados pelo build do Angular
+# Os assets originais estão em frontend/public/assets/
+backend/src/main/resources/static/
+
+# ============================================
+# Frontend - Angular / Node.js
+# ============================================
+# Angular build outputs
+frontend/dist/
+frontend/.angular/
+frontend/out-tsc/
+frontend/.ng/
+
+# Node.js
+frontend/node_modules/
+frontend/node/  # Instalação local do Node.js não deve estar no repo
+node_modules/
+**/package-lock.json  # Ignorar em qualquer pasta (raiz, frontend, portfolio, etc.)
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# Angular cache
+frontend/.angular/
 .angular/
-/material para os markdowns/
-/material para os markdowns
-# Node modules and dependency files
-/node_modules/
-/package-lock.json
-/yarn.lock
-*.log*
-# Environment files
-/.env
-
-# Angular CLI and build artefacts
-/.angular-cli.json
-/.ng/
-
-# TypeScript cache
 *.tsbuildinfo
 
+# Coverage
+frontend/coverage/
+frontend/e2e/test-output/
+
+# ============================================
 # Logs
+# ============================================
+logs/
+*.log
+*.log.*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+frontend.log
+backend.log
+
+# ============================================
+# Arquivos de Ambiente e Configuração
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.env
+
+# ============================================
+# Arquivos Temporários e Sistema
+# ============================================
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Arquivos de Build e Deploy
+# ============================================
+dist/
+build/
+out/
+*.zip
+*.tar
+*.tar.gz
+
+# ============================================
+# Arquivos de Backup
+# ============================================
+*.bak
+*.backup
+*~
+*.orig
+
+# ============================================
+# Arquivos de Documentação Gerados
+# ============================================
+docs/generated/
+docs/build/
+
+# ============================================
+# Arquivos Específicos do Projeto
+# ============================================
+# Material para markdowns (se não for código fonte)
+/material para os markdowns/
+
+# Arquivos grandes de mídia que não são essenciais (ajuste conforme necessário)
+# *.mp4
+# *.mov
+# *.avi
