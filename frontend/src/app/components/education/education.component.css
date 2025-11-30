@@ -1,5 +1,11 @@
 .education {
   background: var(--bg-primary);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.education .section-title {
+  margin-bottom: 2rem;
 }
 
 .education-grid {
@@ -8,6 +14,7 @@
   gap: 2rem;
   max-width: 1000px;
   margin: 0 auto;
+  margin-top: 2rem;
 }
 
 .education-card {
@@ -154,9 +161,36 @@
   font-size: 1.125rem;
 }
 
+@media (max-width: 1024px) {
+  .education {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .education .section-title {
+    margin-bottom: 1.5rem;
+  }
+  
+  .education-grid {
+    margin-top: 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .education {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+  
+  .education .section-title {
+    margin-bottom: 1.25rem;
+  }
+  
   .education-grid {
     grid-template-columns: 1fr;
+    margin-top: 1.25rem;
+    gap: 1.25rem;
   }
 
   .education-card {
@@ -171,6 +205,22 @@
     position: static;
     display: inline-block;
     margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .education {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .education .section-title {
+    margin-bottom: 1rem;
+  }
+  
+  .education-grid {
+    margin-top: 1rem;
+    gap: 1rem;
   }
 }
 

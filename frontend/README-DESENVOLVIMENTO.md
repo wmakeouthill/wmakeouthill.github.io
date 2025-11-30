@@ -85,3 +85,16 @@ Se a porta 4200 estiver ocupada, você pode usar outra porta:
 ```bash
 ng serve --host 0.0.0.0 --port 4201
 ```
+
+## Token do GitHub e Cache no Navegador
+
+1. Crie um **Personal Access Token** no GitHub com escopo mínimo `public_repo`.
+2. Cole o token no `sessionStorage` para que apenas a aba atual possua acesso:
+
+```js
+sessionStorage.setItem('github_pat_token', 'ghp_seu_token_aqui');
+```
+
+3. Recarregue a página (`Ctrl+R`). As chamadas à API do GitHub usarão esse token e os resultados ficarão em cache no `sessionStorage` por 24h.
+
+> Dica: é possível definir `NG_APP_GITHUB_TOKEN=ghp_seu_token` antes de `npm start` para embutir o token apenas durante o build local. Nunca commite o token no repositório.

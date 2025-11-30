@@ -1,18 +1,25 @@
 .experience {
   background: var(--bg-secondary);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.experience .section-title {
+  margin-bottom: 2rem;
 }
 
 .timeline {
   max-width: 900px;
   margin: 0 auto;
   position: relative;
+  margin-top: 2rem;
 }
 
 .timeline-item {
   display: grid;
   grid-template-columns: 40px 1fr;
   gap: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   position: relative;
 }
 
@@ -140,10 +147,51 @@
   border: 1px solid rgba(219, 194, 125, 0.2);
 }
 
+@media (max-width: 1024px) {
+  .experience {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .experience .section-title {
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeline {
+    margin-top: 1.5rem;
+  }
+  
+  .timeline-item {
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeline-item:last-child {
+    margin-bottom: 0;
+  }
+}
+
 @media (max-width: 768px) {
+  .experience {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+  
+  .experience .section-title {
+    margin-bottom: 1.25rem;
+  }
+  
+  .timeline {
+    margin-top: 1.25rem;
+  }
+  
   .timeline-item {
     grid-template-columns: 30px 1fr;
     gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .timeline-item:last-child {
+    margin-bottom: 0;
   }
 
   .marker-dot {
@@ -170,6 +218,29 @@
 
   .experience-card:hover {
     transform: translateY(-5px) translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .experience {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .experience .section-title {
+    margin-bottom: 1rem;
+  }
+  
+  .timeline {
+    margin-top: 1rem;
+  }
+  
+  .timeline-item {
+    margin-bottom: 1rem;
+  }
+  
+  .timeline-item:last-child {
+    margin-bottom: 0;
   }
 }
 
