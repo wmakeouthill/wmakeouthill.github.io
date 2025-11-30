@@ -42,7 +42,7 @@ export class GithubService {
    * @param limit Número máximo de repositórios a retornar
    * @returns Observable com array de repositórios
    */
-  getRepositories(limit: number = 6): Observable<GitHubRepository[]> {
+  getRepositories(limit: number = 0): Observable<GitHubRepository[]> {
     const cached = this.loadRepositoriesFromCache();
     if (cached) {
       console.log('📦 Retornando repositórios do sessionStorage');

@@ -14,11 +14,16 @@
   gap: 4rem;
   max-width: 1100px;
   margin: 0 auto;
-  align-items: start;
+  align-items: stretch;
   margin-top: 2rem;
 }
 
 /* Contact Info */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+}
+
 .contact-info h3,
 .contact-form-wrapper h3 {
   font-size: 1.75rem;
@@ -36,8 +41,10 @@
 .contact-methods {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  margin-bottom: 0;
+  flex: 1;
+  justify-content: space-between;
 }
 
 .contact-method {
@@ -122,6 +129,11 @@
 }
 
 /* Contact Form */
+.contact-form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
 .contact-form {
   background: var(--bg-card);
   padding: 2rem;
@@ -129,6 +141,7 @@
   border: 1px solid rgba(219, 194, 125, 0.1);
   transition: opacity var(--transition-normal);
   margin-top: 0;
+  flex: 1;
 }
 
 .contact-form.submitting {
@@ -222,6 +235,15 @@
     margin-top: 1.5rem;
     gap: 3rem;
   }
+  
+  .contact-methods {
+    gap: 1.25rem;
+  }
+  
+  .info-description,
+  .form-description {
+    margin-bottom: 1.5rem;
+  }
 }
 
 @media (max-width: 968px) {
@@ -244,6 +266,15 @@
   .contact-content {
     margin-top: 1.25rem;
     gap: 2rem;
+  }
+  
+  .contact-methods {
+    gap: 1rem;
+  }
+  
+  .info-description,
+  .form-description {
+    margin-bottom: 1.25rem;
   }
   
   .contact-form {
@@ -269,5 +300,14 @@
   .contact-content {
     margin-top: 1rem;
     gap: 1.5rem;
+  }
+  
+  .contact-methods {
+    gap: 0.875rem;
+  }
+  
+  .info-description,
+  .form-description {
+    margin-bottom: 1rem;
   }
 }

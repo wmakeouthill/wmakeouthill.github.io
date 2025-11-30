@@ -6,8 +6,10 @@
         Desenvolvedor Full Stack apaixonado por ajudar a resolver problemas das pessoas, trabalhar
         na criação de soluções inovadoras e experiências digitais incríveis.
       </p>
-      <div class="footer-badge">
-        <span>🅰️ Desenvolvido com Angular</span>
+      <div class="footer-badges">
+        @for (tech of techStack; track tech.name) {
+        <span class="footer-badge">{{ tech.icon }} {{ tech.name }}</span>
+        }
       </div>
     </div>
 
