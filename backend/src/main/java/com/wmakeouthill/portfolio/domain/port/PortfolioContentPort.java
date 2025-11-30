@@ -1,5 +1,7 @@
 package com.wmakeouthill.portfolio.domain.port;
 
+import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +20,13 @@ public interface PortfolioContentPort {
    * @return lista de conteúdos em texto; nunca {@code null}
    */
   List<String> carregarConteudosMarkdown();
+
+  /**
+   * Carrega markdowns com metadados para uso em buscas contextuais.
+   *
+   * @return lista de descritores de markdown
+   */
+  List<PortfolioMarkdownResource> carregarMarkdownsDetalhados();
 
   /**
    * Carrega o markdown associado a um projeto específico, identificado por um nome

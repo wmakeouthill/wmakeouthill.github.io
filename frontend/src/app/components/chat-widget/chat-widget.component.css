@@ -24,6 +24,7 @@
   right: calc(100% + 0.75rem);
   width: 520px;
   max-height: calc(100vh - 2.5rem);
+  max-height: calc(100dvh - 2.5rem); /* Dynamic viewport height para mobile */
   background: var(--bg-secondary);
   color: var(--text-primary);
   border-radius: var(--radius-lg);
@@ -42,6 +43,7 @@
   overflow-y: auto;
   max-height: 520px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
 }
 
 .chat-message-initial {
@@ -50,9 +52,39 @@
 
 @media (max-width: 640px) {
   .chat-panel {
-    width: calc(100vw - 1.5rem);
-    right: calc(100% + 0.75rem);
-    max-height: calc(100vh - 2rem);
+    width: calc(100vw - 1rem);
+    right: calc(100% + 0.5rem);
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem); /* Dynamic viewport height para mobile */
+    border-radius: var(--radius-md);
+  }
+
+  .chat-widget-container {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .chat-widget-container.scroll-top-visible {
+    /* Em mobile, scroll-to-top é menor (44px) - mesma linha */
+    bottom: 1rem;
+    /* Mesma linha do scroll-to-top em mobile */
+    right: calc(1rem + 44px + 0.5rem);
+    /* Move para a esquerda */
+  }
+
+  .chat-messages {
+    max-height: calc(100dvh - 8rem); /* Ajuste dinâmico para mobile */
+    padding: 0.75rem 0.75rem 0.5rem;
+    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-panel {
+    width: calc(100vw - 0.5rem);
+    right: calc(100% + 0.25rem);
+    max-height: calc(100dvh - 1rem);
+    border-radius: var(--radius-sm);
   }
 
   .chat-widget-container {
@@ -61,10 +93,13 @@
   }
 
   .chat-widget-container.scroll-top-visible {
-    /* Em mobile, scroll-to-top é menor (40px) - mesma linha */
     bottom: 0.75rem;
-    /* Mesma linha do scroll-to-top em mobile */
-    right: calc(0.75rem + 40px + 0.5rem);
-    /* Move para a esquerda */
+    right: calc(0.75rem + 44px + 0.5rem);
+  }
+
+  .chat-messages {
+    max-height: calc(100dvh - 7rem);
+    padding: 0.65rem 0.65rem 0.45rem;
+    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
   }
 }

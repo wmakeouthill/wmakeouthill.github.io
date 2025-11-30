@@ -1,5 +1,6 @@
 package com.wmakeouthill.portfolio.infrastructure.content;
 
+import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
 import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -32,50 +33,19 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
 
   @Override
   public List<String> carregarConteudosMarkdown() {
-    List<String> conteudos = new ArrayList<>();
+    return carregarMarkdownsDetalhados().stream()
+        .map(PortfolioMarkdownResource::conteudo)
+        .toList();
+  }
 
-    try {
-      // 1) Carrega markdowns gerais (portfolio-content/*.md) - apenas na raiz, não em subpastas
-      Resource[] generalResources = resolver.getResources(MARKDOWN_LOCATION_PATTERN);
-      int generalCount = 0;
-      for (Resource resource : generalResources) {
-        try {
-          String uri = resource.getURI().toString();
-          // Verifica se está na raiz de portfolio-content (não em subpastas como projects/)
-          if (uri.contains("/portfolio-content/") && !uri.contains("/portfolio-content/projects/")) {
-            String conteudo = lerRecursoComoTexto(resource);
-            if (!conteudo.isBlank()) {
-              conteudos.add(limitadorDeTamanho(conteudo));
-              generalCount++;
-            }
-          }
-        } catch (Exception e) {
-          log.debug("Erro ao processar recurso {}", resource, e);
-        }
-      }
-
-      // 2) Carrega TODOS os markdowns de projetos (portfolio-content/projects/*.md)
-      Resource[] projectResources = resolver.getResources(PROJECT_MARKDOWN_PATTERN);
-      int projectCount = 0;
-      for (Resource resource : projectResources) {
-        try {
-          String conteudo = lerRecursoComoTexto(resource);
-          if (!conteudo.isBlank()) {
-            conteudos.add(limitadorDeTamanho(conteudo));
-            projectCount++;
-          }
-        } catch (Exception e) {
-          log.debug("Erro ao processar recurso de projeto {}", resource, e);
-        }
-      }
-
-      log.info("Carregados {} markdowns gerais e {} markdowns de projetos para contexto da IA (total: {})", 
-          generalCount, projectCount, conteudos.size());
-    } catch (IOException e) {
-      log.warn("Não foi possível carregar markdowns de portfolio-content", e);
-    }
-
-    return conteudos;
+  @Override
+  public List<PortfolioMarkdownResource> carregarMarkdownsDetalhados() {
+    List<PortfolioMarkdownResource> gerais = carregarRecursosGenericos();
+    List<PortfolioMarkdownResource> projetos = carregarRecursosDeProjetos();
+    log.info(
+        "Carregados {} markdowns gerais e {} markdowns de projetos para contexto da IA (total: {})",
+        gerais.size(), projetos.size(), gerais.size() + projetos.size());
+    return unirListas(gerais, projetos);
   }
 
   @Override
@@ -95,6 +65,73 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
       log.warn("Não foi possível carregar markdown do projeto {}", nomeProjetoNormalizado, e);
       return Optional.empty();
     }
+  }
+
+  private List<PortfolioMarkdownResource> carregarRecursosGenericos() {
+    List<PortfolioMarkdownResource> recursos = new ArrayList<>();
+    try {
+      for (Resource resource : resolver.getResources(MARKDOWN_LOCATION_PATTERN)) {
+        if (!estaNaRaizPortfolio(resource)) {
+          continue;
+        }
+        lerComoResource(resource, false).ifPresent(recursos::add);
+      }
+    } catch (IOException e) {
+      log.warn("Não foi possível carregar markdowns gerais", e);
+    }
+    return recursos;
+  }
+
+  private List<PortfolioMarkdownResource> carregarRecursosDeProjetos() {
+    List<PortfolioMarkdownResource> recursos = new ArrayList<>();
+    try {
+      for (Resource resource : resolver.getResources(PROJECT_MARKDOWN_PATTERN)) {
+        lerComoResource(resource, true).ifPresent(recursos::add);
+      }
+    } catch (IOException e) {
+      log.warn("Não foi possível carregar markdowns de projetos", e);
+    }
+    return recursos;
+  }
+
+  private Optional<PortfolioMarkdownResource> lerComoResource(Resource resource, boolean projeto) {
+    try {
+      String conteudo = lerRecursoComoTexto(resource);
+      if (conteudo.isBlank()) {
+        return Optional.empty();
+      }
+      return Optional.of(new PortfolioMarkdownResource(
+          extrairNome(resource),
+          resource.getURI().toString(),
+          limitadorDeTamanho(conteudo),
+          projeto));
+    } catch (Exception e) {
+      log.debug("Erro ao processar recurso {}", resource, e);
+      return Optional.empty();
+    }
+  }
+
+  private boolean estaNaRaizPortfolio(Resource resource) throws IOException {
+    String uri = resource.getURI().toString();
+    return uri.contains("/portfolio-content/") && !uri.contains("/portfolio-content/projects/");
+  }
+
+  private String extrairNome(Resource resource) {
+    String filename = resource.getFilename();
+    if (filename == null || filename.isBlank()) {
+      return "desconhecido";
+    }
+    int idx = filename.lastIndexOf('.');
+    return idx > 0 ? filename.substring(0, idx) : filename;
+  }
+
+  private List<PortfolioMarkdownResource> unirListas(
+      List<PortfolioMarkdownResource> gerais,
+      List<PortfolioMarkdownResource> projetos
+  ) {
+    List<PortfolioMarkdownResource> todos = new ArrayList<>(gerais);
+    todos.addAll(projetos);
+    return todos;
   }
 
   private String lerRecursoComoTexto(Resource resource) throws IOException {
