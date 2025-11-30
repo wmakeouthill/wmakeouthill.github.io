@@ -13,8 +13,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Adapter de infraestrutura que lê arquivos markdown do classpath
@@ -28,6 +31,27 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
   private static final String PROJECT_MARKDOWN_PATTERN = "classpath*:portfolio-content/projects/*.md";
   private static final String PROJECT_MARKDOWN_PATTERN_SINGLE = "classpath*:portfolio-content/projects/%s.md";
   private static final int MAX_CHARS_PER_FILE = 4000;
+  private static final Map<String, MarkdownMetadata> METADADOS = Map.ofEntries(
+      Map.entry("curriculo", metadata(true, Set.of("curriculo", "perfil", "experiencia", "contato"))),
+      Map.entry("stacks", metadata(true, Set.of("stack", "tecnologias", "skills"))),
+      Map.entry("readme", metadata(false, Set.of("portfolio", "resumo"))),
+      Map.entry("readme_github_profile", metadata(false, Set.of("perfil", "github"))),
+      Map.entry("aa_space", metadata(false, Set.of("projeto", "aa space", "comunidade"))),
+      Map.entry("experimenta-ai---soneca", metadata(false, Set.of("projeto", "lanchonete", "clean architecture"))),
+      Map.entry("first-angular-app", metadata(false, Set.of("projeto", "angular", "iniciante"))),
+      Map.entry("investment_calculator", metadata(false, Set.of("projeto", "investimento", "calculadora"))),
+      Map.entry("lobby-pedidos", metadata(false, Set.of("projeto", "pedidos", "automacao"))),
+      Map.entry("lol-matchmaking-fazenda", metadata(false, Set.of("projeto", "lol", "matchmaking"))),
+      Map.entry("mercearia-r-v", metadata(false, Set.of("projeto", "varejo", "estoque"))),
+      Map.entry("obaid-with-bro", metadata(false, Set.of("projeto", "chatbot", "obaid"))),
+      Map.entry("pinta-como-eu-pinto", metadata(false, Set.of("projeto", "arte", "pintura"))),
+      Map.entry("pintarapp", metadata(false, Set.of("projeto", "pintura", "app"))),
+      Map.entry("traffic_manager", metadata(false, Set.of("projeto", "dashboard", "tempo real"))),
+      Map.entry("anbima-selic-banco-central", metadata(false, Set.of("experiencia", "anbima", "selic"))),
+      Map.entry("gondim-albuquerque-negreiros", metadata(false, Set.of("experiencia", "juridico"))),
+      Map.entry("liquigas-petrobras", metadata(false, Set.of("experiencia", "liquigas"))),
+      Map.entry("phillip-morris", metadata(false, Set.of("experiencia", "phillip morris")))
+  );
 
   private final PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
@@ -100,11 +124,15 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
       if (conteudo.isBlank()) {
         return Optional.empty();
       }
+      String nome = extrairNome(resource);
+      MarkdownMetadata metadata = metadataPara(nome, projeto);
       return Optional.of(new PortfolioMarkdownResource(
-          extrairNome(resource),
+          nome,
           resource.getURI().toString(),
           limitadorDeTamanho(conteudo),
-          projeto));
+          projeto,
+          metadata.preferencialFallback(),
+          metadata.tags()));
     } catch (Exception e) {
       log.debug("Erro ao processar recurso {}", resource, e);
       return Optional.empty();
@@ -132,6 +160,25 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
     List<PortfolioMarkdownResource> todos = new ArrayList<>(gerais);
     todos.addAll(projetos);
     return todos;
+  }
+
+  private MarkdownMetadata metadataPara(String nome, boolean projeto) {
+    String chave = nome.toLowerCase(Locale.ROOT);
+    MarkdownMetadata metadata = METADADOS.get(chave);
+    if (metadata != null) {
+      return metadata;
+    }
+    Set<String> tags = projeto
+        ? Set.of("projeto", chave)
+        : Set.of("portfolio", chave);
+    return new MarkdownMetadata(false, tags);
+  }
+
+  private static MarkdownMetadata metadata(boolean preferencialFallback, Set<String> tags) {
+    return new MarkdownMetadata(preferencialFallback, tags);
+  }
+
+  private record MarkdownMetadata(boolean preferencialFallback, Set<String> tags) {
   }
 
   private String lerRecursoComoTexto(Resource resource) throws IOException {

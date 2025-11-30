@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +38,9 @@ public class ContextSearchService {
           recurso.nome() + "-" + indice++,
           recurso.conteudo(),
           extrairStems(recurso.conteudo()),
-          recurso.projeto()
+          recurso.projeto(),
+          recurso.preferencialFallback(),
+          normalizarTags(recurso.tags())
       ));
     }
     atualizarFallback();
@@ -79,7 +81,22 @@ public class ContextSearchService {
         total += 1;
       }
     }
-    return total / tokens.size();
+    double baseScore = total / tokens.size();
+    double tagBoost = calcularTagBoost(chunk, tokens);
+    return baseScore + tagBoost;
+  }
+
+  private double calcularTagBoost(ContextChunk chunk, List<String> tokens) {
+    if (chunk.tagStems.isEmpty()) {
+      return 0;
+    }
+    long matches = tokens.stream()
+        .filter(chunk.tagStems::contains)
+        .count();
+    if (matches == 0) {
+      return 0;
+    }
+    return 1 + (matches - 1) * 0.25;
   }
 
   private boolean temSimilaridade(String token, Set<String> stems) {
@@ -130,6 +147,15 @@ public class ContextSearchService {
         .collect(Collectors.toSet());
   }
 
+  private Set<String> normalizarTags(Set<String> tags) {
+    if (tags == null || tags.isEmpty()) {
+      return Set.of();
+    }
+    return tags.stream()
+        .map(this::stemming)
+        .collect(Collectors.toSet());
+  }
+
   private String stemming(String palavra) {
     String normalizada = normalize(palavra);
     if (normalizada.length() <= 3) {
@@ -168,9 +194,15 @@ public class ContextSearchService {
   private void atualizarFallback() {
     fallbackChunks.clear();
     contextChunks.stream()
-        .filter(chunk -> !chunk.projeto)
+        .filter(ContextChunk::preferencialFallback)
         .limit(MAX_FALLBACK)
         .forEach(fallbackChunks::add);
+    if (fallbackChunks.size() < MAX_FALLBACK) {
+      contextChunks.stream()
+          .filter(chunk -> !chunk.projeto && !fallbackChunks.contains(chunk))
+          .limit(MAX_FALLBACK - fallbackChunks.size())
+          .forEach(fallbackChunks::add);
+    }
   }
 
   private List<String> limitar(List<String> contextos, int limite) {
@@ -183,7 +215,9 @@ public class ContextSearchService {
       String id,
       String conteudo,
       Set<String> stems,
-      boolean projeto
+      boolean projeto,
+      boolean preferencialFallback,
+      Set<String> tagStems
   ) {
   }
 

@@ -20,8 +20,8 @@ public class PortfolioPromptService {
 
       CONTEXTO SOBRE O WESLEY (RESUMO):
       - Nome: Wesley Correia (wmakeouthill)
-      - Atua como estagiário em Gestão de Projetos na ANBIMA/Selic em convênio com o Banco Central,
-        usando tecnologia para otimizar processos.
+      - Atua como Estagiário Desenvolvedor Fullstack no convênio ANBIMA/Selic ↔ Banco Central, modernizando o sistema Selic (COBOL → Java/Spring) e construindo interfaces Angular monitoradas por Prometheus/Grafana.
+      - Experiência anterior: Estagiário de Projetos/Governança na mesma instituição, com foco em relatórios executivos e automações SharePoint/Power BI.
       - Perfil: curioso, focado em aprendizado contínuo e sempre com um projeto novo em mente.
 
       TECH STACK PRINCIPAL (FOCO ATUAL):
