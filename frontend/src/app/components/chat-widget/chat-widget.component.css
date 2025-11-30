@@ -1,18 +1,20 @@
 .chat-widget-container {
   position: fixed;
   /* Posição padrão: alinhado com scroll-to-top quando ele não está visível */
-  bottom: 1.25rem;
-  right: 1.25rem;
+  bottom: 0.75rem;
+  right: 0.75rem;
   z-index: var(--z-fixed);
   font-family: var(--font-primary);
   transition: all var(--transition-normal);
+  display: flex;
+  align-items: flex-end;
 }
 
 /* Quando scroll-to-top está visível, move o chat para a esquerda na MESMA LINHA (mesmo bottom) */
 .chat-widget-container.scroll-top-visible {
-  bottom: 1.25rem;
+  bottom: 0.75rem;
   /* Mesma linha do scroll-to-top */
-  right: calc(1.25rem + 50px + 0.75rem);
+  right: calc(0.75rem + 50px + 0.75rem);
   /* Move para a esquerda */
 }
 

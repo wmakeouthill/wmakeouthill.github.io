@@ -10,9 +10,16 @@ import java.util.List;
 
 /**
  * Adaptador para gerenciar o histórico de mensagens do chat em memória.
+ * Mantém histórico completo, mas retorna apenas as últimas N mensagens para otimização de tokens.
  */
 @Component
 public class GerenciarHistoricoChatAdapter implements GerenciarHistoricoChatPort {
+    
+    /**
+     * Número máximo de mensagens do histórico a serem enviadas para a IA.
+     * Limita o uso de tokens mantendo apenas o contexto mais recente.
+     */
+    private static final int MAX_HISTORICO_MENSAGENS = 10;
     
     private final List<MensagemChat> historico = Collections.synchronizedList(new ArrayList<>());
     
@@ -23,7 +30,19 @@ public class GerenciarHistoricoChatAdapter implements GerenciarHistoricoChatPort
     
     @Override
     public List<MensagemChat> obterHistorico() {
-        return new ArrayList<>(historico);
+        List<MensagemChat> historicoCompleto = new ArrayList<>(historico);
+        
+        if (historicoCompleto.size() <= MAX_HISTORICO_MENSAGENS) {
+            return historicoCompleto;
+        }
+        
+        return obterUltimasMensagens(historicoCompleto);
+    }
+    
+    private List<MensagemChat> obterUltimasMensagens(List<MensagemChat> historicoCompleto) {
+        int tamanho = historicoCompleto.size();
+        int inicio = Math.max(0, tamanho - MAX_HISTORICO_MENSAGENS);
+        return new ArrayList<>(historicoCompleto.subList(inicio, tamanho));
     }
     
     @Override

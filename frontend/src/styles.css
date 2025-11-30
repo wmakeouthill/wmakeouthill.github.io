@@ -440,8 +440,8 @@ a:hover {
    =========================== */
 .scroll-to-top {
   position: fixed;
-  bottom: 1.25rem;
-  right: 1.25rem;
+  bottom: 0.75rem;
+  right: 0.75rem;
   width: 50px;
   height: 50px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));

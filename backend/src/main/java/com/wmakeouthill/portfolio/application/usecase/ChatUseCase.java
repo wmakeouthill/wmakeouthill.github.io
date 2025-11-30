@@ -25,7 +25,8 @@ public class ChatUseCase {
         MensagemChat mensagemUsuario = MensagemChat.criarMensagemUsuario(mensagemUsuarioTexto);
         gerenciarHistoricoChatPort.adicionarMensagem(mensagemUsuario);
 
-        String systemPrompt = portfolioPromptService.obterSystemPrompt();
+        // Carrega system prompt otimizado baseado na mensagem do usuário (on-demand)
+        String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemUsuarioTexto);
         var historico = gerenciarHistoricoChatPort.obterHistorico();
 
         ChatResponse resposta = aiChatPort.chat(systemPrompt, historico, mensagemUsuarioTexto);

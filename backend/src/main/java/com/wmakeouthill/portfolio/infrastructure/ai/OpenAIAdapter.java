@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.port.out.AIChatPort;
 import com.wmakeouthill.portfolio.domain.entity.MensagemChat;
+import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,7 @@ public class OpenAIAdapter implements AIChatPort {
 
     private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final TokenCounter tokenCounter = TokenCounter.getInstance();
     private final String apiKey;
 
     public OpenAIAdapter(@Value("${openai.api.key:}") String openaiApiKey) {
@@ -64,13 +66,29 @@ public class OpenAIAdapter implements AIChatPort {
 
         try {
             List<Map<String, Object>> mensagens = construirMensagens(systemPrompt, historico, mensagemAtual);
+            
+            // Log de tokens de entrada antes da requisição
+            int tokensEntrada = tokenCounter.estimarTokensEntrada(systemPrompt, mensagens);
+            log.info("Tokens estimados de entrada: {} (system prompt: {}, mensagens: {}, histórico: {})", 
+                tokensEntrada,
+                tokenCounter.estimarTokensSystemPrompt(systemPrompt),
+                mensagens.size(),
+                historico.size());
+            
             Map<String, Object> payload = criarPayload(mensagens);
             String body = mapper.writeValueAsString(payload);
 
             HttpRequest req = criarRequisicao(body);
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
 
-            return processarResposta(resp);
+            ChatResponse resposta = processarResposta(resp);
+            
+            // Log de tokens de saída após a requisição
+            int tokensSaida = tokenCounter.estimarTokensResposta(resposta.reply());
+            log.info("Tokens estimados de saída: {}, total estimado: {}", 
+                tokensSaida, tokensEntrada + tokensSaida);
+            
+            return resposta;
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Erro ao comunicar com OpenAI", e);
@@ -117,11 +135,33 @@ public class OpenAIAdapter implements AIChatPort {
             if (reply == null || reply.isBlank()) {
                 reply = "(sem resposta)";
             }
+            
+            // Tenta extrair informações de uso de tokens da resposta (se disponível)
+            logarUsoTokens(root);
+            
             return new ChatResponse(reply.trim());
         } else {
             String body = resp.body();
             log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), body);
             return new ChatResponse("Erro ao chamar API de IA: status=" + resp.statusCode());
+        }
+    }
+    
+    private void logarUsoTokens(JsonNode root) {
+        try {
+            JsonNode usage = root.path("usage");
+            if (!usage.isMissingNode()) {
+                int promptTokens = usage.path("prompt_tokens").asInt(0);
+                int completionTokens = usage.path("completion_tokens").asInt(0);
+                int totalTokens = usage.path("total_tokens").asInt(0);
+                
+                if (totalTokens > 0) {
+                    log.info("Uso de tokens (da API OpenAI): entrada={}, saída={}, total={}", 
+                        promptTokens, completionTokens, totalTokens);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Não foi possível extrair informações de uso de tokens da resposta", e);
         }
     }
 }

@@ -1,44 +1,31 @@
-.chat-floating-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
-  border-radius: var(--radius-full);
-  border: none;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-  color: var(--color-dark);
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-  box-shadow: var(--shadow-accent);
+.chat-avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  object-fit: contain;
   cursor: pointer;
   transition: all var(--transition-fast);
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+  outline: none;
+  display: block;
+  margin: 0;
+  padding: 0;
+  vertical-align: bottom;
+  margin-bottom: -0.25rem;
 }
 
-.chat-floating-button:hover {
-  transform: translateY(-2px);
+.chat-avatar:hover,
+.chat-avatar.chat-open {
+  transform: translateY(-2px) scale(1.05);
   box-shadow: 0 8px 24px rgba(219, 194, 125, 0.45);
 }
 
-.chat-floating-button:active {
-  transform: translateY(0);
+.chat-avatar:active {
+  transform: translateY(0) scale(1);
   box-shadow: var(--shadow-md);
 }
 
-.chat-icon {
-  font-size: 1.1rem;
-}
-
-.chat-label {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-primary);
-}
-
-.chat-label-badge {
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  border: none;
+.chat-avatar:focus {
+  outline: none;
 }
 

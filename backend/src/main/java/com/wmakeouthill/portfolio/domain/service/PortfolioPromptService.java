@@ -4,11 +4,13 @@ import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PortfolioPromptService {
+
+  private final ProjetoKeywordDetector projetoKeywordDetector;
 
   private static final String BASE_SYSTEM_PROMPT = """
       Você é a IA oficial do portfólio do desenvolvedor brasileiro Wesley Correia (usuário GitHub "wmakeouthill").
@@ -159,24 +161,45 @@ public class PortfolioPromptService {
 
   private final PortfolioContentPort portfolioContentPort;
 
+  /**
+   * Obtém o system prompt completo com todos os markdowns (comportamento antigo).
+   * Mantido para compatibilidade.
+   * 
+   * @return system prompt completo
+   */
   public String obterSystemPrompt() {
+    return obterSystemPromptOtimizado(null);
+  }
+
+  /**
+   * Obtém o system prompt otimizado com carregamento on-demand baseado na mensagem do usuário.
+   * Carrega apenas markdowns de projetos mencionados, reduzindo drasticamente o uso de tokens.
+   * 
+   * @param mensagemUsuario mensagem do usuário para detecção de projetos relevantes
+   * @return system prompt otimizado
+   */
+  public String obterSystemPromptOtimizado(String mensagemUsuario) {
     StringBuilder builder = new StringBuilder(BASE_SYSTEM_PROMPT);
 
-    List<String> markdowns = portfolioContentPort.carregarConteudosMarkdown();
-    if (markdowns.isEmpty()) {
-      return builder.toString();
-    }
+    if (mensagemUsuario != null && !mensagemUsuario.isBlank()) {
+      Set<String> projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
+      
+      if (!projetosRelevantes.isEmpty()) {
+        builder.append("\n\n")
+            .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
+            .append("relacionados aos projetos mencionados. ")
+            .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
 
-    builder.append("\n\n")
-        .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley. ")
-        .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
-
-    for (String markdown : markdowns) {
-      if (markdown == null || markdown.isBlank()) {
-        continue;
+        for (String nomeProjeto : projetosRelevantes) {
+          portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto)
+              .ifPresent(markdown -> {
+                if (!markdown.isBlank()) {
+                  builder.append("\n---\n")
+                      .append(markdown.trim());
+                }
+              });
+        }
       }
-      builder.append("\n---\n")
-          .append(markdown.trim());
     }
 
     return builder.toString();

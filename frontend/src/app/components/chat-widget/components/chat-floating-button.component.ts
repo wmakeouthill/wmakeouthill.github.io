@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -10,5 +10,6 @@ import { CommonModule } from '@angular/common';
 })
 export class ChatFloatingButtonComponent {
   readonly onClick = output<void>();
+  readonly isOpen = input<boolean>(false);
 }
 
