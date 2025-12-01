@@ -5,6 +5,7 @@ import com.wmakeouthill.portfolio.application.usecase.ListarCertificadosUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterCertificadoPdfUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterCurriculoUseCase;
 import com.wmakeouthill.portfolio.infrastructure.pdf.PdfThumbnailService;
+import com.wmakeouthill.portfolio.infrastructure.pdf.ThumbnailCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -20,6 +21,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,6 +38,7 @@ public class CertificationsController {
   private final ObterCurriculoUseCase obterCurriculoUseCase;
   private final ObterCertificadoPdfUseCase obterCertificadoPdfUseCase;
   private final PdfThumbnailService pdfThumbnailService;
+  private final ThumbnailCacheService thumbnailCacheService;
 
   /**
    * Lista todos os certificados (exceto currículo).
@@ -74,13 +77,29 @@ public class CertificationsController {
 
   /**
    * Obtém o thumbnail (preview) do currículo.
+   * Usa cache para evitar regeneração a cada requisição.
    * GET /api/certifications/curriculo/thumbnail
    */
   @GetMapping("/curriculo/thumbnail")
   public ResponseEntity<byte[]> obterCurriculoThumbnail() {
+    String curriculoFileName = "Wesley de Carvalho Augusto Correia - Currículo.pdf";
+    
+    // Tenta cache primeiro
+    Optional<byte[]> cached = thumbnailCacheService.getThumbnail(curriculoFileName);
+    if (cached.isPresent()) {
+      return buildImageResponse(cached.get());
+    }
+    
+    // Gera e cacheia
     return obterCurriculoUseCase.obterBytes()
-        .flatMap(pdfThumbnailService::gerarThumbnailPequeno)
-        .map(this::buildImageResponse)
+        .flatMap(pdfBytes -> {
+          thumbnailCacheService.putPdf(curriculoFileName, pdfBytes);
+          return pdfThumbnailService.gerarThumbnailPequeno(pdfBytes);
+        })
+        .map(thumbnail -> {
+          thumbnailCacheService.putThumbnail(curriculoFileName, thumbnail);
+          return buildImageResponse(thumbnail);
+        })
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
@@ -103,16 +122,32 @@ public class CertificationsController {
 
   /**
    * Obtém o thumbnail (preview) de um certificado específico.
+   * Usa cache para evitar regeneração a cada requisição.
    * GET /api/certifications/{fileName}/thumbnail
    */
   @GetMapping("/{fileName}/thumbnail")
   public ResponseEntity<byte[]> obterCertificadoThumbnail(@PathVariable String fileName) {
     String decodedFileName = decodeFileName(fileName);
+    
+    // Tenta cache primeiro
+    Optional<byte[]> cached = thumbnailCacheService.getThumbnail(decodedFileName);
+    if (cached.isPresent()) {
+      log.debug("Thumbnail do cache: {}", decodedFileName);
+      return buildImageResponse(cached.get());
+    }
+    
     log.info("Gerando thumbnail para: '{}' (raw: '{}')", decodedFileName, fileName);
     
+    // Gera e cacheia
     return obterCertificadoPdfUseCase.executar(decodedFileName)
-        .flatMap(pdfThumbnailService::gerarThumbnailPequeno)
-        .map(this::buildImageResponse)
+        .flatMap(pdfBytes -> {
+          thumbnailCacheService.putPdf(decodedFileName, pdfBytes);
+          return pdfThumbnailService.gerarThumbnailPequeno(pdfBytes);
+        })
+        .map(thumbnail -> {
+          thumbnailCacheService.putThumbnail(decodedFileName, thumbnail);
+          return buildImageResponse(thumbnail);
+        })
         .orElseGet(() -> {
           log.warn("Thumbnail não gerado - PDF não encontrado: {}", decodedFileName);
           return ResponseEntity.notFound().build();
