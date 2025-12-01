@@ -1,88 +1,41 @@
 .pdf-viewer-root{
-	width:100%;
-	height:100%;
-	display:flex;
-	align-items:flex-start; /* colado ao topo do container */
-	justify-content:center; /* centra horizontalmente dentro do modal */
-	overflow:auto; /* permite scroll vertical */
-	background: transparent; /* fundo transparente */
-	padding: 0; /* remove padding que causava border visual */
-	min-width: 0; /* permite que o conteúdo seja menor que o container */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: visible;
+	background: transparent;
+	padding: 0;
 }
 .pdf-viewer-frame{
-	background: transparent; /* sem moldura branca */
+	background: transparent;
 	box-shadow: none;
 	border-radius: 0;
 	padding: 0;
-	display:flex;
-	align-items:flex-start;
-	justify-content:center; /* centraliza o canvas */
-	width: 100%;
-	max-width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
 }
 .pdf-canvas{
-	display:block;
-	max-width:100%;
-	width:auto;
-	height:auto;
-	margin: 0 auto;
-	/* Otimizações para mobile */
+	display: block;
 	box-sizing: border-box;
+	/* Sombra sutil para destacar o PDF */
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	border-radius: 4px;
+	background: white;
 }
 
 /* Media queries para otimização mobile */
 @media (max-width: 768px) {
-	.pdf-viewer-root {
-		padding: 0;
-	}
-
-	.pdf-viewer-frame {
-		padding: 0;
-		max-width: 100%;
-	}
-
 	.pdf-canvas {
-		max-width: 100%;
-		width: auto;
-		height: auto;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 	}
 }
 
 @media (max-width: 480px) {
-	.pdf-viewer-root {
-		padding: 0;
-		overflow-x: hidden;
-	}
-
-	.pdf-viewer-frame {
-		padding: 0;
-		max-width: 100%;
-		overflow-x: hidden;
-	}
-
 	.pdf-canvas {
-		max-width: 100%;
-		width: auto;
-		height: auto;
-	}
-}
-
-@media (max-width: 320px) {
-	.pdf-viewer-root {
-		padding: 0;
-		overflow-x: hidden;
-	}
-
-	.pdf-viewer-frame {
-		padding: 0;
-		max-width: 100%;
-		overflow-x: hidden;
-	}
-
-	.pdf-canvas {
-		max-width: 100%;
-		width: auto;
-		height: auto;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		border-radius: 2px;
 	}
 }
 

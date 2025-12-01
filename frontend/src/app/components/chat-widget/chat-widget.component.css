@@ -44,12 +44,12 @@
     width: 680px;
     max-width: calc(100vw - 2rem);
   }
-  
+
   .chat-widget-container {
     bottom: 0.75rem;
     right: 0.75rem;
   }
-  
+
   .chat-widget-container.scroll-top-visible {
     bottom: 0.75rem;
     right: calc(0.75rem + 50px + 0.75rem);
@@ -70,6 +70,28 @@
     border-radius: 0;
     border: none;
     border-top: 1px solid rgba(219, 194, 125, 0.25);
+  }
+}
+
+/* Tablets em modo paisagem: também usar fullscreen para evitar corte e teclado cobrindo o chat */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .chat-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100dvw;
+    max-width: 100dvw;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid rgba(219, 194, 125, 0.25);
+  }
+
+  .chat-messages {
+    max-height: calc(100dvh - 9rem);
+    padding: 0.75rem 0.75rem 0.5rem;
   }
 }
 
@@ -135,7 +157,7 @@
   .chat-widget-container:has(.chat-panel) app-chat-floating-button {
     display: none !important;
   }
-  
+
   /* Garantir que o avatar apareça quando o chat está fechado */
   .chat-widget-container:not(:has(.chat-panel)) app-chat-floating-button {
     display: block !important;

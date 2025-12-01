@@ -13,6 +13,8 @@ export class MarkdownService {
   private readonly backendProjectsApi = resolveApiUrl('/api/projects');
 
   private readonly memoryCache = new Map<string, string>();
+  private preloadingInProgress = false;
+  private preloadedProjects = new Set<string>();
 
   constructor() {
     marked.setOptions({ breaks: true, gfm: true });
@@ -25,16 +27,75 @@ export class MarkdownService {
     });
   }
 
-  // Compat: pré-carrega todos os projetos conhecidos
-  async preloadAllMermaidDiagrams(): Promise<void> {
-    const projects = ['aa_space', 'lol-matchmaking-fazenda', 'mercearia-r-v', 'traffic_manager', 'first-angular-app', 'investment_calculator'];
-    for (const p of projects) {
+  /**
+   * Pré-carrega READMEs de uma lista dinâmica de projetos.
+   * Carrega em background sem bloquear a UI.
+   * @param projectNames Lista de nomes de projetos para pré-carregar
+   */
+  async preloadProjectsInBackground(projectNames: string[]): Promise<void> {
+    if (this.preloadingInProgress) {
+      console.log('⏳ Pré-carregamento já em andamento...');
+      return;
+    }
+
+    this.preloadingInProgress = true;
+    console.log(`🚀 Iniciando pré-carregamento de ${projectNames.length} READMEs em background...`);
+
+    const startTime = performance.now();
+    let loaded = 0;
+    let cached = 0;
+    let failed = 0;
+
+    for (const project of projectNames) {
+      const normalized = this.normalizeProject(project);
+      
+      // Já pré-carregado nesta sessão?
+      if (this.preloadedProjects.has(normalized)) {
+        cached++;
+        continue;
+      }
+
+      // Já está no cache (localStorage ou memória)?
+      const existing = this.getReadmeContentSync(normalized);
+      if (existing) {
+        this.preloadedProjects.add(normalized);
+        cached++;
+        continue;
+      }
+
       try {
-        await this.preloadProject(p);
-      } catch {
-        // ignora falhas individuais
+        // Aguarda um pouco entre requisições para não sobrecarregar
+        await this.delay(100);
+        await this.preloadProject(project);
+        this.preloadedProjects.add(normalized);
+        loaded++;
+        console.log(`✅ README de "${project}" pré-carregado`);
+      } catch (error) {
+        failed++;
+        console.warn(`⚠️ Falha ao pré-carregar README de "${project}":`, error);
       }
     }
+
+    const duration = Math.round(performance.now() - startTime);
+    console.log(`📦 Pré-carregamento concluído em ${duration}ms: ${loaded} carregados, ${cached} já em cache, ${failed} falhas`);
+    this.preloadingInProgress = false;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Compat: pré-carrega todos os projetos conhecidos (lista estática - fallback)
+  async preloadAllMermaidDiagrams(): Promise<void> {
+    const defaultProjects = [
+      'aa_space', 
+      'lol-matchmaking-fazenda', 
+      'mercearia-r-v', 
+      'traffic_manager', 
+      'first-angular-app', 
+      'investment_calculator'
+    ];
+    await this.preloadProjectsInBackground(defaultProjects);
   }
 
   async preloadProject(projectName: string): Promise<string> {

@@ -456,21 +456,21 @@
     width: 350px;
     height: 350px;
   }
-  
+
   .hero-cta {
     gap: 0.6rem;
     margin-bottom: 1.25rem;
   }
-  
+
   .hero-cta .btn {
     padding: 0.7rem 1.3rem;
     font-size: 0.875rem;
   }
-  
+
   .hero-tagline {
     margin-bottom: 1.25rem;
   }
-  
+
   .hero-stats-wrapper {
     gap: 0.4rem;
   }
@@ -481,20 +481,20 @@
     gap: 0.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .hero-cta .btn {
     padding: 0.65rem 1rem;
     font-size: 0.8rem;
   }
-  
+
   .hero-tagline {
     margin-bottom: 1rem;
   }
-  
+
   .hero-stats-wrapper {
     gap: 0.35rem;
   }
-  
+
   .hero-scroll-row {
     margin-top: 0.35rem;
   }
@@ -507,34 +507,39 @@
   }
 
   .hero-content {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
-    align-items: center;
-    padding: 2rem 2rem 0.5rem 2rem;
+    grid-template-areas:
+      "greeting"
+      "image"
+      "mobile-content";
+    padding: 2rem 1.5rem 0.5rem 1.5rem;
   }
 
-  /* Keep desktop layout for tablets - text left, image right */
-  .hero-text {
-    grid-column: 1;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-
-  .hero-image {
-    grid-column: 2;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
+  /* Mostrar layout mobile (greeting + conteúdo mobile) */
   .hero-greeting-section {
-    display: none;
+    display: block;
+    grid-area: greeting;
+    text-align: center;
   }
 
   .hero-mobile-content {
+    display: block;
+    grid-area: mobile-content;
+    text-align: center;
+  }
+
+  /* Esconder layout desktop em telas menores */
+  .hero-text {
     display: none;
+  }
+
+  .hero-image {
+    grid-area: image;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2.5rem;
   }
 
   .hero-tagline {
@@ -544,40 +549,43 @@
   }
 
   .hero-cta {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
     gap: 0.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .hero-cta .btn {
-    flex: 0 1 auto;
-    min-width: fit-content;
+    width: 100%;
+    justify-content: center;
     padding: 0.6rem 0.95rem;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
-  
+
   .hero-stats-wrapper {
+    align-items: center;
     gap: 0.3rem;
-  }
-  
-  .hero-scroll-row {
-    margin-top: 0.3rem;
   }
 
   .hero-stats {
     justify-content: center;
-    flex-wrap: wrap; /* permite quebra em telas menores */
+    flex-wrap: wrap;
+    gap: 1.5rem;
   }
 
-  /* esconder o scroll inline em telas menores e deixar o indicador absoluto */
+  .hero-scroll-row {
+    margin-top: 0.3rem;
+  }
+
+  /* Em mobile usamos apenas o indicador absoluto */
   .scroll-indicator-inline {
     display: none;
   }
 
   .image-wrapper {
-    width: 300px;
-    height: 300px;
+    width: 280px;
+    height: 280px;
   }
 
   .image-decoration {

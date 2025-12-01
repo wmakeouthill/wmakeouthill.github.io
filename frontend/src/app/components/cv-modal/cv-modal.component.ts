@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
+import { CertificationsService } from '../../services/certifications.service';
 
 @Component({
   selector: 'app-cv-modal',
@@ -9,15 +10,39 @@ import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
   templateUrl: './cv-modal.component.html',
   styleUrl: './cv-modal.component.css'
 })
-export class CvModalComponent implements OnChanges, OnDestroy {
+export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly certificationsService = inject(CertificationsService);
+
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
 
-  // pdfZoom = 1.0 significa 100%.
-  pdfZoom = 1.0; // Zoom padrão (1.0 = 100%)
-  cvPath = '/assets/curriculo/Wesley de Carvalho Augusto Correia - Currículo.pdf';
+  /** Zoom do PDF (1.0 = 100%) */
+  pdfZoom = 1.0;
 
-  ngOnChanges(changes: SimpleChanges) {
+  /** Rotação do PDF no modal (em graus: 0, 90, 180, 270) */
+  pdfRotation = 0;
+
+  /** Estado do drag para scroll */
+  isDragging = false;
+  dragStartX = 0;
+  dragStartY = 0;
+  scrollStartX = 0;
+  scrollStartY = 0;
+
+  /** Nome do arquivo para download */
+  readonly cvFileName = 'Wesley de Carvalho Augusto Correia - Currículo.pdf';
+
+  /** URL do currículo no GitHub (para abrir externamente) */
+  readonly cvGitHubUrl = signal<string | null>(null);
+
+  /** Loading state */
+  readonly loading = signal(false);
+
+  ngOnInit(): void {
+    this.loadCurriculoMetadata();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']) {
       if (this.isOpen) {
         this.disableBodyScroll();
@@ -27,27 +52,47 @@ export class CvModalComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private disableBodyScroll() {
-    // Salva a posição atual do scroll
-    const scrollY = window.scrollY;
+  /**
+   * Retorna a URL do PDF do currículo (servido pelo backend)
+   */
+  getCurriculoPdfUrl(): string {
+    return this.certificationsService.getCurriculoPdfUrl();
+  }
 
-    // Aplica estilos para bloquear o scroll sem mover a página
+  /**
+   * Carrega os metadados do currículo para obter a URL do GitHub
+   */
+  private loadCurriculoMetadata(): void {
+    this.loading.set(true);
+
+    this.certificationsService.loadCurriculo().subscribe({
+      next: (curriculo) => {
+        if (curriculo) {
+          this.cvGitHubUrl.set(curriculo.htmlUrl);
+          console.log('✅ Metadados do currículo carregados');
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar metadados do currículo:', err);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private disableBodyScroll(): void {
+    const scrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.left = '0';
     document.body.style.right = '0';
-
-    // Salva a posição para restaurar depois
     document.body.setAttribute('data-scroll-y', scrollY.toString());
   }
 
-  private enableBodyScroll() {
-    // Recupera a posição salva
+  private enableBodyScroll(): void {
     const scrollY = document.body.getAttribute('data-scroll-y');
-
-    // Remove os estilos de bloqueio
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
@@ -55,65 +100,107 @@ export class CvModalComponent implements OnChanges, OnDestroy {
     document.body.style.left = '';
     document.body.style.right = '';
     document.body.removeAttribute('data-scroll-y');
-
-    // Restaura a posição do scroll
     if (scrollY) {
       window.scrollTo(0, parseInt(scrollY));
     }
   }
 
-  increaseZoom() {
-    if (this.pdfZoom < 1.3) {
-      this.pdfZoom += 0.1;
+  increaseZoom(): void {
+    if (this.pdfZoom < 2.0) {
+      this.pdfZoom = Math.round((this.pdfZoom + 0.1) * 10) / 10;
     }
   }
 
-  decreaseZoom() {
-    if (this.pdfZoom > 0.7) {
-      this.pdfZoom -= 0.1;
+  decreaseZoom(): void {
+    if (this.pdfZoom > 0.5) {
+      this.pdfZoom = Math.round((this.pdfZoom - 0.1) * 10) / 10;
     }
   }
 
-  resetZoom() {
+  resetZoom(): void {
     this.pdfZoom = 1.0;
   }
 
-  closeModal() {
+  /**
+   * Rotaciona o PDF 90 graus no sentido horário
+   */
+  rotatePdf(): void {
+    this.pdfRotation = (this.pdfRotation + 90) % 360;
+  }
+
+  closeModal(): void {
     this.enableBodyScroll();
     this.close.emit();
   }
 
-  downloadCV() {
+  downloadCV(): void {
     const link = document.createElement('a');
-    link.href = this.cvPath;
-    link.download = 'Wesley de Carvalho Augusto Correia - Currículo.pdf';
+    link.href = this.getCurriculoPdfUrl();
+    link.download = this.cvFileName;
     link.target = '_blank';
     link.click();
   }
 
-  onKeyDown(event: KeyboardEvent) {
+  openInGitHub(): void {
+    const url = this.cvGitHubUrl();
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       this.closeModal();
     }
   }
 
-  onMouseWheel(event: WheelEvent) {
-    // Apenas zoom com Ctrl+scroll, sem interferir no scroll do PDF
+  onMouseWheel(event: WheelEvent): void {
     if (event.ctrlKey) {
       event.preventDefault();
-      if (event.deltaY < 0 && this.pdfZoom < 1.3) {
+      if (event.deltaY < 0 && this.pdfZoom < 2.0) {
         this.increaseZoom();
-      } else if (event.deltaY > 0 && this.pdfZoom > 0.7) {
+      } else if (event.deltaY > 0 && this.pdfZoom > 0.5) {
         this.decreaseZoom();
       }
     }
-    // Deixa o scroll normal passar para o iframe do PDF
   }
 
-  ngOnDestroy() {
-    // Garantir que o scroll seja reativado caso o componente seja destruído
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DRAG TO SCROLL (arrastar para mover o PDF)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  onDragStart(event: MouseEvent): void {
+    const container = event.currentTarget as HTMLElement;
+    // Só ativa drag se houver scroll disponível
+    if (container.scrollWidth > container.clientWidth || container.scrollHeight > container.clientHeight) {
+      this.isDragging = true;
+      this.dragStartX = event.clientX;
+      this.dragStartY = event.clientY;
+      this.scrollStartX = container.scrollLeft;
+      this.scrollStartY = container.scrollTop;
+      container.style.cursor = 'grabbing';
+      event.preventDefault();
+    }
+  }
+
+  onDragMove(event: MouseEvent): void {
+    if (!this.isDragging) return;
+    const container = event.currentTarget as HTMLElement;
+    const deltaX = event.clientX - this.dragStartX;
+    const deltaY = event.clientY - this.dragStartY;
+    container.scrollLeft = this.scrollStartX - deltaX;
+    container.scrollTop = this.scrollStartY - deltaY;
+  }
+
+  onDragEnd(event: MouseEvent): void {
+    if (this.isDragging) {
+      this.isDragging = false;
+      const container = event.currentTarget as HTMLElement;
+      container.style.cursor = 'grab';
+    }
+  }
+
+  ngOnDestroy(): void {
     this.enableBodyScroll();
   }
-
-  // O PdfViewerComponent gerencia carregamento e renderização sem necessidade de rebuild do URL.
 }

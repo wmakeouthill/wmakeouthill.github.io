@@ -1,7 +1,6 @@
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MarkdownService } from './services/markdown.service';
 
 import { HeaderComponent } from './components/header/header.component';
 import { HeroComponent } from './components/hero/hero.component';
@@ -37,44 +36,20 @@ import { ChatWidgetComponent } from './components/chat-widget/chat-widget.compon
   styleUrl: './app.css'
 })
 export class App implements OnInit {
-  showScrollToTop = signal(false);
+  readonly showScrollToTop = signal(false);
 
-  constructor(private readonly markdownService: MarkdownService) { }
-
-  ngOnInit() {
-    console.log('🚀 App inicializado - aguardando página carregar completamente...');
-
-    // Aguardar DOM + recursos carregados (100% completo)
-    if (document.readyState === 'complete') {
-      this.startPreloading();
-    } else {
-      window.addEventListener('load', () => {
-        // Aguardar mais um pouco para garantir que tudo está renderizado
-        setTimeout(() => {
-          this.startPreloading();
-        }, 1000);
-      });
-    }
-  }
-
-  private startPreloading() {
-    console.log('✅ Página 100% carregada - iniciando pré-carregamento em 1 segundo...');
-
-    // Aguardar mais 1 segundo para garantir que não interfere com nada
-    setTimeout(() => {
-      console.log('⏰ Iniciando pré-carregamento de markdowns e SVGs em background...');
-      this.markdownService.preloadAllMermaidDiagrams().catch(error => {
-        console.error('Erro ao pré-carregar diagramas:', error);
-      });
-    }, 1000);
+  ngOnInit(): void {
+    console.log('🚀 App inicializado');
+    // Pré-carregamento de READMEs é feito no ProjectsComponent
+    // após carregar a lista de projetos do GitHub
   }
 
   @HostListener('window:scroll')
-  onWindowScroll() {
+  onWindowScroll(): void {
     this.showScrollToTop.set(window.scrollY > 300);
   }
 
-  scrollToTop() {
+  scrollToTop(): void {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'

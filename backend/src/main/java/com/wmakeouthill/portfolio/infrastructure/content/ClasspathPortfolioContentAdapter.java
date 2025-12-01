@@ -22,9 +22,13 @@ import java.util.Set;
 /**
  * Adapter de infraestrutura que lê arquivos markdown do classpath
  * em {@code src/main/resources/portfolio-content/*.md}.
+ * 
+ * @deprecated Substituído por {@link GithubPortfolioMarkdownAdapter} que busca
+ *             conteúdo dinamicamente do repositório GitHub.
  */
 @Slf4j
 @Component
+@Deprecated
 public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
 
   private static final String MARKDOWN_LOCATION_PATTERN = "classpath*:portfolio-content/*.md";

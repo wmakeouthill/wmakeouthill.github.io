@@ -136,6 +136,17 @@
   background: #C9A96E;
 }
 
+.zoom-btn.rotate-btn {
+  background: #002E59;
+  color: #DBC27D;
+  border: 1px solid rgba(219, 194, 125, 0.3);
+}
+
+.zoom-btn.rotate-btn:hover {
+  background: #004080;
+  border-color: rgba(219, 194, 125, 0.5);
+}
+
 .zoom-level {
   font-size: 0.9rem;
   font-weight: 600;
@@ -172,6 +183,27 @@
   box-shadow: 0 2px 8px rgba(219, 194, 125, 0.3);
 }
 
+/* GitHub Button */
+.github-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.github-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
 /* Close Button */
 .close-btn {
   background: rgba(220, 53, 69, 0.1);
@@ -201,6 +233,34 @@
   transform: translateY(0);
 }
 
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(219, 194, 125, 0.2);
+  border-top-color: #DBC27D;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #fff;
+  opacity: 0.8;
+}
+
 /* Modal Body */
 .modal-body {
   flex: 1;
@@ -217,41 +277,42 @@
 /* PDF Container */
 .pdf-container {
   width: 100%;
+  height: 100%;
   flex: 1;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: auto;
   background: linear-gradient(135deg, #2c3e50, #34495e);
   border-radius: 0 0 20px 20px;
   margin: 0;
-  padding: 0.25rem 2rem 0.25rem 2rem;
+  padding: 1rem;
   position: relative;
   min-height: 0;
   box-sizing: border-box;
+  cursor: grab;
+  user-select: none;
+}
+
+.pdf-container.dragging {
+  cursor: grabbing;
+}
+
+.pdf-container:active {
+  cursor: grabbing;
+}
+
+/* PDF Rotation Wrapper */
+.pdf-rotation-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center center;
+  margin: auto;
 }
 
 /* Removed problematic ::before pseudo-element */
-
-/* PDF Viewer */
-.pdf-viewer {
-  border: none;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
-  margin: 0 auto;
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  display: block;
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
-  object-fit: contain;
-  transform: scale(1.2);
-  transform-origin: center center;
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -300,15 +361,8 @@
   }
 
   .pdf-container {
-    padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+    padding: 0.5rem;
     border-radius: 0 0 16px 16px;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .pdf-viewer {
-    transform: scale(1.0);
-    border-radius: 8px;
   }
 }
 
@@ -378,15 +432,8 @@
   }
 
   .pdf-container {
-    padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+    padding: 0.25rem;
     border-radius: 0 0 12px 12px;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .pdf-viewer {
-    transform: scale(0.9);
-    border-radius: 6px;
   }
 }
 
@@ -448,12 +495,7 @@
   }
 
   .pdf-container {
-    padding: 0.0625rem 0.125rem 0.0625rem 0.125rem;
+    padding: 0.125rem;
     border-radius: 0 0 8px 8px;
-  }
-
-  .pdf-viewer {
-    transform: scale(0.8);
-    border-radius: 4px;
   }
 }
