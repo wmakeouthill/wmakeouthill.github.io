@@ -16,6 +16,8 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+  z-index: var(--z-fixed);
 }
 
 .chat-avatar:hover,
@@ -33,7 +35,7 @@
   outline: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .chat-avatar {
     width: 4.5rem;
     height: 4.5rem;

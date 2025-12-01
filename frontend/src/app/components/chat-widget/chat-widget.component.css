@@ -22,8 +22,8 @@
   position: absolute;
   bottom: 0;
   right: calc(100% + 0.75rem);
-  width: 520px;
-  max-height: calc(100vh - 2.5rem);
+  width: 650px;
+  max-width: calc(100vw - 2rem);
   max-height: calc(100dvh - 2.5rem); /* Dynamic viewport height para mobile */
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -35,17 +35,24 @@
   border: 1px solid rgba(219, 194, 125, 0.25);
 }
 
-/* Em mobile, o painel deve ocupar toda a largura e altura disponível */
-@media (max-width: 640px) {
+/* Ajuste para tablets em modo paisagem */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .chat-panel {
+    width: 600px;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* Em tablets e mobile, o painel deve ocupar toda a largura e altura disponível */
+@media (max-width: 768px) {
   .chat-panel {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100vw;
-    max-width: 100vw;
-    max-height: 100vh;
+    width: 100dvw; /* Dynamic viewport width para mobile */
+    max-width: 100dvw; /* Dynamic viewport width para mobile */
     max-height: 100dvh; /* Dynamic viewport height para mobile */
     border-radius: 0;
     border: none;
@@ -68,7 +75,7 @@
   opacity: 0.9;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .chat-widget-container {
     bottom: 1rem;
     right: 1rem;
@@ -117,7 +124,7 @@
 
 /* Suporte para safe-area em dispositivos com notch (iPhone X+) */
 @supports (padding: max(0px)) {
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     .chat-panel {
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);

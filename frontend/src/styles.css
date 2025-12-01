@@ -454,12 +454,14 @@ a:hover {
   justify-content: center;
   font-size: 1.5rem;
   box-shadow: var(--shadow-lg);
-  z-index: var(--z-fixed);
+  z-index: calc(var(--z-fixed) + 1); /* Acima do chat widget */
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px) scale(0.8);
   transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .scroll-to-top.visible {
@@ -540,6 +542,16 @@ a:hover {
   }
 }
 
+@media (max-width: 768px) {
+  .scroll-to-top {
+    width: 44px;
+    height: 44px;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 1.25rem;
+  }
+}
+
 @media (max-width: 480px) {
   :root {
     --font-size-5xl: 1.75rem;
@@ -552,6 +564,7 @@ a:hover {
     height: 40px;
     bottom: 0.75rem;
     right: 0.75rem;
+    font-size: 1.125rem;
   }
 }
 
