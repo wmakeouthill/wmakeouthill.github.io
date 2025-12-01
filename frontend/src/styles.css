@@ -462,6 +462,10 @@ a:hover {
   pointer-events: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  /* Garantir que sempre apareça na tela */
+  min-width: 50px;
+  min-height: 50px;
+  flex-shrink: 0;
 }
 
 .scroll-to-top.visible {
@@ -542,6 +546,18 @@ a:hover {
   }
 }
 
+/* Tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .scroll-to-top {
+    width: 50px;
+    height: 50px;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    min-width: 50px;
+    min-height: 50px;
+  }
+}
+
 @media (max-width: 768px) {
   .scroll-to-top {
     width: 44px;
@@ -549,6 +565,8 @@ a:hover {
     bottom: 1rem;
     right: 1rem;
     font-size: 1.25rem;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -565,6 +583,8 @@ a:hover {
     bottom: 0.75rem;
     right: 0.75rem;
     font-size: 1.125rem;
+    min-width: 40px;
+    min-height: 40px;
   }
 }
 

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>Portfolio Wesley</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
@@ -17,10 +17,14 @@
             overflow: hidden;
             margin: 0;
             padding: 0;
+            /* Suporte para safe-area em dispositivos com notch */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         body {
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height para mobile */
             width: 100vw;
+            width: 100dvw; /* Dynamic viewport width para mobile */
             overflow: hidden;
             margin: 0;
             padding: 0;
@@ -30,13 +34,20 @@
             left: 0;
             right: 0;
             bottom: 0;
+            /* Prevenir zoom indesejado em mobile */
+            touch-action: pan-x pan-y;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
+            width: 100dvw; /* Dynamic viewport width para mobile */
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height para mobile */
             border: none;
             margin: 0;
             padding: 0;
@@ -44,6 +55,11 @@
             border-radius: 0;
             outline: none;
             overflow: hidden;
+            /* Garantir que o iframe ocupe toda a área */
+            min-width: 100%;
+            min-height: 100%;
+            /* Melhorar renderização em mobile */
+            -webkit-overflow-scrolling: touch;
         }
         .loading {
             position: fixed;
@@ -206,7 +222,30 @@
                 opacity: 1;
             }
         }
+        @media (max-width: 1024px) {
+            .skeleton-cards {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+        
         @media (max-width: 768px) {
+            html {
+                padding: 0;
+            }
+            
+            body {
+                height: 100dvh;
+                width: 100dvw;
+            }
+            
+            iframe {
+                width: 100dvw;
+                height: 100dvh;
+                /* Garantir que funcione bem em mobile */
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+            
             .skeleton-nav {
                 display: none;
             }
@@ -218,6 +257,63 @@
             }
             .skeleton-cards {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .loading-content {
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                height: 100dvh;
+                width: 100dvw;
+            }
+            
+            iframe {
+                width: 100dvw;
+                height: 100dvh;
+            }
+            
+            .skeleton-hero-title {
+                width: 100%;
+            }
+            
+            .skeleton-cards {
+                gap: 0.75rem;
+            }
+            
+            .skeleton-card {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Suporte para safe-area em dispositivos com notch (iPhone X+) */
+        @supports (padding: max(0px)) {
+            html {
+                padding: max(env(safe-area-inset-top), 0px) 
+                         max(env(safe-area-inset-right), 0px) 
+                         max(env(safe-area-inset-bottom), 0px) 
+                         max(env(safe-area-inset-left), 0px);
+            }
+            
+            iframe {
+                top: max(env(safe-area-inset-top), 0px);
+                left: max(env(safe-area-inset-left), 0px);
+                right: max(env(safe-area-inset-right), 0px);
+                bottom: max(env(safe-area-inset-bottom), 0px);
+            }
+        }
+        
+        /* Orientação landscape em mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+                height: 100dvh;
+            }
+            
+            iframe {
+                height: 100dvh;
             }
         }
     </style>
