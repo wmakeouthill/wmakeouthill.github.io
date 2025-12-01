@@ -5,7 +5,7 @@ Este repositório contém o **portfólio profissional do Wesley Correia (wmakeou
 - **Backend** em Java 17 + Spring Boot 3.2.3, que:
   - expõe APIs REST para chat com IA, contato e projetos;
   - serve o **build do frontend** como SPA;
-  - lê e expõe **markdowns do portfólio** (projetos, currículo, stacks, README de perfil).
+  - busca **markdowns do portfólio dinamicamente** via GitHub API (repositório `certificados-wesley`).
 - **Frontend** em Angular 20 + TypeScript, que:
   - apresenta o portfólio em uma interface moderna, responsiva e acessível;
   - integra com o backend e a GitHub API;
@@ -21,12 +21,15 @@ Este repositório contém o **portfólio profissional do Wesley Correia (wmakeou
   - Lombok
   - Liquibase 4.25.0 (já configurado como dependência)
   - Integração com:
-    - OpenAI (chat com IA)
-    - GitHub API (projetos e linguagens)
+    - OpenAI (chat com IA + fallback de modelos)
+    - GitHub API (projetos, linguagens e conteúdo do portfólio)
     - SMTP (envio de e‑mail de contato)
+  - Otimizações:
+    - **TokenBudgetService** para gerenciar budget de tokens da IA
+    - **Cache em memória** (TTL 5min) para conteúdo do GitHub
 - **Frontend**
-  - Angular 20.3.x (standalone components, Signals, RxJS 7.8)
-  - TypeScript 5.9.x
+  - Angular 20.3.0 (standalone components, Signals, RxJS 7.8.0)
+  - TypeScript 5.9.2
   - CSS moderno e responsivo
 - **Infra / Build**
   - Maven (plugin `frontend-maven-plugin` já configurado)
@@ -64,10 +67,12 @@ flowchart LR
     end
 
     subgraph Infra[Infraestrutura / Adaptadores]
-        AI[OpenAIAdapter<br/>\nAIChatPort]
-        GH[GithubApiAdapter]
+        AI[OpenAIAdapter<br/>\nAIChatPort + Fallback]
+        GH[GithubApiAdapter<br/>\nProjetos + Linguagens]
+        GH_CONTENT[GithubPortfolioContentAdapter<br/>\nBusca markdowns do GitHub]
+        CACHE[GithubContentCache<br/>\nTTL 5min]
         MAIL[GmailAdapter]
-        MD[ClasspathPortfolioContentAdapter<br/>\nLê portfolio-content/*.md]
+        BUDGET[TokenBudgetService<br/>\nOtimiza tokens]
     end
 
     subgraph Cloud[Google Cloud]
@@ -84,15 +89,17 @@ flowchart LR
 
     UC_CHAT --> D1
     UC_CHAT --> D2
-    D1 --> MD
-    D2 --> MD
-    UC_CHAT --> AI
-
+    UC_CHAT --> BUDGET
+    D1 --> GH_CONTENT
+    D2 --> GH_CONTENT
+    BUDGET --> AI
     UC_CONTACT --> MAIL
     UC_PROJECTS --> GH
 
     AI --> OA
     GH --> GITHUB
+    GH_CONTENT --> CACHE
+    GH_CONTENT --> GITHUB
     MAIL --> SM
 
     Backend --> CR
@@ -112,12 +119,8 @@ flowchart LR
 │   │   └── infrastructure/           # Adaptadores Web, OpenAI, GitHub, Email, etc.
 │   ├── src/main/resources/
 │   │   ├── application.properties    # Configuração principal
-│   │   ├── portfolio-content/        # Markdown usado pela IA e pela API
-│   │   │   ├── README.md
-│   │   │   ├── README_GITHUB_PROFILE.md
-│   │   │   ├── STACKS.md
-│   │   │   └── projects/*.md         # Descrição detalhada de cada projeto
 │   │   └── static/                   # Build do Angular (copiado no build)
+│   │   # Nota: Markdowns são buscados dinamicamente do GitHub (repo: certificados-wesley)
 │   └── pom.xml                       # Build + integração com frontend
 │
 ├── frontend/                         # Aplicação Angular 20 (SPA do portfólio)
@@ -171,10 +174,11 @@ O backend segue uma **arquitetura limpa** (application / domain / infrastructure
   - `GET /api/projects`
     - Retorna lista de repositórios do GitHub (`GithubRepositoryDto`) usando a API do GitHub.
   - `GET /api/projects/{projectName}/markdown`
-    - Busca o markdown correspondente em `portfolio-content/projects/{projectName}.md`.
-    - Exemplo: `lol-matchmaking-fazenda` → `lol-matchmaking-fazenda.md`.
+    - Busca o markdown dinamicamente do repositório GitHub `certificados-wesley`.
+    - Caminho: `portfolio-content/projects/{projectName}.md` ou `portfolio-content/trabalhos/{projectName}.md`.
+    - Exemplo: `lol-matchmaking-fazenda` → busca em `certificados-wesley/portfolio-content/projects/lol-matchmaking-fazenda.md`.
 
-- **Chat com IA (OpenAI + Fallback de modelos)**
+- **Chat com IA (OpenAI + Fallback de modelos + Budget de tokens)**
   - Implementado em `OpenAIAdapter` (`AIChatPort`).
   - A chave de API é lida de:
     - propriedade Spring `openai.api.key`, ou
@@ -188,19 +192,33 @@ O backend segue uma **arquitetura limpa** (application / domain / infrastructure
     - tenta cada modelo em sequência;
     - trata rate limit e erros temporários (429, 502, 503, 504) como erros recuperáveis;
     - registra uso estimado de tokens via `TokenCounter` e logs estruturados.
+  - **TokenBudgetService** (otimização de budget):
+    - monitora tokens estimados antes de enviar para a IA;
+    - reduz automaticamente histórico de mensagens (mantém as mais recentes);
+    - reduz contextos de documentação quando necessário;
+    - trunca system prompt apenas como último recurso;
+    - garante que requisições não excedam limites do modelo.
 
 - **Servir o SPA (Angular)**
   - `SpaController` intercepta requisições não‑API:
     - Assets estáticos (JS/CSS/ imagens) em `static/`
     - Fallback para `static/index.html` para rotas client‑side (`/`, `/projects`, etc.).
 
-### Conteúdo de Portfólio (Markdown)
+### Conteúdo de Portfólio (Markdown via GitHub API)
 
-Conforme descrito em `backend/src/main/resources/portfolio-content/README.md`, o backend:
+O backend **não usa mais arquivos estáticos** em `portfolio-content/`. Todo o conteúdo é buscado **dinamicamente** do repositório GitHub `certificados-wesley`:
 
-- Carrega automaticamente **markdowns gerais** (`README.md`, `STACKS.md`, etc.) para compor o contexto do chat com IA.
-- Serve **markdowns de projetos** via `/api/projects/{projectName}/markdown`.
-- Mantém os arquivos em `portfolio-content/` separados do frontend, permitindo atualizar o conteúdo sem rebuild da SPA.
+- **GithubPortfolioMarkdownAdapter** (`@Primary`) substitui o antigo `ClasspathPortfolioContentAdapter` (deprecated).
+- **GithubPortfolioContentAdapter** busca markdowns via GitHub API:
+  - Markdowns gerais: `portfolio-content/*.md` (raiz)
+  - Projetos: `portfolio-content/projects/*.md`
+  - Trabalhos/Experiências: `portfolio-content/trabalhos/*.md`
+- **GithubContentCache**: cache em memória com TTL de 5 minutos para reduzir chamadas à API.
+- **Vantagens**:
+  - Atualizações de conteúdo sem rebuild do backend;
+  - Versionamento via Git;
+  - Cache inteligente para performance;
+  - Separação de repositórios (código vs. conteúdo).
 
 ---
 
@@ -238,8 +256,8 @@ Este projeto utiliza apenas um **subconjunto** da stack completa descrita em `ba
     - **GitHub API** (projetos e linguagens)
 
 - **Frontend**
-  - Framework: **Angular 20.3.x** (standalone components, DI com `inject`, RxJS 7.8)
-  - Linguagem: **TypeScript 5.9.x**
+  - Framework: **Angular 20.3.0** (standalone components, DI com `inject`, RxJS 7.8.0)
+  - Linguagem: **TypeScript 5.9.2**
   - Bibliotecas: `pdfjs-dist`, `marked`, `mermaid`, `prismjs`, `lottie-web`
   - Práticas: SPA responsiva, componentes desacoplados, services para HTTP/integrações, utils para configuração de API.
 
@@ -346,29 +364,34 @@ Assim, o gerenciamento sensível (rotacionar chaves, trocar tokens, etc.) é fei
 
 ---
 
-## 📚 Conteúdos de Portfólio (Markdown Importantes)
+## 📚 Conteúdos de Portfólio (Markdown via GitHub)
 
-Na pasta `backend/src/main/resources/portfolio-content/` você encontra:
+Os markdowns do portfólio são armazenados no repositório GitHub **`certificados-wesley`** e buscados dinamicamente via API:
 
-- `README.md` – visão geral de como os markdowns são usados pelo backend/IA.
-- `README_GITHUB_PROFILE.md` – conteúdo do README do perfil do GitHub, usado pelo chat.
-- `STACKS.md` – documentação detalhada de tecnologias, stacks e experiência.
-- `projects/*.md` – descrição de cada projeto do portfólio:
-  - `lol-matchmaking-fazenda.md`
-  - `experimenta-ai---soneca.md`
-  - `mercearia-r-v.md`
-  - `aa_space.md`
-  - `traffic_manager.md`
-  - `investment_calculator.md`
-  - `pintarapp.md`
-  - `pinta-como-eu-pinto.md`
-  - `lobby-pedidos.md`
-  - `obaid-with-bro.md`
+- **Estrutura no GitHub**:
+  - `portfolio-content/README.md` – visão geral
+  - `portfolio-content/README_GITHUB_PROFILE.md` – README do perfil GitHub
+  - `portfolio-content/STACKS.md` – documentação detalhada de tecnologias
+  - `portfolio-content/CURRICULO.md` – currículo em markdown
+  - `portfolio-content/projects/*.md` – projetos:
+    - `lol-matchmaking-fazenda.md`
+    - `experimenta-ai---soneca.md`
+    - `mercearia-r-v.md`
+    - `aa_space.md`
+    - `traffic_manager.md`
+    - `investment_calculator.md`
+    - `pintarapp.md`
+    - `pinta-como-eu-pinto.md`
+    - `lobby-pedidos.md`
+    - `obaid-with-bro.md`
+  - `portfolio-content/trabalhos/*.md` – experiências profissionais
 
 Esses arquivos são a **fonte de verdade** que alimenta:
 
-- o **chat com IA** (contexto base nos arquivos raiz), e
+- o **chat com IA** (contexto base nos arquivos raiz, com busca inteligente via `ContextSearchService`), e
 - as **páginas/modal de projetos** no frontend (via endpoint `/api/projects/{projectName}/markdown`).
+
+**Cache**: Conteúdo é cacheado em memória por 5 minutos para otimizar performance e reduzir chamadas à API do GitHub.
 
 ---
 
@@ -385,17 +408,21 @@ Esses arquivos são a **fonte de verdade** que alimenta:
 - **3. Usar o Chat com IA**
   - Clique no widget/flutuante de chat (`chat-widget`).
   - Envie perguntas sobre:
-    - stack/tecnologias (base em `STACKS.md`);
-    - projetos específicos (base em `projects/*.md`);
-    - resumo do perfil (base em `README_GITHUB_PROFILE.md`).
+    - stack/tecnologias (base em `STACKS.md` do GitHub);
+    - projetos específicos (base em `projects/*.md` do GitHub);
+    - resumo do perfil (base em `README_GITHUB_PROFILE.md` do GitHub).
   - O backend:
-    - monta o **system prompt** com os markdowns;
-    - chama o `OpenAIAdapter`, que escolhe o melhor modelo disponível com fallback;
+    - busca markdowns relevantes do repositório GitHub `certificados-wesley` (com cache);
+    - `ContextSearchService` identifica trechos mais relevantes para a pergunta;
+    - `TokenBudgetService` otimiza tokens (reduz histórico/contextos se necessário);
+    - `PortfolioPromptService` monta o **system prompt** com os contextos selecionados;
+    - `OpenAIAdapter` escolhe o melhor modelo disponível com fallback automático;
     - retorna a resposta para o frontend exibir em formato de chat.
 
 - **4. Explorar projetos**
   - Na seção `projects`, clique em um projeto para abrir o modal/README.
-  - O frontend chama `/api/projects/{projectName}/markdown`, e o backend devolve o markdown correto.
+  - O frontend chama `/api/projects/{projectName}/markdown`.
+  - O backend busca o markdown do GitHub (`certificados-wesley/portfolio-content/projects/{projectName}.md`) e devolve o conteúdo.
 
 - **5. Enviar mensagem de contato**
   - Preencha o formulário em `contact` e envie.
@@ -409,20 +436,45 @@ sequenceDiagram
     participant FW as Frontend Angular<br/>chat-widget
     participant C as ChatController<br/>(/api/chat)
     participant UC as ChatUseCase
+    participant TB as TokenBudgetService<br/>(Otimiza tokens)
     participant PS as PortfolioPromptService<br/>+ ContextSearchService
-    participant MD as ClasspathPortfolioContentAdapter<br/>\n(portfolio-content/*.md)
-    participant AI as OpenAIAdapter
+    participant GH_MD as GithubPortfolioMarkdownAdapter<br/>(Busca do GitHub)
+    participant CACHE as GithubContentCache<br/>(TTL 5min)
+    participant GH_API as GitHub API<br/>(certificados-wesley)
+    participant AI as OpenAIAdapter<br/>(Fallback de modelos)
     participant OA as OpenAI API
 
     U->>FW: Digita mensagem no chat
     FW->>C: POST /api/chat<br/>body: ChatRequest<br/>header: X-Session-ID
     C->>UC: execute(request, sessionId)
+    
     UC->>PS: montarSystemPrompt(historico, contexto)
-    PS->>MD: carregar markdowns (README, STACKS, projects/*.md)
-    MD-->>PS: conteúdo markdown relevante
+    PS->>GH_MD: carregar markdowns do GitHub<br/>(README, STACKS, projects/*.md)
+    
+    alt Cache hit
+        GH_MD->>CACHE: busca cache
+        CACHE-->>GH_MD: conteúdo cacheado
+    else Cache miss
+        GH_MD->>GH_API: GET /repos/certificados-wesley/contents/portfolio-content
+        GH_API-->>GH_MD: lista de arquivos .md
+        GH_MD->>GH_API: GET raw content (cada .md)
+        GH_API-->>GH_MD: conteúdo markdown
+        GH_MD->>CACHE: armazena no cache
+    end
+    
+    GH_MD-->>PS: conteúdo markdown relevante
     PS-->>UC: system prompt final
 
-    UC->>AI: chat(systemPrompt, historico, mensagemAtual)
+    UC->>TB: otimizar(systemPrompt, historico, mensagemAtual)
+    alt Tokens acima do threshold
+        TB->>TB: reduz histórico (mantém recentes)
+        TB->>TB: reduz contextos (mantém relevantes)
+        TB->>TB: trunca system prompt (último recurso)
+        Note over TB: Log: "Token budget otimizado"
+    end
+    TB-->>UC: TokenBudgetResult<br/>(systemPrompt otimizado, historico otimizado)
+
+    UC->>AI: chat(systemPrompt otimizado, historico otimizado, mensagemAtual)
     AI->>OA: chamada com model principal<br/>(gpt-5-mini)
     alt Rate limit / erro recuperável
         OA-->>AI: erro 429/5xx ou unsupported_parameter
