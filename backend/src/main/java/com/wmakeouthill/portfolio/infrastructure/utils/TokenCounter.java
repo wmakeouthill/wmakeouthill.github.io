@@ -14,12 +14,48 @@ public class TokenCounter {
     private static final double CARACTERES_POR_TOKEN = 4.0;
     private static final TokenCounter INSTANCE = new TokenCounter();
     
+    /** Limite de contexto dos modelos GPT (128k para GPT-4, usamos margem segura) */
+    private static final int LIMITE_CONTEXTO_MODELO = 120_000;
+    
+    /** Reserva de tokens para a resposta da IA */
+    private static final int RESERVA_RESPOSTA = 4_000;
+    
+    /** Limite seguro para entrada (contexto - reserva) */
+    public static final int LIMITE_ENTRADA_SEGURO = LIMITE_CONTEXTO_MODELO - RESERVA_RESPOSTA;
+    
+    /** Threshold para começar a reduzir (80% do limite) */
+    public static final int THRESHOLD_REDUCAO = (int) (LIMITE_ENTRADA_SEGURO * 0.8);
+    
     private TokenCounter() {
         // Singleton privado
     }
     
     public static TokenCounter getInstance() {
         return INSTANCE;
+    }
+    
+    /**
+     * Verifica se a quantidade de tokens está acima do threshold de redução.
+     */
+    public boolean precisaReducao(int tokensEstimados) {
+        return tokensEstimados > THRESHOLD_REDUCAO;
+    }
+    
+    /**
+     * Verifica se a quantidade de tokens excede o limite seguro.
+     */
+    public boolean excedeLimit(int tokensEstimados) {
+        return tokensEstimados > LIMITE_ENTRADA_SEGURO;
+    }
+    
+    /**
+     * Calcula quantos tokens precisam ser removidos para ficar abaixo do threshold.
+     */
+    public int tokensParaRemover(int tokensAtuais) {
+        if (tokensAtuais <= THRESHOLD_REDUCAO) {
+            return 0;
+        }
+        return tokensAtuais - THRESHOLD_REDUCAO + 1000; // margem extra de 1000 tokens
     }
     
     /**
