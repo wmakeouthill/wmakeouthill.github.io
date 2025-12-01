@@ -22,7 +22,7 @@
   position: absolute;
   bottom: 0;
   right: calc(100% + 0.75rem);
-  width: 650px;
+  width: 750px;
   max-width: calc(100vw - 2rem);
   max-height: calc(100dvh - 2.5rem); /* Dynamic viewport height para mobile */
   background: var(--bg-secondary);
@@ -38,7 +38,7 @@
 /* Ajuste para tablets em modo paisagem */
 @media (max-width: 1024px) and (min-width: 769px) {
   .chat-panel {
-    width: 600px;
+    width: 680px;
     max-width: calc(100vw - 2rem);
   }
 }
@@ -68,7 +68,35 @@
   overflow-y: auto;
   max-height: 520px;
   scrollbar-width: thin;
+  scrollbar-color: rgba(219, 194, 125, 0.4) var(--bg-secondary);
   -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+}
+
+/* Estilização do scrollbar do chat para WebKit (Chrome, Safari, Edge) */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  margin: 0.5rem 0;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(219, 194, 125, 0.4);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background var(--transition-fast);
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(219, 194, 125, 0.6);
+}
+
+.chat-messages::-webkit-scrollbar-thumb:active {
+  background: rgba(219, 194, 125, 0.8);
 }
 
 .chat-message-initial {
