@@ -20,7 +20,7 @@ export interface RepositoryFile {
 /**
  * Service para acessar conteúdo do portfólio (imagens e documentações)
  * servido pelo backend a partir do repositório GitHub.
- * 
+ *
  * As imagens são buscadas do repositório certificados-wesley/portifolio_imgs
  * e o matching é feito por nome do projeto (flexível).
  */
@@ -32,7 +32,7 @@ export class PortfolioContentService {
 
   /** Cache de imagens disponíveis */
   readonly imagens = signal<RepositoryFile[]>([]);
-  
+
   /** Loading state */
   readonly loading = signal(false);
 
@@ -98,12 +98,12 @@ export class PortfolioContentService {
   private buildImageCache(imagens: RepositoryFile[]): void {
     this.imageUrlCache.clear();
     this.availableImageNames = [];
-    
+
     for (const img of imagens) {
       const url = resolveApiUrl(`/api/content/images/${encodeURIComponent(img.fileName)}`);
       const baseName = img.displayName.toLowerCase();
       this.availableImageNames.push(img.displayName);
-      
+
       // Mapeia várias variações do nome
       const variations = this.generateNameVariations(baseName);
       for (const variation of variations) {
@@ -112,7 +112,7 @@ export class PortfolioContentService {
         }
       }
     }
-    
+
     console.log(`📦 Cache de imagens construído com ${this.imageUrlCache.size} entradas`);
   }
 
@@ -123,10 +123,10 @@ export class PortfolioContentService {
   private generateNameVariations(name: string): string[] {
     const lower = name.toLowerCase().trim();
     const variations = new Set<string>();
-    
+
     // Variação original
     variations.add(lower);
-    
+
     // Substitui separadores
     variations.add(lower.replace(/-/g, '_'));           // kebab -> snake
     variations.add(lower.replace(/_/g, '-'));           // snake -> kebab
@@ -135,12 +135,12 @@ export class PortfolioContentService {
     variations.add(lower.replace(/\s+/g, '-'));         // espaços -> kebab
     variations.add(lower.replace(/\s+/g, '_'));         // espaços -> snake
     variations.add(lower.replace(/\s+/g, ''));          // sem espaços
-    
+
     // Remove caracteres especiais comuns
     const normalized = lower.replace(/[^a-z0-9\-_\s]/g, '');
     variations.add(normalized);
     variations.add(normalized.replace(/[-_\s]/g, ''));
-    
+
     // Tenta extrair palavras-chave principais (primeiras 2-3 palavras)
     const words = lower.split(/[-_\s]+/).filter(w => w.length > 0);
     if (words.length > 1) {
@@ -153,7 +153,7 @@ export class PortfolioContentService {
         variations.add(words.slice(0, 3).join(''));
       }
     }
-    
+
     return Array.from(variations);
   }
 
