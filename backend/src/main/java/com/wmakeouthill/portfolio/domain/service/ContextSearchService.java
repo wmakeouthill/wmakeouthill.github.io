@@ -4,6 +4,7 @@ import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
 import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ContextSearchService {
@@ -23,13 +25,25 @@ public class ContextSearchService {
   private static final int MAX_FALLBACK = 2;
   private static final double MIN_SCORE = 0.4;
 
+  private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+
   private final PortfolioContentPort portfolioContentPort;
 
   private final List<ContextChunk> contextChunks = new ArrayList<>();
   private final List<ContextChunk> fallbackChunks = new ArrayList<>();
+  private volatile long ultimoCarregamento = 0;
 
   @PostConstruct
   void carregarContextos() {
+    recarregarContextos();
+  }
+
+  /**
+   * Recarrega os contextos do repositório GitHub.
+   * Chamado automaticamente se o cache expirou.
+   */
+  public synchronized void recarregarContextos() {
+    log.info("Recarregando contextos do repositório GitHub...");
     List<PortfolioMarkdownResource> recursos = portfolioContentPort.carregarMarkdownsDetalhados();
     contextChunks.clear();
     int indice = 0;
@@ -44,9 +58,24 @@ public class ContextSearchService {
       ));
     }
     atualizarFallback();
+    ultimoCarregamento = System.currentTimeMillis();
+    log.info("Contextos recarregados: {} chunks disponíveis", contextChunks.size());
+  }
+
+  /**
+   * Verifica se o cache expirou e recarrega se necessário.
+   */
+  private void verificarCacheExpirado() {
+    if (System.currentTimeMillis() - ultimoCarregamento > CACHE_TTL_MS) {
+      log.debug("Cache de contextos expirado, recarregando...");
+      recarregarContextos();
+    }
   }
 
   public List<String> buscarContextos(String mensagem, int limite) {
+    // Verifica se precisa recarregar contextos (cache de 5 min)
+    verificarCacheExpirado();
+    
     List<String> tokens = tokenizar(mensagem);
     if (tokens.isEmpty()) {
       return limitar(obterFallback(), limite);
