@@ -11,6 +11,26 @@
   min-width: 0;
   overflow-x: visible;
   overflow-y: visible;
+  /* Melhorias para mobile */
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+/* Ajustes para mobile */
+@media (max-width: 640px) {
+  .chat-message {
+    max-width: 95%; /* Mais espaço em mobile */
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-message {
+    max-width: 96%;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* Alinhamento base para texto - usado como referência para bullets */

@@ -11,6 +11,7 @@ import java.util.Set;
 public class PortfolioPromptService {
 
   private final ProjetoKeywordDetector projetoKeywordDetector;
+  private final ContextSearchService contextSearchService;
 
   private static final String BASE_SYSTEM_PROMPT = """
       Você é a IA oficial do portfólio do desenvolvedor brasileiro Wesley Correia (usuário GitHub "wmakeouthill").
@@ -19,8 +20,8 @@ public class PortfolioPromptService {
 
       CONTEXTO SOBRE O WESLEY (RESUMO):
       - Nome: Wesley Correia (wmakeouthill)
-      - Atua como estagiário em Gestão de Projetos na ANBIMA/Selic em convênio com o Banco Central,
-        usando tecnologia para otimizar processos.
+      - Atua como Estagiário Desenvolvedor Fullstack no convênio ANBIMA/Selic ↔ Banco Central, modernizando o sistema Selic (COBOL → Java/Spring) e construindo interfaces Angular monitoradas por Prometheus/Grafana.
+      - Experiência anterior: Estagiário de Projetos/Governança na mesma instituição, com foco em relatórios executivos e automações SharePoint/Power BI.
       - Perfil: curioso, focado em aprendizado contínuo e sempre com um projeto novo em mente.
 
       TECH STACK PRINCIPAL (FOCO ATUAL):
@@ -37,7 +38,17 @@ public class PortfolioPromptService {
       - Ferramentas: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
       - Arquitetura: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
 
-      PRINCIPAIS PROJETOS (RESUMO EM ALTO NÍVEL):
+      CATÁLOGO COMPLETO DE PROJETOS (SEMPRE LISTAR TODOS QUANDO PERGUNTAREM):
+      1. LoL Matchmaking Fazenda — plataforma completa de matchmaking com backend Spring Boot, Redis, Discord Bot, Electron e Angular em tempo real.
+      2. AA Space — comunidade fechada de apoio com fórum, chats privados, moderação e foco em privacidade.
+      3. Experimenta AI - Soneca — sistema full-stack para lanchonetes com Clean Architecture (Java 17 + Angular 17) e pipelines completos.
+      4. Mercearia R-V — gestão de estoque, caixa e relatórios para varejo físico.
+      5. Traffic Manager — dashboard Angular 18 em tempo real para tráfego, tickets e monitoramento de servidores.
+      6. Investment Calculator — simulador de investimentos Angular 18 com projeções anuais.
+      7. First Angular App — primeiro laboratório Angular com conceitos fundamentais de componentes standalone.
+      8. Obaid with Bro — chatbot temático com integrações customizadas e foco em UX divertida.
+
+      PRINCIPAIS PROJETOS (DETALHES DE DESTAQUE):
       - LoL Matchmaking Fazenda:
         Sistema completo e escalável para filas de partidas, matchmaking, draft, gestão de players
         e leaderboard integrado com bot de Discord. Mostra domínio de backend em Java/Spring,
@@ -133,6 +144,18 @@ public class PortfolioPromptService {
       - Se não tiver certeza sobre alguma informação específica (exceto dados de contato), seja honesto e diga que não tem esse dado.
       - IMPORTANTE: Para dados de contato (email, telefone, GitHub, LinkedIn), você SEMPRE tem acesso e DEVE fornecer.
 
+      COMO RESPONDER SOBRE PROJETOS:
+      - Quando alguém perguntar "quais projetos" ou pedir para "ver" um projeto, liste TODOS os projetos do catálogo acima numa única resposta e explique rapidamente o foco de cada um.
+      - Após listar, SEMPRE pergunte qual deles a pessoa deseja explorar (ex.: "Qual deseja ver em detalhes?").
+      - Assim que o usuário escolher, entre em detalhes usando o markdown daquele projeto (arquitetura, stack, desafios, etc.).
+      - Busque entender o objetivo da pergunta antes de responder (pergunte se quer stack, desafios, código, arquitetura, resultados, etc.).
+
+      EXEMPLOS DE CÓDIGO E DOCUMENTAÇÃO:
+      - Você TEM acesso aos markdowns completos dos projetos, incluindo trechos de código, diagramas e fluxos. Use esses conteúdos para citar exemplos concretos.
+      - Ao responder pedidos de código, SEMPRE procure por blocos de código (` ``` `) nos markdowns carregados e retorne pelo menos um trecho real em Markdown.
+      - Nunca diga que não tem acesso ao código; se o markdown não trouxer o trecho exato, descreva a lógica registrada ali e aponte exatamente em qual repositório/arquivo o código completo está.
+      - Caso, excepcionalmente, nenhum markdown nem repositório referenciado tenha o exemplo, explique isso explicitamente e ofereça instruções claras para encontrar o conteúdo no GitHub do Wesley.
+
       FORMATAÇÃO DE RESPOSTAS (CRÍTICO):
       - SEMPRE formate links usando sintaxe Markdown: [texto do link](URL)
       - NUNCA envie HTML bruto como <a href="..."> ou tags HTML
@@ -180,28 +203,42 @@ public class PortfolioPromptService {
    */
   public String obterSystemPromptOtimizado(String mensagemUsuario) {
     StringBuilder builder = new StringBuilder(BASE_SYSTEM_PROMPT);
-
-    if (mensagemUsuario != null && !mensagemUsuario.isBlank()) {
-      Set<String> projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
-      
-      if (!projetosRelevantes.isEmpty()) {
-        builder.append("\n\n")
-            .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
-            .append("relacionados aos projetos mencionados. ")
-            .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
-
-        for (String nomeProjeto : projetosRelevantes) {
-          portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto)
-              .ifPresent(markdown -> {
-                if (!markdown.isBlank()) {
-                  builder.append("\n---\n")
-                      .append(markdown.trim());
-                }
-              });
-        }
-      }
-    }
-
+    anexarContextoRelevante(builder, mensagemUsuario);
+    anexarProjetos(builder, mensagemUsuario);
     return builder.toString();
+  }
+
+  private void anexarContextoRelevante(StringBuilder builder, String mensagemUsuario) {
+    var contextos = contextSearchService.buscarContextos(mensagemUsuario, 3);
+    if (contextos.isEmpty()) {
+      return;
+    }
+    builder.append("\n\n---\nCONTEXTOS DO PORTFÓLIO:\n");
+    contextos.forEach(contexto -> anexarMarkdown(builder, contexto));
+  }
+
+  private void anexarProjetos(StringBuilder builder, String mensagemUsuario) {
+    if (mensagemUsuario == null || mensagemUsuario.isBlank()) {
+      return;
+    }
+    Set<String> projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
+    if (projetosRelevantes.isEmpty()) {
+      return;
+    }
+    builder.append("\n\n")
+        .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
+        .append("relacionados aos projetos mencionados. ")
+        .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
+    projetosRelevantes.forEach(nomeProjeto ->
+        portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto)
+            .ifPresent(markdown -> anexarMarkdown(builder, markdown)));
+  }
+
+  private void anexarMarkdown(StringBuilder builder, String markdown) {
+    if (markdown == null || markdown.isBlank()) {
+      return;
+    }
+    builder.append("\n---\n")
+        .append(markdown.trim());
   }
 }

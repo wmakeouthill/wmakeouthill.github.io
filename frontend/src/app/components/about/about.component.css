@@ -1,5 +1,7 @@
 .about {
   background: var(--bg-secondary);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 .about-content {
@@ -221,6 +223,11 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
+  .about {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
   .about-content {
     grid-template-columns: 350px 1fr;
     gap: 3rem;
@@ -232,6 +239,11 @@
 }
 
 @media (max-width: 768px) {
+  .about {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+  
   .about-content {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -259,6 +271,11 @@
 }
 
 @media (max-width: 480px) {
+  .about {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
   .about-highlights {
     grid-template-columns: 1fr;
   }

@@ -12,6 +12,12 @@
   padding: 0;
   vertical-align: bottom;
   margin-bottom: -0.25rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  z-index: var(--z-fixed);
 }
 
 .chat-avatar:hover,
@@ -21,11 +27,36 @@
 }
 
 .chat-avatar:active {
-  transform: translateY(0) scale(1);
+  transform: translateY(0) scale(0.98);
   box-shadow: var(--shadow-md);
 }
 
 .chat-avatar:focus {
   outline: none;
+}
+
+@media (max-width: 768px) {
+  .chat-avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: -0.2rem;
+  }
+
+  .chat-avatar:hover,
+  .chat-avatar.chat-open {
+    transform: translateY(-1px) scale(1.03);
+  }
+
+  .chat-avatar:active {
+    transform: translateY(0) scale(0.97);
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-avatar {
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: -0.15rem;
+  }
 }
 

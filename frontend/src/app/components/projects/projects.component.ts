@@ -36,39 +36,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   loadProjects() {
-    // 1) Primeiro tenta pelo backend Spring Boot (busca TODOS os repositórios)
-    this.githubService.getRepositoriesFromBackend().subscribe({
-      next: (backendRepos: GitHubRepository[]) => {
-        if (backendRepos && backendRepos.length > 0) {
-          this.projects = backendRepos;
-          this.loading = false;
-        } else {
-          this.loadFromAssetsOrApi();
-        }
-      },
-      error: () => this.loadFromAssetsOrApi()
-    });
-  }
-
-  private loadFromAssetsOrApi() {
-    // 2) Tenta ler dados pré-gerados de assets/github_data.json
-    this.githubService.getRepositoriesFromAssets().subscribe({
-      next: (assetRepos: GitHubRepository[]) => {
-        if (assetRepos && assetRepos.length > 0) {
-          this.projects = assetRepos;
-          this.loadLanguagesForProjects();
-          this.loading = false;
-        } else {
-          // 3) Fallback final: busca direta na API do GitHub (com cache 24h)
-          this.loadFromApi();
-        }
-      },
-      error: () => this.loadFromApi()
-    });
-  }
-
-  private loadFromApi() {
-    this.githubService.getRepositories(12).subscribe({
+    this.loading = true;
+    this.githubService.getRepositories().subscribe({
       next: (repos: GitHubRepository[]) => {
         this.projects = repos;
         this.loadLanguagesForProjects();

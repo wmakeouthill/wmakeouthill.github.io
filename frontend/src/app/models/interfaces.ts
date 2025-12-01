@@ -20,6 +20,8 @@ export interface GitHubRepository {
   stargazers_count: number;
   forks_count: number;
   language: string | null;
+  size?: number;
+  totalLanguageBytes?: number;
   languages?: LanguageInfo[]; // Array com todas as linguagens e suas porcentagens
   topics: string[];
   created_at: string;

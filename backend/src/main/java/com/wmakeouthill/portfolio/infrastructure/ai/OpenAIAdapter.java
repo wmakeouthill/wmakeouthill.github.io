@@ -18,28 +18,64 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Adapter para integração com a API da OpenAI.
- * A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
- * ou via propriedade `-Dopenai.api.key=...`.
+ * Adapter para integração com a API da OpenAI com suporte a fallback automático.
+ * 
+ * <p>A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
+ * ou via propriedade `-Dopenai.api.key=...`.</p>
+ * 
+ * <p>O modelo principal pode ser configurado via propriedade `openai.model` (padrão: gpt-5-mini).
+ * Modelos de fallback podem ser configurados via `openai.models.fallback` (separados por vírgula).
+ * Quando um modelo atinge rate limit ou falha, o sistema tenta automaticamente o próximo modelo.</p>
+ * 
+ * <p>Exemplo de configuração:
+ * <pre>
+ * openai.model=gpt-5-mini
+ * openai.models.fallback=gpt-4o-mini,gpt-3.5-turbo
+ * </pre>
+ * </p>
  */
 @Component
 public class OpenAIAdapter implements AIChatPort {
     private static final Logger log = LoggerFactory.getLogger(OpenAIAdapter.class);
     private static final String DEFAULT_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String MODELO_PADRAO = "gpt-3.5-turbo";
-    private static final int MAX_TOKENS = 800;
+    private static final String MODELO_PADRAO_FALLBACK = "gpt-5-mini";
+    private static final int MAX_TOKENS_PADRAO = 4000;
     private static final String KEY_CONTENT = "content";
 
     private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
     private final TokenCounter tokenCounter = TokenCounter.getInstance();
     private final String apiKey;
+    private final List<String> modelosFallback;
+    private final int maxTokens;
 
-    public OpenAIAdapter(@Value("${openai.api.key:}") String openaiApiKey) {
+    public OpenAIAdapter(
+            @Value("${openai.api.key:}") String openaiApiKey,
+            @Value("${openai.model:" + MODELO_PADRAO_FALLBACK + "}") String modelo,
+            @Value("${openai.models.fallback:}") String modelosFallbackStr,
+            @Value("${openai.max-tokens:" + MAX_TOKENS_PADRAO + "}") int maxTokens) {
+        this.maxTokens = maxTokens;
+        
+        // Constrói lista de modelos: modelo principal + fallbacks
+        List<String> modelos = new ArrayList<>();
+        modelos.add(modelo);
+        
+        if (modelosFallbackStr != null && !modelosFallbackStr.isBlank()) {
+            List<String> fallbacks = Arrays.stream(modelosFallbackStr.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.toList());
+            modelos.addAll(fallbacks);
+        }
+        
+        this.modelosFallback = modelos;
         if (openaiApiKey != null && !openaiApiKey.isBlank()) {
             this.apiKey = openaiApiKey;
             log.info("OpenAI key carregada via Spring property 'openai.api.key'");
@@ -56,6 +92,8 @@ public class OpenAIAdapter implements AIChatPort {
                 log.warn("  3. Arquivo configmap-local.properties carregado via spring.config.additional-location");
             }
         }
+        log.info("OpenAI Adapter configurado com {} modelo(s) de fallback: {}, max_tokens: {}", 
+                this.modelosFallback.size(), this.modelosFallback, this.maxTokens);
     }
 
     @Override
@@ -64,36 +102,70 @@ public class OpenAIAdapter implements AIChatPort {
             return new ChatResponse("Serviço de IA não configurado. Defina a variável OPENAI_API_KEY.");
         }
 
-        try {
-            List<Map<String, Object>> mensagens = construirMensagens(systemPrompt, historico, mensagemAtual);
+        List<Map<String, Object>> mensagens = construirMensagens(systemPrompt, historico, mensagemAtual);
+        
+        // Log de tokens de entrada antes da requisição
+        int tokensEntrada = tokenCounter.estimarTokensEntrada(systemPrompt, mensagens);
+        log.info("Tokens estimados de entrada: {} (system prompt: {}, mensagens: {}, histórico: {})", 
+            tokensEntrada,
+            tokenCounter.estimarTokensSystemPrompt(systemPrompt),
+            mensagens.size(),
+            historico.size());
+        
+        // Tenta cada modelo em sequência até um funcionar
+        Exception ultimoErro = null;
+        for (int i = 0; i < modelosFallback.size(); i++) {
+            String modeloAtual = modelosFallback.get(i);
+            boolean isUltimoModelo = (i == modelosFallback.size() - 1);
             
-            // Log de tokens de entrada antes da requisição
-            int tokensEntrada = tokenCounter.estimarTokensEntrada(systemPrompt, mensagens);
-            log.info("Tokens estimados de entrada: {} (system prompt: {}, mensagens: {}, histórico: {})", 
-                tokensEntrada,
-                tokenCounter.estimarTokensSystemPrompt(systemPrompt),
-                mensagens.size(),
-                historico.size());
-            
-            Map<String, Object> payload = criarPayload(mensagens);
-            String body = mapper.writeValueAsString(payload);
+            try {
+                boolean usaNovoFormato = requerMaxCompletionTokens(modeloAtual);
+                log.info("Tentando modelo {} ({}/{}) - formato: {}", 
+                        modeloAtual, i + 1, modelosFallback.size(),
+                        usaNovoFormato ? "max_completion_tokens (sem temperature)" : "max_tokens + temperature");
+                
+                Map<String, Object> payload = criarPayload(mensagens, modeloAtual);
+                String body = mapper.writeValueAsString(payload);
+                HttpRequest req = criarRequisicao(body);
+                HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
 
-            HttpRequest req = criarRequisicao(body);
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-
-            ChatResponse resposta = processarResposta(resp);
-            
-            // Log de tokens de saída após a requisição
-            int tokensSaida = tokenCounter.estimarTokensResposta(resposta.reply());
-            log.info("Tokens estimados de saída: {}, total estimado: {}", 
-                tokensSaida, tokensEntrada + tokensSaida);
-            
-            return resposta;
-        } catch (IOException | InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Erro ao comunicar com OpenAI", e);
-            return new ChatResponse("Erro ao comunicar com IA: " + e.getMessage());
+                // Verifica se é erro de rate limit ou outro erro recuperável
+                if (isErroRecuperavel(resp)) {
+                    String erroMsg = extrairMensagemErro(resp.body());
+                    log.warn("Modelo {} retornou erro recuperável (status {}): {}. Tentando próximo modelo...", 
+                            modeloAtual, resp.statusCode(), erroMsg);
+                    ultimoErro = new IOException("Erro recuperável: " + erroMsg);
+                    continue; // Tenta próximo modelo
+                }
+                
+                ChatResponse resposta = processarResposta(resp, modeloAtual);
+                
+                // Log de tokens de saída após a requisição
+                int tokensSaida = tokenCounter.estimarTokensResposta(resposta.reply());
+                log.info("Resposta obtida com modelo {} - Tokens estimados de saída: {}, total estimado: {}", 
+                    modeloAtual, tokensSaida, tokensEntrada + tokensSaida);
+                
+                return resposta;
+                
+            } catch (IOException | InterruptedException e) {
+                Thread.currentThread().interrupt();
+                ultimoErro = e;
+                
+                if (isUltimoModelo) {
+                    log.error("Todos os modelos falharam. Último erro ao comunicar com OpenAI (modelo {}): {}", 
+                            modeloAtual, e.getMessage());
+                } else {
+                    log.warn("Erro ao comunicar com modelo {}: {}. Tentando próximo modelo...", 
+                            modeloAtual, e.getMessage());
+                }
+            }
         }
+        
+        // Se chegou aqui, todos os modelos falharam
+        String mensagemErro = ultimoErro != null 
+                ? "Erro ao comunicar com IA: " + ultimoErro.getMessage()
+                : "Todos os modelos configurados falharam";
+        return new ChatResponse(mensagemErro);
     }
 
     private List<Map<String, Object>> construirMensagens(String systemPrompt, List<MensagemChat> historico,
@@ -109,25 +181,43 @@ public class OpenAIAdapter implements AIChatPort {
         return mensagens;
     }
 
-    private Map<String, Object> criarPayload(List<Map<String, Object>> mensagens) {
-        return Map.of(
-                "model", MODELO_PADRAO,
-                "messages", mensagens,
-                "max_tokens", MAX_TOKENS,
-                "temperature", 0.9);
+    private Map<String, Object> criarPayload(List<Map<String, Object>> mensagens, String modeloUsar) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", modeloUsar);
+        payload.put("messages", mensagens);
+        
+        // Modelos GPT-5 e GPT-4.1 requerem max_completion_tokens ao invés de max_tokens
+        // e não suportam customização de temperature (apenas valor padrão 1)
+        if (requerMaxCompletionTokens(modeloUsar)) {
+            payload.put("max_completion_tokens", maxTokens);
+            // GPT-5 e GPT-4.1 não aceitam temperature customizado, apenas o padrão (1)
+        } else {
+            payload.put("max_tokens", maxTokens);
+            payload.put("temperature", 0.9);
+        }
+        
+        return payload;
+    }
+    
+    private boolean requerMaxCompletionTokens(String modelo) {
+        if (modelo == null || modelo.isBlank()) {
+            return false;
+        }
+        // Modelos da família GPT-5 e GPT-4.1 requerem max_completion_tokens
+        return modelo.startsWith("gpt-5") || modelo.startsWith("gpt-4.1");
     }
 
     private HttpRequest criarRequisicao(String body) {
         return HttpRequest.newBuilder()
                 .uri(URI.create(DEFAULT_API_URL))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
     }
 
-    private ChatResponse processarResposta(HttpResponse<String> resp) throws IOException {
+    private ChatResponse processarResposta(HttpResponse<String> resp, String modeloUsado) throws IOException {
         if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
             JsonNode root = mapper.readTree(resp.body());
             JsonNode first = root.path("choices").path(0).path("message").path(KEY_CONTENT);
@@ -137,17 +227,62 @@ public class OpenAIAdapter implements AIChatPort {
             }
             
             // Tenta extrair informações de uso de tokens da resposta (se disponível)
-            logarUsoTokens(root);
+            logarUsoTokens(root, modeloUsado);
             
             return new ChatResponse(reply.trim());
         } else {
             String body = resp.body();
-            log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), body);
-            return new ChatResponse("Erro ao chamar API de IA: status=" + resp.statusCode());
+            log.error("Erro na API OpenAI (modelo {}): status={}, body={}", modeloUsado, resp.statusCode(), body);
+            throw new IOException("Erro ao chamar API de IA: status=" + resp.statusCode());
         }
     }
     
-    private void logarUsoTokens(JsonNode root) {
+    private boolean isErroRecuperavel(HttpResponse<String> resp) {
+        int statusCode = resp.statusCode();
+        // Rate limit (429), Too Many Requests, ou erros temporários do servidor (502, 503, 504)
+        if (statusCode == 429 || statusCode == 502 || statusCode == 503 || statusCode == 504) {
+            return true;
+        }
+        
+        // Verifica se é erro de rate limit ou parâmetro não suportado na mensagem de erro
+        if (statusCode >= 400 && statusCode < 500) {
+            String body = resp.body();
+            if (body != null) {
+                String bodyLower = body.toLowerCase();
+                return bodyLower.contains("rate limit") || 
+                       bodyLower.contains("quota") || 
+                       bodyLower.contains("too many requests") ||
+                       bodyLower.contains("unsupported_parameter") ||
+                       bodyLower.contains("unsupported_value") ||
+                       bodyLower.contains("not supported with this model");
+            }
+        }
+        
+        return false;
+    }
+    
+    private String extrairMensagemErro(String body) {
+        if (body == null || body.isBlank()) {
+            return "Erro desconhecido";
+        }
+        
+        try {
+            JsonNode root = mapper.readTree(body);
+            JsonNode error = root.path("error");
+            if (!error.isMissingNode()) {
+                JsonNode message = error.path("message");
+                if (!message.isMissingNode()) {
+                    return message.asText();
+                }
+            }
+        } catch (Exception e) {
+            // Ignora erro de parsing, retorna body original
+        }
+        
+        return body.length() > 200 ? body.substring(0, 200) + "..." : body;
+    }
+    
+    private void logarUsoTokens(JsonNode root, String modeloUsado) {
         try {
             JsonNode usage = root.path("usage");
             if (!usage.isMissingNode()) {
@@ -156,8 +291,8 @@ public class OpenAIAdapter implements AIChatPort {
                 int totalTokens = usage.path("total_tokens").asInt(0);
                 
                 if (totalTokens > 0) {
-                    log.info("Uso de tokens (da API OpenAI): entrada={}, saída={}, total={}", 
-                        promptTokens, completionTokens, totalTokens);
+                    log.info("Uso de tokens (modelo {}): entrada={}, saída={}, total={}", 
+                        modeloUsado, promptTokens, completionTokens, totalTokens);
                 }
             }
         } catch (Exception e) {

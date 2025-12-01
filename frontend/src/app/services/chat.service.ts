@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { resolveApiUrl } from '../utils/api-url.util';
 
 export interface ChatRequest {
   message: string;
@@ -16,13 +17,7 @@ export interface ChatResponse {
 export class ChatService {
   private readonly http = inject(HttpClient);
 
-  /**
-   * URL do backend do chat.
-   * Usa URL relativa para funcionar tanto em desenvolvimento quanto em produção.
-   * Em desenvolvimento: http://localhost:8080/api/chat
-   * Em produção: /api/chat (mesmo domínio do frontend)
-   */
-  private readonly apiUrl = '/api/chat';
+  private readonly apiUrl = resolveApiUrl('/api/chat');
 
   /**
    * Envia uma mensagem para o chat.
