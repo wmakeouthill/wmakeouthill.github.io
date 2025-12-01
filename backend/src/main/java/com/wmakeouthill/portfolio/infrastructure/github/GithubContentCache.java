@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class GithubContentCache {
 
-  private static final long DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutos
+  private static final long DEFAULT_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
   private final ConcurrentHashMap<String, CacheEntry<?>> cache = new ConcurrentHashMap<>();
 

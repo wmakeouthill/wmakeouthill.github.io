@@ -26,7 +26,11 @@ public class ProjectsController {
     return ResponseEntity.ok(repositorios);
   }
 
-  @GetMapping("/{projectName}/markdown")
+  /**
+   * Obtém o markdown de um projeto.
+   * Usa regex no path para preservar nomes com pontos (ex: wmakeouthill.github.io)
+   */
+  @GetMapping("/{projectName:.+}/markdown")
   public ResponseEntity<String> obterMarkdown(@PathVariable String projectName) {
     return obterMarkdownProjetoUseCase.executar(projectName)
         .map(ResponseEntity::ok)

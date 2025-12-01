@@ -106,25 +106,29 @@ export class MarkdownService {
     let markdown = '';
 
     // 1) Tenta backend: /api/projects/{projectName}/markdown
-    const backendUrl = `${this.backendProjectsApi}/${normalized}/markdown`;
+    // O backend busca dinamicamente do repositório GitHub
+    const backendUrl = `${this.backendProjectsApi}/${encodeURIComponent(normalized)}/markdown`;
     try {
       markdown = await lastValueFrom(
         this.http.get(backendUrl, { responseType: 'text' })
       );
-    } catch {
+      console.log(`✅ Markdown de "${projectName}" carregado do backend`);
+    } catch (error) {
+      console.warn(`⚠️ Markdown de "${projectName}" não encontrado no backend:`, error);
       markdown = '';
     }
 
-    // 2) Fallback para assets locais se backend não tiver o markdown
+    // 2) Fallback para assets locais apenas se backend falhou
     if (!markdown) {
       const file = this.mapProjectToFile(normalized);
-      if (!file) return '';
       const mdPath = `assets/portfolio_md/${file}`;
       try {
         markdown = await lastValueFrom(
           this.http.get(mdPath, { responseType: 'text' })
         );
+        console.log(`✅ Markdown de "${projectName}" carregado de assets locais`);
       } catch {
+        console.warn(`⚠️ Markdown de "${projectName}" não encontrado em assets locais`);
         markdown = '';
       }
     }
@@ -190,16 +194,13 @@ export class MarkdownService {
     return `readme_html_${project}`;
   }
 
-  mapProjectToFile(project: string): string | null {
-    const m: Record<string, string> = {
-      'aa_space': 'aa_space.md',
-      'lol-matchmaking-fazenda': 'lol-matchmaking-fazenda.md',
-      'mercearia-r-v': 'mercearia-r-v.md',
-      'traffic_manager': 'traffic_manager.md',
-      'first-angular-app': 'first-angular-app.md',
-      'investment_calculator': 'investment_calculator.md'
-    };
-    return m[project] || null;
+  /**
+   * Mapeia nome do projeto para nome do arquivo markdown.
+   * Retorna o nome normalizado + .md para qualquer projeto (dinâmico).
+   */
+  mapProjectToFile(project: string): string {
+    // Dinâmico: qualquer projeto pode ter um markdown
+    return `${this.normalizeProject(project)}.md`;
   }
 
   private normalizeProject(project: string): string {

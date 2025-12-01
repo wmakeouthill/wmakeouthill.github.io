@@ -44,6 +44,8 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
       Map.entry("pinta-como-eu-pinto", metadata(false, Set.of("projeto", "arte", "pintura"))),
       Map.entry("pintarapp", metadata(false, Set.of("projeto", "pintura", "app"))),
       Map.entry("traffic_manager", metadata(false, Set.of("projeto", "dashboard", "tempo real"))),
+      Map.entry("wmakeouthill.github.io", metadata(false, Set.of("projeto", "portfolio", "site", "angular", "spring boot"))),
+      Map.entry("wmakeouthill", metadata(false, Set.of("projeto", "perfil", "github", "wesley"))),
       Map.entry("anbima-selic-banco-central", metadata(false, Set.of("experiencia", "trabalho", "emprego", "anbima", "selic", "banco central"))),
       Map.entry("gondim-albuquerque-negreiros", metadata(false, Set.of("experiencia", "trabalho", "emprego", "juridico", "advocacia"))),
       Map.entry("liquigas-petrobras", metadata(false, Set.of("experiencia", "trabalho", "emprego", "liquigas", "petrobras"))),
@@ -88,17 +90,52 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
 
   @Override
   public Optional<String> carregarMarkdownPorProjeto(String nomeProjetoNormalizado) {
+    log.debug("Buscando markdown para projeto: {}", nomeProjetoNormalizado);
+    
+    // Primeiro, tenta encontrar o arquivo exato na lista de projetos
+    Optional<String> conteudoPorLista = buscarMarkdownNaLista(nomeProjetoNormalizado);
+    if (conteudoPorLista.isPresent()) {
+      return conteudoPorLista;
+    }
+    
+    // Fallback: tenta path direto (case-sensitive)
     String pathProjeto = "portfolio-content/projects/" + nomeProjetoNormalizado + ".md";
     String pathTrabalho = "portfolio-content/trabalhos/" + nomeProjetoNormalizado + ".md";
 
-    // Tenta primeiro na pasta de projetos
+    log.debug("Tentando path direto: {}", pathProjeto);
     Optional<String> conteudo = githubContentPort.obterMarkdownConteudo(pathProjeto);
     if (conteudo.isPresent()) {
       return conteudo;
     }
 
-    // Tenta na pasta de trabalhos
+    log.debug("Tentando path trabalhos: {}", pathTrabalho);
     return githubContentPort.obterMarkdownConteudo(pathTrabalho);
+  }
+
+  /**
+   * Busca o markdown na lista de arquivos do repositório (case-insensitive).
+   */
+  private Optional<String> buscarMarkdownNaLista(String nomeProjeto) {
+    String nomeNormalizado = nomeProjeto.toLowerCase(Locale.ROOT);
+    
+    // Busca em projetos
+    for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesProjetos()) {
+      if (doc.displayName().toLowerCase(Locale.ROOT).equals(nomeNormalizado)) {
+        log.debug("Encontrado em projetos: {} -> {}", nomeProjeto, doc.path());
+        return githubContentPort.obterMarkdownConteudo(doc.path());
+      }
+    }
+    
+    // Busca em trabalhos
+    for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesTrabalhos()) {
+      if (doc.displayName().toLowerCase(Locale.ROOT).equals(nomeNormalizado)) {
+        log.debug("Encontrado em trabalhos: {} -> {}", nomeProjeto, doc.path());
+        return githubContentPort.obterMarkdownConteudo(doc.path());
+      }
+    }
+    
+    log.debug("Não encontrado na lista: {}", nomeProjeto);
+    return Optional.empty();
   }
 
   private Optional<PortfolioMarkdownResource> converterParaResource(RepositoryFileDto doc, boolean projeto) {
