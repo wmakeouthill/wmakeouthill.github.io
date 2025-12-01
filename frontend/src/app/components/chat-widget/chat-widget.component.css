@@ -8,6 +8,9 @@
   transition: all var(--transition-normal);
   display: flex;
   align-items: flex-end;
+  /* Garantir que sempre apareça na tela */
+  min-width: fit-content;
+  min-height: fit-content;
 }
 
 /* Quando scroll-to-top está visível, move o chat para a esquerda na MESMA LINHA (mesmo bottom) */
@@ -40,6 +43,16 @@
   .chat-panel {
     width: 680px;
     max-width: calc(100vw - 2rem);
+  }
+  
+  .chat-widget-container {
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .chat-widget-container.scroll-top-visible {
+    bottom: 0.75rem;
+    right: calc(0.75rem + 50px + 0.75rem);
   }
 }
 
@@ -107,6 +120,7 @@
   .chat-widget-container {
     bottom: 1rem;
     right: 1rem;
+    display: flex !important;
   }
 
   .chat-widget-container.scroll-top-visible {
@@ -117,9 +131,14 @@
     /* Move para a esquerda */
   }
 
-  /* Quando o chat está aberto em mobile, esconde o botão flutuante */
-  .chat-widget-container:has(.chat-panel) {
-    display: none;
+  /* Quando o chat está aberto em mobile, esconde apenas o botão flutuante (avatar) */
+  .chat-widget-container:has(.chat-panel) app-chat-floating-button {
+    display: none !important;
+  }
+  
+  /* Garantir que o avatar apareça quando o chat está fechado */
+  .chat-widget-container:not(:has(.chat-panel)) app-chat-floating-button {
+    display: block !important;
   }
 
   .chat-messages {
