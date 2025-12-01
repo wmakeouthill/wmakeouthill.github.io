@@ -25,10 +25,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Adapter para integração com a API da OpenAI.
- * A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
- * ou via propriedade `-Dopenai.api.key=...`.
- * O modelo pode ser configurado via propriedade `openai.model` (padrão: gpt-5-mini).
+ * Adapter para integração com a API da OpenAI com suporte a fallback automático.
+ * 
+ * <p>A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
+ * ou via propriedade `-Dopenai.api.key=...`.</p>
+ * 
+ * <p>O modelo principal pode ser configurado via propriedade `openai.model` (padrão: gpt-5-mini).
+ * Modelos de fallback podem ser configurados via `openai.models.fallback` (separados por vírgula).
+ * Quando um modelo atinge rate limit ou falha, o sistema tenta automaticamente o próximo modelo.</p>
+ * 
+ * <p>Exemplo de configuração:
+ * <pre>
+ * openai.model=gpt-5-mini
+ * openai.models.fallback=gpt-4o-mini,gpt-3.5-turbo
+ * </pre>
+ * </p>
  */
 @Component
 public class OpenAIAdapter implements AIChatPort {
@@ -108,7 +119,10 @@ public class OpenAIAdapter implements AIChatPort {
             boolean isUltimoModelo = (i == modelosFallback.size() - 1);
             
             try {
-                log.debug("Tentando modelo {} ({}/{})", modeloAtual, i + 1, modelosFallback.size());
+                boolean usaNovoFormato = requerMaxCompletionTokens(modeloAtual);
+                log.info("Tentando modelo {} ({}/{}) - formato: {}", 
+                        modeloAtual, i + 1, modelosFallback.size(),
+                        usaNovoFormato ? "max_completion_tokens (sem temperature)" : "max_tokens + temperature");
                 
                 Map<String, Object> payload = criarPayload(mensagens, modeloAtual);
                 String body = mapper.writeValueAsString(payload);
@@ -167,16 +181,16 @@ public class OpenAIAdapter implements AIChatPort {
         return mensagens;
     }
 
-    private Map<String, Object> criarPayload(List<Map<String, Object>> mensagens) {
+    private Map<String, Object> criarPayload(List<Map<String, Object>> mensagens, String modeloUsar) {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", modelo);
+        payload.put("model", modeloUsar);
         payload.put("messages", mensagens);
         
-        // Modelos GPT-5 requerem max_completion_tokens ao invés de max_tokens
+        // Modelos GPT-5 e GPT-4.1 requerem max_completion_tokens ao invés de max_tokens
         // e não suportam customização de temperature (apenas valor padrão 1)
-        if (requerMaxCompletionTokens(modelo)) {
+        if (requerMaxCompletionTokens(modeloUsar)) {
             payload.put("max_completion_tokens", maxTokens);
-            // GPT-5 não aceita temperature customizado, apenas o padrão (1)
+            // GPT-5 e GPT-4.1 não aceitam temperature customizado, apenas o padrão (1)
         } else {
             payload.put("max_tokens", maxTokens);
             payload.put("temperature", 0.9);
@@ -189,8 +203,8 @@ public class OpenAIAdapter implements AIChatPort {
         if (modelo == null || modelo.isBlank()) {
             return false;
         }
-        // Modelos da família GPT-5 requerem max_completion_tokens
-        return modelo.startsWith("gpt-5");
+        // Modelos da família GPT-5 e GPT-4.1 requerem max_completion_tokens
+        return modelo.startsWith("gpt-5") || modelo.startsWith("gpt-4.1");
     }
 
     private HttpRequest criarRequisicao(String body) {
@@ -203,7 +217,7 @@ public class OpenAIAdapter implements AIChatPort {
                 .build();
     }
 
-    private ChatResponse processarResposta(HttpResponse<String> resp) throws IOException {
+    private ChatResponse processarResposta(HttpResponse<String> resp, String modeloUsado) throws IOException {
         if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
             JsonNode root = mapper.readTree(resp.body());
             JsonNode first = root.path("choices").path(0).path("message").path(KEY_CONTENT);
@@ -213,17 +227,62 @@ public class OpenAIAdapter implements AIChatPort {
             }
             
             // Tenta extrair informações de uso de tokens da resposta (se disponível)
-            logarUsoTokens(root);
+            logarUsoTokens(root, modeloUsado);
             
             return new ChatResponse(reply.trim());
         } else {
             String body = resp.body();
-            log.error("Erro na API OpenAI: status={}, body={}", resp.statusCode(), body);
-            return new ChatResponse("Erro ao chamar API de IA: status=" + resp.statusCode());
+            log.error("Erro na API OpenAI (modelo {}): status={}, body={}", modeloUsado, resp.statusCode(), body);
+            throw new IOException("Erro ao chamar API de IA: status=" + resp.statusCode());
         }
     }
     
-    private void logarUsoTokens(JsonNode root) {
+    private boolean isErroRecuperavel(HttpResponse<String> resp) {
+        int statusCode = resp.statusCode();
+        // Rate limit (429), Too Many Requests, ou erros temporários do servidor (502, 503, 504)
+        if (statusCode == 429 || statusCode == 502 || statusCode == 503 || statusCode == 504) {
+            return true;
+        }
+        
+        // Verifica se é erro de rate limit ou parâmetro não suportado na mensagem de erro
+        if (statusCode >= 400 && statusCode < 500) {
+            String body = resp.body();
+            if (body != null) {
+                String bodyLower = body.toLowerCase();
+                return bodyLower.contains("rate limit") || 
+                       bodyLower.contains("quota") || 
+                       bodyLower.contains("too many requests") ||
+                       bodyLower.contains("unsupported_parameter") ||
+                       bodyLower.contains("unsupported_value") ||
+                       bodyLower.contains("not supported with this model");
+            }
+        }
+        
+        return false;
+    }
+    
+    private String extrairMensagemErro(String body) {
+        if (body == null || body.isBlank()) {
+            return "Erro desconhecido";
+        }
+        
+        try {
+            JsonNode root = mapper.readTree(body);
+            JsonNode error = root.path("error");
+            if (!error.isMissingNode()) {
+                JsonNode message = error.path("message");
+                if (!message.isMissingNode()) {
+                    return message.asText();
+                }
+            }
+        } catch (Exception e) {
+            // Ignora erro de parsing, retorna body original
+        }
+        
+        return body.length() > 200 ? body.substring(0, 200) + "..." : body;
+    }
+    
+    private void logarUsoTokens(JsonNode root, String modeloUsado) {
         try {
             JsonNode usage = root.path("usage");
             if (!usage.isMissingNode()) {
@@ -232,8 +291,8 @@ public class OpenAIAdapter implements AIChatPort {
                 int totalTokens = usage.path("total_tokens").asInt(0);
                 
                 if (totalTokens > 0) {
-                    log.info("Uso de tokens (da API OpenAI): entrada={}, saída={}, total={}", 
-                        promptTokens, completionTokens, totalTokens);
+                    log.info("Uso de tokens (modelo {}): entrada={}, saída={}, total={}", 
+                        modeloUsado, promptTokens, completionTokens, totalTokens);
                 }
             }
         } catch (Exception e) {
