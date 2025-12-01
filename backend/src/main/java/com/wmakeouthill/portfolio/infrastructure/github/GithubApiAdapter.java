@@ -2,6 +2,7 @@ package com.wmakeouthill.portfolio.infrastructure.github;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wmakeouthill.portfolio.application.dto.GithubProfileDto;
 import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -28,15 +31,25 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
   private static final String DEFAULT_API_URL = "https://api.github.com";
   private static final Duration TIMEOUT = Duration.ofSeconds(20);
+  private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
   private final HttpClient httpClient = HttpClient.newHttpClient();
   private final ObjectMapper objectMapper = new ObjectMapper();
+
+  // Cache em memória
+  private final Map<String, CacheEntry<?>> cache = new ConcurrentHashMap<>();
 
   @Value("${github.api.username:wmakeouthill}")
   private String username;
 
   @Value("${github.api.token:}")
   private String tokenFromConfig;
+
+  private record CacheEntry<T>(T data, long timestamp) {
+    boolean isValid() {
+      return System.currentTimeMillis() - timestamp < CACHE_TTL_MS;
+    }
+  }
 
   @Override
   public List<GithubRepositoryDto> listarRepositorios() {
@@ -256,5 +269,75 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
     languages.sort((a, b) -> Integer.compare(b.percentage(), a.percentage()));
     return new LinguagensResult(languages, totalBytes);
+  }
+
+  @Override
+  public Optional<GithubProfileDto> buscarPerfil() {
+    String cacheKey = "profile:" + username;
+
+    @SuppressWarnings("unchecked")
+    CacheEntry<GithubProfileDto> cached = (CacheEntry<GithubProfileDto>) cache.get(cacheKey);
+    if (cached != null && cached.isValid()) {
+      log.debug("Retornando perfil do cache");
+      return Optional.of(cached.data());
+    }
+
+    try {
+      String url = DEFAULT_API_URL + "/users/" + username;
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .timeout(TIMEOUT)
+          .headers(defaultHeaders())
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        GithubProfileDto profile = mapProfile(response.body());
+        cache.put(cacheKey, new CacheEntry<>(profile, System.currentTimeMillis()));
+        log.info("Perfil GitHub carregado: {}", profile.login());
+        return Optional.of(profile);
+      }
+      log.error("Erro ao buscar perfil: status={}", response.statusCode());
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro ao buscar perfil do GitHub", e);
+    }
+    return Optional.empty();
+  }
+
+  private GithubProfileDto mapProfile(String body) throws IOException {
+    JsonNode node = objectMapper.readTree(body);
+    return new GithubProfileDto(
+        node.path("id").asLong(),
+        node.path("login").asText(),
+        asNullableText(node.get("name")),
+        node.path("avatar_url").asText(),
+        node.path("html_url").asText(),
+        asNullableText(node.get("bio")),
+        asNullableText(node.get("company")),
+        asNullableText(node.get("location")),
+        asNullableText(node.get("email")),
+        asNullableText(node.get("blog")),
+        asNullableText(node.get("twitter_username")),
+        node.path("public_repos").asInt(0),
+        node.path("public_gists").asInt(0),
+        node.path("followers").asInt(0),
+        node.path("following").asInt(0),
+        asNullableText(node.get("created_at")),
+        asNullableText(node.get("updated_at"))
+    );
+  }
+
+  @Override
+  public List<LanguageShareDto> buscarLinguagensRepositorio(String repoName) {
+    return buscarLinguagens(repoName).languages();
+  }
+
+  @Override
+  public int contarTotalEstrelas() {
+    return listarRepositorios().stream()
+        .mapToInt(GithubRepositoryDto::stargazersCount)
+        .sum();
   }
 }
