@@ -82,7 +82,7 @@ export interface Project {
   featured?: boolean;
 }
 
-// Interface para certificações
+// Interface para certificações (estática - legado)
 export interface Certification {
   id: number;
   name: string;
@@ -92,6 +92,22 @@ export interface Certification {
   credentialId?: string;
   credentialUrl?: string;
   image?: string;
+}
+
+// Interface para certificado PDF dinâmico (do GitHub)
+export interface CertificadoPdf {
+  /** Nome do arquivo (ex: "Diploma - Bacharel em Direito.pdf") */
+  fileName: string;
+  /** Nome formatado para exibição (ex: "Diploma - Bacharel em Direito") */
+  displayName: string;
+  /** URL para download direto do PDF */
+  downloadUrl: string;
+  /** URL da página do arquivo no GitHub */
+  htmlUrl: string;
+  /** Tamanho em bytes */
+  size: number;
+  /** SHA do arquivo (para cache) */
+  sha: string;
 }
 
 // Interface para informações pessoais

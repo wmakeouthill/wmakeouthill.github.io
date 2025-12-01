@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubService } from '../../services/github.service';
+import { MarkdownService } from '../../services/markdown.service';
+import { PortfolioContentService } from '../../services/portfolio-content.service';
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 
@@ -11,54 +13,82 @@ import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
-export class ProjectsComponent implements OnInit, AfterViewInit {
+export class ProjectsComponent implements OnInit {
   private readonly githubService = inject(GithubService);
-  @ViewChild('projectsSection') private projectsSection?: ElementRef<HTMLElement>;
+  private readonly markdownService = inject(MarkdownService);
+  private readonly portfolioContentService = inject(PortfolioContentService);
+  
+  readonly projectsSection = viewChild<ElementRef<HTMLElement>>('projectsSection');
 
-  projects: GitHubRepository[] = [];
-  loading = true;
-  selectedFilter = 'all';
-  currentPage = 1;
-  itemsPerPage = 6;
+  // Estado com signals
+  readonly projects = signal<GitHubRepository[]>([]);
+  readonly loading = signal<boolean>(true);
+  readonly selectedFilter = signal<string>('all');
+  readonly currentPage = signal<number>(1);
+  readonly itemsPerPage = 6;
 
-  // Modal properties
-  showReadmeModal = false;
-  currentProjectName = '';
-  loadingPreRender = false;
-  modalVisible = false;
+  // Modal state com signals
+  readonly showReadmeModal = signal<boolean>(false);
+  readonly currentProjectName = signal<string>('');
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadProjects();
+    this.loadProjectImages();
   }
 
-  ngAfterViewInit() {
-    // Garante que a referência está disponível após a view ser inicializada
+  /**
+   * Carrega imagens de projetos do repositório GitHub via backend.
+   */
+  private loadProjectImages(): void {
+    this.portfolioContentService.loadImagens().subscribe();
   }
 
-  loadProjects() {
-    this.loading = true;
+  private loadProjects(): void {
+    this.loading.set(true);
     this.githubService.getRepositories().subscribe({
       next: (repos: GitHubRepository[]) => {
-        this.projects = repos;
+        this.projects.set(repos);
         this.loadLanguagesForProjects();
-        this.loading = false;
+        this.loading.set(false);
+        
+        // 🚀 Pré-carrega READMEs de todos os projetos em background
+        this.preloadAllReadmesInBackground(repos);
       },
       error: (error: any) => {
         console.error('Erro ao carregar projetos:', error);
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
 
-  loadLanguagesForProjects() {
-    this.projects.forEach(project => {
-      // Se já existe no JSON estático, não chama API
+  /**
+   * Pré-carrega todos os READMEs em background após carregar projetos.
+   * Isso garante que quando o usuário clicar, o modal abre instantaneamente.
+   */
+  private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
+    // Extrai nomes dos projetos
+    const projectNames = repos.map(repo => repo.name);
+    
+    // Inicia pré-carregamento em background (não bloqueia UI)
+    setTimeout(() => {
+      this.markdownService.preloadProjectsInBackground(projectNames).catch(error => {
+        console.error('Erro no pré-carregamento de READMEs:', error);
+      });
+    }, 500); // Pequeno delay para não competir com carregamento inicial
+  }
+
+  private loadLanguagesForProjects(): void {
+    const currentProjects = this.projects();
+    currentProjects.forEach(project => {
       if (project.languages && project.languages.length > 0) {
         return;
       }
       this.githubService.getRepositoryLanguages(project.name).subscribe({
         next: (languages) => {
-          project.languages = languages;
+          // Atualiza o projeto com as linguagens
+          this.projects.update(projects => 
+            projects.map(p => p.name === project.name ? { ...p, languages } : p)
+          );
         },
         error: (error) => {
           console.error(`Erro ao carregar linguagens para ${project.name}:`, error);
@@ -67,31 +97,36 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  get filteredProjects(): GitHubRepository[] {
-    let filtered = this.projects;
+  // Computed para projetos filtrados
+  readonly filteredProjects = computed(() => {
+    const filter = this.selectedFilter();
+    const allProjects = this.projects();
 
-    if (this.selectedFilter !== 'all') {
-      filtered = this.projects.filter(p =>
-        p.language?.toLowerCase() === this.selectedFilter.toLowerCase()
-      );
+    if (filter === 'all') {
+      return allProjects;
     }
 
-    return filtered;
-  }
+    return allProjects.filter(p =>
+      p.language?.toLowerCase() === filter.toLowerCase()
+    );
+  });
 
-  get paginatedProjects(): GitHubRepository[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+  // Computed para projetos paginados
+  readonly paginatedProjects = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
-    return this.filteredProjects.slice(startIndex, endIndex);
-  }
+    return this.filteredProjects().slice(startIndex, endIndex);
+  });
 
-  get totalPages(): number {
-    return Math.ceil(this.filteredProjects.length / this.itemsPerPage);
-  }
+  // Computed para total de páginas
+  readonly totalPages = computed(() => {
+    return Math.ceil(this.filteredProjects().length / this.itemsPerPage);
+  });
 
-  get pageNumbers(): number[] {
-    const total = this.totalPages;
-    const current = this.currentPage;
+  // Computed para números de página
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
     const pages: number[] = [];
 
     if (total <= 7) {
@@ -123,83 +158,96 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
     }
 
     return pages;
-  }
+  });
 
-  get availableLanguages(): string[] {
+  // Computed para linguagens disponíveis
+  readonly availableLanguages = computed(() => {
     const languages = new Set(
-      this.projects
+      this.projects()
         .map(p => p.language)
         .filter((lang): lang is string => lang !== null)
     );
     return ['all', ...Array.from(languages)];
-  }
+  });
 
-  filterProjects(filter: string) {
-    this.selectedFilter = filter;
-    this.currentPage = 1;
+  filterProjects(filter: string): void {
+    this.selectedFilter.set(filter);
+    this.currentPage.set(1);
     this.scrollToProjectsSection();
   }
 
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
       this.scrollToProjectsSection();
     }
   }
 
-  private scrollToProjectsSection() {
-    // Tenta scrollar para a seção de projetos primeiro
-    if (this.projectsSection?.nativeElement) {
-      this.projectsSection.nativeElement.scrollIntoView({
+  private scrollToProjectsSection(): void {
+    const section = this.projectsSection();
+    if (section?.nativeElement) {
+      section.nativeElement.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
     } else {
-      // Fallback: scrolla para o topo da página
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  previousPage() {
-    if (this.currentPage > 1) {
-      this.goToPage(this.currentPage - 1);
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      this.goToPage(this.currentPage() - 1);
     }
   }
 
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.goToPage(this.currentPage + 1);
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.goToPage(this.currentPage() + 1);
     }
   }
 
-  openReadmeModal(projectName: string) {
-    console.log(`⚡ Abrindo modal README para: ${projectName} (instantâneo!)`);
-    this.currentProjectName = projectName;
-
-    // Abrir modal imediatamente - conteúdo já está no cache
-    this.showReadmeModal = true;
-    this.modalVisible = true;
-
-    console.log(`✅ Modal aberto instantaneamente para ${projectName}`);
+  openReadmeModal(projectName: string): void {
+    console.log(`⚡ Abrindo modal README para: ${projectName}`);
+    this.currentProjectName.set(projectName);
+    this.showReadmeModal.set(true);
+    console.log(`✅ Modal aberto para ${projectName}`);
   }
 
-  closeReadmeModal() {
-    this.showReadmeModal = false;
-    this.currentProjectName = '';
-    this.modalVisible = false;
-
-    // NÃO limpar cache - deve persistir por 24 horas
-    console.log('📱 Modal fechado - cache mantido por 24h');
+  closeReadmeModal(): void {
+    this.showReadmeModal.set(false);
+    this.currentProjectName.set('');
+    console.log('📱 Modal fechado - cache mantido');
   }
 
+  /**
+   * Retorna a URL da imagem do projeto.
+   * Busca primeiro no cache do serviço (que tem o nome correto do arquivo).
+   */
   getProjectImage(projectName: string): string {
-    // Mapear nomes de projetos para imagens locais
-    const imageMap: { [key: string]: string } = {
-      'LoL-Matchmaking-Fazenda': 'assets/portifolio_imgs/LoL-Matchmaking-Fazenda.png',
-      'Mercearia-R-V': 'assets/portifolio_imgs/Mercearia-R-V.png',
-      'AA_Space': 'assets/portifolio_imgs/AA_Space.png'
-    };
+    // Tenta encontrar a melhor URL no cache (com nome exato do arquivo)
+    const cachedUrl = this.portfolioContentService.findBestImageUrl(projectName);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+    
+    // Se não encontrou no cache, usa placeholder direto
+    // (evita tentativas desnecessárias de .png/.jpg que vão falhar)
+    return this.portfolioContentService.getPlaceholderUrl(projectName);
+  }
 
-    return imageMap[projectName] || `https://placehold.co/600x400/002E59/DBC27D?text=${projectName}`;
+  /**
+   * Tratamento de erro quando imagem não carrega.
+   * Usa placeholder como fallback.
+   */
+  onImageError(event: Event, projectName: string): void {
+    const img = event.target as HTMLImageElement;
+    const currentSrc = img.src;
+
+    // Evita loop infinito - só muda se não for placeholder
+    if (!currentSrc.includes('placehold.co')) {
+      img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+    }
   }
 }
+

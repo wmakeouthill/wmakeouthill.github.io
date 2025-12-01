@@ -67,19 +67,51 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     this.loading = true;
     const page = await this.pdf.getPage(this.pageNumber);
 
-    // determinar scale desejado com otimização para mobile
-    let targetScale = this.zoom === 1.0 ? 1.5 : this.zoom * 1.5;
+    // Obter viewport inicial para calcular proporções
+    const initialViewport = page.getViewport({ scale: 1.0 });
+    const pdfWidth = initialViewport.width;
+    const pdfHeight = initialViewport.height;
 
-    // Otimização para mobile: reduzir escala base em telas pequenas
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-      targetScale = this.zoom === 1.0 ? 1.2 : this.zoom * 1.2;
+    // Calcular escala baseada no container disponível
+    // Subir na hierarquia para encontrar o pdf-container
+    let container = this.rootRef.nativeElement.parentElement;
+    while (container && !container.classList.contains('pdf-container')) {
+      container = container.parentElement;
     }
+    
+    let targetScale = 1.5; // escala padrão
 
-    // Otimização adicional para telas muito pequenas
-    const isSmallMobile = window.innerWidth <= 480;
-    if (isSmallMobile) {
-      targetScale = this.zoom === 1.0 ? 1.0 : this.zoom * 1.0;
+    if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+      const containerWidth = container.clientWidth - 32; // padding
+      const containerHeight = container.clientHeight - 32;
+
+      // Calcular escala para caber na largura
+      const scaleToFitWidth = containerWidth / pdfWidth;
+      // Calcular escala para caber na altura
+      const scaleToFitHeight = containerHeight / pdfHeight;
+      
+      // Usar a MAIOR escala que ainda caiba (prioriza ocupar mais espaço)
+      // mas garantindo que não ultrapasse nenhuma dimensão
+      const baseScale = Math.min(scaleToFitWidth, scaleToFitHeight);
+      
+      // Aplicar zoom do usuário sobre a escala base
+      targetScale = baseScale * this.zoom;
+      
+      // Garantir limites razoáveis (0.5 a 4.0 para permitir zoom até 200%)
+      targetScale = Math.max(0.5, Math.min(4.0, targetScale));
+    } else {
+      // Fallback baseado no tamanho da tela
+      const screenWidth = window.innerWidth;
+      
+      if (screenWidth <= 480) {
+        targetScale = this.zoom * 1.0;
+      } else if (screenWidth <= 768) {
+        targetScale = this.zoom * 1.3;
+      } else if (screenWidth <= 1024) {
+        targetScale = this.zoom * 1.5;
+      } else {
+        targetScale = this.zoom * 1.8;
+      }
     }
 
     const viewport = page.getViewport({ scale: targetScale });
@@ -87,14 +119,15 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // high-DPI support com otimização para mobile
+    // high-DPI support com otimização
     const outputScale = window.devicePixelRatio || 1;
-    // Reduzir escala de output em mobile para melhor performance
-    const finalOutputScale = isMobile ? Math.min(outputScale, 1.5) : outputScale;
+    const isMobile = window.innerWidth <= 768;
+    const finalOutputScale = isMobile ? Math.min(outputScale, 2) : outputScale;
 
     canvas.width = Math.floor(viewport.width * finalOutputScale);
     canvas.height = Math.floor(viewport.height * finalOutputScale);
-    // CSS size (keeps it fitting inside container)
+    
+    // CSS size - tamanho visual do canvas
     canvas.style.width = `${Math.floor(viewport.width)}px`;
     canvas.style.height = `${Math.floor(viewport.height)}px`;
 

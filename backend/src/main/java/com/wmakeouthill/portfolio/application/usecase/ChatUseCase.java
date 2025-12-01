@@ -6,15 +6,20 @@ import com.wmakeouthill.portfolio.application.port.in.GerenciarHistoricoChatPort
 import com.wmakeouthill.portfolio.application.port.out.AIChatPort;
 import com.wmakeouthill.portfolio.domain.entity.MensagemChat;
 import com.wmakeouthill.portfolio.domain.service.PortfolioPromptService;
+import com.wmakeouthill.portfolio.domain.service.TokenBudgetService;
+import com.wmakeouthill.portfolio.domain.service.TokenBudgetService.TokenBudgetResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatUseCase {
     private final AIChatPort aiChatPort;
     private final GerenciarHistoricoChatPort gerenciarHistoricoChatPort;
     private final PortfolioPromptService portfolioPromptService;
+    private final TokenBudgetService tokenBudgetService;
 
     public ChatResponse execute(ChatRequest request, String sessionId) {
         String mensagemUsuarioTexto = normalizarMensagem(request);
@@ -33,7 +38,18 @@ public class ChatUseCase {
         String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemUsuarioTexto);
         var historico = gerenciarHistoricoChatPort.obterHistorico(sessionId);
 
-        ChatResponse resposta = aiChatPort.chat(systemPrompt, historico, mensagemUsuarioTexto);
+        // Otimiza tokens se necessário (reduz histórico/contextos se perto do limite)
+        TokenBudgetResult budgetResult = tokenBudgetService.otimizar(systemPrompt, historico, mensagemUsuarioTexto);
+        
+        if (budgetResult.foiReduzido()) {
+            log.info("Token budget otimizado: {} tokens estimados", budgetResult.tokensEstimados());
+        }
+
+        ChatResponse resposta = aiChatPort.chat(
+            budgetResult.systemPromptOtimizado(), 
+            budgetResult.historicoOtimizado(), 
+            mensagemUsuarioTexto
+        );
         registrarRespostaNoHistorico(sessionId, resposta);
 
         return resposta;

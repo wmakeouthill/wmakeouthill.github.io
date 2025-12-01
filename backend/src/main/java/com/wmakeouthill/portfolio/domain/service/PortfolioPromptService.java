@@ -209,12 +209,31 @@ public class PortfolioPromptService {
   }
 
   private void anexarContextoRelevante(StringBuilder builder, String mensagemUsuario) {
-    var contextos = contextSearchService.buscarContextos(mensagemUsuario, 3);
+    int limite = calcularLimiteContextos(mensagemUsuario);
+    var contextos = contextSearchService.buscarContextos(mensagemUsuario, limite);
     if (contextos.isEmpty()) {
       return;
     }
     builder.append("\n\n---\nCONTEXTOS DO PORTFÓLIO:\n");
     contextos.forEach(contexto -> anexarMarkdown(builder, contexto));
+  }
+
+  /**
+   * Calcula o limite de contextos baseado no tipo de pergunta.
+   * Perguntas sobre trabalhos/experiências recebem mais contextos.
+   */
+  private int calcularLimiteContextos(String mensagem) {
+    if (mensagem == null || mensagem.isBlank()) {
+      return 3;
+    }
+    String lower = mensagem.toLowerCase();
+    // Se pergunta sobre trabalhos/experiências, aumenta limite para incluir todos
+    if (lower.contains("trabalh") || lower.contains("experienc") || 
+        lower.contains("emprego") || lower.contains("onde trabalhei") ||
+        lower.contains("carreira") || lower.contains("profissional")) {
+      return 6;
+    }
+    return 3;
   }
 
   private void anexarProjetos(StringBuilder builder, String mensagemUsuario) {

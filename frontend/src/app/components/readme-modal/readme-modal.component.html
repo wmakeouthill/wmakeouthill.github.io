@@ -1,25 +1,23 @@
-@if (isOpen) {
+@if (isOpen()) {
 <div class="modal-overlay" (click)="closeModal()" (keydown)="onKeyDown($event)">
   <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)">
     <div class="modal-header">
-      <h2>{{ projectName }} - README</h2>
+      <h2>{{ projectName() }} - README</h2>
       <div class="modal-controls">
         <div class="zoom-controls">
           <button
             class="zoom-btn theme-toggle"
             (click)="toggleTheme()"
-            [title]="isLightMode ? 'Alternar para modo escuro' : 'Alternar para modo claro'"
+            [title]="isLightMode() ? 'Alternar para modo escuro' : 'Alternar para modo claro'"
           >
-            <span>{{ isLightMode ? '🌙' : '☀️' }}</span>
+            <span>{{ isLightMode() ? '🌙' : '☀️' }}</span>
           </button>
           <button class="zoom-btn" (click)="decreaseZoom()" title="Diminuir zoom">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13H5v-2h14v2z" />
             </svg>
           </button>
-          <span class="zoom-level">{{
-            markdownZoom === 1 ? 'Auto' : (markdownZoom * 100 | number : '1.0-0') + '%'
-          }}</span>
+          <span class="zoom-level">{{ zoomDisplay() }}</span>
           <button class="zoom-btn" (click)="increaseZoom()" title="Aumentar zoom">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
@@ -50,13 +48,13 @@
     </div>
     <div class="modal-body" (keydown)="onKeyDown($event)">
       <div class="markdown-container" (wheel)="onMouseWheel($event)">
-        @if (loadingReadme) {
+        @if (loadingReadme()) {
         <div class="loading-readme">
           <div class="spinner"></div>
           <p>Carregando README...</p>
         </div>
-        } @else if (readmeContent) {
-        <div #markdownContent class="markdown-content" [innerHTML]="readmeContent"></div>
+        } @else if (hasContent()) {
+        <div #markdownContent class="markdown-content" [innerHTML]="readmeContent()"></div>
         } @else {
         <div class="no-readme">
           <p>README não encontrado para este projeto.</p>

@@ -1,4 +1,17 @@
-import { Component, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, AfterViewInit, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  inject,
+  input,
+  output,
+  signal,
+  computed,
+  effect,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ViewEncapsulation,
+  ElementRef,
+  viewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkdownService } from '../../services/markdown.service';
@@ -12,89 +25,116 @@ import { MarkdownService } from '../../services/markdown.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
-export class ReadmeModalComponent implements OnChanges, AfterViewInit {
-  @Input() isOpen = false;
-  @Input() projectName = '';
-  @Input() visible = true;
-  @Output() close = new EventEmitter<void>();
+export class ReadmeModalComponent implements OnDestroy {
+  private readonly markdownService = inject(MarkdownService);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  @ViewChild('markdownContent', { static: false }) markdownContent!: ElementRef;
+  // Inputs usando nova sintaxe
+  readonly isOpen = input<boolean>(false);
+  readonly projectName = input<string>('');
+  readonly visible = input<boolean>(true);
 
-  readmeContent: SafeHtml = '';
-  loadingReadme = false;
-  markdownZoom = 1.0;
-  rawMarkdown = '';
-  isLightMode = false;
+  // Output usando nova sintaxe
+  readonly close = output<void>();
 
-  constructor(
-    private readonly markdownService: MarkdownService,
-    private readonly sanitizer: DomSanitizer
-  ) { }
+  // ViewChild com nova sintaxe
+  readonly markdownContent = viewChild<ElementRef>('markdownContent');
 
-  ngOnChanges(changes: any) {
-    if (changes['isOpen']) {
-      if (this.isOpen) {
-        this.loadFromCache();
+  // Estado interno com signals
+  readonly readmeContent = signal<SafeHtml>('');
+  readonly loadingReadme = signal<boolean>(false);
+  readonly markdownZoom = signal<number>(1.0);
+  readonly rawMarkdown = signal<string>('');
+  readonly isLightMode = signal<boolean>(false);
+
+  // Computed para exibir zoom formatado
+  readonly zoomDisplay = computed(() => {
+    const zoom = this.markdownZoom();
+    return zoom === 1 ? 'Auto' : `${Math.round(zoom * 100)}%`;
+  });
+
+  // Computed para verificar se tem conteúdo
+  readonly hasContent = computed(() => {
+    const content = this.readmeContent();
+    return content !== '' && content !== null;
+  });
+
+  constructor() {
+    // Effect que reage às mudanças de isOpen
+    effect(() => {
+      const open = this.isOpen();
+      const project = this.projectName();
+
+      if (open && project) {
+        this.loadFromCacheOrFetch(project);
         this.disableBodyScroll();
       } else {
         this.enableBodyScroll();
       }
-    }
+    });
   }
 
-  ngAfterViewInit() {
-    if (this.isOpen) {
-      this.setupCodeBlocks();
-    }
+  ngOnDestroy(): void {
+    this.enableBodyScroll();
   }
 
-  private async loadFromCache() {
-    if (!this.projectName || this.loadingReadme) return;
-    this.loadingReadme = true;
-    
-    // Tenta carregar do cache primeiro
-    let cached = this.markdownService.getReadmeContentSync(this.projectName);
-    
-    // Se não tiver no cache, tenta pré-carregar do backend/assets
-    if (!cached) {
-      try {
-        cached = await this.markdownService.preloadProject(this.projectName);
-      } catch (error) {
-        console.error('Erro ao pré-carregar projeto:', error);
-      }
+  private async loadFromCacheOrFetch(project: string): Promise<void> {
+    if (!project) return;
+
+    // Verifica cache primeiro - se existir, mostra instantaneamente
+    const cached = this.markdownService.getReadmeContentSync(project);
+
+    if (cached) {
+      // Conteúdo já em cache - mostra instantaneamente sem loading
+      console.log(`⚡ README de ${project} carregado do cache instantaneamente!`);
+      this.readmeContent.set(this.sanitizer.bypassSecurityTrustHtml(cached));
+      this.loadingReadme.set(false);
+
+      // Setup code blocks após render
+      setTimeout(() => this.setupCodeBlocks(), 50);
+
+      // Carrega raw markdown em background para download
+      this.loadRawMarkdownBackground(project);
+      return;
     }
-    
-    this.readmeContent = cached ? this.sanitizer.bypassSecurityTrustHtml(cached) : '';
-    this.loadingReadme = false;
 
-    // Carregar markdown raw para download
-    await this.loadRawMarkdown();
+    // Não está no cache - precisa carregar (mostra loading)
+    this.loadingReadme.set(true);
+    console.log(`📥 Carregando README de ${project} do servidor...`);
 
-    // Setup code blocks após carregar
-    setTimeout(() => this.setupCodeBlocks(), 100);
-  }
-
-  private async loadRawMarkdown() {
     try {
-      // 1) Tenta buscar do backend primeiro (URL relativa para funcionar em dev e produção)
-      const normalized = this.projectName.toLowerCase();
+      const html = await this.markdownService.preloadProject(project);
+      this.readmeContent.set(html ? this.sanitizer.bypassSecurityTrustHtml(html) : '');
+    } catch (error) {
+      console.error('Erro ao carregar projeto:', error);
+      this.readmeContent.set('');
+    } finally {
+      this.loadingReadme.set(false);
+      setTimeout(() => this.setupCodeBlocks(), 100);
+      this.loadRawMarkdownBackground(project);
+    }
+  }
+
+  private async loadRawMarkdownBackground(project: string): Promise<void> {
+    try {
+      const normalized = project.toLowerCase();
       const backendUrl = `/api/projects/${normalized}/markdown`;
+
       try {
         const response = await fetch(backendUrl);
         if (response.ok) {
-          this.rawMarkdown = await response.text();
+          this.rawMarkdown.set(await response.text());
           return;
         }
-      } catch (backendError) {
-        console.warn('Backend não disponível, tentando assets locais:', backendError);
+      } catch {
+        // Backend não disponível, tenta assets locais
       }
 
-      // 2) Fallback para assets locais
-      const projectFile = this.markdownService.mapProjectToFile(this.projectName);
+      const projectFile = this.markdownService.mapProjectToFile(project);
       if (projectFile) {
         const response = await fetch(`/assets/portfolio_md/${projectFile}`);
         if (response.ok) {
-          this.rawMarkdown = await response.text();
+          this.rawMarkdown.set(await response.text());
         }
       }
     } catch (error) {
@@ -102,17 +142,16 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  private setupCodeBlocks() {
-    if (!this.markdownContent?.nativeElement) return;
+  private setupCodeBlocks(): void {
+    const contentEl = this.markdownContent()?.nativeElement;
+    if (!contentEl) return;
 
     // Aplicar syntax highlighting com PrismJS
     if (typeof (window as any).Prism !== 'undefined') {
-      const codeBlocks = this.markdownContent.nativeElement.querySelectorAll('pre code');
+      const codeBlocks = contentEl.querySelectorAll('pre code');
       codeBlocks.forEach((codeBlock: HTMLElement) => {
-        // Forçar aplicação do PrismJS
         (window as any).Prism.highlightElement(codeBlock);
 
-        // Se não tiver classe de linguagem, tentar detectar
         if (!codeBlock.className.includes('language-')) {
           const language = this.detectLanguage(codeBlock.textContent || '');
           codeBlock.className = `language-${language}`;
@@ -122,20 +161,23 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     }
 
     // Configurar botões de copiar
-    const copyButtons = this.markdownContent.nativeElement.querySelectorAll('.copy-btn');
+    const copyButtons = contentEl.querySelectorAll('.copy-btn');
     copyButtons.forEach((btn: HTMLButtonElement) => {
       (btn as any).copyCode = () => {
         const codeElement = btn.closest('pre')?.querySelector('code');
         const codeText = codeElement?.textContent || '';
         navigator.clipboard.writeText(codeText).then(() => {
-          const originalText = btn.querySelector('span')!.textContent;
-          btn.querySelector('span')!.textContent = 'Copiado!';
+          const spanEl = btn.querySelector('span');
+          if (!spanEl) return;
+
+          const originalText = spanEl.textContent;
+          spanEl.textContent = 'Copiado!';
           btn.style.background = 'rgba(34, 197, 94, 0.2)';
           btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
           btn.style.color = '#22c55e';
 
           setTimeout(() => {
-            btn.querySelector('span')!.textContent = originalText;
+            spanEl.textContent = originalText;
             btn.style.background = '#f7fafc';
             btn.style.borderColor = '#e2e8f0';
             btn.style.color = '#2d3748';
@@ -144,15 +186,15 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
       };
     });
 
-    // Configurar botões de Mermaid
     this.setupMermaidButtons();
   }
 
-  private setupMermaidButtons() {
-    if (!this.markdownContent?.nativeElement) return;
+  private setupMermaidButtons(): void {
+    const contentEl = this.markdownContent()?.nativeElement;
+    if (!contentEl) return;
 
     // Configurar botões de download
-    const downloadButtons = this.markdownContent.nativeElement.querySelectorAll('.mermaid-download-btn');
+    const downloadButtons = contentEl.querySelectorAll('.mermaid-download-btn');
     downloadButtons.forEach((btn: HTMLButtonElement) => {
       (btn as any).downloadMermaid = (diagramId: string) => {
         const diagramContainer = document.getElementById(`${diagramId}-container`);
@@ -172,7 +214,7 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     });
 
     // Configurar botões de fullscreen
-    const fullscreenButtons = this.markdownContent.nativeElement.querySelectorAll('.mermaid-fullscreen-btn');
+    const fullscreenButtons = contentEl.querySelectorAll('.mermaid-fullscreen-btn');
     fullscreenButtons.forEach((btn: HTMLButtonElement) => {
       (btn as any).openMermaidFullscreen = (diagramId: string) => {
         this.openMermaidFullscreen(diagramId);
@@ -180,18 +222,16 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     });
   }
 
-  private openMermaidFullscreen(diagramId: string) {
+  private openMermaidFullscreen(diagramId: string): void {
     const diagramContainer = document.getElementById(`${diagramId}-container`);
     const mermaidContent = diagramContainer?.querySelector('.mermaid-content');
     const svgElement = mermaidContent?.querySelector('svg');
     if (!svgElement) return;
 
-    // Calcular tamanho inicial baseado no SVG
     const svgRect = svgElement.getBoundingClientRect();
     const viewportWidth = window.innerWidth * 0.8;
     const viewportHeight = window.innerHeight * 0.7;
 
-    // Calcular escala inicial para caber na viewport
     let initialScale = 1;
     if (svgRect.width > 0 && svgRect.height > 0) {
       const scaleX = viewportWidth / svgRect.width;
@@ -199,19 +239,12 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
       initialScale = Math.min(scaleX, scaleY, 1);
     }
 
-    console.log('SVG dimensions:', svgRect);
-    console.log('Viewport dimensions:', viewportWidth, viewportHeight);
-    console.log('Initial scale:', initialScale);
-
-    // Criar modal de fullscreen
     const fullscreenModal = document.createElement('div');
     fullscreenModal.className = 'mermaid-fullscreen-modal';
 
-    // Criar estrutura do modal
     const content = document.createElement('div');
     content.className = 'mermaid-fullscreen-content';
 
-    // Header
     const header = document.createElement('div');
     header.className = 'mermaid-fullscreen-header';
 
@@ -244,7 +277,6 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     closeBtn.className = 'mermaid-fullscreen-close';
     closeBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
 
-    // Montar header
     zoomControls.appendChild(zoomOutBtn);
     zoomControls.appendChild(zoomLevel);
     zoomControls.appendChild(zoomInBtn);
@@ -254,27 +286,130 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     header.appendChild(zoomControls);
     header.appendChild(closeBtn);
 
-    // Body
     const body = document.createElement('div');
     body.className = 'mermaid-fullscreen-body';
 
     const svgContainer = document.createElement('div');
     svgContainer.className = 'mermaid-svg-container';
     svgContainer.style.transform = `scale(${initialScale})`;
-
-    // Mover o SVG existente para o fullscreen (não clonar)
     svgContainer.appendChild(svgElement);
 
     body.appendChild(svgContainer);
-
-    // Montar modal
     content.appendChild(header);
     content.appendChild(body);
     fullscreenModal.appendChild(content);
 
-    // Adicionar estilos inline
     const style = document.createElement('style');
-    style.textContent = `
+    style.textContent = this.getMermaidFullscreenStyles();
+
+    document.head.appendChild(style);
+    document.body.appendChild(fullscreenModal);
+
+    let currentScale = initialScale;
+    const minScale = 0.1;
+    const maxScale = 5.0;
+    const scaleStep = 0.1;
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let translateX = 0;
+    let translateY = 0;
+
+    const svgContainerEl = fullscreenModal.querySelector('.mermaid-svg-container') as HTMLElement;
+    const zoomLevelEl = fullscreenModal.querySelector('.mermaid-zoom-level') as HTMLElement;
+
+    const updateTransform = () => {
+      svgContainerEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    };
+
+    let updateZoom = (newScale: number) => {
+      currentScale = Math.max(minScale, Math.min(maxScale, newScale));
+      updateTransform();
+      zoomLevelEl.textContent = `${Math.round(currentScale * 100)}%`;
+    };
+
+    const zoomIn = () => updateZoom(currentScale + scaleStep);
+    const zoomOut = () => updateZoom(currentScale - scaleStep);
+    const resetZoom = () => {
+      translateX = 0;
+      translateY = 0;
+      updateZoom(initialScale);
+    };
+
+    const startDrag = (e: MouseEvent) => {
+      isDragging = true;
+      startX = e.clientX - translateX;
+      startY = e.clientY - translateY;
+      svgContainerEl.style.cursor = 'grabbing';
+      e.preventDefault();
+    };
+
+    const drag = (e: MouseEvent) => {
+      if (!isDragging) return;
+      translateX = e.clientX - startX;
+      translateY = e.clientY - startY;
+      updateTransform();
+    };
+
+    const endDrag = () => {
+      isDragging = false;
+      svgContainerEl.style.cursor = 'grab';
+    };
+
+    zoomOutBtn.addEventListener('click', zoomOut);
+    zoomInBtn.addEventListener('click', zoomIn);
+    resetBtn.addEventListener('click', resetZoom);
+
+    const closeFullscreen = () => {
+      mermaidContent?.appendChild(svgElement);
+      document.body.removeChild(fullscreenModal);
+      document.head.removeChild(style);
+    };
+
+    closeBtn.addEventListener('click', closeFullscreen);
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -scaleStep : scaleStep;
+      updateZoom(currentScale + delta);
+    };
+
+    body.addEventListener('wheel', handleWheel, { passive: false });
+    svgContainerEl.addEventListener('mousedown', startDrag);
+    svgContainerEl.addEventListener('mousemove', drag);
+    svgContainerEl.addEventListener('mouseup', endDrag);
+    svgContainerEl.addEventListener('mouseleave', endDrag);
+
+    const updateCursor = () => {
+      svgContainerEl.style.cursor = 'grab';
+    };
+
+    updateZoom = (newScale: number) => {
+      currentScale = Math.max(minScale, Math.min(maxScale, newScale));
+      updateTransform();
+      zoomLevelEl.textContent = `${Math.round(currentScale * 100)}%`;
+      updateCursor();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeFullscreen();
+        document.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    fullscreenModal.addEventListener('click', (e) => {
+      if (e.target === fullscreenModal) {
+        closeFullscreen();
+        document.removeEventListener('keydown', handleKeyDown);
+      }
+    });
+  }
+
+  private getMermaidFullscreenStyles(): string {
+    return `
       .mermaid-fullscreen-modal {
         position: fixed;
         top: 0;
@@ -400,163 +535,41 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
         background: transparent;
       }
     `;
-
-    document.head.appendChild(style);
-    document.body.appendChild(fullscreenModal);
-
-    // Variáveis de controle de zoom e pan
-    let currentScale = initialScale;
-    const minScale = 0.1;
-    const maxScale = 5.0;
-    const scaleStep = 0.1;
-
-    // Variáveis de pan (arrastar)
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let translateX = 0;
-    let translateY = 0;
-
-    const svgContainerEl = fullscreenModal.querySelector('.mermaid-svg-container') as HTMLElement;
-    const zoomLevelEl = fullscreenModal.querySelector('.mermaid-zoom-level') as HTMLElement;
-
-    // Funções de zoom e pan
-    const updateTransform = () => {
-      svgContainerEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
-    };
-
-    let updateZoom = (newScale: number) => {
-      currentScale = Math.max(minScale, Math.min(maxScale, newScale));
-      updateTransform();
-      zoomLevelEl.textContent = `${Math.round(currentScale * 100)}%`;
-    };
-
-    const zoomIn = () => updateZoom(currentScale + scaleStep);
-    const zoomOut = () => updateZoom(currentScale - scaleStep);
-    const resetZoom = () => {
-      translateX = 0;
-      translateY = 0;
-      updateZoom(initialScale);
-    };
-
-    // Funções de pan (arrastar)
-    const startDrag = (e: MouseEvent) => {
-      isDragging = true;
-      startX = e.clientX - translateX;
-      startY = e.clientY - translateY;
-
-      svgContainerEl.style.cursor = 'grabbing';
-      e.preventDefault();
-    };
-
-    const drag = (e: MouseEvent) => {
-      if (!isDragging) return;
-
-      translateX = e.clientX - startX;
-      translateY = e.clientY - startY;
-      updateTransform();
-    };
-
-    const endDrag = () => {
-      isDragging = false;
-      svgContainerEl.style.cursor = 'grab';
-    };
-
-    // Configurar event listeners nos botões
-    zoomOutBtn.addEventListener('click', zoomOut);
-    zoomInBtn.addEventListener('click', zoomIn);
-    resetBtn.addEventListener('click', resetZoom);
-
-    const closeFullscreen = () => {
-      // Devolver o SVG ao container original
-      mermaidContent?.appendChild(svgElement);
-
-      // Remover o modal
-      document.body.removeChild(fullscreenModal);
-      document.head.removeChild(style);
-    };
-
-    closeBtn.addEventListener('click', closeFullscreen);
-
-    // Configurar wheel zoom
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -scaleStep : scaleStep;
-      updateZoom(currentScale + delta);
-    };
-
-    body.addEventListener('wheel', handleWheel, { passive: false });
-
-    // Configurar drag no container do SVG
-    svgContainerEl.addEventListener('mousedown', startDrag);
-    svgContainerEl.addEventListener('mousemove', drag);
-    svgContainerEl.addEventListener('mouseup', endDrag);
-    svgContainerEl.addEventListener('mouseleave', endDrag);
-
-    // Configurar cursor sempre como grab
-    const updateCursor = () => {
-      svgContainerEl.style.cursor = 'grab';
-    };
-
-    // Atualizar função de zoom para incluir cursor
-    updateZoom = (newScale: number) => {
-      currentScale = Math.max(minScale, Math.min(maxScale, newScale));
-      updateTransform();
-      zoomLevelEl.textContent = `${Math.round(currentScale * 100)}%`;
-      updateCursor();
-    };
-
-    // Fechar com ESC
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeFullscreen();
-        document.removeEventListener('keydown', handleKeyDown);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-
-    // Fechar clicando fora
-    fullscreenModal.addEventListener('click', (e) => {
-      if (e.target === fullscreenModal) {
-        closeFullscreen();
-        document.removeEventListener('keydown', handleKeyDown);
-      }
-    });
   }
 
-  increaseZoom() {
-    if (this.markdownZoom < 1.5) {
-      this.markdownZoom += 0.1;
+  increaseZoom(): void {
+    if (this.markdownZoom() < 1.5) {
+      this.markdownZoom.update(z => z + 0.1);
       this.applyZoom();
     }
   }
 
-  decreaseZoom() {
-    if (this.markdownZoom > 0.7) {
-      this.markdownZoom -= 0.1;
+  decreaseZoom(): void {
+    if (this.markdownZoom() > 0.7) {
+      this.markdownZoom.update(z => z - 0.1);
       this.applyZoom();
     }
   }
 
-  resetZoom() {
-    this.markdownZoom = 1.0;
+  resetZoom(): void {
+    this.markdownZoom.set(1.0);
     this.applyZoom();
   }
 
-  private applyZoom() {
-    if (this.markdownContent?.nativeElement) {
-      const el = this.markdownContent.nativeElement as HTMLElement;
-      el.style.fontSize = `${this.markdownZoom}em`;
-      // Propaga escala para headings via CSS var consumida em styles.css
-      el.style.setProperty('--md-scale', String(this.markdownZoom));
+  private applyZoom(): void {
+    const el = this.markdownContent()?.nativeElement;
+    if (el) {
+      el.style.fontSize = `${this.markdownZoom()}em`;
+      el.style.setProperty('--md-scale', String(this.markdownZoom()));
     }
   }
 
-  toggleTheme() {
-    this.isLightMode = !this.isLightMode;
-    const el = this.markdownContent?.nativeElement as HTMLElement | undefined;
+  toggleTheme(): void {
+    this.isLightMode.update(v => !v);
+    const el = this.markdownContent()?.nativeElement;
     if (!el) return;
-    if (this.isLightMode) {
+
+    if (this.isLightMode()) {
       el.classList.add('light-mode');
     } else {
       el.classList.remove('light-mode');
@@ -564,7 +577,6 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
   }
 
   private detectLanguage(code: string): string {
-    // Detectar linguagem baseada em padrões comuns
     if (code.includes('function') && code.includes('=>')) return 'javascript';
     if (code.includes('import ') && code.includes('from ')) return 'javascript';
     if (code.includes('console.log')) return 'javascript';
@@ -578,49 +590,45 @@ export class ReadmeModalComponent implements OnChanges, AfterViewInit {
     return 'text';
   }
 
-  downloadMarkdown() {
-    if (!this.rawMarkdown) return;
+  downloadMarkdown(): void {
+    const raw = this.rawMarkdown();
+    if (!raw) return;
 
-    const blob = new Blob([this.rawMarkdown], { type: 'text/markdown' });
+    const blob = new Blob([raw], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${this.projectName}-README.md`;
+    link.download = `${this.projectName()}-README.md`;
     link.click();
     URL.revokeObjectURL(url);
   }
 
-  onKeyDown(event: KeyboardEvent) {
+  onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       this.closeModal();
     }
   }
 
-  onMouseWheel(event: WheelEvent) {
+  onMouseWheel(event: WheelEvent): void {
     if (event.ctrlKey) {
       event.preventDefault();
-      if (event.deltaY < 0 && this.markdownZoom < 1.5) {
+      if (event.deltaY < 0 && this.markdownZoom() < 1.5) {
         this.increaseZoom();
-      } else if (event.deltaY > 0 && this.markdownZoom > 0.7) {
+      } else if (event.deltaY > 0 && this.markdownZoom() > 0.7) {
         this.decreaseZoom();
       }
     }
   }
 
-  closeModal() {
+  closeModal(): void {
     this.close.emit();
   }
 
-  private disableBodyScroll() {
-    // Apenas bloqueia o scroll do body sem alterar layout/posição
-    // Evita "salto" de rolagem ao abrir/fechar o modal
+  private disableBodyScroll(): void {
     document.body.style.overflow = 'hidden';
   }
 
-  private enableBodyScroll() {
-    // Libera o scroll do body; nenhuma restauração é necessária
+  private enableBodyScroll(): void {
     document.body.style.overflow = '';
   }
 }
-
-

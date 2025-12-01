@@ -173,7 +173,7 @@ public class SpaController {
     }
 
     private String obterContentType(String uri) {
-        if (uri.endsWith(".js"))
+        if (uri.endsWith(".js") || uri.endsWith(".mjs"))
             return "application/javascript";
         if (uri.endsWith(".css"))
             return "text/css";
@@ -189,6 +189,16 @@ public class SpaController {
             return "image/svg+xml";
         if (uri.endsWith(".ico"))
             return "image/x-icon";
+        if (uri.endsWith(".woff") || uri.endsWith(".woff2"))
+            return "font/woff2";
+        if (uri.endsWith(".ttf"))
+            return "font/ttf";
+        if (uri.endsWith(".pdf"))
+            return "application/pdf";
+        if (uri.endsWith(".mp4"))
+            return "video/mp4";
+        if (uri.endsWith(".webm"))
+            return "video/webm";
         return "application/octet-stream";
     }
 }

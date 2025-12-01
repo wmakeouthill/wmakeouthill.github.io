@@ -89,3 +89,21 @@ function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, '');
 }
 
+/**
+ * Retorna a URL base da API (sem path).
+ * Útil para construir URLs de endpoints manualmente.
+ */
+export function getApiUrl(): string {
+  const customBase = readCustomBaseUrl();
+  if (customBase) {
+    return customBase;
+  }
+
+  const origin = resolveOriginFromWindow();
+  if (origin) {
+    return origin;
+  }
+
+  return '';
+}
+
