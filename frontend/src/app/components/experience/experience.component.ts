@@ -19,7 +19,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       startDate: '2025-04',
       endDate: null,
       current: true,
-      location: 'Brasília, DF',
+      location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
         { title: 'Modernização de infraestrutura financeira / sistema crítico', text: 'migração Selic mainframe (COBOL) para arquitetura Java (Novo-Selic).' },
@@ -37,7 +37,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       startDate: '2024-04',
       endDate: '2025-04',
       current: false,
-      location: 'Brasília, DF',
+      location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
         { title: 'Gestão de Projetos', text: 'ciclo de desenvolvimento de artefatos, relatórios executivos e controle de iniciativas estratégicas alinhadas ao PDTIC.' },
@@ -89,7 +89,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       startDate: '2017-04',
       endDate: '2018-09',
       current: false,
-      location: 'Rio de Janeiro, RJ',
+      location: 'Duque de Caxias, RJ',
       description: '',
       highlights: [
         { title: 'Gestão operacional', text: 'atuei com Excel na gestão operacional. Input e leitura de dados no SAP.' },
