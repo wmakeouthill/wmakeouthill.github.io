@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.GET, RequestMethod.POST,
+        RequestMethod.OPTIONS })
 @RequiredArgsConstructor
 public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
-    
+
     private final ChatUseCase chatUseCase;
 
     @PostMapping
@@ -29,19 +30,20 @@ public class ChatController {
             HttpServletRequest httpRequest) {
         try {
             String sessionId = extrairSessionId(httpRequest);
-            ChatResponse response = chatUseCase.execute(request, sessionId);
+            String language = extrairIdioma(httpRequest);
+            ChatResponse response = chatUseCase.execute(request, sessionId, language);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             // Log do erro para debug
             org.slf4j.LoggerFactory.getLogger(ChatController.class)
-                .error("Erro ao processar mensagem de chat", e);
+                    .error("Erro ao processar mensagem de chat", e);
             // Retorna resposta de erro amigável
             return ResponseEntity
                     .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ChatResponse("Erro ao processar mensagem. Tente novamente."));
         }
     }
-    
+
     @PostMapping("/clear")
     public ResponseEntity<Void> limparHistorico(HttpServletRequest httpRequest) {
         try {
@@ -51,12 +53,12 @@ public class ChatController {
         } catch (Exception e) {
             // Log do erro para debug
             org.slf4j.LoggerFactory.getLogger(ChatController.class)
-                .error("Erro ao limpar histórico", e);
+                    .error("Erro ao limpar histórico", e);
             // Retorna 200 mesmo em caso de erro para não quebrar o frontend
             return ResponseEntity.ok().build();
         }
     }
-    
+
     /**
      * Extrai o Session ID do header HTTP ou gera um novo se não existir.
      * 
@@ -71,13 +73,28 @@ public class ChatController {
         }
         return sessionId;
     }
-    
+
     /**
      * Gera um Session ID temporário como fallback.
      * Em produção, o frontend sempre deve enviar o header.
      */
     private String gerarSessionIdFallback() {
-        return "session-" + System.currentTimeMillis() + "-" + 
-               Thread.currentThread().getId();
+        return "session-" + System.currentTimeMillis() + "-" +
+                Thread.currentThread().getId();
+    }
+
+    /**
+     * Extrai idioma da requisição via header Accept-Language / X-Language.
+     */
+    private String extrairIdioma(HttpServletRequest request) {
+        String lang = request.getHeader("X-Language");
+        if (lang == null || lang.isBlank()) {
+            lang = request.getHeader("Accept-Language");
+        }
+        if (lang == null) {
+            return "pt";
+        }
+        String lower = lang.toLowerCase();
+        return lower.startsWith("en") ? "en" : "pt";
     }
 }

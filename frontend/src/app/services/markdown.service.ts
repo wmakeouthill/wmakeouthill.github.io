@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import { lastValueFrom } from 'rxjs';
 import mermaid from 'mermaid';
 import { resolveApiUrl } from '../utils/api-url.util';
+import { I18nService } from '../i18n/i18n.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { resolveApiUrl } from '../utils/api-url.util';
 export class MarkdownService {
   private readonly http = inject(HttpClient);
   private readonly backendProjectsApi = resolveApiUrl('/api/projects');
+  private readonly i18n = inject(I18nService);
 
   private readonly memoryCache = new Map<string, string>();
   private preloadingInProgress = false;
@@ -48,7 +50,7 @@ export class MarkdownService {
 
     for (const project of projectNames) {
       const normalized = this.normalizeProject(project);
-      
+
       // Já pré-carregado nesta sessão?
       if (this.preloadedProjects.has(normalized)) {
         cached++;
@@ -88,11 +90,11 @@ export class MarkdownService {
   // Compat: pré-carrega todos os projetos conhecidos (lista estática - fallback)
   async preloadAllMermaidDiagrams(): Promise<void> {
     const defaultProjects = [
-      'aa_space', 
-      'lol-matchmaking-fazenda', 
-      'mercearia-r-v', 
-      'traffic_manager', 
-      'first-angular-app', 
+      'aa_space',
+      'lol-matchmaking-fazenda',
+      'mercearia-r-v',
+      'traffic_manager',
+      'first-angular-app',
       'investment_calculator'
     ];
     await this.preloadProjectsInBackground(defaultProjects);
@@ -191,7 +193,15 @@ export class MarkdownService {
   }
 
   private localStorageKey(project: string): string {
-    return `readme_html_${project}`;
+    return `readme_html_${project}_${this.languageKey()}`;
+  }
+
+  private languageKey(): string {
+    try {
+      return this.i18n.getLanguageForBackend?.() ?? 'pt';
+    } catch {
+      return 'pt';
+    }
   }
 
   /**

@@ -21,7 +21,7 @@ public class ChatUseCase {
     private final PortfolioPromptService portfolioPromptService;
     private final TokenBudgetService tokenBudgetService;
 
-    public ChatResponse execute(ChatRequest request, String sessionId) {
+    public ChatResponse execute(ChatRequest request, String sessionId, String language) {
         String mensagemUsuarioTexto = normalizarMensagem(request);
         if (mensagemUsuarioTexto.isBlank()) {
             return new ChatResponse("");
@@ -35,29 +35,28 @@ public class ChatUseCase {
         gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemUsuario);
 
         // Carrega system prompt otimizado baseado na mensagem do usuário (on-demand)
-        String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemUsuarioTexto);
+        String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemUsuarioTexto, language);
         var historico = gerenciarHistoricoChatPort.obterHistorico(sessionId);
 
         // Otimiza tokens se necessário (reduz histórico/contextos se perto do limite)
         TokenBudgetResult budgetResult = tokenBudgetService.otimizar(systemPrompt, historico, mensagemUsuarioTexto);
-        
+
         if (budgetResult.foiReduzido()) {
             log.info("Token budget otimizado: {} tokens estimados", budgetResult.tokensEstimados());
         }
 
         ChatResponse resposta = aiChatPort.chat(
-            budgetResult.systemPromptOtimizado(), 
-            budgetResult.historicoOtimizado(), 
-            mensagemUsuarioTexto
-        );
+                budgetResult.systemPromptOtimizado(),
+                budgetResult.historicoOtimizado(),
+                mensagemUsuarioTexto);
         registrarRespostaNoHistorico(sessionId, resposta);
 
         return resposta;
     }
-    
+
     private String gerarSessionIdFallback() {
-        return "session-" + System.currentTimeMillis() + "-" + 
-               Thread.currentThread().getId();
+        return "session-" + System.currentTimeMillis() + "-" +
+                Thread.currentThread().getId();
     }
 
     private String normalizarMensagem(ChatRequest request) {
@@ -75,7 +74,7 @@ public class ChatUseCase {
         MensagemChat mensagemAssistente = MensagemChat.criarMensagemAssistente(resposta.reply());
         gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemAssistente);
     }
-    
+
     /**
      * Limpa o histórico de mensagens da sessão especificada.
      * Usado quando o usuário inicia uma nova conversa.

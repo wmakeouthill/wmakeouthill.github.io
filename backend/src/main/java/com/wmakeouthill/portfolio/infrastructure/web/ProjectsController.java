@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -82,8 +84,7 @@ public class ProjectsController {
     Map<String, Object> stats = Map.of(
         "totalStars", totalStars,
         "totalRepositories", repos.size(),
-        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum()
-    );
+        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum());
 
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
@@ -92,15 +93,27 @@ public class ProjectsController {
 
   /**
    * Obtém o markdown de um projeto.
-   * Usa regex no path para preservar nomes com pontos (ex: wmakeouthill.github.io)
+   * Usa regex no path para preservar nomes com pontos (ex:
+   * wmakeouthill.github.io)
    */
   @GetMapping("/{projectName:.+}/markdown")
-  public ResponseEntity<String> obterMarkdown(@PathVariable String projectName) {
+  public ResponseEntity<String> obterMarkdown(@PathVariable String projectName, HttpServletRequest request) {
     log.debug("Buscando markdown do projeto: {}", projectName);
-    return obterMarkdownProjetoUseCase.executar(projectName)
+    String language = extrairIdioma(request);
+    return obterMarkdownProjetoUseCase.executar(projectName, language)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
+
+  private String extrairIdioma(jakarta.servlet.http.HttpServletRequest request) {
+    String lang = request.getHeader("X-Language");
+    if (lang == null || lang.isBlank()) {
+      lang = request.getHeader("Accept-Language");
+    }
+    if (lang == null) {
+      return "pt";
+    }
+    String lower = lang.toLowerCase();
+    return lower.startsWith("en") ? "en" : "pt";
+  }
 }
-
-

@@ -32,19 +32,21 @@ public class ContextSearchService {
   private final List<ContextChunk> contextChunks = new ArrayList<>();
   private final List<ContextChunk> fallbackChunks = new ArrayList<>();
   private volatile long ultimoCarregamento = 0;
+  private String idiomaAtual = "pt";
 
   @PostConstruct
   void carregarContextos() {
-    recarregarContextos();
+    recarregarContextos("pt");
   }
 
   /**
    * Recarrega os contextos do repositório GitHub.
    * Chamado automaticamente se o cache expirou.
    */
-  public synchronized void recarregarContextos() {
-    log.info("Recarregando contextos do repositório GitHub...");
-    List<PortfolioMarkdownResource> recursos = portfolioContentPort.carregarMarkdownsDetalhados();
+  public synchronized void recarregarContextos(String language) {
+    String idioma = normalizarIdioma(language);
+    log.info("Recarregando contextos do repositório GitHub (lang={})...", idioma);
+    List<PortfolioMarkdownResource> recursos = portfolioContentPort.carregarMarkdownsDetalhados(idioma);
     contextChunks.clear();
     int indice = 0;
     for (PortfolioMarkdownResource recurso : recursos) {
@@ -54,28 +56,29 @@ public class ContextSearchService {
           extrairStems(recurso.conteudo()),
           recurso.projeto(),
           recurso.preferencialFallback(),
-          normalizarTags(recurso.tags())
-      ));
+          normalizarTags(recurso.tags())));
     }
     atualizarFallback();
     ultimoCarregamento = System.currentTimeMillis();
+    idiomaAtual = idioma;
     log.info("Contextos recarregados: {} chunks disponíveis", contextChunks.size());
   }
 
   /**
    * Verifica se o cache expirou e recarrega se necessário.
    */
-  private void verificarCacheExpirado() {
-    if (System.currentTimeMillis() - ultimoCarregamento > CACHE_TTL_MS) {
-      log.debug("Cache de contextos expirado, recarregando...");
-      recarregarContextos();
+  private void verificarCacheExpirado(String idioma) {
+    String idiomaNorm = normalizarIdioma(idioma);
+    if (!idiomaNorm.equals(idiomaAtual) || System.currentTimeMillis() - ultimoCarregamento > CACHE_TTL_MS) {
+      log.debug("Cache de contextos expirado ou idioma mudou ({} -> {}), recarregando...", idiomaAtual, idiomaNorm);
+      recarregarContextos(idiomaNorm);
     }
   }
 
-  public List<String> buscarContextos(String mensagem, int limite) {
-    // Verifica se precisa recarregar contextos (cache de 5 min)
-    verificarCacheExpirado();
-    
+  public List<String> buscarContextos(String mensagem, int limite, String language) {
+    // Verifica se precisa recarregar contextos
+    verificarCacheExpirado(language);
+
     List<String> tokens = tokenizar(mensagem);
     if (tokens.isEmpty()) {
       return limitar(obterFallback(), limite);
@@ -202,6 +205,14 @@ public class ContextSearchService {
     return normalizada;
   }
 
+  private String normalizarIdioma(String language) {
+    if (language == null || language.isBlank()) {
+      return "pt";
+    }
+    String lower = language.toLowerCase(Locale.ROOT);
+    return lower.startsWith("en") ? "en" : "pt";
+  }
+
   private String normalize(String palavra) {
     String semAcento = Normalizer.normalize(palavra, Normalizer.Form.NFD)
         .replaceAll("\\p{M}", "");
@@ -246,11 +257,9 @@ public class ContextSearchService {
       Set<String> stems,
       boolean projeto,
       boolean preferencialFallback,
-      Set<String> tagStems
-  ) {
+      Set<String> tagStems) {
   }
 
   private record ScoredChunk(ContextChunk chunk, double score) {
   }
 }
-

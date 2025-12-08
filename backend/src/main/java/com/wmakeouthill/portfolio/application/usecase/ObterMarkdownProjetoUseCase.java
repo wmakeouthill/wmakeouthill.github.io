@@ -12,12 +12,12 @@ public class ObterMarkdownProjetoUseCase {
 
   private final PortfolioContentPort portfolioContentPort;
 
-  public Optional<String> executar(String nomeProjeto) {
+  public Optional<String> executar(String nomeProjeto, String language) {
     String normalizado = normalizarNomeProjeto(nomeProjeto);
     if (normalizado.isBlank()) {
       return Optional.empty();
     }
-    return portfolioContentPort.carregarMarkdownPorProjeto(normalizado);
+    return portfolioContentPort.carregarMarkdownPorProjeto(normalizado, language);
   }
 
   private String normalizarNomeProjeto(String nomeProjeto) {
@@ -27,5 +27,3 @@ public class ObterMarkdownProjetoUseCase {
     return nomeProjeto.trim().toLowerCase();
   }
 }
-
-
