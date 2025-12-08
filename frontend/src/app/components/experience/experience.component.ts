@@ -1,108 +1,131 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Experience } from '../../models/interfaces';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Component({
   selector: 'app-experience',
   standalone: true,
-  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './experience.component.html',
   styleUrl: './experience.component.css'
 })
 export class ExperienceComponent implements OnInit, AfterViewInit {
+  private readonly i18n = inject(I18nService);
   @ViewChild('experienceContainer') experienceContainer!: ElementRef;
-  experiences: Experience[] = [
+  private readonly baseExperiences: Array<Experience & { key: string }> = [
     {
+      key: 'experience.items.exp1',
       id: 1,
       company: 'Anbima / Selic (Banco Central)',
-      position: 'Estagiário - Backend / FullStack / ScrumTeam',
+      position: '',
       startDate: '2025-04',
       endDate: null,
       current: true,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: 'Modernização de infraestrutura financeira / sistema crítico', text: 'migração Selic mainframe (COBOL) para arquitetura Java (Novo-Selic).' },
-        { title: 'Observabilidade e monitoramento', text: 'implementação de stack completa (Prometheus, Grafana, Actuator, Micrometer, Blackbox Exporter, Alertmanager), para análise de métricas de performance e healthcheck.' },
-        { title: 'Desenvolvimento full stack', text: 'Java (Spring) Backend + Angular Frontend.' },
-        { title: 'DevOps e containerização', text: 'Docker, CI/CD, versionamento de branches com GitLab para colaboração e práticas de deployment automatizado.' },
-        { title: 'Gestão de dados', text: 'Oracle (Containerizado) Database (SQL), versionamento de schemas com Liquibase / Scripts SQL.' }
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
       ],
       technologies: ['Java', 'Spring', 'Spring Boot', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'Prometheus', 'Grafana']
     },
     {
+      key: 'experience.items.exp2',
       id: 2,
       company: 'Anbima / Selic (Banco Central)',
-      position: 'Estagiário - Projetos / Governança',
+      position: '',
       startDate: '2024-04',
       endDate: '2025-04',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: 'Gestão de Projetos', text: 'ciclo de desenvolvimento de artefatos, relatórios executivos e controle de iniciativas estratégicas alinhadas ao PDTIC.' },
-        { title: 'Business Intelligence', text: 'criação de dashboards Power BI (DAX) interativos para visualização de KPIs e suporte à tomada de decisão executiva.' },
-        { title: 'Desenvolvimento web', text: 'webparts customizados SharePoint (JavaScript, HTML, CSS) integrados via SharePoint API para governança corporativa.' },
-        { title: 'Soluções para C-level', text: 'expositores de documentos e notícias institucionais para chefia do Banco Central e ANBIMA.' },
-        { title: 'Frameworks de gestão', text: 'aplicação prática de PMI, Agile, MPS.BR e CMMI para padronização e melhoria contínua de procedimentos e processos.' },
-        { title: 'Gestão do conhecimento', text: 'elaboração de conteúdos estratégicos e soluções low-code/no-code (Notion), para continuidade do negócio.' }
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
       ],
       technologies: ['Power BI', 'DAX', 'JavaScript', 'SharePoint', 'Notion']
     },
     {
+      key: 'experience.items.exp3',
       id: 3,
       company: 'Gondim, Albuquerque e Negreiros ADV',
-      position: 'Estagiário & Assistente Jurídico',
+      position: '',
       startDate: '2019-11',
       endDate: '2024-04',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: 'Diligências processuais e financeiras', text: 'protocolos, questionamentos forenses, pagamentos de custas e depósitos judiciais, controle de pagamentos entre cliente-escritório e obrigações processuais.' },
-        { title: 'Automação de processos', text: 'desenvolvimento em Python, VBA e Selenium para web scraping de dados de diversos tribunais do Brasil + RPA: integração automatizada entre sistema interno e plataformas judiciais.' },
-        { title: 'Otimização operacional', text: 'reduziu tempo de cadastro processual via scripts, melhorando fluxo de dados e produtividade.' },
-        { title: 'Análise de dados jurídicos', text: 'resumos de petições e gestão de informações processuais em sistemas internos.' }
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
       ],
       technologies: ['Python', 'VBA', 'Selenium', 'RPA']
     },
     {
+      key: 'experience.items.exp4',
       id: 4,
       company: 'Phillip Morris Internacional',
-      position: 'Aprendiz - Analytics / SalesForce',
+      position: '',
       startDate: '2018-10',
       endDate: '2019-10',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: 'Automação VBA/Excel', text: 'automações VBA/Excel para coleta automatizada de dados, geração de relatórios e envio email gerencial.' },
-        { title: 'Controle de estoque', text: 'gerenciei controle de estoque e distribuição de materiais promocionais (trade marketing) e de escritório.' },
-        { title: 'Análise de vendas', text: 'realizei análises de volume de vendas, KPIs comerciais e otimização de rotinas administrativas via macros.' }
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
       ],
       technologies: ['VBA', 'Excel', 'Salesforce']
     },
     {
+      key: 'experience.items.exp5',
       id: 5,
       company: 'Liquigás / Petrobras Distribuidora S.A',
-      position: 'Aprendiz - Auxiliar Administrativo / Produção',
+      position: '',
       startDate: '2017-04',
       endDate: '2018-09',
       current: false,
       location: 'Duque de Caxias, RJ',
       description: '',
       highlights: [
-        { title: 'Gestão operacional', text: 'atuei com Excel na gestão operacional. Input e leitura de dados no SAP.' },
-        { title: 'Atendimento e apoio', text: 'atendimento a clientes, ao centro de destrocas de botijões e fornecedor de GLP. Apoio na gestão de filas e suporte aos vendedores.' },
-        { title: 'Controle de qualidade', text: 'controle de qualidade e fiscalização na produção de botijões.' }
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
       ],
       technologies: ['Excel', 'SAP']
     }
   ];
 
+  readonly experiences = computed<Experience[]>(() =>
+    this.baseExperiences.map((exp) => ({
+      ...exp,
+      position: this.i18n.translate(`${exp.key}.position`),
+      highlights: (exp.highlights ?? []).map((_, idx) => ({
+        title: this.i18n.translate(`${exp.key}.highlights.${idx}.title`),
+        text: this.i18n.translate(`${exp.key}.highlights.${idx}.text`)
+      }))
+    }))
+  );
+
   formatDate(date: string): string {
     const [year, month] = date.split('-');
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const lang = this.i18n.language();
+    const monthsPt = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = lang === 'en' ? monthsEn : monthsPt;
     return `${months[parseInt(month) - 1]} ${year}`;
   }
 

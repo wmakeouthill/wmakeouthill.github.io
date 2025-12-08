@@ -99,7 +99,55 @@
     "title": "Professional Experience",
     "present": "Present",
     "months": "months",
-    "years": "years"
+    "years": "years",
+    "items": {
+      "exp1": {
+        "position": "Intern - Backend / FullStack / ScrumTeam",
+        "highlights": [
+          { "title": "Critical financial infrastructure modernization", "text": "Selic mainframe migration (COBOL) to a Java architecture (Novo-Selic)." },
+          { "title": "Observability and monitoring", "text": "Full stack implementation (Prometheus, Grafana, Actuator, Micrometer, Blackbox Exporter, Alertmanager) for performance metrics and health checks." },
+          { "title": "Full stack development", "text": "Java (Spring) Backend + Angular Frontend." },
+          { "title": "DevOps and containerization", "text": "Docker, CI/CD, branch versioning with GitLab for collaboration and automated deployment practices." },
+          { "title": "Data management", "text": "Oracle (containerized) Database (SQL), schema versioning with Liquibase / SQL scripts." }
+        ]
+      },
+      "exp2": {
+        "position": "Intern - Projects / Governance",
+        "highlights": [
+          { "title": "Project Management", "text": "development cycle of artifacts, executive reports, and control of strategic initiatives aligned with the PDTIC." },
+          { "title": "Business Intelligence", "text": "Power BI (DAX) interactive dashboards to visualize KPIs and support executive decision-making." },
+          { "title": "Web development", "text": "custom SharePoint webparts (JavaScript, HTML, CSS) integrated via SharePoint API for corporate governance." },
+          { "title": "C-level solutions", "text": "document and news displays for the Central Bank and ANBIMA leadership." },
+          { "title": "Management frameworks", "text": "practical application of PMI, Agile, MPS.BR, and CMMI for standardization and continuous improvement of processes." },
+          { "title": "Knowledge management", "text": "creation of strategic content and low-code/no-code solutions (Notion) for business continuity." }
+        ]
+      },
+      "exp3": {
+        "position": "Intern & Legal Assistant",
+        "highlights": [
+          { "title": "Procedural and financial diligence", "text": "protocols, court inquiries, payments of fees and judicial deposits, control of payments between client and firm, and procedural obligations." },
+          { "title": "Process automation", "text": "Python, VBA, and Selenium for web scraping from various Brazilian courts + RPA: automated integration between internal system and judicial platforms." },
+          { "title": "Operational optimization", "text": "reduced time of procedural data entry via scripts, improving data flow and productivity." },
+          { "title": "Legal data analysis", "text": "summaries of petitions and management of procedural information in internal systems." }
+        ]
+      },
+      "exp4": {
+        "position": "Apprentice - Analytics / Salesforce",
+        "highlights": [
+          { "title": "VBA/Excel automation", "text": "automation for data collection, report generation, and managerial email delivery." },
+          { "title": "Inventory control", "text": "managed stock and distribution of promotional materials (trade marketing) and office supplies." },
+          { "title": "Sales analysis", "text": "analyzed sales volumes, commercial KPIs, and optimized administrative routines via macros." }
+        ]
+      },
+      "exp5": {
+        "position": "Apprentice - Administrative / Production Assistant",
+        "highlights": [
+          { "title": "Operational management", "text": "worked with Excel in operational management. Data entry and reading in SAP." },
+          { "title": "Customer and support", "text": "customer service, bottle returns center, and LPG supplier support. Assisted queue management and supported vendors." },
+          { "title": "Quality control", "text": "quality control and inspection in cylinder production." }
+        ]
+      }
+    }
   },
   "education": {
     "title": "Academic Education",

@@ -1,47 +1,48 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './about.component.html',
   styleUrl: './about.component.css'
 })
 export class AboutComponent implements OnInit, AfterViewInit {
+  private readonly i18n = inject(I18nService);
+
   @ViewChild('highlightsContainer') highlightsContainer!: ElementRef;
-  personalInfo = {
+  readonly personalInfo = {
     name: 'Wesley de Carvalho Augusto Correia',
-    title: 'Desenvolvedor Full Stack',
+    title: computed(() => this.i18n.translate('about.titleRole')),
     yearsOfExperience: 6,
     age: 29,
     location: 'Duque de Caxias, RJ, Brasil',
     email: 'wcacorreia1995@gmail.com',
     driverLicense: 'AB',
     available: true,
-    bio: [
-      'Desde as lan houses da infância, onde comecei a trabalhar, até hoje, minha trajetória é marcada pela paixão por tecnologia e apoio a negócios com soluções de T.I., suporte técnico e automações. Atuei como autônomo, na empresa familiar de T.I. e em indústrias como gás e energia (Petrobras), tabaco (Philip Morris), jurídico e infraestrutura financeira crítica (Banco Central/Anbima/SELIC). Essa diversidade forjou minha versatilidade técnica e visão estratégica. Analítico e solucionador, identifico gargalos e crio automações que geram eficiência mensurável. Adapto-me com facilidade a grandes corporações ou contextos dinâmicos, destacando-me em soluções criativas sob pressão. Mais que executar, entendo contextos, proponho melhorias e entrego valor. Aprendo rápido, valorizo colaboração, gosto de ser útil e ajudar pessoas e busco desafios que unam inovação e impacto no negócio.'
-    ]
+    bio: computed(() => {
+      const value = this.i18n.translate('about.bio');
+      return Array.isArray(value) ? value : [value];
+    })
   };
 
-  highlights = [
-    { icon: '💼', title: 'Experiência', value: 'Experiência em TI com suporte, desenvolvimento e Governança. Além de experiências administrativas e de backoffice jurídico e salesforce.' },
-    { icon: '🎓', title: 'Formação', value: 'Graduado em Direito. Cursando Pós-graduação em Desenvolvimento FullStack Java, MBA em Gestão de Projetos (trancada) e cursando Ciências da Computação (em andamento)' },
-    { icon: '🚀', title: 'Projetos', value: 'Automação e Modernização de Sistemas e desenvolvimento fullstack de aplicações.' },
-    { icon: '✅', title: 'Status', value: 'Disponível para oportunidades!' }
-  ];
+  readonly highlights = computed(() => [
+    { icon: '💼', title: this.i18n.translate('about.highlights.experience.title'), value: this.i18n.translate('about.highlights.experience.value') },
+    { icon: '🎓', title: this.i18n.translate('about.highlights.education.title'), value: this.i18n.translate('about.highlights.education.value') },
+    { icon: '🚀', title: this.i18n.translate('about.highlights.projects.title'), value: this.i18n.translate('about.highlights.projects.value') },
+    { icon: '✅', title: this.i18n.translate('about.highlights.status.title'), value: this.i18n.translate('about.highlights.status.value') }
+  ]);
 
-  softSkills = [
-    'Boa Comunicação',
-    'Inglês Intermediário',
-    'Gestão de conflitos / Trabalho em equipe',
-    'Hiperfoco / Proatividade',
-    'Inteligência emocional e autocontrole',
-    'Autodidata',
-    'Adaptado a rotinas Ágil, Scrum'
-  ];
+  readonly softSkills = computed(() => {
+    const skills = this.i18n.translate('about.softSkills.items');
+    return Array.isArray(skills) ? skills : [skills];
+  });
 
-  mainStack = [
+  readonly mainStack = [
     'Java', 'Spring', 'Spring Boot', 'Maven', 'Angular', 'TypeScript', 'SQL', 'JavaScript', 'CSS', 'SCSS', 'HTML', 'Docker', 'Podman', 'Kubernetes', 'Compose', 'Electron', 'Liquibase', 'Prometheus', 'Grafana', 'Micrometer', 'AlertManager', 'Cloud', 'PostgreSQL', 'MySQL', 'Oracle'
   ];
 

@@ -1,8 +1,8 @@
 <section id="about" class="section about">
   <div class="container">
     <div class="section-title">
-      <h2>Sobre Mim</h2>
-      <p class="section-subtitle">Conheça mais sobre minha trajetória</p>
+      <h2>{{ 'about.title' | translate }}</h2>
+      <p class="section-subtitle">{{ 'hero.tagline' | translate }}</p>
     </div>
 
     <div class="about-content">
@@ -15,17 +15,17 @@
       <div class="about-text">
         <div class="about-intro">
           <h3>{{ personalInfo.name }}</h3>
-          <p class="title">{{ personalInfo.title }}</p>
+          <p class="title">{{ personalInfo.title() }}</p>
         </div>
 
         <div class="about-bio">
-          @for (paragraph of personalInfo.bio; track paragraph) {
+          @for (paragraph of personalInfo.bio(); track paragraph) {
           <p>{{ paragraph }}</p>
           }
         </div>
 
         <div class="about-highlights" #highlightsContainer>
-          @for (highlight of highlights; track highlight.title) {
+          @for (highlight of highlights(); track highlight.title) {
           <div class="highlight-card">
             <span class="highlight-icon">{{ highlight.icon }}</span>
             <div class="highlight-content">
@@ -39,30 +39,30 @@
 
       <div class="about-info">
         <div class="info-item">
-          <span class="info-label">📍 Localização:</span>
+          <span class="info-label">📍 {{ 'about.location' | translate }}:</span>
           <span class="info-value">{{ personalInfo.location }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">✉️ Email:</span>
+          <span class="info-label">✉️ {{ 'about.email' | translate }}:</span>
           <span class="info-value">{{ personalInfo.email }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">🎂 Idade:</span>
-          <span class="info-value">{{ personalInfo.age }} anos</span>
+          <span class="info-label">🎂 {{ 'about.age' | translate }}:</span>
+          <span class="info-value">{{ personalInfo.age }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">🚗 Carteira:</span>
+          <span class="info-label">🚗 {{ 'about.driverLicense' | translate }}:</span>
           <span class="info-value">{{ personalInfo.driverLicense }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">💼 Status:</span>
+          <span class="info-label">💼 {{ 'about.highlights.status.title' | translate }}:</span>
           @if (personalInfo.available) {
           <span class="info-value available">
             <span class="status-dot"></span>
-            Disponível para oportunidades
+            {{ 'about.highlights.status.value' | translate }}
           </span>
           } @else {
-          <span class="info-value">Não disponível no momento</span>
+          <span class="info-value">{{ 'about.notAvailable' | translate }}</span>
           }
         </div>
       </div>
