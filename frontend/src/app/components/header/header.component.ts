@@ -12,11 +12,11 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-  private static readonly LANG_HINT_KEY = 'lang-hint-dismissed';
-
   readonly isScrolled = signal(false);
   readonly isMobileMenuOpen = signal(false);
-  readonly showLanguageHint = signal(!this.isHintDismissed());
+  readonly showLanguageHint = signal(true);
+
+  private hintTimeoutId: number | undefined;
 
   readonly navItems = [
     { labelKey: 'header.home', section: 'hero' },
@@ -34,16 +34,8 @@ export class HeaderComponent {
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' }
   ];
 
-  @HostListener('window:scroll')
-  onWindowScroll() {
-    this.isScrolled.set(window.scrollY > 50);
-  }
-
   constructor() {
-    // Oculta o hint após alguns segundos
-    if (this.showLanguageHint()) {
-      setTimeout(() => this.dismissLanguageHint(), 4200);
-    }
+    this.scheduleHintAutoHide();
   }
 
   toggleMobileMenu() {
@@ -66,13 +58,29 @@ export class HeaderComponent {
     }
   }
 
+  private scheduleHintAutoHide(): void {
+    if (!this.showLanguageHint()) return;
+    if (this.hintTimeoutId) {
+      clearTimeout(this.hintTimeoutId);
+    }
+    this.hintTimeoutId = window.setTimeout(() => this.dismissLanguageHint(), 7000);
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.isScrolled.set(window.scrollY > 50);
+    if (window.scrollY <= 12 && !this.showLanguageHint()) {
+      this.showLanguageHint.set(true);
+      this.scheduleHintAutoHide();
+    }
+  }
+
   dismissLanguageHint(): void {
     if (!this.showLanguageHint()) return;
     this.showLanguageHint.set(false);
-    sessionStorage.setItem(HeaderComponent.LANG_HINT_KEY, 'true');
-  }
-
-  private isHintDismissed(): boolean {
-    return sessionStorage.getItem(HeaderComponent.LANG_HINT_KEY) === 'true';
+    if (this.hintTimeoutId) {
+      clearTimeout(this.hintTimeoutId);
+      this.hintTimeoutId = undefined;
+    }
   }
 }
