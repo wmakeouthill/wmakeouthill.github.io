@@ -1,11 +1,12 @@
 .hero {
-  min-height: 100vh;
+  --header-offset: 72px;
+  min-height: calc(100vh - var(--header-offset));
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding-top: 40px;
+  padding: clamp(32px, 7vh, 72px) 0 clamp(36px, 8vh, 80px);
 }
 
 /* Background */
@@ -62,11 +63,11 @@
 .hero-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: clamp(2.5rem, 3vw, 3.75rem);
   align-items: flex-start;
   width: 100%;
-  max-width: 1200px;
-  padding: 2rem 2rem 0.5rem 2rem;
+  max-width: 1280px;
+  padding: 0 2rem 0.5rem 2rem;
 }
 
 /* Desktop layout - text on left, image on right */
@@ -390,7 +391,8 @@
   grid-column: 1 / -1; /* ocupa as duas colunas do grid */
   display: flex;
   justify-content: center; /* centraliza horizontalmente dentro do container */
-  margin-top: 0.5rem; /* afasta das estatísticas */
+  margin-top: 0.75rem; /* afasta das estatísticas */
+  padding-bottom: 0.5rem;
 }
 
 .scroll-indicator-inline .scroll-text {
@@ -447,9 +449,15 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
+  .hero {
+    --header-offset: 80px;
+    min-height: calc(100vh - var(--header-offset));
+    padding: clamp(32px, 8vh, 72px) 0 clamp(32px, 8vh, 72px);
+  }
+
   .hero-content {
     gap: 3rem;
-    padding: 2rem 2rem 0.5rem 2rem;
+    padding: 0 2rem 0.5rem 2rem;
   }
 
   .image-wrapper {
@@ -503,7 +511,7 @@
 @media (max-width: 768px) {
   .hero {
     min-height: auto;
-    padding: 100px 0 60px;
+    padding: 96px 0 64px;
   }
 
   .hero-content {
@@ -637,7 +645,7 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 120px 0 60px;
+    padding: 104px 0 64px;
   }
 
   .hero-content {
