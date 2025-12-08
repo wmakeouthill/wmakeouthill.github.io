@@ -11,7 +11,8 @@ import java.text.Normalizer;
 import java.util.*;
 
 /**
- * Serviço para detectar projetos relevantes baseado em palavras-chave na mensagem do usuário.
+ * Serviço para detectar projetos relevantes baseado em palavras-chave na
+ * mensagem do usuário.
  * Permite carregamento on-demand de markdowns apenas quando mencionados.
  * 
  * Combina keywords estáticas (para projetos conhecidos) com detecção dinâmica
@@ -23,73 +24,75 @@ import java.util.*;
 public class ProjetoKeywordDetector {
 
     private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
-    
+
     /**
      * Mapeamento ESTÁTICO de projetos para suas palavras-chave específicas.
      * Para projetos que precisam de keywords customizadas.
      */
     private static final Map<String, List<String>> PROJETO_KEYWORDS_ESTATICAS = Map.ofEntries(
-        Map.entry("lol-matchmaking-fazenda", List.of(
-            "lol", "league of legends", "matchmaking", "fazenda",
-            "league", "discord", "discord bot", "match maker", "draft",
-            "lcu", "league client", "queue", "fila"
-        )),
-        Map.entry("aa_space", List.of(
-            "aa space", "aa", "alcoolicos anonimos", "comunidade",
-            "chat", "forum", "apoio", "recuperação", "suporte",
-            "anonimo", "grupos"
-        )),
-        Map.entry("traffic_manager", List.of(
-            "traffic manager", "traffic", "dashboard", "monitoramento",
-            "tickets", "servidor", "tempo real", "telemetria", "grafana"
-        )),
-        Map.entry("investment_calculator", List.of(
-            "investment calculator", "calculadora", "investimento",
-            "juros compostos", "simulação", "projecao", "roi", "financeiro"
-        )),
-        Map.entry("mercearia-r-v", List.of(
-            "mercearia", "r-v", "caixa", "estoque", "vendas",
-            "relatórios", "gestao", "mercado", "varejo", "balcao"
-        )),
-        Map.entry("first-angular-app", List.of(
-            "first angular", "primeiro angular", "angular inicial",
-            "primeira app angular", "hello angular"
-        )),
-        Map.entry("obaid-with-bro", List.of(
-            "obaid", "diabo chat", "diabo", "chat obaid", "chatbot obaid"
-        )),
-        Map.entry("experimenta-ai---soneca", List.of(
-            "experimenta ai", "experimenta", "soneca", "lanchonete",
-            "pdv", "ponto de venda", "clean architecture", "fullstack",
-            "self service", "cardapio digital"
-        )),
-        Map.entry("lobby-pedidos", List.of(
-            "lobby pedidos", "lobby", "pedidos", "comanda",
-            "restaurante", "delivery", "fila de pedido"
-        )),
-        Map.entry("pinta-como-eu-pinto", List.of(
-            "pinta como eu pinto", "pinta", "arte", "pintura",
-            "brush", "canvas digital"
-        )),
-        Map.entry("pintarapp", List.of(
-            "pintarapp", "pintar app", "canvas", "desenho",
-            "paint", "aplicativo de desenho"
-        )),
-        Map.entry("wmakeouthill.github.io", List.of(
-            "wmakeouthill.github.io", "portfolio", "site pessoal", "site do wesley",
-            "este site", "esse portfolio", "este portfolio", "angular spring"
-        )),
-        Map.entry("wmakeouthill", List.of(
-            "wmakeouthill", "perfil github", "github do wesley", "repositorio principal"
-        ))
-    );
+            Map.entry("lol-matchmaking-fazenda", List.of(
+                    "lol", "league of legends", "matchmaking", "fazenda",
+                    "league", "discord", "discord bot", "match maker", "draft",
+                    "lcu", "league client", "queue", "fila",
+                    "matchmaker", "ranked", "champ select", "summoner", "elo")),
+            Map.entry("aa_space", List.of(
+                    "aa space", "aa", "alcoolicos anonimos", "comunidade",
+                    "chat", "forum", "apoio", "recuperação", "suporte",
+                    "anonimo", "grupos",
+                    "alcoholics anonymous", "anonymous", "support group", "recovery",
+                    "community", "forum", "group chat", "support")),
+            Map.entry("traffic_manager", List.of(
+                    "traffic manager", "traffic", "dashboard", "monitoramento",
+                    "tickets", "servidor", "tempo real", "telemetria", "grafana",
+                    "monitoring", "real time", "server", "telemetry", "ticketing")),
+            Map.entry("investment_calculator", List.of(
+                    "investment calculator", "calculadora", "investimento",
+                    "juros compostos", "simulação", "projecao", "roi", "financeiro",
+                    "compound interest", "investment", "simulator", "projection", "finance", "roi")),
+            Map.entry("mercearia-r-v", List.of(
+                    "mercearia", "r-v", "caixa", "estoque", "vendas",
+                    "relatórios", "gestao", "mercado", "varejo", "balcao",
+                    "grocery", "pos", "cashier", "stock", "inventory", "sales",
+                    "reports", "retail", "store")),
+            Map.entry("first-angular-app", List.of(
+                    "first angular", "primeiro angular", "angular inicial",
+                    "primeira app angular", "hello angular",
+                    "first angular app", "hello world angular", "beginner angular", "getting started angular")),
+            Map.entry("obaid-with-bro", List.of(
+                    "obaid", "diabo chat", "diabo", "chat obaid", "chatbot obaid",
+                    "obaid bot", "devil chat", "funny bot", "chatbot obaid")),
+            Map.entry("experimenta-ai---soneca", List.of(
+                    "experimenta ai", "experimenta", "soneca", "lanchonete",
+                    "pdv", "ponto de venda", "clean architecture", "fullstack",
+                    "self service", "cardapio digital",
+                    "snack bar", "pos", "point of sale", "clean architecture", "full stack",
+                    "menu", "digital menu", "self-service", "ordering", "cashier")),
+            Map.entry("lobby-pedidos", List.of(
+                    "lobby pedidos", "lobby", "pedidos", "comanda",
+                    "restaurante", "delivery", "fila de pedido",
+                    "order lobby", "orders", "order queue", "restaurant", "delivery", "ticket queue")),
+            Map.entry("pinta-como-eu-pinto", List.of(
+                    "pinta como eu pinto", "pinta", "arte", "pintura",
+                    "brush", "canvas digital",
+                    "paint like i paint", "art", "painting", "digital canvas", "brushes")),
+            Map.entry("pintarapp", List.of(
+                    "pintarapp", "pintar app", "canvas", "desenho",
+                    "paint", "aplicativo de desenho",
+                    "paint app", "drawing app", "canvas app", "draw", "painting app")),
+            Map.entry("wmakeouthill.github.io", List.of(
+                    "wmakeouthill.github.io", "portfolio", "site pessoal", "site do wesley",
+                    "este site", "esse portfolio", "este portfolio", "angular spring",
+                    "portfolio site", "personal site", "wesley site", "angular site", "spring boot site")),
+            Map.entry("wmakeouthill", List.of(
+                    "wmakeouthill", "perfil github", "github do wesley", "repositorio principal",
+                    "github profile", "wesley github", "main repository")));
 
     private final PortfolioContentPort portfolioContentPort;
-    
+
     /** Cache de projetos dinâmicos (carregados do repositório) */
     private final Map<String, List<String>> projetosDinamicos = new HashMap<>();
     private volatile long ultimoCarregamento = 0;
-    
+
     private static final int MAX_DISTANCE = 2;
 
     @PostConstruct
@@ -103,7 +106,7 @@ public class ProjetoKeywordDetector {
     public synchronized void recarregarProjetosDinamicos() {
         log.info("Carregando projetos dinâmicos do repositório...");
         projetosDinamicos.clear();
-        
+
         List<PortfolioMarkdownResource> recursos = portfolioContentPort.carregarMarkdownsDetalhados();
         for (PortfolioMarkdownResource recurso : recursos) {
             if (recurso.projeto()) {
@@ -116,7 +119,7 @@ public class ProjetoKeywordDetector {
                 }
             }
         }
-        
+
         ultimoCarregamento = System.currentTimeMillis();
         log.info("Projetos dinâmicos carregados: {} novos projetos", projetosDinamicos.size());
     }
@@ -127,17 +130,17 @@ public class ProjetoKeywordDetector {
     private List<String> gerarKeywordsDinamicas(String nome, Set<String> tags) {
         List<String> keywords = new ArrayList<>();
         keywords.add(nome);
-        
+
         // Adiciona variações do nome
         keywords.add(nome.replace("-", " "));
         keywords.add(nome.replace("_", " "));
         keywords.add(nome.replace("-", "").replace("_", ""));
-        
+
         // Adiciona tags como keywords
         if (tags != null) {
             keywords.addAll(tags);
         }
-        
+
         return keywords;
     }
 
@@ -156,12 +159,14 @@ public class ProjetoKeywordDetector {
         todas.putAll(projetosDinamicos);
         return todas;
     }
+
     /**
      * Detecta quais projetos são relevantes baseado na mensagem do usuário.
      * Usa keywords estáticas E dinâmicas (carregadas do repositório).
      * 
      * @param mensagemUsuario mensagem do usuário
-     * @return conjunto de nomes de projetos relevantes (nomes normalizados dos arquivos)
+     * @return conjunto de nomes de projetos relevantes (nomes normalizados dos
+     *         arquivos)
      */
     public Set<String> detectarProjetosRelevantes(String mensagemUsuario) {
         if (mensagemUsuario == null || mensagemUsuario.isBlank()) {
@@ -170,22 +175,22 @@ public class ProjetoKeywordDetector {
         String mensagemNormalizada = normalizar(mensagemUsuario);
         Set<String> stemsMensagem = extrairStems(mensagemNormalizada);
         Set<String> projetosDetectados = new HashSet<>();
-        
+
         // Busca em todas as keywords (estáticas + dinâmicas)
         Map<String, List<String>> todasKeywords = obterTodasKeywords();
-        
+
         for (Map.Entry<String, List<String>> entry : todasKeywords.entrySet()) {
             String nomeProjeto = entry.getKey();
             List<String> keywords = entry.getValue();
-            
+
             if (contemPalavraChave(mensagemNormalizada, stemsMensagem, keywords)) {
                 projetosDetectados.add(nomeProjeto);
             }
         }
-        
+
         return projetosDetectados;
     }
-    
+
     private boolean contemPalavraChave(String mensagem, Set<String> stemsMensagem, List<String> keywords) {
         for (String keyword : keywords) {
             String chaveNormalizada = normalizar(keyword);
@@ -199,7 +204,7 @@ public class ProjetoKeywordDetector {
         }
         return false;
     }
-    
+
     /**
      * Verifica se algum projeto foi mencionado na mensagem.
      * 
@@ -209,7 +214,7 @@ public class ProjetoKeywordDetector {
     public boolean temProjetoMencionado(String mensagemUsuario) {
         return !detectarProjetosRelevantes(mensagemUsuario).isEmpty();
     }
-    
+
     /**
      * Retorna todos os nomes de projetos disponíveis (estáticos + dinâmicos).
      * 
@@ -221,9 +226,9 @@ public class ProjetoKeywordDetector {
 
     private String normalizar(String texto) {
         return Normalizer.normalize(texto, Normalizer.Form.NFD)
-            .replaceAll("\\p{M}", "")
-            .toLowerCase(Locale.ROOT)
-            .trim();
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 
     private Set<String> extrairStems(String texto) {
@@ -274,11 +279,10 @@ public class ProjetoKeywordDetector {
             for (int j = 1; j <= destino.length(); j++) {
                 int temp = custos[j];
                 custos[j] = origem.charAt(i - 1) == destino.charAt(j - 1) ? prev
-                    : Math.min(Math.min(custos[j - 1], custos[j]), prev) + 1;
+                        : Math.min(Math.min(custos[j - 1], custos[j]), prev) + 1;
                 prev = temp;
             }
         }
         return custos[destino.length()];
     }
 }
-
