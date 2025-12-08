@@ -152,7 +152,30 @@
   "education": {
     "title": "Formação Acadêmica",
     "inProgress": "Em andamento",
-    "completed": "Concluído"
+    "completed": "Concluído",
+    "grade": "Nota",
+    "items": {
+      "edu1": {
+        "degree": "Pós-Graduação",
+        "field": "Full Stack Java Developer",
+        "description": "Pós-graduação focada em desenvolvimento Java Full Stack com ênfase em Spring e práticas modernas de desenvolvimento."
+      },
+      "edu2": {
+        "degree": "Pós-Graduação",
+        "field": "Gestão de Projetos",
+        "description": "Pós-graduação em gestão de projetos com foco em práticas Ágeis e PMI."
+      },
+      "edu3": {
+        "degree": "Bacharelado (em andamento)",
+        "field": "Ciências da Computação",
+        "description": "Graduação em andamento em Ciências da Computação."
+      },
+      "edu4": {
+        "degree": "Graduação",
+        "field": "Direito",
+        "description": "Bacharel em Direito."
+      }
+    }
   },
   "projects": {
     "title": "Projetos",

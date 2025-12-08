@@ -152,7 +152,30 @@
   "education": {
     "title": "Academic Education",
     "inProgress": "In Progress",
-    "completed": "Completed"
+    "completed": "Completed",
+    "grade": "Grade",
+    "items": {
+      "edu1": {
+        "degree": "Postgraduate",
+        "field": "Full Stack Java Developer",
+        "description": "Postgraduate program focused on Full Stack Java development with emphasis on Spring and modern development practices."
+      },
+      "edu2": {
+        "degree": "Postgraduate",
+        "field": "Project Management",
+        "description": "Postgraduate in project management with a focus on Agile practices and PMI."
+      },
+      "edu3": {
+        "degree": "Bachelor (in progress)",
+        "field": "Computer Science",
+        "description": "Bachelor's degree in progress in Computer Science."
+      },
+      "edu4": {
+        "degree": "Bachelor's Degree",
+        "field": "Law",
+        "description": "Bachelor of Law."
+      }
+    }
   },
   "projects": {
     "title": "Projects",
