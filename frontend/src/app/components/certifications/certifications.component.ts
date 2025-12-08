@@ -1,12 +1,14 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 @Component({
   selector: 'app-certifications',
   standalone: true,
-  imports: [CommonModule, PdfViewerComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, PdfViewerComponent, TranslatePipe],
   templateUrl: './certifications.component.html',
   styleUrl: './certifications.component.css'
 })

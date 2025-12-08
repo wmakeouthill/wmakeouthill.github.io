@@ -179,32 +179,71 @@
   },
   "projects": {
     "title": "Projetos",
+    "subtitle": "Meus trabalhos recentes do GitHub",
     "viewDetails": "Ver Detalhes",
     "viewCode": "Ver Código",
     "liveDemo": "Demo ao Vivo",
     "technologies": "Tecnologias",
-    "description": "Descrição"
+    "description": "Descrição",
+    "filters": {
+      "all": "Todos"
+    },
+    "loading": "Carregando projetos...",
+    "github": "GitHub",
+    "demo": "Demo",
+    "readme": "README",
+    "noDescription": "Sem descrição disponível",
+    "empty": "Nenhum projeto encontrado para este filtro.",
+    "pagination": {
+      "previous": "Página anterior",
+      "next": "Próxima página"
+    }
   },
   "certifications": {
     "title": "Certificações",
+    "subtitle": "Cursos e certificados conquistados",
     "viewCertificate": "Ver Certificado",
     "download": "Baixar",
     "issuedBy": "Emitido por",
-    "issuedDate": "Data de Emissão"
+    "issuedDate": "Data de Emissão",
+    "loading": "Carregando certificados...",
+    "retry": "Tentar novamente",
+    "empty": "Nenhum certificado encontrado.",
+    "view": "Ver",
+    "zoomOut": "Diminuir zoom",
+    "zoomIn": "Aumentar zoom",
+    "zoomReset": "Resetar zoom",
+    "zoomAuto": "Auto",
+    "rotate": "Girar 90°",
+    "openGithub": "Ver no GitHub",
+    "close": "Fechar modal"
   },
   "contact": {
     "title": "Entre em Contato",
     "subtitle": "Vamos conversar sobre oportunidades ou projetos!",
+    "infoTitle": "Informações de Contato",
+    "infoDescription": "Estou disponível para oportunidades de trabalho, freelance e projetos interessantes. Entre em contato através de qualquer um dos canais abaixo!",
+    "formTitle": "Envie uma Mensagem",
+    "formDescription": "Preencha o formulário abaixo e entrarei em contato o mais rápido possível!",
     "name": "Nome",
     "namePlaceholder": "Seu nome",
     "email": "Email",
     "emailPlaceholder": "seu@email.com",
+    "subject": "Assunto",
+    "subjectPlaceholder": "Assunto da mensagem",
     "message": "Mensagem",
-    "messagePlaceholder": "Sua mensagem aqui...",
+    "messagePlaceholder": "Escreva sua mensagem aqui...",
     "send": "Enviar Mensagem",
     "sending": "Enviando...",
-    "success": "Mensagem enviada com sucesso!",
-    "error": "Erro ao enviar mensagem. Tente novamente."
+    "success": "Mensagem enviada com sucesso! Entrarei em contato em breve.",
+    "error": "Erro ao enviar mensagem. Tente novamente ou entre em contato diretamente pelo email.",
+    "labels": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "whatsapp": "WhatsApp",
+      "address": "Endereço"
+    }
   },
   "chat": {
     "title": "Chat com IA",
