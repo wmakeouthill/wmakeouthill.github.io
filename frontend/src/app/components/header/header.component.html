@@ -1,4 +1,4 @@
-<header class="header" [class.scrolled]="isScrolled">
+<header class="header" [class.scrolled]="isScrolled()">
   <nav class="nav-container">
     <div class="nav-brand">
       <a (click)="scrollToSection('hero')" class="logo">
@@ -17,19 +17,29 @@
       }
     </ul>
 
-    <!-- Social Links -->
-    <div class="nav-social desktop-only">
-      @for (social of socialLinks; track social.platform) {
-        <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
-           class="social-link" [title]="social.platform">
-          <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
-        </a>
-      }
+    <div class="nav-actions desktop-only">
+      <div class="lang-wrapper">
+        <app-language-selector></app-language-selector>
+        @if (showLanguageHint()) {
+          <div class="lang-hint" aria-live="polite">
+            <span class="hint-text">Switch to English to view the resume</span>
+            <span class="hint-finger">👆</span>
+          </div>
+        }
+      </div>
+      <div class="nav-social">
+        @for (social of socialLinks; track social.platform) {
+          <a [href]="social.url" target="_blank" rel="noopener noreferrer"
+             class="social-link" [title]="social.platform">
+            <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="20" height="20" />
+          </a>
+        }
+      </div>
     </div>
 
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" (click)="toggleMobileMenu()" 
-            [class.open]="isMobileMenuOpen" aria-label="Toggle menu">
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()"
+            [class.open]="isMobileMenuOpen()" aria-label="Toggle menu">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
@@ -37,7 +47,7 @@
   </nav>
 
   <!-- Mobile Navigation -->
-  @if (isMobileMenuOpen) {
+  @if (isMobileMenuOpen()) {
     <div class="mobile-menu" [@slideDown]>
       <ul class="mobile-nav-list">
         @for (item of navItems; track item.section) {
@@ -48,9 +58,12 @@
           </li>
         }
       </ul>
+      <div class="mobile-language">
+        <app-language-selector></app-language-selector>
+      </div>
       <div class="mobile-social">
         @for (social of socialLinks; track social.platform) {
-          <a [href]="social.url" target="_blank" rel="noopener noreferrer" 
+          <a [href]="social.url" target="_blank" rel="noopener noreferrer"
              class="mobile-social-link" [title]="social.platform">
             <img [src]="social.iconSrc" [alt]="social.platform + ' icon'" width="18" height="18" /> {{ social.platform }}
           </a>

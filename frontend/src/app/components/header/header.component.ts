@@ -1,18 +1,23 @@
-import { Component, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, LanguageSelectorComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-  isScrolled = false;
-  isMobileMenuOpen = false;
+  private static readonly LANG_HINT_KEY = 'lang-hint-dismissed';
 
-  navItems = [
+  readonly isScrolled = signal(false);
+  readonly isMobileMenuOpen = signal(false);
+  readonly showLanguageHint = signal(!this.isHintDismissed());
+
+  readonly navItems = [
     { label: 'Início', section: 'hero' },
     { label: 'Sobre', section: 'about' },
     { label: 'Skills', section: 'skills' },
@@ -23,18 +28,25 @@ export class HeaderComponent {
     { label: 'Contato', section: 'contact' }
   ];
 
-  socialLinks = [
+  readonly socialLinks = [
     { platform: 'GitHub', url: 'https://github.com/wmakeouthill', iconSrc: 'assets/icons/github-octocat.svg' },
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' }
   ];
 
   @HostListener('window:scroll')
   onWindowScroll() {
-    this.isScrolled = window.scrollY > 50;
+    this.isScrolled.set(window.scrollY > 50);
+  }
+
+  constructor() {
+    // Oculta o hint após alguns segundos
+    if (this.showLanguageHint()) {
+      setTimeout(() => this.dismissLanguageHint(), 4200);
+    }
   }
 
   toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    this.isMobileMenuOpen.update((open) => !open);
   }
 
   scrollToSection(sectionId: string) {
@@ -49,7 +61,17 @@ export class HeaderComponent {
         behavior: 'smooth'
       });
 
-      this.isMobileMenuOpen = false;
+      this.isMobileMenuOpen.set(false);
     }
+  }
+
+  dismissLanguageHint(): void {
+    if (!this.showLanguageHint()) return;
+    this.showLanguageHint.set(false);
+    sessionStorage.setItem(HeaderComponent.LANG_HINT_KEY, 'true');
+  }
+
+  private isHintDismissed(): boolean {
+    return sessionStorage.getItem(HeaderComponent.LANG_HINT_KEY) === 'true';
   }
 }

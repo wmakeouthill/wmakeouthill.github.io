@@ -1,0 +1,152 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior"
+  },
+  "header": {
+    "home": "Início",
+    "about": "Sobre",
+    "skills": "Skills",
+    "experience": "Experiência",
+    "education": "Educação",
+    "projects": "Projetos",
+    "certifications": "Certificações",
+    "contact": "Contato"
+  },
+  "hero": {
+    "greeting": "Olá, eu sou",
+    "title": "Desenvolvedor Full Stack",
+    "tagline": "Transformando ideias em código. Criando experiências digitais incríveis com tecnologias modernas e design elegante.",
+    "viewProjects": "Ver Projetos",
+    "myResume": "Meu Currículo",
+    "contactMe": "Entre em Contato",
+    "yearsExperience": "Anos de Experiência",
+    "completedProjects": "Projetos Completos",
+    "technologies": "Tecnologias que tive contato e experiência",
+    "scroll": "Scroll"
+  },
+  "about": {
+    "title": "Sobre Mim",
+    "name": "Wesley de Carvalho Augusto Correia",
+    "titleRole": "Desenvolvedor Full Stack",
+    "yearsOfExperience": "Anos de Experiência",
+    "age": "Idade",
+    "location": "Localização",
+    "email": "Email",
+    "driverLicense": "CNH",
+    "available": "Disponível",
+    "notAvailable": "Indisponível",
+    "bio": [
+      "Desde as lan houses da infância, onde comecei a trabalhar, até hoje, minha trajetória é marcada pela paixão por tecnologia e apoio a negócios com soluções de T.I., suporte técnico e automações. Atuei como autônomo, na empresa familiar de T.I. e em indústrias como gás e energia (Petrobras), tabaco (Philip Morris), jurídico e infraestrutura financeira crítica (Banco Central/Anbima/SELIC). Essa diversidade forjou minha versatilidade técnica e visão estratégica. Analítico e solucionador, identifico gargalos e crio automações que geram eficiência mensurável. Adapto-me com facilidade a grandes corporações ou contextos dinâmicos, destacando-me em soluções criativas sob pressão. Mais que executar, entendo contextos, proponho melhorias e entrego valor. Aprendo rápido, valorizo colaboração, gosto de ser útil e ajudar pessoas e busco desafios que unam inovação e impacto no negócio."
+    ],
+    "highlights": {
+      "experience": {
+        "title": "Experiência",
+        "value": "Experiência em TI com suporte, desenvolvimento e Governança. Além de experiências administrativas e de backoffice jurídico e salesforce."
+      },
+      "education": {
+        "title": "Formação",
+        "value": "Graduado em Direito. Cursando Pós-graduação em Desenvolvimento FullStack Java, MBA em Gestão de Projetos (trancada) e cursando Ciências da Computação (em andamento)"
+      },
+      "projects": {
+        "title": "Projetos",
+        "value": "Automação e Modernização de Sistemas e desenvolvimento fullstack de aplicações."
+      },
+      "status": {
+        "title": "Status",
+        "value": "Disponível para oportunidades!"
+      }
+    },
+    "softSkills": {
+      "title": "Soft Skills",
+      "items": [
+        "Boa Comunicação",
+        "Inglês Intermediário",
+        "Gestão de conflitos / Trabalho em equipe",
+        "Hiperfoco / Proatividade",
+        "Inteligência emocional e autocontrole",
+        "Autodidata",
+        "Adaptado a rotinas Ágil, Scrum"
+      ]
+    }
+  },
+  "skills": {
+    "title": "Habilidades Técnicas",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "database": "Banco de Dados",
+    "devops": "DevOps",
+    "tools": "Ferramentas",
+    "level": {
+      "production": "Produção",
+      "advanced": "Avançado",
+      "intermediate": "Intermediário",
+      "beginner": "Iniciante"
+    },
+    "projectsCount": "projetos"
+  },
+  "experience": {
+    "title": "Experiência Profissional",
+    "present": "Presente",
+    "months": "meses",
+    "years": "anos"
+  },
+  "education": {
+    "title": "Formação Acadêmica",
+    "inProgress": "Em andamento",
+    "completed": "Concluído"
+  },
+  "projects": {
+    "title": "Projetos",
+    "viewDetails": "Ver Detalhes",
+    "viewCode": "Ver Código",
+    "liveDemo": "Demo ao Vivo",
+    "technologies": "Tecnologias",
+    "description": "Descrição"
+  },
+  "certifications": {
+    "title": "Certificações",
+    "viewCertificate": "Ver Certificado",
+    "download": "Baixar",
+    "issuedBy": "Emitido por",
+    "issuedDate": "Data de Emissão"
+  },
+  "contact": {
+    "title": "Entre em Contato",
+    "subtitle": "Vamos conversar sobre oportunidades ou projetos!",
+    "name": "Nome",
+    "namePlaceholder": "Seu nome",
+    "email": "Email",
+    "emailPlaceholder": "seu@email.com",
+    "message": "Mensagem",
+    "messagePlaceholder": "Sua mensagem aqui...",
+    "send": "Enviar Mensagem",
+    "sending": "Enviando...",
+    "success": "Mensagem enviada com sucesso!",
+    "error": "Erro ao enviar mensagem. Tente novamente."
+  },
+  "chat": {
+    "title": "Chat com IA",
+    "placeholder": "Digite sua mensagem...",
+    "send": "Enviar",
+    "clear": "Limpar",
+    "newChat": "Nova Conversa",
+    "thinking": "Pensando...",
+    "error": "Erro ao enviar mensagem"
+  },
+  "footer": {
+    "rights": "Todos os direitos reservados",
+    "builtWith": "Construído com",
+    "and": "e"
+  }
+}

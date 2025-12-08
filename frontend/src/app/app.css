@@ -1,0 +1,16 @@
+/* Espaço para o header fixo + aviso */
+.portfolio-main {
+  padding-top: 72px;
+}
+
+@media (max-width: 1024px) {
+  .portfolio-main {
+    padding-top: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .portfolio-main {
+    padding-top: 88px;
+  }
+}
