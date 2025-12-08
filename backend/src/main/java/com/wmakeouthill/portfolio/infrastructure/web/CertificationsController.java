@@ -201,7 +201,10 @@ public class CertificationsController {
   }
 
   private String extrairIdioma(jakarta.servlet.http.HttpServletRequest request) {
-    String lang = request.getHeader("X-Language");
+    String lang = request.getParameter("lang");
+    if (lang == null || lang.isBlank()) {
+      lang = request.getHeader("X-Language");
+    }
     if (lang == null || lang.isBlank()) {
       lang = request.getHeader("Accept-Language");
     }

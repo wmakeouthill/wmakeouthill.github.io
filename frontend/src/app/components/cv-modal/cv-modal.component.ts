@@ -1,7 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy, inject, OnInit, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy, inject, OnInit, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { CertificationsService } from '../../services/certifications.service';
+import { I18nService } from '../../i18n/i18n.service';
+import { CertificadoPdf } from '../../services/certifications.service';
 
 @Component({
   selector: 'app-cv-modal',
@@ -12,6 +14,11 @@ import { CertificationsService } from '../../services/certifications.service';
 })
 export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   private readonly certificationsService = inject(CertificationsService);
+  private readonly i18n = inject(I18nService);
+  private readonly languageEffect = effect(() => {
+    this.i18n.language();
+    this.loadCurriculoMetadata();
+  });
 
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
@@ -29,17 +36,20 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   scrollStartX = 0;
   scrollStartY = 0;
 
-  /** Nome do arquivo para download */
-  readonly cvFileName = 'Wesley de Carvalho Augusto Correia - Currículo.pdf';
+  /** Metadados do currículo (varia com idioma) */
+  readonly curriculo = signal<CertificadoPdf | null>(null);
 
-  /** URL do currículo no GitHub (para abrir externamente) */
-  readonly cvGitHubUrl = signal<string | null>(null);
+  /** URL reativa do PDF (inclui lang e hash para evitar cache cruzado) */
+  readonly pdfUrl = computed(() => {
+    const lang = this.i18n.getLanguageForBackend?.() ?? 'pt';
+    const version = this.curriculo()?.sha ?? Date.now();
+    return `${this.certificationsService.getCurriculoPdfUrl()}?lang=${lang}&v=${version}`;
+  });
 
   /** Loading state */
   readonly loading = signal(false);
 
   ngOnInit(): void {
-    this.loadCurriculoMetadata();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -56,7 +66,11 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
    * Retorna a URL do PDF do currículo (servido pelo backend)
    */
   getCurriculoPdfUrl(): string {
-    return this.certificationsService.getCurriculoPdfUrl();
+    return this.pdfUrl();
+  }
+
+  private curriculoFileName(): string {
+    return this.curriculo()?.fileName || 'Wesley de Carvalho Augusto Correia - Currículo.pdf';
   }
 
   /**
@@ -68,7 +82,7 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
     this.certificationsService.loadCurriculo().subscribe({
       next: (curriculo) => {
         if (curriculo) {
-          this.cvGitHubUrl.set(curriculo.htmlUrl);
+          this.curriculo.set(curriculo);
           console.log('✅ Metadados do currículo carregados');
         }
         this.loading.set(false);
@@ -136,13 +150,13 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   downloadCV(): void {
     const link = document.createElement('a');
     link.href = this.getCurriculoPdfUrl();
-    link.download = this.cvFileName;
+    link.download = this.curriculoFileName();
     link.target = '_blank';
     link.click();
   }
 
   openInGitHub(): void {
-    const url = this.cvGitHubUrl();
+    const url = this.curriculo()?.htmlUrl;
     if (url) {
       window.open(url, '_blank');
     }
