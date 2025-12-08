@@ -6,6 +6,7 @@ import com.wmakeouthill.portfolio.application.usecase.ObterCertificadoPdfUseCase
 import com.wmakeouthill.portfolio.application.usecase.ObterCurriculoUseCase;
 import com.wmakeouthill.portfolio.infrastructure.pdf.PdfThumbnailService;
 import com.wmakeouthill.portfolio.infrastructure.pdf.ThumbnailCacheService;
+import com.wmakeouthill.portfolio.infrastructure.translate.PortfolioTranslationOverrides;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -39,15 +40,22 @@ public class CertificationsController {
   private final ObterCertificadoPdfUseCase obterCertificadoPdfUseCase;
   private final PdfThumbnailService pdfThumbnailService;
   private final ThumbnailCacheService thumbnailCacheService;
+  private final PortfolioTranslationOverrides translationOverrides;
 
   /**
    * Lista todos os certificados (exceto currículo).
    * GET /api/certifications
    */
   @GetMapping
-  public ResponseEntity<List<CertificadoPdfDto>> listarCertificados() {
-    List<CertificadoPdfDto> certificados = listarCertificadosUseCase.executar();
-    return ResponseEntity.ok(certificados);
+  public ResponseEntity<List<CertificadoPdfDto>> listarCertificados(jakarta.servlet.http.HttpServletRequest request) {
+    String language = extrairIdioma(request);
+    log.info("Listando certificados (lang={})", language);
+    List<CertificadoPdfDto> certificados = translationOverrides.applyCertificateOverrides(
+        listarCertificadosUseCase.executar(),
+        language);
+    return ResponseEntity.ok()
+        .header("Vary", "X-Language,Accept-Language")
+        .body(certificados);
   }
 
   /**
@@ -57,7 +65,8 @@ public class CertificationsController {
   @GetMapping("/curriculo")
   public ResponseEntity<CertificadoPdfDto> obterCurriculo(jakarta.servlet.http.HttpServletRequest request) {
     String language = extrairIdioma(request);
-    return obterCurriculoUseCase.executar(language)
+    log.info("Buscando metadados do currículo (lang={})", language);
+    return translationOverrides.applyCertificateOverride(obterCurriculoUseCase.executar(language), language)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }

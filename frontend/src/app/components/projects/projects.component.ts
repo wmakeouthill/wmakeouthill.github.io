@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, viewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, viewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubService } from '../../services/github.service';
 import { MarkdownService } from '../../services/markdown.service';
@@ -6,6 +6,7 @@ import { PortfolioContentService } from '../../services/portfolio-content.servic
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Component({
   selector: 'app-projects',
@@ -19,6 +20,7 @@ export class ProjectsComponent implements OnInit {
   private readonly githubService = inject(GithubService);
   private readonly markdownService = inject(MarkdownService);
   private readonly portfolioContentService = inject(PortfolioContentService);
+  private readonly i18nService = inject(I18nService);
 
   readonly projectsSection = viewChild<ElementRef<HTMLElement>>('projectsSection');
 
@@ -33,9 +35,25 @@ export class ProjectsComponent implements OnInit {
   readonly showReadmeModal = signal<boolean>(false);
   readonly currentProjectName = signal<string>('');
 
+  private lastLanguage = this.i18nService.language();
+  private initialized = false;
+
+  // Recarrega quando o idioma mudar, respeitando caches por idioma do backend
+  private readonly reloadOnLangChange = effect(() => {
+    const lang = this.i18nService.language();
+    if (!this.initialized) {
+      return;
+    }
+    if (lang !== this.lastLanguage) {
+      this.lastLanguage = lang;
+      this.loadProjects();
+    }
+  });
+
   ngOnInit(): void {
     this.loadProjects();
     this.loadProjectImages();
+    this.initialized = true;
   }
 
   /**

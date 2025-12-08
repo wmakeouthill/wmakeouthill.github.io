@@ -6,6 +6,7 @@ import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
 import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterMarkdownProjetoUseCase;
+import com.wmakeouthill.portfolio.infrastructure.translate.PortfolioTranslationOverrides;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -30,17 +31,22 @@ public class ProjectsController {
   private final ListarProjetosGithubUseCase listarProjetosGithubUseCase;
   private final ObterMarkdownProjetoUseCase obterMarkdownProjetoUseCase;
   private final GithubProjectsPort githubProjectsPort;
+  private final PortfolioTranslationOverrides translationOverrides;
 
   /**
    * Lista todos os repositórios do usuário.
    * Cache: 30 minutos.
    */
   @GetMapping
-  public ResponseEntity<List<GithubRepositoryDto>> listarProjetos() {
-    log.info("Listando projetos do GitHub via backend autenticado");
-    List<GithubRepositoryDto> repositorios = listarProjetosGithubUseCase.executar();
+  public ResponseEntity<List<GithubRepositoryDto>> listarProjetos(jakarta.servlet.http.HttpServletRequest request) {
+    String language = extrairIdioma(request);
+    log.info("Listando projetos do GitHub via backend autenticado (lang={})", language);
+    List<GithubRepositoryDto> repositorios = translationOverrides.applyProjectOverrides(
+        listarProjetosGithubUseCase.executar(),
+        language);
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+        .header("Vary", "X-Language,Accept-Language")
         .body(repositorios);
   }
 
