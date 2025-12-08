@@ -30,6 +30,7 @@ import {
   carregarMensagens,
   limparSessionStorage
 } from '../../utils/session-storage.util';
+import { I18nService } from '../../i18n/i18n.service';
 
 interface ChatMessageRaw {
   from: 'user' | 'assistant';
@@ -56,6 +57,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly markdownChatService = inject(MarkdownChatService);
+  private readonly i18n = inject(I18nService);
 
   @ViewChild('messagesContainer') private readonly messagesContainer?: ElementRef<HTMLDivElement>;
 
@@ -67,11 +69,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   messages = signal<ChatMessage[]>([]);
   private sessionId = obterOuGerarSessionId();
 
-  readonly initialMessage: ChatMessage = {
+  readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
-    text: 'Olá! Eu sou a IA treinada com o portfólio do Wesley. Pode perguntar sobre tecnologias que ele domina, projetos que já fez ou experiências profissionais.',
+    text: this.i18n.translate('chat.initialMessage'),
     timestamp: new Date()
-  };
+  }));
 
   readonly canSend = computed(
     () => this.inputText().trim().length > 0 && !this.isLoading()
@@ -99,6 +101,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     useChatScroll(this.messagesContainer, this.messages, this.isOpen);
     this.configureChatOpenEffects();
     this.configureLoadingEffects();
+    this.configureLanguageEffect();
     this.configurarPersistenciaMensagens();
   }
 
@@ -118,6 +121,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         scrollToBottom(this.messagesContainer, true); // instant = true ao abrir
         this.focarInput();
+        if (this.messages().length === 0) {
+          this.messages.set([this.initialMessage()]);
+        }
       }, 150);
     }
   }
@@ -206,6 +212,31 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
+  private configureLanguageEffect(): void {
+    effect(() => {
+      // Reaplica a mensagem inicial quando só ela existe e o idioma muda
+      this.i18n.language();
+      const current = this.messages();
+      if (current.length === 0) {
+        this.messages.set([this.initialMessage()]);
+        return;
+      }
+      if (current.length === 1 && current[0].from === 'assistant') {
+        const initial = this.initialMessage();
+        // Evita loop infinito: só atualiza se o texto estiver diferente
+        if (current[0].text !== initial.text) {
+          this.messages.set([
+            {
+              ...current[0],
+              text: initial.text,
+              timestamp: new Date()
+            }
+          ]);
+        }
+      }
+    });
+  }
+
   private async carregarMensagensSalvas(): Promise<void> {
     const mensagensSalvas = carregarMensagens<ChatMessageRaw>();
     if (mensagensSalvas.length > 0) {
@@ -218,18 +249,18 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         }, 100);
       }
     } else {
-      this.messages.set([this.initialMessage]);
+      this.messages.set([this.initialMessage()]);
     }
   }
 
   private async converterMensagensSalvas(mensagensRaw: ChatMessageRaw[]): Promise<ChatMessage[]> {
     const mensagens: ChatMessage[] = [];
-    
+
     for (const msg of mensagensRaw) {
-      const timestamp = typeof msg.timestamp === 'string' 
-        ? new Date(msg.timestamp) 
+      const timestamp = typeof msg.timestamp === 'string'
+        ? new Date(msg.timestamp)
         : msg.timestamp;
-      
+
       if (msg.from === 'assistant' && msg.text) {
         // Re-renderiza HTML para mensagens de assistente
         const html = await this.markdownChatService.renderMarkdownToHtml(msg.text);
@@ -248,7 +279,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         });
       }
     }
-    
+
     return mensagens;
   }
 
@@ -270,16 +301,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   iniciarNovaConversa(): void {
     // Salva o sessionId ANTIGO antes de limpar para limpar o histórico correto no backend
     const sessionIdAntigo = this.sessionId;
-    
+
     // Limpa mensagens no frontend
-    this.messages.set([this.initialMessage]);
-    
+    this.messages.set([this.initialMessage()]);
+
     // Limpa sessionStorage (remove sessionId e mensagens)
     limparSessionStorage();
-    
+
     // Gera novo sessionId
     this.sessionId = obterOuGerarSessionId();
-    
+
     // Limpa o histórico ANTIGO no backend antes de começar nova conversa
     if (sessionIdAntigo) {
       this.chatService.limparHistorico(sessionIdAntigo).subscribe({

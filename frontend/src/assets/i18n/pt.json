@@ -252,11 +252,20 @@
     "clear": "Limpar",
     "newChat": "Nova Conversa",
     "thinking": "Pensando...",
-    "error": "Erro ao enviar mensagem"
+    "error": "Erro ao enviar mensagem",
+    "initialMessage": "Olá! Eu sou a IA treinada com o portfólio do Wesley. Pode perguntar sobre tecnologias que ele domina, projetos que já fez ou experiências profissionais.",
+    "headerTitle": "Converse sobre o Wesley",
+    "headerSubtitle": "Faça perguntas sobre experiência, projetos e stack.",
+    "close": "Fechar chat",
+    "avatarAlt": "Avatar IA",
+    "openAria": "Abrir chat com IA sobre o Wesley"
   },
   "footer": {
     "rights": "Todos os direitos reservados",
     "builtWith": "Construído com",
-    "and": "e"
+    "and": "e",
+    "description": "Desenvolvedor Full Stack apaixonado por ajudar a resolver problemas das pessoas, trabalhar na criação de soluções inovadoras e experiências digitais incríveis.",
+    "quickLinks": "Links Rápidos",
+    "social": "Redes Sociais"
   }
 }

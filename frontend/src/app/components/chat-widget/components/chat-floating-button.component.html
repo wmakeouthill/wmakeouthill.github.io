@@ -1,6 +1,6 @@
 <img
   src="/ai-avatar.png"
-  alt="Avatar IA"
+  [alt]="'chat.avatarAlt' | translate"
   class="chat-avatar"
   [class.chat-open]="isOpen()"
   (click)="onClick.emit()"
@@ -8,6 +8,6 @@
   tabindex="0"
   (keydown.enter)="onClick.emit()"
   (keydown.space)="onClick.emit()"
-  aria-label="Abrir chat com IA sobre o Wesley"
+  [aria-label]="'chat.openAria' | translate"
 />
 

@@ -252,11 +252,20 @@
     "clear": "Clear",
     "newChat": "New Chat",
     "thinking": "Thinking...",
-    "error": "Error sending message"
+    "error": "Error sending message",
+    "initialMessage": "Hi! I'm the AI trained with Wesley's portfolio. You can ask about technologies he masters, projects he has built, or his professional experiences.",
+    "headerTitle": "Chat about Wesley",
+    "headerSubtitle": "Ask about experience, projects, and tech stack.",
+    "close": "Close chat",
+    "avatarAlt": "AI Avatar",
+    "openAria": "Open AI chat about Wesley"
   },
   "footer": {
     "rights": "All rights reserved",
     "builtWith": "Built with",
-    "and": "and"
+    "and": "and",
+    "description": "Full Stack Developer passionate about solving people's problems, crafting innovative solutions, and building amazing digital experiences.",
+    "quickLinks": "Quick Links",
+    "social": "Social"
   }
 }

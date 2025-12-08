@@ -3,8 +3,7 @@
     <div class="footer-section">
       <h3 class="footer-brand">&lt;DevPortfolio/&gt;</h3>
       <p class="footer-description">
-        Desenvolvedor Full Stack apaixonado por ajudar a resolver problemas das pessoas, trabalhar
-        na criação de soluções inovadoras e experiências digitais incríveis.
+        {{ 'footer.description' | translate }}
       </p>
       <div class="footer-badges">
         @for (tech of techStack; track tech.name) {
@@ -14,12 +13,12 @@
     </div>
 
     <div class="footer-section">
-      <h4 class="footer-title">Links Rápidos</h4>
+      <h4 class="footer-title">{{ 'footer.quickLinks' | translate }}</h4>
       <ul class="footer-links">
         @for (link of quickLinks; track link.section) {
         <li>
           <a (click)="scrollToSection(link.section)" class="footer-link">
-            {{ link.label }}
+            {{ link.labelKey | translate }}
           </a>
         </li>
         }
@@ -27,7 +26,7 @@
     </div>
 
     <div class="footer-section">
-      <h4 class="footer-title">Redes Sociais</h4>
+      <h4 class="footer-title">{{ 'footer.social' | translate }}</h4>
       <div class="footer-social">
         @for (social of socialLinks; track social.platform) {
         <a
@@ -50,7 +49,7 @@
   <div class="footer-bottom">
     <div class="container">
       <p class="copyright">
-        © {{ currentYear }} Wesley de Carvalho Augusto Correia. Todos os direitos reservados.
+        © {{ currentYear }} Wesley de Carvalho Augusto Correia. {{ 'footer.rights' | translate }}.
       </p>
       <!-- <p class="made-with">
         Feito com <span class="heart">❤️</span> usando Angular, TypeScript e CSS

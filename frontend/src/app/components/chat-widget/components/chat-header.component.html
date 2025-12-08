@@ -1,13 +1,13 @@
 <header class="chat-header">
   <div class="chat-header-info">
-    <h2>Converse sobre o Wesley</h2>
-    <p>Faça perguntas sobre experiência, projetos e stack.</p>
+    <h2>{{ 'chat.headerTitle' | translate }}</h2>
+    <p>{{ 'chat.headerSubtitle' | translate }}</p>
   </div>
   <button
     type="button"
     class="chat-close-button"
     (click)="onClose.emit()"
-    aria-label="Fechar chat"
+    [aria-label]="'chat.close' | translate"
   >
     ✕
   </button>

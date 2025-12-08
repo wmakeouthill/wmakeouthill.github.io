@@ -11,19 +11,19 @@
     [ngModel]="inputText()"
     (ngModelChange)="handleInputChange($event)"
     name="chatInput"
-    placeholder="Ex: Quais stacks o Wesley usa atualmente no trabalho?"
+    [placeholder]="'chat.placeholder' | translate"
   />
   <button
     type="button"
     class="chat-new-conversation-button"
     (click)="iniciarNovaConversa()"
     [disabled]="isLoading()"
-    aria-label="Iniciar nova conversa"
-    data-tooltip="Iniciar nova conversa"
+    [aria-label]="'chat.newChat' | translate"
+    [attr.data-tooltip]="'chat.newChat' | translate"
   >
-    <img 
-      src="/new_conversation.png" 
-      alt="Nova conversa" 
+    <img
+      src="/new_conversation.png"
+      [alt]="'chat.newChat' | translate"
       class="new-conversation-icon"
     />
   </button>
@@ -32,7 +32,7 @@
     class="chat-send-button"
     [disabled]="!canSend()"
   >
-    Enviar
+    {{ 'chat.send' | translate }}
   </button>
 </form>
 
