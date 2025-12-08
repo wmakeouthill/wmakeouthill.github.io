@@ -17,6 +17,8 @@ export class I18nService {
   private readonly translationsCache: Partial<Record<Language, Translations>> = {};
 
   readonly language = computed(() => this.currentLanguage());
+  // Usado para disparar atualização no pipe quando as traduções chegam
+  readonly translationsSignal = computed(() => this.translationsStore());
 
   constructor() {
     this.loadAndSetTranslations(this.currentLanguage()).subscribe();
@@ -66,8 +68,13 @@ export class I18nService {
   }
 
   private resolveKey(key: string): unknown {
+    const translations = this.translationsStore();
+    if (!translations || Object.keys(translations).length === 0) {
+      return undefined;
+    }
+
     const keys = key.split('.');
-    let value: unknown = this.translationsStore();
+    let value: unknown = translations;
 
     for (const currentKey of keys) {
       if (value && typeof value === 'object' && currentKey in (value as Record<string, unknown>)) {

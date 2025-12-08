@@ -11,8 +11,9 @@ export class TranslatePipe implements PipeTransform {
   private readonly cdr = inject(ChangeDetectorRef);
 
   transform(key: string, params?: Record<string, unknown>): string {
-    // Depende do signal para disparar change detection quando o idioma muda
+    // Depende dos signals para disparar change detection
     this.i18n.language();
+    this.i18n.translationsSignal();
     // Garante atualização do template
     this.cdr.markForCheck();
     return this.i18n.translate(key, params);
