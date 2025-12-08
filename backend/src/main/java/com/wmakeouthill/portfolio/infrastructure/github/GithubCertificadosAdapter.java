@@ -35,8 +35,10 @@ public class GithubCertificadosAdapter implements CertificadosPort {
   /** Nome do repositório de certificados */
   private static final String REPO_NAME = "certificados-wesley";
 
-  /** Nome exato do arquivo de currículo */
+  /** Nome exato do arquivo de currículo (PT) */
   private static final String CURRICULO_FILE_NAME = "Wesley de Carvalho Augusto Correia - Currículo.pdf";
+  /** Nome exato do arquivo de currículo (EN) */
+  private static final String CURRICULO_EN_FILE_NAME = "Wesley de Carvalho Augusto Correia - Resume.pdf";
 
   private final HttpClient httpClient = HttpClient.newHttpClient();
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -53,18 +55,34 @@ public class GithubCertificadosAdapter implements CertificadosPort {
 
     // Filtra excluindo o currículo
     return todosPdfs.stream()
-        .filter(pdf -> !pdf.fileName().equals(CURRICULO_FILE_NAME))
+        .filter(pdf -> !isCurriculo(pdf.fileName()))
         .sorted(Comparator.comparing(CertificadoPdfDto::displayName))
         .toList();
   }
 
   @Override
   public Optional<CertificadoPdfDto> obterCurriculo() {
-    List<CertificadoPdfDto> todosPdfs = listarTodosPdfs();
+    return obterCurriculo("pt");
+  }
 
-    return todosPdfs.stream()
-        .filter(pdf -> pdf.fileName().equals(CURRICULO_FILE_NAME))
-        .findFirst();
+  @Override
+  public Optional<CertificadoPdfDto> obterCurriculo(String language) {
+    List<CertificadoPdfDto> todosPdfs = listarTodosPdfs();
+    boolean english = language != null && language.toLowerCase().startsWith("en");
+
+    // Preferência pelo idioma solicitado
+    Optional<CertificadoPdfDto> preferido = english
+        ? encontrarPorNome(todosPdfs, CURRICULO_EN_FILE_NAME)
+        : encontrarPorNome(todosPdfs, CURRICULO_FILE_NAME);
+
+    if (preferido.isPresent()) {
+      return preferido;
+    }
+
+    // Fallback: tenta o outro idioma
+    return english
+        ? encontrarPorNome(todosPdfs, CURRICULO_FILE_NAME)
+        : encontrarPorNome(todosPdfs, CURRICULO_EN_FILE_NAME);
   }
 
   @Override
@@ -244,5 +262,16 @@ public class GithubCertificadosAdapter implements CertificadosPort {
 
     log.warn("Token GitHub NÃO encontrado para certificados! Usando API sem autenticação.");
     return "";
+  }
+
+  private Optional<CertificadoPdfDto> encontrarPorNome(List<CertificadoPdfDto> lista, String fileName) {
+    return lista.stream()
+        .filter(pdf -> pdf.fileName().equalsIgnoreCase(fileName))
+        .findFirst();
+  }
+
+  private boolean isCurriculo(String fileName) {
+    String lower = fileName.toLowerCase();
+    return lower.equals(CURRICULO_FILE_NAME.toLowerCase()) || lower.equals(CURRICULO_EN_FILE_NAME.toLowerCase());
   }
 }

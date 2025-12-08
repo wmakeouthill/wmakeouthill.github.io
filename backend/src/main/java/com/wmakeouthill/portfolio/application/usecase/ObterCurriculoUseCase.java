@@ -23,9 +23,9 @@ public class ObterCurriculoUseCase {
      *
      * @return Optional com o currículo, ou empty se não encontrado
      */
-    public Optional<CertificadoPdfDto> executar() {
+    public Optional<CertificadoPdfDto> executar(String language) {
         log.info("Buscando currículo do repositório GitHub");
-        Optional<CertificadoPdfDto> curriculo = certificadosPort.obterCurriculo();
+        Optional<CertificadoPdfDto> curriculo = certificadosPort.obterCurriculo(language);
         if (curriculo.isPresent()) {
             log.info("Currículo encontrado: {}", curriculo.get().fileName());
         } else {
@@ -39,8 +39,8 @@ public class ObterCurriculoUseCase {
      *
      * @return Optional com os bytes do PDF, ou empty se não encontrado
      */
-    public Optional<byte[]> obterBytes() {
-        return certificadosPort.obterCurriculo()
+    public Optional<byte[]> obterBytes(String language) {
+        return certificadosPort.obterCurriculo(language)
                 .flatMap(curriculo -> certificadosPort.obterPdfBytes(curriculo.fileName()));
     }
 }

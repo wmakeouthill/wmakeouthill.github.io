@@ -19,7 +19,7 @@
         </div>
 
         <div class="about-bio">
-          @for (paragraph of personalInfo.bio(); track paragraph) {
+          @for (paragraph of personalInfo.bio(); track $index) {
           <p>{{ paragraph }}</p>
           }
         </div>

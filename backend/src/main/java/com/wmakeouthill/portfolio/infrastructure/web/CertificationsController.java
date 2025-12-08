@@ -55,8 +55,9 @@ public class CertificationsController {
    * GET /api/certifications/curriculo
    */
   @GetMapping("/curriculo")
-  public ResponseEntity<CertificadoPdfDto> obterCurriculo() {
-    return obterCurriculoUseCase.executar()
+  public ResponseEntity<CertificadoPdfDto> obterCurriculo(jakarta.servlet.http.HttpServletRequest request) {
+    String language = extrairIdioma(request);
+    return obterCurriculoUseCase.executar(language)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
@@ -66,12 +67,15 @@ public class CertificationsController {
    * GET /api/certifications/curriculo/pdf
    */
   @GetMapping("/curriculo/pdf")
-  public ResponseEntity<byte[]> obterCurriculoPdf() {
-    return obterCurriculoUseCase.obterBytes()
-        .map(bytes -> {
-          String fileName = "Wesley de Carvalho Augusto Correia - Currículo.pdf";
-          return buildPdfResponse(bytes, fileName);
-        })
+  public ResponseEntity<byte[]> obterCurriculoPdf(jakarta.servlet.http.HttpServletRequest request) {
+    String language = extrairIdioma(request);
+    var curriculoOpt = obterCurriculoUseCase.executar(language);
+    if (curriculoOpt.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    String fileName = curriculoOpt.get().fileName();
+    return obterCurriculoUseCase.obterBytes(language)
+        .map(bytes -> buildPdfResponse(bytes, fileName))
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
@@ -81,17 +85,20 @@ public class CertificationsController {
    * GET /api/certifications/curriculo/thumbnail
    */
   @GetMapping("/curriculo/thumbnail")
-  public ResponseEntity<byte[]> obterCurriculoThumbnail() {
-    String curriculoFileName = "Wesley de Carvalho Augusto Correia - Currículo.pdf";
-    
+  public ResponseEntity<byte[]> obterCurriculoThumbnail(jakarta.servlet.http.HttpServletRequest request) {
+    String language = extrairIdioma(request);
+    String curriculoFileName = obterCurriculoUseCase.executar(language)
+        .map(CertificadoPdfDto::fileName)
+        .orElse("Wesley de Carvalho Augusto Correia - Currículo.pdf");
+
     // Tenta cache primeiro
     Optional<byte[]> cached = thumbnailCacheService.getThumbnail(curriculoFileName);
     if (cached.isPresent()) {
       return buildImageResponse(cached.get());
     }
-    
+
     // Gera e cacheia
-    return obterCurriculoUseCase.obterBytes()
+    return obterCurriculoUseCase.obterBytes(language)
         .flatMap(pdfBytes -> {
           thumbnailCacheService.putPdf(curriculoFileName, pdfBytes);
           return pdfThumbnailService.gerarThumbnailPequeno(pdfBytes);
@@ -111,7 +118,7 @@ public class CertificationsController {
   public ResponseEntity<byte[]> obterCertificadoPdf(@PathVariable String fileName) {
     String decodedFileName = decodeFileName(fileName);
     log.info("Buscando PDF: '{}' (raw: '{}')", decodedFileName, fileName);
-    
+
     return obterCertificadoPdfUseCase.executar(decodedFileName)
         .map(bytes -> buildPdfResponse(bytes, decodedFileName))
         .orElseGet(() -> {
@@ -128,16 +135,16 @@ public class CertificationsController {
   @GetMapping("/{fileName}/thumbnail")
   public ResponseEntity<byte[]> obterCertificadoThumbnail(@PathVariable String fileName) {
     String decodedFileName = decodeFileName(fileName);
-    
+
     // Tenta cache primeiro
     Optional<byte[]> cached = thumbnailCacheService.getThumbnail(decodedFileName);
     if (cached.isPresent()) {
       log.debug("Thumbnail do cache: {}", decodedFileName);
       return buildImageResponse(cached.get());
     }
-    
+
     log.info("Gerando thumbnail para: '{}' (raw: '{}')", decodedFileName, fileName);
-    
+
     // Gera e cacheia
     return obterCertificadoPdfUseCase.executar(decodedFileName)
         .flatMap(pdfBytes -> {
@@ -172,9 +179,9 @@ public class CertificationsController {
   private ResponseEntity<byte[]> buildPdfResponse(byte[] pdfBytes, String fileName) {
     String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
         .replace("+", "%20");
-    
+
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, 
+        .header(HttpHeaders.CONTENT_DISPOSITION,
             "inline; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName)
         .contentType(MediaType.APPLICATION_PDF)
         .contentLength(pdfBytes.length)
@@ -191,5 +198,17 @@ public class CertificationsController {
         .contentLength(imageBytes.length)
         .cacheControl(CacheControl.maxAge(24, TimeUnit.HOURS).cachePublic())
         .body(imageBytes);
+  }
+
+  private String extrairIdioma(jakarta.servlet.http.HttpServletRequest request) {
+    String lang = request.getHeader("X-Language");
+    if (lang == null || lang.isBlank()) {
+      lang = request.getHeader("Accept-Language");
+    }
+    if (lang == null) {
+      return "pt";
+    }
+    String lower = lang.toLowerCase();
+    return lower.startsWith("en") ? "en" : "pt";
   }
 }

@@ -175,7 +175,7 @@ export class MarkdownService {
   }
 
   getReadmeContentSync(projectName: string): string {
-    const key = this.normalizeProject(projectName);
+    const key = this.cacheKey(projectName);
     if (this.memoryCache.has(key)) return this.memoryCache.get(key) as string;
     try {
       const stored = localStorage.getItem(this.localStorageKey(key));
@@ -186,14 +186,15 @@ export class MarkdownService {
   }
 
   private setCache(project: string, html: string): void {
-    this.memoryCache.set(project, html);
+    const key = this.cacheKey(project);
+    this.memoryCache.set(key, html);
     try {
-      localStorage.setItem(this.localStorageKey(project), html);
+      localStorage.setItem(this.localStorageKey(key), html);
     } catch { }
   }
 
-  private localStorageKey(project: string): string {
-    return `readme_html_${project}_${this.languageKey()}`;
+  private localStorageKey(projectKey: string): string {
+    return `readme_html_${projectKey}_${this.languageKey()}`;
   }
 
   private languageKey(): string {
@@ -202,6 +203,10 @@ export class MarkdownService {
     } catch {
       return 'pt';
     }
+  }
+
+  private cacheKey(project: string): string {
+    return `${this.normalizeProject(project)}__${this.languageKey()}`;
   }
 
   /**
