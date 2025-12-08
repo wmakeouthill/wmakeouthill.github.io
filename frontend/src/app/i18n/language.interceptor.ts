@@ -1,13 +1,12 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { I18nService } from './i18n.service';
 
 /**
  * Adiciona o idioma atual em todas as requisições.
+ * Usa localStorage para evitar dependência circular com HttpClient.
  */
 export const languageInterceptor: HttpInterceptorFn = (req, next) => {
-  const i18n = inject(I18nService);
-  const language = i18n.getLanguageForBackend();
+  const stored = localStorage.getItem('portfolio-language');
+  const language = stored === 'en' ? 'en' : 'pt';
 
   const cloned = req.clone({
     setHeaders: {

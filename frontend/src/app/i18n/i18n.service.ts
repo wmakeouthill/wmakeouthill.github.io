@@ -12,26 +12,14 @@ type Translations = Record<string, unknown>;
 export class I18nService {
   private readonly http = inject(HttpClient);
 
-  // Estado reativo do idioma atual
   private readonly currentLanguage = signal<Language>(this.detectInitialLanguage());
+  private readonly translationsStore = signal<Translations>({});
+  private readonly translationsCache: Partial<Record<Language, Translations>> = {};
 
-  // Cache de traduções
-  private readonly translations = new Map<Language, Translations>();
-
-  // Idioma atual (somente leitura)
   readonly language = computed(() => this.currentLanguage());
 
-  // Traduções do idioma atual
-  readonly translationsSignal = computed(() => {
-    const lang = this.currentLanguage();
-    return this.translations.get(lang) ?? {};
-  });
-
   constructor() {
-    // Pré-carrega o idioma inicial
-    this.loadTranslations(this.currentLanguage()).subscribe();
-
-    // Persiste idioma sempre que mudar
+    this.loadAndSetTranslations(this.currentLanguage()).subscribe();
     effect(() => {
       const lang = this.currentLanguage();
       localStorage.setItem('portfolio-language', lang);
@@ -43,8 +31,11 @@ export class I18nService {
       return;
     }
     this.currentLanguage.set(lang);
-    if (!this.translations.has(lang)) {
-      this.loadTranslations(lang).subscribe();
+    const cached = this.translationsCache[lang];
+    if (cached) {
+      this.translationsStore.set(cached);
+    } else {
+      this.loadAndSetTranslations(lang).subscribe();
     }
   }
 
@@ -74,26 +65,9 @@ export class I18nService {
     return 'pt';
   }
 
-  private loadTranslations(lang: Language): Observable<Translations> {
-    if (this.translations.has(lang)) {
-      return of(this.translations.get(lang)!);
-    }
-
-    return this.http.get<Translations>(`/assets/i18n/${lang}.json`).pipe(
-      map((translations) => {
-        this.translations.set(lang, translations);
-        return translations;
-      }),
-      catchError((error) => {
-        console.error(`Erro ao carregar traduções ${lang}:`, error);
-        return of({});
-      })
-    );
-  }
-
   private resolveKey(key: string): unknown {
     const keys = key.split('.');
-    let value: unknown = this.translationsSignal();
+    let value: unknown = this.translationsStore();
 
     for (const currentKey of keys) {
       if (value && typeof value === 'object' && currentKey in (value as Record<string, unknown>)) {
@@ -116,5 +90,25 @@ export class I18nService {
       const replacement = params[paramKey];
       return replacement === undefined ? match : String(replacement);
     });
+  }
+
+  private loadAndSetTranslations(lang: Language): Observable<Translations> {
+    return this.http.get<Translations>(`assets/i18n/${lang}.json`).pipe(
+      map((translations) => {
+        this.translationsCache[lang] = translations;
+        if (this.currentLanguage() === lang) {
+          this.translationsStore.set(translations);
+        }
+        return translations;
+      }),
+      catchError((error) => {
+        console.error(`Erro ao carregar traduções ${lang}:`, error);
+        this.translationsCache[lang] = {};
+        if (this.currentLanguage() === lang) {
+          this.translationsStore.set({});
+        }
+        return of({});
+      })
+    );
   }
 }
