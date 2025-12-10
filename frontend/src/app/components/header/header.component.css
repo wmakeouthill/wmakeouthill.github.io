@@ -3,11 +3,15 @@
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(10, 10, 10, 0.95);
+  height: auto;
+  background: var(--bg-primary);
   backdrop-filter: blur(10px);
   z-index: var(--z-fixed);
-  transition: all var(--transition-normal);
+  transition: background var(--transition-normal), box-shadow var(--transition-normal);
   border-bottom: 1px solid transparent;
+  /* Evitar qualquer overflow que cause parte preta */
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .header.scrolled {
@@ -23,6 +27,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: transparent;
 }
 
 /* Logo */
@@ -206,7 +211,7 @@
 /* Mobile Menu */
 .mobile-menu {
   position: fixed;
-  top: 70px;
+  top: 56px; /* Altura do header mobile */
   left: 0;
   width: 100%;
   background: var(--bg-secondary);
@@ -214,6 +219,8 @@
   box-shadow: var(--shadow-lg);
   animation: slideDown 0.3s ease;
   z-index: 1000;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
 }
 
 @keyframes slideDown {
@@ -301,6 +308,10 @@
 }
 
 @media (max-width: 768px) {
+  .header {
+    background: var(--bg-primary);
+  }
+
   .desktop-menu,
   .desktop-only {
     display: none;
@@ -311,10 +322,30 @@
   }
 
   .nav-container {
-    padding: 0.2rem 1.5rem;
+    padding: 0.5rem 1.75rem; /* Espaçamento lateral aumentado */
   }
 
   .logo-text {
     font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0.4rem 1.25rem; /* Espaçamento lateral consistente */
+  }
+
+  .logo-text {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .nav-container {
+    padding: 0.35rem 1rem;
+  }
+
+  .logo-text {
+    font-size: 1.05rem;
   }
 }

@@ -87,6 +87,8 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  /* Prevenir scroll horizontal */
+  overflow-x: hidden;
 }
 
 body {
@@ -96,6 +98,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Garantir que não haja margem causando a parte preta */
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height para mobile */
 }
 
 body:not(.light-mode) {
@@ -439,11 +444,11 @@ a:hover {
    Scroll to Top Button
    =========================== */
 .scroll-to-top {
-  --scroll-gap: 0.75rem;
+  --scroll-gap: 1.25rem;
   --scroll-size: 50px;
-  position: fixed;
-  bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-  right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+  position: fixed !important;
+  bottom: var(--scroll-gap) !important;
+  right: var(--scroll-gap) !important;
   width: var(--scroll-size);
   height: var(--scroll-size);
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
@@ -456,7 +461,7 @@ a:hover {
   justify-content: center;
   font-size: 1.5rem;
   box-shadow: var(--shadow-lg);
-  z-index: calc(var(--z-fixed) + 1); /* Acima do chat widget */
+  z-index: 9999 !important; /* Sempre no topo */
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px) scale(0.8);
@@ -464,10 +469,13 @@ a:hover {
   pointer-events: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  /* Garantir que sempre apareça na tela */
+  /* Garantir posição fixa em todos os navegadores */
   min-width: var(--scroll-size);
   min-height: var(--scroll-size);
   flex-shrink: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 
 .scroll-to-top.visible {
@@ -480,6 +488,11 @@ a:hover {
 .scroll-to-top:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-accent);
+}
+
+/* Garantir que o botão não se mova ao rolar */
+.scroll-to-top:active {
+  transform: scale(0.95);
 }
 
 /* ===========================
@@ -551,8 +564,9 @@ a:hover {
 /* Tablets */
 @media (max-width: 1024px) and (min-width: 769px) {
   .scroll-to-top {
-    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    --scroll-gap: 1.25rem;
+    bottom: var(--scroll-gap) !important;
+    right: var(--scroll-gap) !important;
     min-width: var(--scroll-size);
     min-height: var(--scroll-size);
   }
@@ -560,12 +574,12 @@ a:hover {
 
 @media (max-width: 768px) {
   .scroll-to-top {
-    --scroll-gap: 1rem;
+    --scroll-gap: 1.25rem;
     --scroll-size: 44px;
     width: var(--scroll-size);
     height: var(--scroll-size);
-    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    bottom: var(--scroll-gap) !important;
+    right: var(--scroll-gap) !important;
     font-size: 1.25rem;
     min-width: var(--scroll-size);
     min-height: var(--scroll-size);
@@ -580,12 +594,12 @@ a:hover {
   }
 
   .scroll-to-top {
-    --scroll-gap: 0.75rem;
+    --scroll-gap: 1rem;
     --scroll-size: 40px;
     width: var(--scroll-size);
     height: var(--scroll-size);
-    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    bottom: var(--scroll-gap) !important;
+    right: var(--scroll-gap) !important;
     font-size: 1.125rem;
     min-width: var(--scroll-size);
     min-height: var(--scroll-size);

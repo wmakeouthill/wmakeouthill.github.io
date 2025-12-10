@@ -450,7 +450,7 @@
 /* Responsive */
 @media (max-width: 1024px) {
   .hero {
-    --header-offset: 80px;
+    --header-offset: 72px;
     min-height: calc(100vh - var(--header-offset));
     padding: clamp(32px, 8vh, 72px) 0 clamp(32px, 8vh, 72px);
   }
@@ -510,18 +510,22 @@
 
 @media (max-width: 768px) {
   .hero {
-    min-height: auto;
-    padding: 40px 0 44px;
+    min-height: calc(100vh - 60px); /* Ajusta para mostrar tudo na tela */
+    min-height: calc(100dvh - 60px); /* Dynamic viewport height para mobile */
+    padding: 20px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
     grid-template-areas:
       "greeting"
       "image"
       "mobile-content";
-    padding: 2rem 1.5rem 0.5rem 1.5rem;
+    padding: 0 1.75rem; /* Espaçamento lateral aumentado */
   }
 
   /* Mostrar layout mobile (greeting + conteúdo mobile) */
@@ -554,44 +558,46 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 
   .hero-tagline {
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
   }
 
   .hero-cta {
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.65rem; /* Espaçamento entre botões aumentado */
+    margin-bottom: 0.75rem;
+    padding: 0 0.5rem; /* Espaçamento interno nos botões */
   }
 
   .hero-cta .btn {
     width: 100%;
     justify-content: center;
-    padding: 0.6rem 0.95rem;
-    font-size: 0.85rem;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.9rem;
   }
 
   .hero-stats-wrapper {
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.25rem;
   }
 
   .hero-stats {
     justify-content: center;
     flex-wrap: wrap;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
 
   .hero-scroll-row {
-    margin-top: 0.3rem;
+    margin-top: 0.25rem;
   }
 
   /* Em mobile também mostramos o indicador inline */
@@ -600,22 +606,53 @@
   }
 
   .image-wrapper {
-    width: 280px;
-    height: 280px;
+    width: 200px;
+    height: 200px;
   }
 
   .image-decoration {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
+    top: -14px;
+    right: -14px;
   }
 
   .octocat-lottie {
-    width: 94px;
-    height: 94px;
+    width: 74px;
+    height: 74px;
+    top: -11px;
+    right: -11px;
   }
 
   .scroll-indicator {
     display: none;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .hero-name {
+    font-size: 1.4rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+}
+
+/* Telas médias (tablets em portrait) */
+@media (max-width: 768px) and (min-width: 481px) and (min-height: 700px) {
+  .hero {
+    min-height: calc(100vh - 60px);
+    min-height: calc(100dvh - 60px);
+  }
+
+  .image-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+
+  .hero-cta .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -653,12 +690,17 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 0px 0 0px;
+    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px); /* Dynamic viewport height */
+    padding: 12px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.6rem;
     grid-template-areas:
       "greeting"
       "image"
@@ -666,8 +708,8 @@
   }
 
   .hero-content.container {
-    gap: 0.2rem !important;
-    padding: 0.3rem 0.5rem 0.3rem 0.5rem !important;
+    gap: 0.5rem !important;
+    padding: 0 1.25rem !important; /* Espaçamento lateral aumentado */
   }
 
   /* Show mobile-specific sections */
@@ -688,8 +730,9 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    margin-bottom: 0.1rem !important;
+    margin-bottom: 0.25rem !important;
     margin-top: 0.1rem !important;
+    min-height: 2rem;
   }
 
   /* Hide desktop sections */
@@ -698,7 +741,8 @@
   }
 
   .hero-greeting {
-    margin-bottom: 0.2rem !important;
+    margin-bottom: 0.15rem !important;
+    font-size: 0.9rem;
   }
 
   .hero-image {
@@ -706,36 +750,143 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
   }
+
   .hero-name {
     padding: 0;
-    margin-bottom: 1rem !important;
-    font-size: 1.3rem !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1.15rem !important;
+    line-height: 1.2;
+  }
+
+  .hero-tagline {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
   }
 
   .hero-cta {
     flex-direction: column;
     width: 100%;
+    gap: 0.5rem; /* Espaçamento entre botões */
+    margin-bottom: 0.5rem;
+    padding: 0 0.25rem;
   }
 
   .hero-cta .btn {
     width: 100%;
     justify-content: center;
     white-space: nowrap;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
   }
 
   .hero-stats {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .stat-number {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
   }
 
   .image-wrapper {
-    width: 250px;
-    height: 250px;
+    width: 160px;
+    height: 160px;
+  }
+
+  .image-decoration {
+    top: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .octocat-lottie {
+    top: -8px;
+    right: -8px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .hero-scroll-row {
+    margin-top: 0.2rem;
+  }
+
+  .scroll-indicator-inline .scroll-text {
+    font-size: 0.75rem;
+  }
+
+  .scroll-indicator-inline .scroll-arrow {
+    font-size: 1rem;
+  }
+}
+
+/* Telas muito pequenas (ex: iPhone SE, Galaxy Fold) */
+@media (max-width: 375px) {
+  .hero {
+    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
+    padding: 8px 0 12px;
+  }
+
+  .hero-content.container {
+    gap: 0.35rem !important;
+    padding: 0 1rem !important;
+  }
+
+  .hero-name {
+    font-size: 1.05rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .hero-tagline {
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .hero-cta {
+    gap: 0.4rem;
+  }
+
+  .hero-cta .btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .image-wrapper {
+    width: 140px;
+    height: 140px;
+  }
+
+  .image-decoration {
+    width: 50px;
+    height: 50px;
+    top: -8px;
+    right: -8px;
+  }
+
+  .octocat-lottie {
+    width: 44px;
+    height: 44px;
+    top: -6px;
+    right: -6px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  .hero-stats {
+    gap: 0.5rem;
   }
 }

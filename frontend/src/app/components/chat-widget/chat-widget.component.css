@@ -1,27 +1,27 @@
 .chat-widget-container {
-  --chat-gap: 0.75rem;
+  --chat-gap: 1.25rem;
   --scroll-btn-size: 50px;
-  position: fixed;
+  position: fixed !important;
   /* Posição padrão: alinhado com scroll-to-top quando ele não está visível */
-  bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-  right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
-  z-index: var(--z-fixed);
+  bottom: var(--chat-gap) !important;
+  right: var(--chat-gap) !important;
+  z-index: 9998; /* Abaixo do scroll-to-top */
   font-family: var(--font-primary);
-  transition: all var(--transition-normal);
+  transition: right var(--transition-normal);
   display: flex;
   align-items: flex-end;
   /* Garantir que sempre apareça na tela */
   min-width: fit-content;
   min-height: fit-content;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Quando scroll-to-top está visível, move o chat para a esquerda na MESMA LINHA (mesmo bottom) */
 .chat-widget-container.scroll-top-visible {
-  bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+  bottom: var(--chat-gap) !important;
   /* Mesma linha do scroll-to-top */
-  right: calc(
-    max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + var(--chat-gap)
-  );
+  right: calc(var(--chat-gap) + var(--scroll-btn-size) + var(--chat-gap)) !important;
   /* Move para a esquerda */
 }
 
@@ -50,15 +50,14 @@
   }
 
   .chat-widget-container {
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    --chat-gap: 1.25rem;
+    bottom: var(--chat-gap) !important;
+    right: var(--chat-gap) !important;
   }
 
   .chat-widget-container.scroll-top-visible {
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: calc(
-      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + var(--chat-gap)
-    );
+    bottom: var(--chat-gap) !important;
+    right: calc(var(--chat-gap) + var(--scroll-btn-size) + var(--chat-gap)) !important;
   }
 }
 
@@ -146,20 +145,18 @@
 
 @media (max-width: 768px) {
   .chat-widget-container {
-    --chat-gap: 1rem;
+    --chat-gap: 1.25rem;
     --scroll-btn-size: 44px;
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    bottom: var(--chat-gap) !important;
+    right: var(--chat-gap) !important;
     display: flex !important;
   }
 
   .chat-widget-container.scroll-top-visible {
     /* Em mobile, scroll-to-top é menor (44px) - mesma linha */
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    bottom: var(--chat-gap) !important;
     /* Mesma linha do scroll-to-top em mobile */
-    right: calc(
-      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + 0.5rem
-    );
+    right: calc(var(--chat-gap) + var(--scroll-btn-size) + 0.75rem) !important;
     /* Move para a esquerda */
   }
 
@@ -184,17 +181,15 @@
 
 @media (max-width: 480px) {
   .chat-widget-container {
-    --chat-gap: 0.75rem;
+    --chat-gap: 1rem;
     --scroll-btn-size: 40px;
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    bottom: var(--chat-gap) !important;
+    right: var(--chat-gap) !important;
   }
 
   .chat-widget-container.scroll-top-visible {
-    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
-    right: calc(
-      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + 0.5rem
-    );
+    bottom: var(--chat-gap) !important;
+    right: calc(var(--chat-gap) + var(--scroll-btn-size) + 0.6rem) !important;
   }
 
   .chat-messages {
@@ -202,6 +197,17 @@
     padding: 0.65rem 0.65rem 0.45rem;
     -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
     overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 375px) {
+  .chat-widget-container {
+    --chat-gap: 0.85rem;
+    --scroll-btn-size: 40px;
+  }
+
+  .chat-widget-container.scroll-top-visible {
+    right: calc(var(--chat-gap) + var(--scroll-btn-size) + 0.5rem) !important;
   }
 }
 
