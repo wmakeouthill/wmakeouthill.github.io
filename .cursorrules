@@ -1,0 +1,374 @@
+# 🎯 Diretrizes de Desenvolvimento - Sistema Snackbar
+
+## Arquitetura de Documentação
+
+Este documento serve como **ponto de entrada** para os padrões de desenvolvimento do projeto.
+As regras específicas estão organizadas em arquivos dedicados:
+
+| Arquivo | Escopo | Descrição |
+|---------|--------|-----------|
+| `.cursorrules` | Geral | Princípios fundamentais e visão geral (este arquivo) |
+| `.cursorrules-frontend` | Angular 17+ | Regras específicas para desenvolvimento frontend |
+| `.cursorrules-backend` | Java 17 / Spring | Regras específicas para desenvolvimento backend |
+
+---
+
+## ⚠️ PRINCÍPIOS FUNDAMENTAIS INEGOCIÁVEIS
+
+### 1. Clean Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      INFRASTRUCTURE                          │
+│         Frameworks, UI, DB, APIs Externas                    │
+│                                                              │
+│    ┌───────────────────────────────────────────────────┐    │
+│    │                   APPLICATION                      │    │
+│    │            Use Cases, DTOs, Ports                  │    │
+│    │                                                    │    │
+│    │    ┌───────────────────────────────────────┐      │    │
+│    │    │              DOMAIN                    │      │    │
+│    │    │    Entidades, Value Objects,           │      │    │
+│    │    │    Regras de Negócio                   │      │    │
+│    │    │    ❌ ZERO dependências externas       │      │    │
+│    │    └───────────────────────────────────────┘      │    │
+│    │                                                    │    │
+│    └───────────────────────────────────────────────────┘    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Regra de Dependência:** `Infrastructure → Application → Domain`
+
+❌ **NUNCA** inverta essa ordem!
+
+---
+
+### 2. SOLID
+
+| Princípio | Aplicação | Regra |
+|-----------|-----------|-------|
+| **S**ingle Responsibility | Classes/Componentes | Uma classe = uma responsabilidade |
+| **O**pen/Closed | Extensibilidade | Aberto para extensão, fechado para modificação |
+| **L**iskov Substitution | Hierarquias | Subtipos devem ser substituíveis |
+| **I**nterface Segregation | Interfaces | Interfaces pequenas e específicas |
+| **D**ependency Inversion | Acoplamento | Dependa de abstrações, não de implementações |
+
+---
+
+### 3. DRY (Don't Repeat Yourself)
+
+```
+✅ SEMPRE verificar antes de criar:
+   Backend  → kernel-compartilhado/
+   Frontend → src/app/utils/ e composables/
+
+✅ SEMPRE usar singletons de mappers:
+   Backend  → MapperUtils.getInstance()
+   Frontend → Composables reutilizáveis
+
+❌ NUNCA duplicar código existente
+❌ NUNCA criar utilitários sem verificar se já existem
+```
+
+---
+
+### 4. Clean Code
+
+#### Limites de Tamanho
+
+| Escopo | Limite Recomendado | Limite Máximo |
+|--------|-------------------|---------------|
+| Classe/Componente | 150 linhas | 300 linhas |
+| Método/Função | 15 linhas | 20 linhas |
+| Parâmetros | 3 parâmetros | 5 parâmetros |
+
+#### Nomenclatura
+
+| Tipo | Padrão | Exemplo |
+|------|--------|---------|
+| Classes | PascalCase | `ProdutoService`, `CriarPedidoUseCase` |
+| Métodos/Funções | camelCase (verbos) | `buscarProduto()`, `salvarCliente()` |
+| Variáveis | camelCase | `produtoSelecionado`, `listaItens` |
+| Constantes | UPPER_SNAKE_CASE | `MAX_UPLOAD_SIZE`, `API_URL` |
+| Arquivos Angular | kebab-case | `produto-lista.component.ts` |
+
+#### Proibições Absolutas
+
+```
+❌ Abreviações: prod, cat, svc, usr
+❌ Nomes genéricos: data, info, util, helper, manager
+❌ Código comentado no repositório
+❌ Catch vazio ou genérico demais
+❌ Variáveis com nomes de uma letra (exceto loops simples)
+```
+
+---
+
+## 🛠️ STACK TECNOLÓGICA
+
+### Frontend
+
+| Tecnologia | Versão | Obrigatoriedade |
+|------------|--------|-----------------|
+| Angular | 17.3.0+ | Standalone Components |
+| TypeScript | 5.4.2+ | Strict Mode |
+| RxJS | 7.8.0+ | Uso reduzido (preferir Signals) |
+
+**Sintaxe Moderna OBRIGATÓRIA:**
+
+```typescript
+// Injeção e Estado
+inject()      // DI
+signal()      // Estado reativo
+computed()    // Valores derivados
+input()       // Props
+output()      // Eventos
+effect()      // Efeitos colaterais
+
+// Templates
+@if, @else, @for, @switch, @defer
+```
+
+📖 **Detalhes completos:** `.cursorrules-frontend`
+
+### Backend
+
+| Tecnologia | Versão | Observação |
+|------------|--------|------------|
+| Java | 17 | Versão exata |
+| Spring Boot | 3.2.3+ | WebFlux ou MVC |
+| Liquibase | 4.25.0+ | Migrações |
+| Maven | 3.8+ | Build |
+| MySQL | 8.0+ | Banco de dados |
+| Lombok | Latest | Boilerplate |
+
+**Padrões OBRIGATÓRIOS:**
+
+```java
+// Lombok
+@RequiredArgsConstructor  // SEMPRE para injeção
+
+// Mappers
+MapperUtils.getInstance()  // SEMPRE singleton
+
+// Java 17
+record, sealed, pattern matching, text blocks
+```
+
+📖 **Detalhes completos:** `.cursorrules-backend`
+
+---
+
+## 📁 ESTRUTURA DO PROJETO
+
+### Visão Geral
+
+```
+snackbar/
+├── frontend/                    # Angular 17+ SPA
+│   └── src/app/
+│       ├── components/          # Componentes de feature
+│       │   └── {feature}/
+│       │       ├── composables/ # Lógica reutilizável
+│       │       └── components/  # Sub-componentes
+│       ├── services/            # Serviços de aplicação
+│       ├── models/              # Interfaces e tipos
+│       └── utils/               # Utilitários compartilhados
+│
+├── kernel-compartilhado/        # Código compartilhado Java
+│   └── com.snackbar.kernel/
+│       ├── domain/
+│       ├── application/
+│       └── infrastructure/
+│
+└── {modulo}/                    # Módulos de negócio Java
+    └── com.snackbar.{modulo}/
+        ├── domain/              # Entidades, VOs, Regras
+        │   ├── entities/
+        │   ├── valueobjects/
+        │   ├── services/
+        │   └── exceptions/
+        ├── application/         # Casos de uso, DTOs
+        │   ├── usecases/
+        │   ├── dtos/
+        │   └── ports/
+        └── infrastructure/      # Adaptadores, Config
+            ├── persistence/
+            ├── web/
+            ├── mappers/
+            └── config/
+```
+
+### Módulos do Sistema
+
+| Módulo | Responsabilidade |
+|--------|------------------|
+| `kernel-compartilhado` | Classes base, mappers, utilitários |
+| `autenticacao` | Autenticação e autorização |
+| `gestao-cardapio` | Produtos e categorias |
+| `gestao-clientes` | Cadastro de clientes |
+| `gestao-pedidos` | Ciclo de vida dos pedidos |
+| `impressao-cupom-fiscal` | Impressão de cupons |
+| `sistema-orquestrador` | Orquestração de serviços |
+
+---
+
+## ✅ CHECKLIST UNIVERSAL
+
+### Antes de Iniciar uma Feature
+
+- [ ] Li e entendi a arquitetura do módulo
+- [ ] Verifiquei se existe código similar que pode ser reutilizado
+- [ ] Defini as camadas onde o código será criado
+- [ ] Planejei a divisão de responsabilidades
+
+### Antes de Commitar
+
+#### Arquitetura
+
+- [ ] Clean Architecture respeitada (dependências corretas)
+- [ ] Domain sem dependências de frameworks
+- [ ] Responsabilidade única por classe/componente
+
+#### Qualidade de Código
+
+- [ ] Arquivos com menos de 300 linhas
+- [ ] Funções/métodos com menos de 20 linhas
+- [ ] Nomes descritivos e autoexplicativos
+- [ ] Sem código duplicado
+
+#### Frontend (Angular)
+
+- [ ] Usando `inject()`, não constructor injection
+- [ ] Usando `signal()`, `computed()`, `input()`, `output()`
+- [ ] Usando `@if`, `@for`, `@switch` nos templates
+- [ ] Standalone components apenas
+- [ ] ChangeDetection.OnPush habilitado
+
+#### Backend (Java)
+
+- [ ] Usando `@RequiredArgsConstructor`
+- [ ] Usando `MapperUtils.getInstance()`
+- [ ] Entidades ricas (com comportamento)
+- [ ] Value Objects imutáveis
+- [ ] Exceções específicas e tratadas
+
+#### Testes
+
+- [ ] Testes unitários para lógica de negócio
+- [ ] Testes de casos de erro
+- [ ] Padrão AAA (Arrange, Act, Assert)
+
+---
+
+## 🚫 ANTI-PATTERNS UNIVERSAIS
+
+### Código
+
+1. ❌ **God Classes** - Classes fazendo muitas coisas
+2. ❌ **Entidades Anêmicas** - Apenas getters/setters, sem comportamento
+3. ❌ **Código Duplicado** - Violar DRY
+4. ❌ **Nomes Genéricos** - `data`, `info`, `util`, `helper`
+5. ❌ **Abreviações** - `prod`, `cat`, `svc`, `usr`
+6. ❌ **Magic Numbers/Strings** - Valores hardcoded sem constantes
+
+### Arquitetura
+
+7. ❌ **Dependências Invertidas** - Domain dependendo de Infrastructure
+8. ❌ **Lógica no Controller** - Regras de negócio na camada web
+9. ❌ **Framework no Domain** - JPA, Spring annotations no domínio
+10. ❌ **Use Cases Gigantes** - Casos de uso fazendo muitas coisas
+
+### Frontend Específico
+
+11. ❌ **Sintaxe Antiga** - `*ngIf`, `*ngFor`, `@Input()`, `@Output()`
+12. ❌ **Constructor Injection** - Ao invés de `inject()`
+13. ❌ **BehaviorSubject para Estado** - Ao invés de Signals
+14. ❌ **NgModules** - Ao invés de Standalone Components
+
+### Backend Específico
+
+15. ❌ **Construtor Manual** - Ao invés de `@RequiredArgsConstructor`
+16. ❌ **`new MapperUtils()`** - Ao invés de `.getInstance()`
+17. ❌ **Retornar `null`** - Ao invés de `Optional`
+18. ❌ **Catch Vazio** - Engolir exceções
+
+---
+
+## 📚 REFERÊNCIA RÁPIDA
+
+### Criar Novo Componente Angular
+
+```typescript
+// ✅ Template correto
+@Component({
+  selector: 'app-exemplo',
+  standalone: true,
+  imports: [CommonModule, /* apenas o necessário */],
+  templateUrl: './exemplo.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ExemploComponent {
+  // 1. Injeções
+  private readonly service = inject(ExemploService);
+  
+  // 2. Inputs/Outputs
+  readonly item = input.required<Item>();
+  readonly onSalvar = output<Item>();
+  
+  // 3. State
+  readonly carregando = signal(false);
+  
+  // 4. Computeds
+  readonly itemValido = computed(() => this.validar(this.item()));
+  
+  // 5. Methods
+  salvar(): void { }
+}
+```
+
+### Criar Novo Use Case Java
+
+```java
+// ✅ Template correto
+@Service
+@RequiredArgsConstructor
+public class CriarExemploUseCase {
+    
+    private final ExemploRepositoryPort repository;
+    private final ValidadorService validador;
+    private final MapperUtils mapper = MapperUtils.getInstance();
+    
+    @Transactional
+    public ExemploDTO executar(CriarExemploRequest request) {
+        validarRequest(request);
+        
+        Exemplo exemplo = Exemplo.criar(request.nome());
+        Exemplo salvo = repository.salvar(exemplo);
+        
+        return ExemploDTO.from(salvo);
+    }
+    
+    private void validarRequest(CriarExemploRequest request) {
+        // Validação de entrada
+    }
+}
+```
+
+---
+
+## 🔗 LINKS PARA DOCUMENTAÇÃO DETALHADA
+
+| Documento | Conteúdo |
+|-----------|----------|
+| `.cursorrules-frontend` | Regras Angular, Signals, Composables, Testes Frontend |
+| `.cursorrules-backend` | Regras Java, Clean Architecture, DDD, Testes Backend |
+| `GUIA_IMPLEMENTACAO_PRATICA.md` | Guia prático de implementação |
+
+---
+
+**🚨 ESTAS DIRETRIZES SÃO INEGOCIÁVEIS**
+
+Sempre siga todas as regras antes de implementar qualquer funcionalidade.
+Em caso de dúvida, consulte os arquivos específicos de frontend ou backend.
