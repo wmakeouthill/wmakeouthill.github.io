@@ -39,6 +39,7 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            overscroll-behavior: contain; /* Evita bounce/overscroll em mobile */
         }
         iframe {
             position: absolute;
@@ -287,6 +288,18 @@
             .skeleton-card {
                 padding: 1.5rem;
             }
+
+            /* Reduzir espaçamentos para evitar qualquer scroll vertical em telas muito pequenas */
+            .skeleton-header {
+                margin-bottom: 2rem;
+                padding: 1rem 0;
+            }
+            .skeleton-hero {
+                margin-bottom: 2.5rem;
+            }
+            .loading-content {
+                padding: 0.75rem;
+            }
         }
         
         /* Suporte para safe-area em dispositivos com notch (iPhone X+) */
@@ -392,11 +405,14 @@
             }, 300);
         }
         
-        // Fallback: se o iframe não carregar em 15 segundos, redireciona
+        // Fallback: se o iframe não carregar em 15 segundos, exibe aviso mas mantém o domínio atual
         setTimeout(function() {
             const loading = document.getElementById('loading');
             if (loading && !loading.classList.contains('hidden')) {
-                window.location.href = 'https://projeto-wesley-263590688560.southamerica-east1.run.app';
+                loading.innerHTML = '<div class="loading-content" style="text-align:center; color:#fff;">' +
+                    '<p style="margin-bottom:1rem;">Ainda carregando o app…</p>' +
+                    '<p style="margin-bottom:1rem;">Se demorar, tente recarregar a página.</p>' +
+                    '</div>';
             }
         }, 15000);
     </script>
