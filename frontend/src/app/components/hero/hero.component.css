@@ -511,12 +511,12 @@
 @media (max-width: 768px) {
   .hero {
     min-height: auto;
-    padding: 96px 0 64px;
+    padding: 40px 0 44px;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
     grid-template-areas:
       "greeting"
       "image"
@@ -537,6 +537,13 @@
     text-align: center;
   }
 
+  .hero-mobile-content .hero-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
   /* Esconder layout desktop em telas menores */
   .hero-text {
     display: none;
@@ -547,13 +554,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 2.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .hero-tagline {
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 1rem;
+    margin-bottom: 0.2rem;
   }
 
   .hero-cta {
@@ -586,9 +594,9 @@
     margin-top: 0.3rem;
   }
 
-  /* Em mobile usamos apenas o indicador absoluto */
+  /* Em mobile também mostramos o indicador inline */
   .scroll-indicator-inline {
-    display: none;
+    display: flex;
   }
 
   .image-wrapper {
@@ -645,16 +653,21 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 104px 0 64px;
+    padding: 0px 0 0px;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1rem;
     grid-template-areas:
       "greeting"
       "image"
       "mobile-content";
+  }
+
+  .hero-content.container {
+    gap: 0.2rem !important;
+    padding: 0.3rem 0.5rem 0.3rem 0.5rem !important;
   }
 
   /* Show mobile-specific sections */
@@ -670,9 +683,22 @@
     text-align: center;
   }
 
+  .hero-mobile-content .hero-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 0.1rem !important;
+    margin-top: 0.1rem !important;
+  }
+
   /* Hide desktop sections */
   .hero-text {
     display: none;
+  }
+
+  .hero-greeting {
+    margin-bottom: 0.2rem !important;
   }
 
   .hero-image {
@@ -680,7 +706,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 3rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .hero-name {
+    padding: 0;
+    margin-bottom: 1rem !important;
+    font-size: 1.3rem !important;
   }
 
   .hero-cta {
@@ -695,7 +727,7 @@
   }
 
   .hero-stats {
-    gap: 2rem;
+    gap: 1rem;
   }
 
   .stat-number {

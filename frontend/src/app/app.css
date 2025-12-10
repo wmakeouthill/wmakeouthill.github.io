@@ -11,6 +11,12 @@
 
 @media (max-width: 768px) {
   .portfolio-main {
-    padding-top: 88px;
+    padding-top: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-main {
+    padding-top: 56px;
   }
 }
