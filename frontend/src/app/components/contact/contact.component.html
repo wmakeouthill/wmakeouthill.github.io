@@ -1,27 +1,26 @@
 <section id="contact" class="section contact">
   <div class="container">
     <div class="section-title">
-      <h2>Entre em Contato</h2>
-      <p class="section-subtitle">Vamos trabalhar juntos!</p>
+      <h2>{{ 'contact.title' | translate }}</h2>
+      <p class="section-subtitle">{{ 'contact.subtitle' | translate }}</p>
     </div>
 
     <div class="contact-content">
       <!-- Contact Info -->
       <div class="contact-info">
-        <h3>Informações de Contato</h3>
+        <h3>{{ 'contact.infoTitle' | translate }}</h3>
         <p class="info-description">
-          Estou disponível para oportunidades de trabalho, freelance e projetos interessantes. Entre
-          em contato através de qualquer um dos canais abaixo!
+          {{ 'contact.infoDescription' | translate }}
         </p>
 
         <div class="contact-methods">
-          @for (info of contactInfo; track info.label) {
+          @for (info of contactInfo; track info.labelKey) {
           <a [href]="info.link" target="_blank" rel="noopener noreferrer" class="contact-method">
             <span class="method-icon">
-              <img [src]="info.iconSrc" [alt]="info.label + ' icon'" width="28" height="28" />
+              <img [src]="info.iconSrc" [alt]="(info.labelKey | translate) + ' icon'" width="28" height="28" />
             </span>
             <div class="method-content">
-              <span class="method-label">{{ info.label }}</span>
+              <span class="method-label">{{ info.labelKey | translate }}</span>
               <span class="method-value">{{ info.value }}</span>
             </div>
           </a>
@@ -32,9 +31,9 @@
 
       <!-- Contact Form -->
       <div class="contact-form-wrapper">
-        <h3>Envie uma Mensagem</h3>
+        <h3>{{ 'contact.formTitle' | translate }}</h3>
         <p class="form-description">
-          Preencha o formulário abaixo e entrarei em contato o mais rápido possível!
+          {{ 'contact.formDescription' | translate }}
         </p>
 
         <!-- Feedback Message -->
@@ -49,56 +48,56 @@
 
         <form class="contact-form" (ngSubmit)="onSubmit()" [class.submitting]="isSubmitting">
           <div class="form-group">
-            <label for="name">Nome Completo</label>
+            <label for="name">{{ 'contact.name' | translate }}</label>
             <input
               type="text"
               id="name"
               name="name"
               [(ngModel)]="formData.name"
-              placeholder="Seu nome"
+              [placeholder]="'contact.namePlaceholder' | translate"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="email">Email</label>
+            <label for="email">{{ 'contact.email' | translate }}</label>
             <input
               type="email"
               id="email"
               name="email"
               [(ngModel)]="formData.email"
-              placeholder="seu@email.com"
+              [placeholder]="'contact.emailPlaceholder' | translate"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="subject">Assunto</label>
+            <label for="subject">{{ 'contact.subject' | translate }}</label>
             <input
               type="text"
               id="subject"
               name="subject"
               [(ngModel)]="formData.subject"
-              placeholder="Assunto da mensagem"
+              [placeholder]="'contact.subjectPlaceholder' | translate"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="message">Mensagem</label>
+            <label for="message">{{ 'contact.message' | translate }}</label>
             <textarea
               id="message"
               name="message"
               [(ngModel)]="formData.message"
               rows="5"
-              placeholder="Escreva sua mensagem aqui..."
+              [placeholder]="'contact.messagePlaceholder' | translate"
               required
             ></textarea>
           </div>
 
           <button type="submit" class="btn btn-accent btn-block" [disabled]="isSubmitting">
-            <span *ngIf="!isSubmitting">Enviar Mensagem</span>
-            <span *ngIf="isSubmitting">Enviando...</span>
+            <span *ngIf="!isSubmitting">{{ 'contact.send' | translate }}</span>
+            <span *ngIf="isSubmitting">{{ 'contact.sending' | translate }}</span>
           </button>
         </form>
       </div>

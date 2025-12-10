@@ -1,17 +1,19 @@
-import { Component, input, output, ViewChild, ElementRef, effect, afterNextRender, inject, Injector, runInInjectionContext } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, ViewChild, afterNextRender, effect, inject, input, output, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '../../../i18n/i18n.pipe';
 
 @Component({
   selector: 'app-chat-input',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './chat-input.component.html',
   styleUrls: ['./chat-input.component.css']
 })
 export class ChatInputComponent {
   private readonly injector = inject(Injector);
-  
+
   @ViewChild('chatInput') chatInput?: ElementRef<HTMLInputElement>;
 
   readonly isLoading = input<boolean>(false);

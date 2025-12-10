@@ -1,17 +1,21 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Component({
   selector: 'app-certifications',
   standalone: true,
-  imports: [CommonModule, PdfViewerComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, PdfViewerComponent, TranslatePipe],
   templateUrl: './certifications.component.html',
   styleUrl: './certifications.component.css'
 })
 export class CertificationsComponent implements OnInit {
   private readonly certificationsService = inject(CertificationsService);
+  private readonly i18nService = inject(I18nService);
 
   /** Lista de certificados (sem o currículo) */
   readonly certificados = this.certificationsService.certificados;
@@ -41,8 +45,24 @@ export class CertificationsComponent implements OnInit {
   scrollStartX = 0;
   scrollStartY = 0;
 
+  private lastLanguage = this.i18nService.language();
+  private initialized = false;
+
+  // Recarrega certificados/currículo ao trocar idioma, para usar overrides do backend
+  private readonly reloadOnLangChange = effect(() => {
+    const lang = this.i18nService.language();
+    if (!this.initialized) {
+      return;
+    }
+    if (lang !== this.lastLanguage) {
+      this.lastLanguage = lang;
+      this.certificationsService.loadCertificados().subscribe();
+    }
+  });
+
   ngOnInit(): void {
     this.certificationsService.loadCertificados().subscribe();
+    this.initialized = true;
   }
 
   /**

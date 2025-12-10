@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.css'
 })
@@ -19,11 +21,11 @@ export class FooterComponent {
   ];
 
   quickLinks = [
-    { label: 'Início', section: 'hero' },
-    { label: 'Sobre', section: 'about' },
-    { label: 'Skills', section: 'skills' },
-    { label: 'Projetos', section: 'projects' },
-    { label: 'Contato', section: 'contact' }
+    { labelKey: 'header.home', section: 'hero' },
+    { labelKey: 'header.about', section: 'about' },
+    { labelKey: 'header.skills', section: 'skills' },
+    { labelKey: 'header.projects', section: 'projects' },
+    { labelKey: 'header.contact', section: 'contact' }
   ];
 
   socialLinks = [

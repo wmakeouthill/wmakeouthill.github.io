@@ -1,15 +1,18 @@
-import { Component, OnInit, inject, signal, computed, viewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, viewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GithubService } from '../../services/github.service';
 import { MarkdownService } from '../../services/markdown.service';
 import { PortfolioContentService } from '../../services/portfolio-content.service';
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, ReadmeModalComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, ReadmeModalComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -17,7 +20,8 @@ export class ProjectsComponent implements OnInit {
   private readonly githubService = inject(GithubService);
   private readonly markdownService = inject(MarkdownService);
   private readonly portfolioContentService = inject(PortfolioContentService);
-  
+  private readonly i18nService = inject(I18nService);
+
   readonly projectsSection = viewChild<ElementRef<HTMLElement>>('projectsSection');
 
   // Estado com signals
@@ -31,9 +35,25 @@ export class ProjectsComponent implements OnInit {
   readonly showReadmeModal = signal<boolean>(false);
   readonly currentProjectName = signal<string>('');
 
+  private lastLanguage = this.i18nService.language();
+  private initialized = false;
+
+  // Recarrega quando o idioma mudar, respeitando caches por idioma do backend
+  private readonly reloadOnLangChange = effect(() => {
+    const lang = this.i18nService.language();
+    if (!this.initialized) {
+      return;
+    }
+    if (lang !== this.lastLanguage) {
+      this.lastLanguage = lang;
+      this.loadProjects();
+    }
+  });
+
   ngOnInit(): void {
     this.loadProjects();
     this.loadProjectImages();
+    this.initialized = true;
   }
 
   /**
@@ -50,7 +70,7 @@ export class ProjectsComponent implements OnInit {
         this.projects.set(repos);
         this.loadLanguagesForProjects();
         this.loading.set(false);
-        
+
         // 🚀 Pré-carrega READMEs de todos os projetos em background
         this.preloadAllReadmesInBackground(repos);
       },
@@ -68,7 +88,7 @@ export class ProjectsComponent implements OnInit {
   private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
     // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
-    
+
     // Inicia pré-carregamento em background (não bloqueia UI)
     setTimeout(() => {
       this.markdownService.preloadProjectsInBackground(projectNames).catch(error => {
@@ -86,7 +106,7 @@ export class ProjectsComponent implements OnInit {
       this.githubService.getRepositoryLanguages(project.name).subscribe({
         next: (languages) => {
           // Atualiza o projeto com as linguagens
-          this.projects.update(projects => 
+          this.projects.update(projects =>
             projects.map(p => p.name === project.name ? { ...p, languages } : p)
           );
         },
@@ -230,7 +250,7 @@ export class ProjectsComponent implements OnInit {
     if (cachedUrl) {
       return cachedUrl;
     }
-    
+
     // Se não encontrou no cache, usa placeholder direto
     // (evita tentativas desnecessárias de .png/.jpg que vão falhar)
     return this.portfolioContentService.getPlaceholderUrl(projectName);

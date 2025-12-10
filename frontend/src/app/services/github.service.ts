@@ -74,9 +74,9 @@ interface CacheEntry<T> {
 
 /**
  * Serviço para integração com a API do GitHub via backend autenticado.
- * 
+ *
  * IMPORTANTE: Todas as chamadas passam pelo backend que usa o token
- * seguro armazenado em secrets. O frontend NUNCA acessa a API do 
+ * seguro armazenado em secrets. O frontend NUNCA acessa a API do
  * GitHub diretamente.
  */
 @Injectable({
@@ -210,7 +210,7 @@ export class GithubService {
    * Limpa todo o cache.
    */
   clearCache(): void {
-    this.removeCache(this.STORAGE_KEY_REPOSITORIES);
+    this.removeCache(this.repositoriesCacheKey());
     this.removeCache(this.STORAGE_KEY_PROFILE);
     this.removeAllLanguageCaches();
     console.log('🧹 Todo o cache foi limpo');
@@ -318,7 +318,7 @@ export class GithubService {
   // ============ Cache de repositórios ============
 
   private loadRepositoriesFromCache(): GitHubRepository[] | null {
-    const cached = this.readCache<GitHubRepository[]>(this.STORAGE_KEY_REPOSITORIES);
+    const cached = this.readCache<GitHubRepository[]>(this.repositoriesCacheKey());
     if (!cached || !this.isCacheValid(cached.timestamp)) {
       return null;
     }
@@ -326,7 +326,7 @@ export class GithubService {
   }
 
   private saveRepositoriesToCache(repos: GitHubRepository[]): void {
-    this.writeCache(this.STORAGE_KEY_REPOSITORIES, repos);
+    this.writeCache(this.repositoriesCacheKey(), repos);
   }
 
   // ============ Cache de perfil ============
@@ -400,9 +400,9 @@ export class GithubService {
   }
 
   private cleanExpiredCache(): void {
-    const repositoriesCache = this.readCache<GitHubRepository[]>(this.STORAGE_KEY_REPOSITORIES);
+    const repositoriesCache = this.readCache<GitHubRepository[]>(this.repositoriesCacheKey());
     if (repositoriesCache && !this.isCacheValid(repositoriesCache.timestamp)) {
-      this.removeCache(this.STORAGE_KEY_REPOSITORIES);
+      this.removeCache(this.repositoriesCacheKey());
       console.log('🗑️ Cache de repositórios expirado');
     }
 
@@ -452,5 +452,18 @@ export class GithubService {
 
   private hasSessionStorage(): boolean {
     return typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+  }
+
+  private repositoriesCacheKey(): string {
+    return `${this.STORAGE_KEY_REPOSITORIES}_${this.getLanguageCode()}`;
+  }
+
+  private getLanguageCode(): string {
+    try {
+      const lang = localStorage.getItem('portfolio-language');
+      return lang === 'en' ? 'en' : 'pt';
+    } catch {
+      return 'pt';
+    }
   }
 }

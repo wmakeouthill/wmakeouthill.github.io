@@ -1,0 +1,1577 @@
+# ☕ Diretrizes de Desenvolvimento Backend
+## Java 17 • Spring Boot 3 • Clean Architecture • DDD
+
+> **Este documento define os princípios, padrões e regras OBRIGATÓRIAS para desenvolvimento backend.**
+> Consulte `.cursorrules` para visão geral e `.cursorrules-frontend` para regras do frontend.
+
+---
+
+## 📋 ÍNDICE
+
+1. [Stack Tecnológica](#1-stack-tecnológica)
+2. [Clean Architecture](#2-clean-architecture)
+3. [Domain-Driven Design (DDD)](#3-domain-driven-design-ddd)
+4. [Princípios SOLID](#4-princípios-solid)
+5. [Estrutura de Pacotes](#5-estrutura-de-pacotes)
+6. [Camada Domain](#6-camada-domain)
+7. [Camada Application](#7-camada-application)
+8. [Camada Infrastructure](#8-camada-infrastructure)
+9. [Lombok e Java 17](#9-lombok-e-java-17)
+10. [Mappers e Conversões](#10-mappers-e-conversões)
+11. [Persistência e Repositórios](#11-persistência-e-repositórios)
+12. [Validações e Exceções](#12-validações-e-exceções)
+13. [Migrações com Liquibase](#13-migrações-com-liquibase)
+14. [Testes](#14-testes)
+15. [Anti-Patterns](#15-anti-patterns)
+16. [Checklist de Qualidade](#16-checklist-de-qualidade)
+
+---
+
+## 1. STACK TECNOLÓGICA
+
+### Versões Obrigatórias
+
+| Tecnologia   | Versão      | Observação                           |
+|--------------|-------------|--------------------------------------|
+| Java         | 17          | LTS - versão exata                   |
+| Spring Boot  | 3.2.3+      | WebFlux ou MVC                       |
+| Liquibase    | 4.25.0+     | Migrações de banco                   |
+| Maven        | 3.8+        | Build tool padrão                    |
+| MySQL        | 8.0+        | Banco de dados                       |
+| Lombok       | Latest      | Redução de boilerplate               |
+
+### Dependências Compartilhadas
+
+```xml
+<!-- Sempre usar kernel-compartilhado -->
+<dependency>
+    <groupId>com.snackbar</groupId>
+    <artifactId>kernel-compartilhado</artifactId>
+    <version>${project.version}</version>
+</dependency>
+```
+
+---
+
+## 2. CLEAN ARCHITECTURE
+
+### 2.1 Visão Geral
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      INFRASTRUCTURE                          │
+│  Controllers, Repositories, External Services, Config        │
+│                                                              │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │                     APPLICATION                        │  │
+│  │       Use Cases, DTOs, Application Services            │  │
+│  │                                                        │  │
+│  │  ┌─────────────────────────────────────────────────┐  │  │
+│  │  │                    DOMAIN                        │  │  │
+│  │  │    Entities, Value Objects, Domain Services      │  │  │
+│  │  │         ❌ ZERO dependências externas            │  │  │
+│  │  └─────────────────────────────────────────────────┘  │  │
+│  │                                                        │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Regra de Dependência (INVIOLÁVEL)
+
+```
+Infrastructure  →  Application  →  Domain
+     ↓                  ↓             ↓
+  Frameworks         Ports        Entidades
+  BD, Web, etc.    Interfaces    Value Objects
+                   Use Cases     Regras Negócio
+```
+
+✅ **Camadas externas DEPENDEM de camadas internas**
+❌ **Camadas internas NUNCA dependem de camadas externas**
+
+### 2.3 Regras por Camada
+
+| Camada         | Pode Depender De        | NÃO Pode Depender De        |
+|----------------|------------------------|-----------------------------|
+| Domain         | Nada (é o núcleo)      | Application, Infrastructure |
+| Application    | Domain                 | Infrastructure              |
+| Infrastructure | Application, Domain    | -                           |
+
+---
+
+## 3. DOMAIN-DRIVEN DESIGN (DDD)
+
+### 3.1 Building Blocks
+
+```
+Domain/
+├── entities/           # Entidades com identidade
+├── valueobjects/       # Objetos imutáveis sem identidade
+├── aggregates/         # Clusters de entidades (se aplicável)
+├── services/           # Lógica de domínio entre entidades
+├── events/             # Eventos de domínio
+└── exceptions/         # Exceções de domínio
+```
+
+### 3.2 Entidades
+
+```java
+// ✅ CORRETO - Entidade rica com comportamento
+public class Pedido {
+    private final String id;
+    private final List<ItemPedido> itens;
+    private StatusPedido status;
+    private final Instant criadoEm;
+    
+    // Construtor privado - use factory method
+    private Pedido(String id, List<ItemPedido> itens) {
+        this.id = id;
+        this.itens = new ArrayList<>(itens);
+        this.status = StatusPedido.PENDENTE;
+        this.criadoEm = Instant.now();
+    }
+    
+    // Factory method - único ponto de criação
+    public static Pedido criar(List<ItemPedido> itens) {
+        validarItens(itens);
+        return new Pedido(UUID.randomUUID().toString(), itens);
+    }
+    
+    // Comportamento de negócio na entidade
+    public void confirmar() {
+        if (this.status != StatusPedido.PENDENTE) {
+            throw new EstadoInvalidoException("Pedido não pode ser confirmado");
+        }
+        this.status = StatusPedido.CONFIRMADO;
+    }
+    
+    public void adicionarItem(ItemPedido item) {
+        validarPodeModificar();
+        this.itens.add(item);
+    }
+    
+    public BigDecimal calcularTotal() {
+        return itens.stream()
+            .map(ItemPedido::getSubtotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    
+    // Validação de invariantes
+    private static void validarItens(List<ItemPedido> itens) {
+        if (itens == null || itens.isEmpty()) {
+            throw new RegraDeNegocioException("Pedido deve ter ao menos um item");
+        }
+    }
+    
+    private void validarPodeModificar() {
+        if (this.status != StatusPedido.PENDENTE) {
+            throw new EstadoInvalidoException("Pedido não pode ser modificado");
+        }
+    }
+    
+    // Getters - NUNCA setters públicos
+    public String getId() { return id; }
+    public List<ItemPedido> getItens() { return Collections.unmodifiableList(itens); }
+    public StatusPedido getStatus() { return status; }
+}
+
+// ❌ ERRADO - Entidade anêmica (apenas dados)
+public class Pedido {
+    private String id;
+    private List<ItemPedido> itens;
+    private StatusPedido status;
+    
+    // Getters e setters...
+    public void setStatus(StatusPedido status) { this.status = status; }
+    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
+}
+```
+
+### 3.3 Value Objects
+
+```java
+// ✅ CORRETO - Value Object imutável com validação
+public record Preco(BigDecimal valor) {
+    
+    public Preco {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ValorInvalidoException("Preço deve ser positivo");
+        }
+    }
+    
+    public static Preco of(BigDecimal valor) {
+        return new Preco(valor);
+    }
+    
+    public static Preco zero() {
+        return new Preco(BigDecimal.ZERO);
+    }
+    
+    public Preco somar(Preco outro) {
+        return new Preco(this.valor.add(outro.valor));
+    }
+    
+    public Preco multiplicar(int quantidade) {
+        return new Preco(this.valor.multiply(BigDecimal.valueOf(quantidade)));
+    }
+    
+    public boolean maiorQue(Preco outro) {
+        return this.valor.compareTo(outro.valor) > 0;
+    }
+}
+
+// ✅ CORRETO - Value Object para CPF
+public record CPF(String valor) {
+    
+    private static final Pattern PATTERN = Pattern.compile("\\d{11}");
+    
+    public CPF {
+        String limpo = valor.replaceAll("[^0-9]", "");
+        if (!PATTERN.matcher(limpo).matches() || !validarDigitos(limpo)) {
+            throw new CPFInvalidoException(valor);
+        }
+        valor = limpo; // Armazena apenas números
+    }
+    
+    public static CPF of(String valor) {
+        return new CPF(valor);
+    }
+    
+    public String formatado() {
+        return valor.substring(0, 3) + "." + 
+               valor.substring(3, 6) + "." + 
+               valor.substring(6, 9) + "-" + 
+               valor.substring(9);
+    }
+    
+    private static boolean validarDigitos(String cpf) {
+        // Lógica de validação de dígitos verificadores
+    }
+}
+```
+
+### 3.4 Domain Services
+
+```java
+// ✅ CORRETO - Lógica que não pertence a uma entidade específica
+public class CalculadoraDescontoService {
+    
+    public BigDecimal calcularDesconto(Pedido pedido, Cliente cliente) {
+        BigDecimal total = pedido.calcularTotal();
+        BigDecimal desconto = BigDecimal.ZERO;
+        
+        // Desconto por fidelidade
+        if (cliente.ehFidelidade()) {
+            desconto = desconto.add(total.multiply(new BigDecimal("0.05")));
+        }
+        
+        // Desconto por valor
+        if (total.compareTo(new BigDecimal("100")) > 0) {
+            desconto = desconto.add(total.multiply(new BigDecimal("0.10")));
+        }
+        
+        return desconto;
+    }
+}
+```
+
+---
+
+## 4. PRINCÍPIOS SOLID
+
+### S - Single Responsibility
+
+```java
+// ✅ CORRETO - Uma responsabilidade por classe
+@Service
+@RequiredArgsConstructor
+public class CriarPedidoUseCase {
+    private final PedidoRepositoryPort repository;
+    
+    public PedidoDTO executar(CriarPedidoRequest request) {
+        // Apenas criação de pedido
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class CancelarPedidoUseCase {
+    private final PedidoRepositoryPort repository;
+    private final NotificacaoPort notificacao;
+    
+    public void executar(String pedidoId) {
+        // Apenas cancelamento de pedido
+    }
+}
+
+// ❌ ERRADO - Múltiplas responsabilidades
+@Service
+public class PedidoService {
+    public PedidoDTO criar(...) { }
+    public void cancelar(...) { }
+    public void atualizar(...) { }
+    public List<PedidoDTO> buscarTodos(...) { }
+    public void enviarNotificacao(...) { }
+    public void gerarRelatorio(...) { }
+}
+```
+
+### O - Open/Closed
+
+```java
+// ✅ CORRETO - Extensível via interface
+public interface ValidadorPedido {
+    void validar(Pedido pedido);
+}
+
+@Component
+public class ValidadorItensObrigatorios implements ValidadorPedido {
+    public void validar(Pedido pedido) {
+        if (pedido.getItens().isEmpty()) {
+            throw new ValidacaoException("Pedido deve ter itens");
+        }
+    }
+}
+
+@Component
+public class ValidadorValorMinimo implements ValidadorPedido {
+    public void validar(Pedido pedido) {
+        if (pedido.calcularTotal().compareTo(new BigDecimal("10")) < 0) {
+            throw new ValidacaoException("Valor mínimo é R$ 10,00");
+        }
+    }
+}
+
+// Adicionar novos validadores sem modificar existentes
+@Component
+public class ValidadorHorarioFuncionamento implements ValidadorPedido {
+    public void validar(Pedido pedido) { ... }
+}
+```
+
+### L - Liskov Substitution
+
+```java
+// ✅ CORRETO - Subtipos são substituíveis
+public abstract class Pagamento {
+    protected BigDecimal valor;
+    protected StatusPagamento status;
+    
+    public abstract void processar();
+    public abstract void estornar();
+    
+    public BigDecimal getValor() { return valor; }
+    public StatusPagamento getStatus() { return status; }
+}
+
+public class PagamentoCartao extends Pagamento {
+    private final String numeroCartao;
+    
+    @Override
+    public void processar() {
+        // Processa cartão
+        this.status = StatusPagamento.APROVADO;
+    }
+    
+    @Override
+    public void estornar() {
+        // Estorna cartão
+        this.status = StatusPagamento.ESTORNADO;
+    }
+}
+
+public class PagamentoPix extends Pagamento {
+    private final String chavePix;
+    
+    @Override
+    public void processar() { ... }
+    
+    @Override
+    public void estornar() { ... }
+}
+```
+
+### I - Interface Segregation
+
+```java
+// ✅ CORRETO - Interfaces pequenas e focadas
+public interface PedidoRepositoryPort {
+    Pedido salvar(Pedido pedido);
+    Optional<Pedido> buscarPorId(String id);
+    List<Pedido> buscarPorCliente(String clienteId);
+}
+
+public interface PedidoRelatorioPort {
+    List<Pedido> buscarPorPeriodo(LocalDate inicio, LocalDate fim);
+    BigDecimal calcularTotalPeriodo(LocalDate inicio, LocalDate fim);
+}
+
+public interface PedidoNotificacaoPort {
+    void notificarCriacao(Pedido pedido);
+    void notificarAtualizacao(Pedido pedido);
+}
+
+// ❌ ERRADO - Interface muito grande
+public interface PedidoPort {
+    Pedido salvar(Pedido pedido);
+    Optional<Pedido> buscarPorId(String id);
+    List<Pedido> buscarTodos();
+    List<Pedido> buscarPorCliente(String clienteId);
+    List<Pedido> buscarPorPeriodo(LocalDate inicio, LocalDate fim);
+    void excluir(String id);
+    void notificar(Pedido pedido);
+    void enviarEmail(Pedido pedido);
+    BigDecimal calcularTotal(String id);
+    void gerarRelatorio(LocalDate data);
+}
+```
+
+### D - Dependency Inversion
+
+```java
+// ✅ CORRETO - Depende de abstrações (Port interfaces)
+@Service
+@RequiredArgsConstructor
+public class CriarPedidoUseCase {
+    // Depende de interfaces (ports), não de implementações
+    private final PedidoRepositoryPort repository;  // Interface
+    private final ClienteRepositoryPort clienteRepository;  // Interface
+    private final NotificacaoPort notificacao;  // Interface
+    
+    public PedidoDTO executar(CriarPedidoRequest request) {
+        Cliente cliente = clienteRepository.buscarPorId(request.clienteId())
+            .orElseThrow(() -> new ClienteNaoEncontradoException(request.clienteId()));
+            
+        Pedido pedido = Pedido.criar(request.itens());
+        Pedido salvo = repository.salvar(pedido);
+        
+        notificacao.notificarNovoPedido(salvo);
+        
+        return PedidoDTO.from(salvo);
+    }
+}
+
+// ❌ ERRADO - Depende de implementação concreta
+@Service
+public class CriarPedidoUseCase {
+    private final PedidoJpaRepository repository;  // Implementação concreta
+    private final EmailService emailService;  // Implementação concreta
+}
+```
+
+---
+
+## 5. ESTRUTURA DE PACOTES
+
+### 5.1 Estrutura por Módulo
+
+```
+com.snackbar.{modulo}/
+├── domain/
+│   ├── entities/
+│   │   └── Pedido.java
+│   ├── valueobjects/
+│   │   ├── Preco.java
+│   │   └── StatusPedido.java
+│   ├── services/
+│   │   └── CalculadoraDescontoService.java
+│   └── exceptions/
+│       ├── PedidoNaoEncontradoException.java
+│       └── EstadoInvalidoException.java
+│
+├── application/
+│   ├── usecases/
+│   │   ├── CriarPedidoUseCase.java
+│   │   ├── BuscarPedidoUseCase.java
+│   │   └── CancelarPedidoUseCase.java
+│   ├── dtos/
+│   │   ├── PedidoDTO.java
+│   │   ├── CriarPedidoRequest.java
+│   │   └── AtualizarPedidoRequest.java
+│   └── ports/
+│       ├── in/
+│       │   └── PedidoUseCasePort.java
+│       └── out/
+│           ├── PedidoRepositoryPort.java
+│           └── NotificacaoPort.java
+│
+└── infrastructure/
+    ├── persistence/
+    │   ├── entities/
+    │   │   └── PedidoEntity.java
+    │   ├── repositories/
+    │   │   ├── PedidoJpaRepository.java
+    │   │   └── PedidoRepositoryAdapter.java
+    │   └── mappers/
+    │       └── PedidoMapper.java
+    ├── web/
+    │   ├── controllers/
+    │   │   └── PedidoController.java
+    │   └── handlers/
+    │       └── GlobalExceptionHandler.java
+    ├── services/
+    │   └── NotificacaoAdapter.java
+    └── config/
+        └── PedidoConfig.java
+```
+
+### 5.2 Kernel Compartilhado
+
+```
+com.snackbar.kernel/
+├── domain/
+│   ├── valueobjects/
+│   │   └── Dinheiro.java
+│   └── exceptions/
+│       └── DominioException.java
+├── application/
+│   ├── dtos/
+│   │   └── PaginacaoDTO.java
+│   └── ports/
+│       └── UseCase.java
+└── infrastructure/
+    ├── mappers/
+    │   ├── MapperUtils.java
+    │   └── MapperRegistry.java
+    └── config/
+        └── CommonConfig.java
+```
+
+---
+
+## 6. CAMADA DOMAIN
+
+### 6.1 Regras da Camada
+
+✅ **PODE TER:**
+- Entidades e Aggregates
+- Value Objects
+- Domain Services
+- Exceções de domínio
+- Interfaces/Ports (quando necessário)
+- Enums de domínio
+- Eventos de domínio
+
+❌ **NÃO PODE TER:**
+- Anotações Spring (`@Service`, `@Component`, etc.)
+- Dependências de frameworks
+- Anotações JPA
+- Imports de `org.springframework.*`
+- Imports de `jakarta.persistence.*`
+
+### 6.2 Exemplos Práticos
+
+```java
+// ✅ CORRETO - Entidade de domínio pura
+package com.snackbar.pedidos.domain.entities;
+
+import com.snackbar.pedidos.domain.valueobjects.Preco;
+import com.snackbar.pedidos.domain.valueobjects.StatusPedido;
+import com.snackbar.pedidos.domain.exceptions.EstadoInvalidoException;
+
+public class Pedido {
+    private final String id;
+    private StatusPedido status;
+    private final Preco total;
+    
+    // Lógica de domínio...
+}
+
+// ❌ ERRADO - Domínio poluído com framework
+package com.snackbar.pedidos.domain.entities;
+
+import jakarta.persistence.*;  // ❌ JPA no domínio
+import org.springframework.stereotype.Component;  // ❌ Spring no domínio
+
+@Entity
+@Table(name = "pedidos")
+public class Pedido {
+    @Id
+    private String id;
+    
+    @Enumerated(EnumType.STRING)
+    private StatusPedido status;
+}
+```
+
+---
+
+## 7. CAMADA APPLICATION
+
+### 7.1 Use Cases
+
+```java
+@Service
+@RequiredArgsConstructor
+public class CriarPedidoUseCase {
+    private final PedidoRepositoryPort pedidoRepository;
+    private final ProdutoRepositoryPort produtoRepository;
+    private final ValidadorPedidoService validador;
+    private final MapperUtils mapper = MapperUtils.getInstance();
+    
+    @Transactional
+    public PedidoDTO executar(CriarPedidoRequest request) {
+        // 1. Validar request
+        validarRequest(request);
+        
+        // 2. Buscar dependências
+        List<Produto> produtos = buscarProdutos(request.itensIds());
+        
+        // 3. Criar entidade de domínio
+        Pedido pedido = criarPedido(request, produtos);
+        
+        // 4. Validar regras de negócio
+        validador.validar(pedido);
+        
+        // 5. Persistir
+        Pedido salvo = pedidoRepository.salvar(pedido);
+        
+        // 6. Retornar DTO
+        return PedidoDTO.from(salvo);
+    }
+    
+    private void validarRequest(CriarPedidoRequest request) {
+        if (request.clienteId() == null || request.clienteId().isBlank()) {
+            throw new ValidacaoException("Cliente é obrigatório");
+        }
+        if (request.itensIds() == null || request.itensIds().isEmpty()) {
+            throw new ValidacaoException("Pedido deve ter itens");
+        }
+    }
+    
+    private List<Produto> buscarProdutos(List<String> ids) {
+        return ids.stream()
+            .map(id -> produtoRepository.buscarPorId(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException(id)))
+            .toList();
+    }
+    
+    private Pedido criarPedido(CriarPedidoRequest request, List<Produto> produtos) {
+        List<ItemPedido> itens = produtos.stream()
+            .map(p -> ItemPedido.criar(p, 1))
+            .toList();
+        return Pedido.criar(request.clienteId(), itens);
+    }
+}
+```
+
+### 7.2 DTOs
+
+```java
+// ✅ CORRETO - DTO como record com factory method
+public record PedidoDTO(
+    String id,
+    String clienteId,
+    List<ItemPedidoDTO> itens,
+    String status,
+    BigDecimal total,
+    Instant criadoEm
+) {
+    public static PedidoDTO from(Pedido pedido) {
+        return new PedidoDTO(
+            pedido.getId(),
+            pedido.getClienteId(),
+            pedido.getItens().stream()
+                .map(ItemPedidoDTO::from)
+                .toList(),
+            pedido.getStatus().name(),
+            pedido.calcularTotal(),
+            pedido.getCriadoEm()
+        );
+    }
+}
+
+// ✅ CORRETO - Request DTO com validações
+public record CriarPedidoRequest(
+    @NotBlank(message = "Cliente é obrigatório")
+    String clienteId,
+    
+    @NotEmpty(message = "Pedido deve ter itens")
+    List<@Valid ItemPedidoRequest> itens,
+    
+    String observacao
+) { }
+```
+
+### 7.3 Ports (Interfaces)
+
+```java
+// Port de saída (o que o Use Case precisa)
+package com.snackbar.pedidos.application.ports.out;
+
+public interface PedidoRepositoryPort {
+    Pedido salvar(Pedido pedido);
+    Optional<Pedido> buscarPorId(String id);
+    List<Pedido> buscarPorCliente(String clienteId);
+    List<Pedido> buscarPorStatus(StatusPedido status);
+    void excluir(String id);
+}
+
+// Port de entrada (o que expõe para fora)
+package com.snackbar.pedidos.application.ports.in;
+
+public interface CriarPedidoUseCasePort {
+    PedidoDTO executar(CriarPedidoRequest request);
+}
+```
+
+---
+
+## 8. CAMADA INFRASTRUCTURE
+
+### 8.1 Entities JPA
+
+```java
+@Entity
+@Table(name = "pedidos")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)  // Para JPA
+@AllArgsConstructor(access = AccessLevel.PRIVATE)   // Para Builder
+@Builder
+public class PedidoEntity {
+    
+    @Id
+    private String id;
+    
+    @Column(name = "cliente_id", nullable = false)
+    private String clienteId;
+    
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ItemPedidoEntity> itens = new ArrayList<>();
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusPedido status;
+    
+    @Column(precision = 10, scale = 2)
+    private BigDecimal total;
+    
+    @Column(name = "criado_em", nullable = false)
+    private Instant criadoEm;
+    
+    @Column(name = "atualizado_em")
+    private Instant atualizadoEm;
+    
+    @PrePersist
+    void prePersist() {
+        this.criadoEm = Instant.now();
+    }
+    
+    @PreUpdate
+    void preUpdate() {
+        this.atualizadoEm = Instant.now();
+    }
+}
+```
+
+### 8.2 Repository Adapter
+
+```java
+@Component
+@RequiredArgsConstructor
+public class PedidoRepositoryAdapter implements PedidoRepositoryPort {
+    
+    private final PedidoJpaRepository jpaRepository;
+    private final PedidoMapper mapper;
+    
+    @Override
+    public Pedido salvar(Pedido pedido) {
+        PedidoEntity entity = mapper.toEntity(pedido);
+        PedidoEntity salvo = jpaRepository.save(entity);
+        return mapper.toDomain(salvo);
+    }
+    
+    @Override
+    public Optional<Pedido> buscarPorId(String id) {
+        return jpaRepository.findById(id)
+            .map(mapper::toDomain);
+    }
+    
+    @Override
+    public List<Pedido> buscarPorCliente(String clienteId) {
+        return jpaRepository.findByClienteId(clienteId).stream()
+            .map(mapper::toDomain)
+            .toList();
+    }
+    
+    @Override
+    public List<Pedido> buscarPorStatus(StatusPedido status) {
+        return jpaRepository.findByStatus(status).stream()
+            .map(mapper::toDomain)
+            .toList();
+    }
+    
+    @Override
+    public void excluir(String id) {
+        jpaRepository.deleteById(id);
+    }
+}
+```
+
+### 8.3 Controllers
+
+```java
+@RestController
+@RequestMapping("/api/pedidos")
+@RequiredArgsConstructor
+public class PedidoController {
+    
+    private final CriarPedidoUseCase criarPedidoUseCase;
+    private final BuscarPedidoUseCase buscarPedidoUseCase;
+    private final ListarPedidosUseCase listarPedidosUseCase;
+    private final CancelarPedidoUseCase cancelarPedidoUseCase;
+    
+    @PostMapping
+    public ResponseEntity<PedidoDTO> criar(@Valid @RequestBody CriarPedidoRequest request) {
+        PedidoDTO pedido = criarPedidoUseCase.executar(request);
+        URI location = URI.create("/api/pedidos/" + pedido.id());
+        return ResponseEntity.created(location).body(pedido);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<PedidoDTO> buscarPorId(@PathVariable String id) {
+        return buscarPedidoUseCase.executar(id)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<PedidoDTO>> listar(
+            @RequestParam(required = false) String clienteId,
+            @RequestParam(required = false) String status) {
+        var filtro = new FiltroPedido(clienteId, status);
+        return ResponseEntity.ok(listarPedidosUseCase.executar(filtro));
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelar(@PathVariable String id) {
+        cancelarPedidoUseCase.executar(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+---
+
+## 9. LOMBOK E JAVA 17
+
+### 9.1 Lombok Obrigatório
+
+```java
+// ✅ CORRETO - Sempre usar @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
+public class MeuUseCase {
+    private final RepositoryPort repository;  // final = injetado
+    private final OutroService servico;       // final = injetado
+    private final MapperUtils mapper = MapperUtils.getInstance();  // não-final = não injetado
+}
+
+// ✅ CORRETO - Entities JPA com Lombok
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class ProdutoEntity { }
+
+// ❌ PROIBIDO - Construtor manual
+@Service
+public class MeuUseCase {
+    private final RepositoryPort repository;
+    
+    public MeuUseCase(RepositoryPort repository) {  // ❌ NUNCA
+        this.repository = repository;
+    }
+}
+```
+
+### 9.2 Records do Java 17
+
+```java
+// ✅ CORRETO - Records para DTOs imutáveis
+public record ProdutoDTO(
+    String id,
+    String nome,
+    BigDecimal preco,
+    String categoria
+) {
+    // Compact constructor para validação
+    public ProdutoDTO {
+        Objects.requireNonNull(id, "ID não pode ser nulo");
+        Objects.requireNonNull(nome, "Nome não pode ser nulo");
+    }
+    
+    // Factory method
+    public static ProdutoDTO from(Produto produto) {
+        return new ProdutoDTO(
+            produto.getId(),
+            produto.getNome(),
+            produto.getPreco().valor(),
+            produto.getCategoria().nome()
+        );
+    }
+}
+```
+
+### 9.3 Outras Features do Java 17
+
+```java
+// Pattern Matching com instanceof
+if (objeto instanceof Produto produto) {
+    System.out.println(produto.getNome());
+}
+
+// Switch Expression
+String descricao = switch (status) {
+    case PENDENTE -> "Aguardando";
+    case EM_PREPARO -> "Preparando";
+    case PRONTO -> "Pronto para retirada";
+    case ENTREGUE -> "Finalizado";
+};
+
+// Text Blocks
+String query = """
+    SELECT p.id, p.nome, p.preco
+    FROM produtos p
+    WHERE p.categoria = :categoria
+    ORDER BY p.nome
+    """;
+
+// Streams com toList()
+List<String> nomes = produtos.stream()
+    .map(Produto::getNome)
+    .toList();  // ✅ Java 16+ (não Collectors.toList())
+```
+
+---
+
+## 10. MAPPERS E CONVERSÕES
+
+### 10.1 MapperUtils Singleton
+
+```java
+// ✅ CORRETO - Sempre singleton
+private final MapperUtils mapper = MapperUtils.getInstance();
+
+// ❌ PROIBIDO - Nova instância
+private final MapperUtils mapper = new MapperUtils();  // ❌ NUNCA
+```
+
+### 10.2 Mapper Específico de Domínio
+
+```java
+@Component
+public class PedidoMapper {
+    
+    public PedidoEntity toEntity(Pedido pedido) {
+        return PedidoEntity.builder()
+            .id(pedido.getId())
+            .clienteId(pedido.getClienteId())
+            .status(pedido.getStatus())
+            .total(pedido.calcularTotal())
+            .criadoEm(pedido.getCriadoEm())
+            .itens(pedido.getItens().stream()
+                .map(this::toItemEntity)
+                .toList())
+            .build();
+    }
+    
+    public Pedido toDomain(PedidoEntity entity) {
+        List<ItemPedido> itens = entity.getItens().stream()
+            .map(this::toItemDomain)
+            .toList();
+            
+        return Pedido.reconstituir(
+            entity.getId(),
+            entity.getClienteId(),
+            itens,
+            entity.getStatus(),
+            entity.getCriadoEm()
+        );
+    }
+    
+    private ItemPedidoEntity toItemEntity(ItemPedido item) {
+        return ItemPedidoEntity.builder()
+            .id(item.getId())
+            .produtoId(item.getProdutoId())
+            .quantidade(item.getQuantidade())
+            .precoUnitario(item.getPrecoUnitario().valor())
+            .build();
+    }
+    
+    private ItemPedido toItemDomain(ItemPedidoEntity entity) {
+        return ItemPedido.reconstituir(
+            entity.getId(),
+            entity.getProdutoId(),
+            entity.getQuantidade(),
+            Preco.of(entity.getPrecoUnitario())
+        );
+    }
+}
+```
+
+### 10.3 Verificar Antes de Criar
+
+```java
+// ✅ SEMPRE verifique se já existe no kernel-compartilhado:
+// - MapperUtils.getInstance()
+// - MapperRegistry.getInstance()
+
+// ✅ SEMPRE verifique se já existe mapper similar no módulo
+
+// ❌ NUNCA crie mapper duplicado
+```
+
+---
+
+## 11. PERSISTÊNCIA E REPOSITÓRIOS
+
+### 11.1 JPA Repository Interface
+
+```java
+public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, String> {
+    
+    List<PedidoEntity> findByClienteId(String clienteId);
+    
+    List<PedidoEntity> findByStatus(StatusPedido status);
+    
+    @Query("SELECT p FROM PedidoEntity p WHERE p.criadoEm BETWEEN :inicio AND :fim")
+    List<PedidoEntity> findByPeriodo(
+        @Param("inicio") Instant inicio,
+        @Param("fim") Instant fim
+    );
+    
+    @Query("SELECT SUM(p.total) FROM PedidoEntity p WHERE p.status = :status")
+    Optional<BigDecimal> calcularTotalPorStatus(@Param("status") StatusPedido status);
+}
+```
+
+### 11.2 Queries Complexas
+
+```java
+@Repository
+@RequiredArgsConstructor
+public class PedidoQueryRepository {
+    
+    private final EntityManager entityManager;
+    
+    public List<PedidoResumoDTO> buscarResumoPorPeriodo(LocalDate inicio, LocalDate fim) {
+        String jpql = """
+            SELECT new com.snackbar.pedidos.application.dtos.PedidoResumoDTO(
+                p.id,
+                p.clienteId,
+                p.status,
+                p.total,
+                p.criadoEm
+            )
+            FROM PedidoEntity p
+            WHERE p.criadoEm BETWEEN :inicio AND :fim
+            ORDER BY p.criadoEm DESC
+            """;
+            
+        return entityManager.createQuery(jpql, PedidoResumoDTO.class)
+            .setParameter("inicio", inicio.atStartOfDay().toInstant(ZoneOffset.UTC))
+            .setParameter("fim", fim.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC))
+            .getResultList();
+    }
+}
+```
+
+---
+
+## 12. VALIDAÇÕES E EXCEÇÕES
+
+### 12.1 Hierarquia de Exceções
+
+```java
+// Exceção base do domínio
+public abstract class DominioException extends RuntimeException {
+    protected DominioException(String mensagem) {
+        super(mensagem);
+    }
+}
+
+// Exceções específicas
+public class EntidadeNaoEncontradaException extends DominioException {
+    public EntidadeNaoEncontradaException(String entidade, String id) {
+        super(String.format("%s não encontrado(a): %s", entidade, id));
+    }
+}
+
+public class PedidoNaoEncontradoException extends EntidadeNaoEncontradaException {
+    public PedidoNaoEncontradoException(String id) {
+        super("Pedido", id);
+    }
+}
+
+public class RegraDeNegocioException extends DominioException {
+    public RegraDeNegocioException(String mensagem) {
+        super(mensagem);
+    }
+}
+
+public class EstadoInvalidoException extends RegraDeNegocioException {
+    public EstadoInvalidoException(String mensagem) {
+        super(mensagem);
+    }
+}
+```
+
+### 12.2 Exception Handler Global
+
+```java
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(EntidadeNaoEncontradaException.class)
+    public ResponseEntity<ErroResponse> handleEntidadeNaoEncontrada(EntidadeNaoEncontradaException ex) {
+        log.warn("Entidade não encontrada: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ErroResponse(ex.getMessage(), "NOT_FOUND"));
+    }
+    
+    @ExceptionHandler(RegraDeNegocioException.class)
+    public ResponseEntity<ErroResponse> handleRegraDeNegocio(RegraDeNegocioException ex) {
+        log.warn("Regra de negócio violada: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            .body(new ErroResponse(ex.getMessage(), "BUSINESS_RULE_VIOLATION"));
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErroValidacaoResponse> handleValidacao(MethodArgumentNotValidException ex) {
+        List<CampoErro> erros = ex.getBindingResult().getFieldErrors().stream()
+            .map(e -> new CampoErro(e.getField(), e.getDefaultMessage()))
+            .toList();
+        return ResponseEntity.badRequest()
+            .body(new ErroValidacaoResponse("Dados inválidos", erros));
+    }
+}
+
+public record ErroResponse(String mensagem, String codigo) { }
+public record CampoErro(String campo, String mensagem) { }
+public record ErroValidacaoResponse(String mensagem, List<CampoErro> erros) { }
+```
+
+### 12.3 Validação em Use Cases
+
+```java
+@Service
+@RequiredArgsConstructor
+public class CriarPedidoUseCase {
+    
+    public PedidoDTO executar(CriarPedidoRequest request) {
+        // Validação de entrada
+        validarRequest(request);
+        
+        // Validação de regras de negócio
+        validarRegrasNegocio(request);
+        
+        // ... resto da lógica
+    }
+    
+    private void validarRequest(CriarPedidoRequest request) {
+        List<String> erros = new ArrayList<>();
+        
+        if (request.clienteId() == null || request.clienteId().isBlank()) {
+            erros.add("Cliente é obrigatório");
+        }
+        if (request.itens() == null || request.itens().isEmpty()) {
+            erros.add("Pedido deve ter ao menos um item");
+        }
+        
+        if (!erros.isEmpty()) {
+            throw new ValidacaoException(String.join("; ", erros));
+        }
+    }
+}
+```
+
+---
+
+## 13. MIGRAÇÕES COM LIQUIBASE
+
+### 13.1 Estrutura de Arquivos
+
+```
+src/main/resources/db/changelog/
+├── db.changelog-master.yml
+├── changes/
+│   ├── 20240101120000-criar-tabela-produtos.yml
+│   ├── 20240102100000-criar-tabela-pedidos.yml
+│   └── 20240103090000-adicionar-coluna-observacao.yml
+└── data/
+    └── 20240101130000-dados-iniciais.yml
+```
+
+### 13.2 Changelog Master
+
+```yaml
+# db.changelog-master.yml
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/changes/
+      relativeToChangelogFile: false
+```
+
+### 13.3 Changeset Exemplo
+
+```yaml
+# 20240101120000-criar-tabela-produtos.yml
+databaseChangeLog:
+  - changeSet:
+      id: 20240101120000-criar-tabela-produtos
+      author: desenvolvedor
+      changes:
+        - createTable:
+            tableName: produtos
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nome
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: preco
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: categoria_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_produto_categoria
+                    references: categorias(id)
+              - column:
+                  name: criado_em
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        
+        - createIndex:
+            tableName: produtos
+            indexName: idx_produto_categoria
+            columns:
+              - column:
+                  name: categoria_id
+      
+      rollback:
+        - dropTable:
+            tableName: produtos
+```
+
+### 13.4 Regras Obrigatórias
+
+- ✅ **SEMPRE** inclua rollback
+- ✅ **SEMPRE** use nomenclatura: `{YYYYMMDDHHmmss}-{descricao}.yml`
+- ✅ **SEMPRE** crie índices para campos de busca frequente
+- ✅ **SEMPRE** use constraints apropriadas (NOT NULL, UNIQUE, FK)
+- ❌ **NUNCA** altere changelogs já aplicados
+- ❌ **NUNCA** use IDs sequenciais simples (1, 2, 3)
+
+---
+
+## 14. TESTES
+
+### 14.1 Estrutura de Testes
+
+```
+src/test/java/com/snackbar/pedidos/
+├── domain/
+│   ├── entities/
+│   │   └── PedidoTest.java
+│   └── valueobjects/
+│       └── PrecoTest.java
+├── application/
+│   └── usecases/
+│       ├── CriarPedidoUseCaseTest.java
+│       └── CancelarPedidoUseCaseTest.java
+└── infrastructure/
+    ├── persistence/
+    │   └── PedidoRepositoryAdapterTest.java
+    └── web/
+        └── PedidoControllerTest.java
+```
+
+### 14.2 Testes de Domínio
+
+```java
+class PedidoTest {
+    
+    @Test
+    void deveCriarPedidoComStatusPendente() {
+        // Arrange
+        List<ItemPedido> itens = List.of(
+            ItemPedido.criar(criarProduto(), 2)
+        );
+        
+        // Act
+        Pedido pedido = Pedido.criar("cliente-123", itens);
+        
+        // Assert
+        assertThat(pedido.getStatus()).isEqualTo(StatusPedido.PENDENTE);
+        assertThat(pedido.getItens()).hasSize(1);
+    }
+    
+    @Test
+    void deveLancarExcecaoAoCriarPedidoSemItens() {
+        // Arrange & Act & Assert
+        assertThatThrownBy(() -> Pedido.criar("cliente-123", List.of()))
+            .isInstanceOf(RegraDeNegocioException.class)
+            .hasMessageContaining("deve ter ao menos um item");
+    }
+    
+    @Test
+    void deveConfirmarPedidoPendente() {
+        // Arrange
+        Pedido pedido = criarPedidoPendente();
+        
+        // Act
+        pedido.confirmar();
+        
+        // Assert
+        assertThat(pedido.getStatus()).isEqualTo(StatusPedido.CONFIRMADO);
+    }
+    
+    @Test
+    void naoDeveConfirmarPedidoJaConfirmado() {
+        // Arrange
+        Pedido pedido = criarPedidoConfirmado();
+        
+        // Act & Assert
+        assertThatThrownBy(pedido::confirmar)
+            .isInstanceOf(EstadoInvalidoException.class);
+    }
+}
+```
+
+### 14.3 Testes de Use Case
+
+```java
+@ExtendWith(MockitoExtension.class)
+class CriarPedidoUseCaseTest {
+    
+    @Mock
+    private PedidoRepositoryPort pedidoRepository;
+    
+    @Mock
+    private ProdutoRepositoryPort produtoRepository;
+    
+    @InjectMocks
+    private CriarPedidoUseCase useCase;
+    
+    @Test
+    void deveCriarPedidoComSucesso() {
+        // Arrange
+        CriarPedidoRequest request = new CriarPedidoRequest(
+            "cliente-123",
+            List.of(new ItemPedidoRequest("produto-1", 2))
+        );
+        
+        Produto produto = criarProdutoMock();
+        when(produtoRepository.buscarPorId("produto-1"))
+            .thenReturn(Optional.of(produto));
+        when(pedidoRepository.salvar(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
+        
+        // Act
+        PedidoDTO resultado = useCase.executar(request);
+        
+        // Assert
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.clienteId()).isEqualTo("cliente-123");
+        verify(pedidoRepository).salvar(any(Pedido.class));
+    }
+    
+    @Test
+    void deveLancarExcecaoQuandoProdutoNaoExiste() {
+        // Arrange
+        CriarPedidoRequest request = new CriarPedidoRequest(
+            "cliente-123",
+            List.of(new ItemPedidoRequest("produto-inexistente", 1))
+        );
+        
+        when(produtoRepository.buscarPorId("produto-inexistente"))
+            .thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThatThrownBy(() -> useCase.executar(request))
+            .isInstanceOf(ProdutoNaoEncontradoException.class);
+    }
+}
+```
+
+### 14.4 Testes de Integração
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class PedidoControllerIntegrationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Autowired
+    private PedidoJpaRepository pedidoRepository;
+    
+    @Test
+    void deveCriarPedidoViaApi() throws Exception {
+        // Arrange
+        CriarPedidoRequest request = new CriarPedidoRequest(
+            "cliente-123",
+            List.of(new ItemPedidoRequest("produto-1", 2))
+        );
+        
+        // Act & Assert
+        mockMvc.perform(post("/api/pedidos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.status").value("PENDENTE"));
+    }
+    
+    @Test
+    void deveRetornar404QuandoPedidoNaoExiste() throws Exception {
+        mockMvc.perform(get("/api/pedidos/id-inexistente"))
+            .andExpect(status().isNotFound());
+    }
+}
+```
+
+---
+
+## 15. ANTI-PATTERNS
+
+### ❌ Proibições Absolutas
+
+1. **Entidades anêmicas** (apenas getters/setters, sem comportamento)
+2. **Domínio com dependências de framework** (JPA, Spring no domain)
+3. **Construtor manual quando Lombok resolve** (`@RequiredArgsConstructor`)
+4. **`new MapperUtils()`** ao invés de `.getInstance()`
+5. **God Classes** com múltiplas responsabilidades
+6. **Retornar `null`** quando pode usar `Optional`
+7. **Catch vazio** ou genérico demais
+8. **Queries SQL** diretamente no Controller
+9. **Lógica de negócio** no Controller
+10. **Camadas invertidas** (Domain dependendo de Infrastructure)
+11. **Use Cases fazendo muitas coisas** (dividir em casos menores)
+12. **DTOs sem validação** de entrada
+
+### ⚠️ Code Smells a Evitar
+
+```java
+// ❌ Service gigante fazendo tudo
+@Service
+public class PedidoService {
+    // 500+ linhas
+    // CRUD + validação + cálculos + notificação + relatórios
+}
+
+// ❌ Entidade anêmica
+public class Pedido {
+    private String id;
+    private StatusPedido status;
+    
+    // Apenas getters e setters
+    public void setStatus(StatusPedido status) { this.status = status; }
+}
+
+// ❌ Regra de negócio no Controller
+@PostMapping
+public ResponseEntity<PedidoDTO> criar(@RequestBody CriarPedidoRequest request) {
+    if (request.getValor() < 10) {  // ❌ Regra aqui
+        throw new RuntimeException("Valor mínimo...");
+    }
+    // ...
+}
+
+// ❌ Domain com JPA
+package com.snackbar.pedidos.domain.entities;
+@Entity  // ❌ JPA no domínio
+public class Pedido { }
+```
+
+---
+
+## 16. CHECKLIST DE QUALIDADE
+
+### Antes de Criar uma Classe
+
+- [ ] Verificar se não existe classe similar
+- [ ] Definir em qual camada pertence (Domain/Application/Infrastructure)
+- [ ] Planejar responsabilidade única
+- [ ] Definir se usará Lombok
+
+### Antes de Commitar
+
+- [ ] Clean Architecture respeitada (dependências corretas)
+- [ ] Domain sem dependências de framework
+- [ ] Usando `@RequiredArgsConstructor` (não construtor manual)
+- [ ] Usando `MapperUtils.getInstance()` (singleton)
+- [ ] Use Cases pequenos e focados
+- [ ] Entidades ricas (com comportamento)
+- [ ] Value Objects imutáveis
+- [ ] Exceções específicas e tratadas
+- [ ] Arquivos com menos de 300 linhas
+- [ ] Métodos com menos de 20 linhas
+- [ ] Testes para lógica de negócio
+- [ ] Migrações Liquibase com rollback
+
+### Revisão de Arquitetura
+
+- [ ] Interfaces (Ports) definidas na Application
+- [ ] Implementações (Adapters) na Infrastructure
+- [ ] DTOs na Application, não no Domain
+- [ ] Validações de entrada nos Use Cases
+- [ ] Regras de negócio nas Entidades/Domain Services
+
+---
+
+## 📚 RECURSOS DO PROJETO
+
+### Kernel Compartilhado
+
+```java
+// Mappers
+MapperUtils.getInstance()
+MapperRegistry.getInstance()
+
+// Value Objects comuns
+Dinheiro.of(valor)
+
+// Exceções base
+DominioException
+EntidadeNaoEncontradaException
+```
+
+### Estrutura de Módulos
+
+```
+├── kernel-compartilhado/    # Classes compartilhadas
+├── autenticacao/            # Módulo de autenticação
+├── gestao-cardapio/         # Gestão de cardápio
+├── gestao-clientes/         # Gestão de clientes
+├── gestao-pedidos/          # Gestão de pedidos
+├── impressao-cupom-fiscal/  # Impressão fiscal
+└── sistema-orquestrador/    # Orquestração de serviços
+```
+
+---
+
+**🚨 LEMBRE-SE: Código Java limpo é tipado, imutável quando possível, e segue Clean Architecture rigorosamente!**

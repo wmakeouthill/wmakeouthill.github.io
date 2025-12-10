@@ -23,12 +23,12 @@ export interface CertificadoPdf {
 
 /**
  * Serviço para buscar certificados e currículo via backend.
- * 
+ *
  * O backend é responsável por:
  * - Autenticar com o GitHub usando o token seguro
  * - Buscar os PDFs do repositório wmakeouthill/certificados-wesley
  * - Servir os PDFs para o frontend
- * 
+ *
  * O frontend apenas consome os endpoints:
  * - GET /api/certifications → lista de certificados
  * - GET /api/certifications/curriculo → metadados do currículo
@@ -148,7 +148,8 @@ export class CertificationsService {
    * Retorna a URL do PDF do currículo (servido pelo backend)
    */
   getCurriculoPdfUrl(): string {
-    return `${this.API_BASE}/api/certifications/curriculo/pdf`;
+    const lang = this.getLanguage();
+    return `${this.API_BASE}/api/certifications/curriculo/pdf?lang=${lang}&v=${Date.now()}`;
   }
 
   /**
@@ -173,7 +174,18 @@ export class CertificationsService {
    * Retorna a URL do thumbnail (preview) do currículo
    */
   getCurriculoThumbnailUrl(): string {
-    return `${this.API_BASE}/api/certifications/curriculo/thumbnail`;
+    const lang = this.getLanguage();
+    return `${this.API_BASE}/api/certifications/curriculo/thumbnail?lang=${lang}&v=${Date.now()}`;
+  }
+
+  private getLanguage(): string {
+    try {
+      // interceptor também seta header, mas aqui garantimos query param
+      const lang = localStorage.getItem('portfolio-language');
+      return lang === 'en' ? 'en' : 'pt';
+    } catch {
+      return 'pt';
+    }
   }
 
   /**

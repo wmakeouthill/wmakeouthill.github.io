@@ -42,6 +42,12 @@ export class PortfolioContentService {
   /** Lista de nomes de imagens disponíveis (para debug) */
   private availableImageNames: string[] = [];
 
+  /** Flag para saber se o cache já foi montado */
+  private cacheReady = false;
+
+  /** Registro para evitar logs repetidos por projeto */
+  private loggedMissing = new Set<string>();
+
   /**
    * Carrega lista de imagens disponíveis do backend.
    */
@@ -98,6 +104,8 @@ export class PortfolioContentService {
   private buildImageCache(imagens: RepositoryFile[]): void {
     this.imageUrlCache.clear();
     this.availableImageNames = [];
+    this.cacheReady = false;
+    this.loggedMissing.clear();
 
     for (const img of imagens) {
       const url = resolveApiUrl(`/api/content/images/${encodeURIComponent(img.fileName)}`);
@@ -114,6 +122,7 @@ export class PortfolioContentService {
     }
 
     console.log(`📦 Cache de imagens construído com ${this.imageUrlCache.size} entradas`);
+    this.cacheReady = true;
   }
 
   /**
@@ -162,6 +171,11 @@ export class PortfolioContentService {
    * Usa matching fuzzy para encontrar correspondências.
    */
   findBestImageUrl(projectName: string): string | null {
+    if (!this.cacheReady) {
+      // Cache ainda não carregado: evita log repetitivo
+      return null;
+    }
+
     // 1. Tenta match exato com variações
     const variations = this.generateNameVariations(projectName);
     for (const variation of variations) {
@@ -193,7 +207,10 @@ export class PortfolioContentService {
     }
 
     // Debug: mostra projetos sem imagem
-    console.log(`⚠️ Sem imagem para projeto: "${projectName}". Imagens disponíveis: ${this.availableImageNames.join(', ')}`);
+    if (!this.loggedMissing.has(projectLower)) {
+      this.loggedMissing.add(projectLower);
+      console.debug(`⚠️ Sem imagem para projeto: "${projectName}". Imagens disponíveis: ${this.availableImageNames.join(', ')}`);
+    }
     return null;
   }
 

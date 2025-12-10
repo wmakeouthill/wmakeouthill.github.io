@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // Usaremos import dinâmico de pdfjs-dist para evitar problemas no build server
@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './pdf-viewer.component.html',
   styleUrls: ['./pdf-viewer.component.css']
 })
-export class PdfViewerComponent implements OnChanges, AfterViewInit {
+export class PdfViewerComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() src = '';
   @Input() zoom = 1.0; // 1.0 = 100%
   loading = true;
@@ -18,6 +18,7 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
   @ViewChild('root', { static: true }) rootRef!: ElementRef<HTMLDivElement>;
 
   private pdf: any = null;
+  private currentRenderTask: any = null;
   private pageNumber = 1;
   // Não aplicar fit automático por padrão; 1.0 === 100% exatamente.
   @Input() fitToContainer = false;
@@ -35,9 +36,22 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  ngOnDestroy() {
+    this.cancelRender();
+    if (this.pdf && this.pdf.destroy) {
+      this.pdf.destroy();
+    }
+  }
+
   private async loadPdf() {
     if (!this.src) return;
     this.loading = true;
+    // cancela render anterior se houver
+    this.cancelRender();
+    if (this.pdf && this.pdf.destroy) {
+      this.pdf.destroy();
+      this.pdf = null;
+    }
     // Preferimos usar o pacote instalado `pdfjs-dist` via import dinâmico. Se o import falhar
     // (por exemplo em ambientes estranhos), faremos fallback para CDN unpkg.
     try {
@@ -65,6 +79,8 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
   private async renderPage() {
     if (!this.pdf) return;
     this.loading = true;
+    // cancela render em progresso
+    this.cancelRender();
     const page = await this.pdf.getPage(this.pageNumber);
 
     // Obter viewport inicial para calcular proporções
@@ -78,7 +94,7 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
     while (container && !container.classList.contains('pdf-container')) {
       container = container.parentElement;
     }
-    
+
     let targetScale = 1.5; // escala padrão
 
     if (container && container.clientWidth > 0 && container.clientHeight > 0) {
@@ -89,20 +105,20 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
       const scaleToFitWidth = containerWidth / pdfWidth;
       // Calcular escala para caber na altura
       const scaleToFitHeight = containerHeight / pdfHeight;
-      
+
       // Usar a MAIOR escala que ainda caiba (prioriza ocupar mais espaço)
       // mas garantindo que não ultrapasse nenhuma dimensão
       const baseScale = Math.min(scaleToFitWidth, scaleToFitHeight);
-      
+
       // Aplicar zoom do usuário sobre a escala base
       targetScale = baseScale * this.zoom;
-      
+
       // Garantir limites razoáveis (0.5 a 4.0 para permitir zoom até 200%)
       targetScale = Math.max(0.5, Math.min(4.0, targetScale));
     } else {
       // Fallback baseado no tamanho da tela
       const screenWidth = window.innerWidth;
-      
+
       if (screenWidth <= 480) {
         targetScale = this.zoom * 1.0;
       } else if (screenWidth <= 768) {
@@ -126,7 +142,7 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
 
     canvas.width = Math.floor(viewport.width * finalOutputScale);
     canvas.height = Math.floor(viewport.height * finalOutputScale);
-    
+
     // CSS size - tamanho visual do canvas
     canvas.style.width = `${Math.floor(viewport.width)}px`;
     canvas.style.height = `${Math.floor(viewport.height)}px`;
@@ -139,8 +155,23 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit {
       viewport: viewport
     };
 
-    await page.render(renderContext).promise;
-    this.loading = false;
+    const renderTask = page.render(renderContext);
+    this.currentRenderTask = renderTask;
+    try {
+      await renderTask.promise;
+    } finally {
+      this.currentRenderTask = null;
+      this.loading = false;
+    }
+  }
+
+  private cancelRender() {
+    if (this.currentRenderTask && this.currentRenderTask.cancel) {
+      try {
+        this.currentRenderTask.cancel();
+      } catch { /* ignore */ }
+    }
+    this.currentRenderTask = null;
   }
 
   async nextPage() {

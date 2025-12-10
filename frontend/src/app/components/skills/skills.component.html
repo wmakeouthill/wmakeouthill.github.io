@@ -1,8 +1,8 @@
 <section id="skills" class="section skills">
   <div class="container">
     <div class="section-title">
-      <h2>Skills & Tecnologias</h2>
-      <p class="section-subtitle">Ferramentas e linguagens que domino</p>
+      <h2>{{ 'skills.title' | translate }}</h2>
+      <p class="section-subtitle">{{ 'hero.tagline' | translate }}</p>
     </div>
 
     <div class="skills-categories">
@@ -10,7 +10,7 @@
         <div class="category-section">
           <h3 class="category-title">
             <span class="category-icon">{{ category.icon }}</span>
-            {{ category.label }}
+            {{ category.labelKey | translate }}
           </h3>
           <div class="skills-grid">
             @for (skill of getSkillsByCategory(category.key); track skill.name) {
@@ -24,11 +24,13 @@
                           }
                         </span>
                         <span class="skill-name">{{ skill.name }}</span>
-                        <span class="skill-badge">{{ skill.levelLabel }}</span>
+                        <span class="skill-badge">{{ ('skills.level.' + skill.levelKey) | translate }}</span>
                       </div>
                     <div class="skill-meta">
                       @if (skill.projectsCount) {
-                        <small class="projects-count">Usado em {{ skill.projectsCount }} {{ pluralize(skill.projectsCount, 'projeto', 'projetos') }}</small>
+                        <small class="projects-count">
+                          {{ skill.projectsCount }} {{ 'skills.projectsCount' | translate }}
+                        </small>
                       }
                     </div>
                   </div>

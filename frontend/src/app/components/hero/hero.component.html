@@ -7,7 +7,7 @@
   <div class="hero-content container">
     <!-- Desktop layout: full text section -->
     <div class="hero-text fade-in-up">
-      <p class="hero-greeting">Olá, eu sou</p>
+      <p class="hero-greeting">{{ 'hero.greeting' | translate }}</p>
       <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
 
       <div class="hero-title">
@@ -16,21 +16,20 @@
       </div>
 
       <p class="hero-tagline">
-        Transformando ideias em código. Criando experiências digitais incríveis com tecnologias
-        modernas e design elegante.
+        {{ 'hero.tagline' | translate }}
       </p>
 
       <div class="hero-cta">
         <button class="btn btn-accent" (click)="scrollToSection('projects')">
-          <span>Ver Projetos</span>
+          <span>{{ 'hero.viewProjects' | translate }}</span>
           <span class="btn-icon">→</span>
         </button>
         <button class="btn btn-outline" (click)="openCvModal()">
-          <span>Meu Currículo</span>
+          <span>{{ 'hero.myResume' | translate }}</span>
           <span class="btn-icon">📄</span>
         </button>
         <button class="btn btn-outline" (click)="scrollToSection('contact')">
-          <span>Entre em Contato</span>
+          <span>{{ 'hero.contactMe' | translate }}</span>
         </button>
       </div>
 
@@ -38,15 +37,15 @@
         <div class="hero-stats">
           <div class="stat-item">
             <span class="stat-number">5+</span>
-            <span class="stat-label">Anos de Experiência</span>
+            <span class="stat-label">{{ 'hero.yearsExperience' | translate }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-number">5+</span>
-            <span class="stat-label">Projetos Completos</span>
+            <span class="stat-label">{{ 'hero.completedProjects' | translate }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-number">10+</span>
-            <span class="stat-label">Tecnologias que tive contato e experiência</span>
+            <span class="stat-label">{{ 'hero.technologies' | translate }}</span>
           </div>
         </div>
 
@@ -66,7 +65,7 @@
 
     <!-- Mobile layout: greeting and name first -->
     <div class="hero-greeting-section fade-in-up">
-      <p class="hero-greeting">Olá, eu sou</p>
+      <p class="hero-greeting">{{ 'hero.greeting' | translate }}</p>
       <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
     </div>
 
@@ -78,21 +77,20 @@
       </div>
 
       <p class="hero-tagline">
-        Transformando ideias em código. Criando experiências digitais incríveis com tecnologias
-        modernas e design elegante.
+        {{ 'hero.tagline' | translate }}
       </p>
 
       <div class="hero-cta">
         <button class="btn btn-accent" (click)="scrollToSection('projects')">
-          <span>Ver Projetos</span>
+          <span>{{ 'hero.viewProjects' | translate }}</span>
           <span class="btn-icon">→</span>
         </button>
         <button class="btn btn-outline" (click)="openCvModal()">
-          <span>Meu Currículo</span>
+          <span>{{ 'hero.myResume' | translate }}</span>
           <span class="btn-icon">📄</span>
         </button>
         <button class="btn btn-outline" (click)="scrollToSection('contact')">
-          <span>Entre em Contato</span>
+          <span>{{ 'hero.contactMe' | translate }}</span>
         </button>
       </div>
 
@@ -100,15 +98,15 @@
         <div class="hero-stats">
           <div class="stat-item">
             <span class="stat-number">5+</span>
-            <span class="stat-label">Anos de Experiência</span>
+            <span class="stat-label">{{ 'hero.yearsExperience' | translate }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-number">5+</span>
-            <span class="stat-label">Projetos Completos</span>
+            <span class="stat-label">{{ 'hero.completedProjects' | translate }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-number">10+</span>
-            <span class="stat-label">Tecnologias que tive contato e experiência</span>
+            <span class="stat-label">{{ 'hero.technologies' | translate }}</span>
           </div>
         </div>
       </div>
@@ -124,7 +122,7 @@
         role="button"
         aria-label="Scroll para seção sobre"
       >
-        <span class="scroll-text">Scroll</span>
+        <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
         <div class="scroll-arrow">↓</div>
       </div>
     </div>
@@ -139,7 +137,7 @@
     role="button"
     aria-label="Scroll para seção sobre"
   >
-    <span class="scroll-text">Scroll</span>
+    <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
     <div class="scroll-arrow">↓</div>
   </div>
 </section>

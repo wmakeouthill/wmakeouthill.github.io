@@ -1,8 +1,8 @@
 <section id="projects" class="section projects" #projectsSection>
   <div class="container">
     <div class="section-title">
-      <h2>Projetos & Portfólio</h2>
-      <p class="section-subtitle">Meus trabalhos recentes do GitHub</p>
+      <h2>{{ 'projects.title' | translate }}</h2>
+      <p class="section-subtitle">{{ 'projects.subtitle' | translate }}</p>
     </div>
 
     <!-- Filters -->
@@ -13,7 +13,7 @@
         [class.active]="selectedFilter() === lang"
         (click)="filterProjects(lang)"
       >
-        {{ lang === 'all' ? 'Todos' : lang }}
+        {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
       </button>
       }
     </div>
@@ -22,7 +22,7 @@
     @if (loading()) {
     <div class="loading-container">
       <div class="spinner"></div>
-      <p>Carregando projetos...</p>
+      <p>{{ 'projects.loading' | translate }}</p>
     </div>
     }
 
@@ -32,8 +32,8 @@
       @for (project of paginatedProjects(); track project.id) {
       <div class="project-card">
         <div class="project-image">
-          <img 
-            [src]="getProjectImage(project.name)" 
+          <img
+            [src]="getProjectImage(project.name)"
             [alt]="project.name"
             (error)="onImageError($event, project.name)"
           />
@@ -46,7 +46,7 @@
                 class="project-link"
               >
                 <img src="assets/icons/github-octocat.svg" alt="GitHub" width="14" height="14" />
-                GitHub
+                {{ 'projects.github' | translate }}
               </a>
               @if (project.homepage) {
               <a
@@ -55,7 +55,7 @@
                 rel="noopener noreferrer"
                 class="project-link"
               >
-                🚀 Demo
+                🚀 {{ 'projects.demo' | translate }}
               </a>
               }
               <button
@@ -63,7 +63,7 @@
                 class="project-link readme-btn"
               >
                 <img src="assets/icons/readme.svg" alt="README" width="14" height="14" />
-                README
+                {{ 'projects.readme' | translate }}
               </button>
             </div>
           </div>
@@ -72,7 +72,7 @@
         <div class="project-content">
           <h3 class="project-title">{{ project.name }}</h3>
           <p class="project-description">
-            {{ project.description || 'Sem descrição disponível' }}
+            {{ project.description || ('projects.noDescription' | translate) }}
           </p>
 
           <div class="project-footer">
@@ -127,7 +127,7 @@
         class="pagination-btn"
         [class.disabled]="currentPage() === 1"
         (click)="previousPage()"
-        aria-label="Página anterior"
+        aria-label="{{ 'projects.pagination.previous' | translate }}"
       >
         ‹
       </button>
@@ -150,7 +150,7 @@
         class="pagination-btn"
         [class.disabled]="currentPage() === totalPages()"
         (click)="nextPage()"
-        aria-label="Próxima página"
+        aria-label="{{ 'projects.pagination.next' | translate }}"
       >
         ›
       </button>
@@ -160,7 +160,7 @@
     <!-- Empty State -->
     @if (!loading() && filteredProjects().length === 0) {
     <div class="empty-state">
-      <p>Nenhum projeto encontrado para este filtro.</p>
+      <p>{{ 'projects.empty' | translate }}</p>
     </div>
     }
   </div>

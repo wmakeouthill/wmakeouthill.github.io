@@ -1,0 +1,271 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "header": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "experience": "Experience",
+    "education": "Education",
+    "projects": "Projects",
+    "certifications": "Certifications",
+    "contact": "Contact"
+  },
+  "hero": {
+    "greeting": "Hello, I'm",
+    "title": "Full Stack Developer",
+    "tagline": "Transforming ideas into code. Creating amazing digital experiences with modern technologies and elegant design.",
+    "viewProjects": "View Projects",
+    "myResume": "My Resume",
+    "contactMe": "Contact Me",
+    "yearsExperience": "Years of Experience",
+    "completedProjects": "Completed Projects",
+    "technologies": "Technologies I've worked with",
+    "scroll": "Scroll"
+  },
+  "about": {
+    "title": "About Me",
+    "name": "Wesley de Carvalho Augusto Correia",
+    "titleRole": "Full Stack Developer",
+    "yearsOfExperience": "Years of Experience",
+    "age": "Age",
+    "location": "Location",
+    "email": "Email",
+    "driverLicense": "Driver's License",
+    "available": "Available",
+    "notAvailable": "Unavailable",
+    "bio": [
+      "From the internet cafes of my childhood where I started working, to today, my journey is marked by a passion for technology and supporting businesses with IT solutions, technical support, and automation. I've worked as a freelancer, in the family IT company, and in industries such as gas and energy (Petrobras), tobacco (Philip Morris), legal, and critical financial infrastructure (Central Bank/Anbima/SELIC). This diversity has forged my technical versatility and strategic vision. Analytical and solution-oriented, I identify bottlenecks and create automations that generate measurable efficiency. I adapt easily to large corporations or dynamic contexts, standing out in creative solutions under pressure. More than executing, I understand contexts, propose improvements, and deliver value. I learn quickly, value collaboration, enjoy being useful and helping people, and seek challenges that combine innovation and business impact."
+    ],
+    "highlights": {
+      "experience": {
+        "title": "Experience",
+        "value": "Experience in IT with support, development, and Governance. In addition to administrative experiences and legal and salesforce backoffice."
+      },
+      "education": {
+        "title": "Education",
+        "value": "Graduated in Law. Pursuing a Postgraduate degree in FullStack Java Development, MBA in Project Management (paused) and studying Computer Science (in progress)"
+      },
+      "projects": {
+        "title": "Projects",
+        "value": "Automation and System Modernization and fullstack application development."
+      },
+      "status": {
+        "title": "Status",
+        "value": "Available for opportunities!"
+      }
+    },
+    "softSkills": {
+      "title": "Soft Skills",
+      "items": [
+        "Good Communication",
+        "Intermediate English",
+        "Conflict Management / Teamwork",
+        "Hyperfocus / Proactivity",
+        "Emotional Intelligence and Self-control",
+        "Self-taught",
+        "Adapted to Agile, Scrum routines"
+      ]
+    }
+  },
+  "skills": {
+    "title": "Technical Skills",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "database": "Database",
+    "devops": "DevOps",
+    "tools": "Tools",
+    "level": {
+      "production": "Production",
+      "advanced": "Advanced",
+      "intermediate": "Intermediate",
+      "beginner": "Beginner"
+    },
+    "projectsCount": "projects"
+  },
+  "experience": {
+    "title": "Professional Experience",
+    "present": "Present",
+    "months": "months",
+    "years": "years",
+    "items": {
+      "exp1": {
+        "position": "Intern - Backend / FullStack / ScrumTeam",
+        "highlights": [
+          { "title": "Critical financial infrastructure modernization", "text": "Selic mainframe migration (COBOL) to a Java architecture (Novo-Selic)." },
+          { "title": "Observability and monitoring", "text": "Full stack implementation (Prometheus, Grafana, Actuator, Micrometer, Blackbox Exporter, Alertmanager) for performance metrics and health checks." },
+          { "title": "Full stack development", "text": "Java (Spring) Backend + Angular Frontend." },
+          { "title": "DevOps and containerization", "text": "Docker, CI/CD, branch versioning with GitLab for collaboration and automated deployment practices." },
+          { "title": "Data management", "text": "Oracle (containerized) Database (SQL), schema versioning with Liquibase / SQL scripts." }
+        ]
+      },
+      "exp2": {
+        "position": "Intern - Projects / Governance",
+        "highlights": [
+          { "title": "Project Management", "text": "development cycle of artifacts, executive reports, and control of strategic initiatives aligned with the PDTIC." },
+          { "title": "Business Intelligence", "text": "Power BI (DAX) interactive dashboards to visualize KPIs and support executive decision-making." },
+          { "title": "Web development", "text": "custom SharePoint webparts (JavaScript, HTML, CSS) integrated via SharePoint API for corporate governance." },
+          { "title": "C-level solutions", "text": "document and news displays for the Central Bank and ANBIMA leadership." },
+          { "title": "Management frameworks", "text": "practical application of PMI, Agile, MPS.BR, and CMMI for standardization and continuous improvement of processes." },
+          { "title": "Knowledge management", "text": "creation of strategic content and low-code/no-code solutions (Notion) for business continuity." }
+        ]
+      },
+      "exp3": {
+        "position": "Intern & Legal Assistant",
+        "highlights": [
+          { "title": "Procedural and financial diligence", "text": "protocols, court inquiries, payments of fees and judicial deposits, control of payments between client and firm, and procedural obligations." },
+          { "title": "Process automation", "text": "Python, VBA, and Selenium for web scraping from various Brazilian courts + RPA: automated integration between internal system and judicial platforms." },
+          { "title": "Operational optimization", "text": "reduced time of procedural data entry via scripts, improving data flow and productivity." },
+          { "title": "Legal data analysis", "text": "summaries of petitions and management of procedural information in internal systems." }
+        ]
+      },
+      "exp4": {
+        "position": "Apprentice - Analytics / Salesforce",
+        "highlights": [
+          { "title": "VBA/Excel automation", "text": "automation for data collection, report generation, and managerial email delivery." },
+          { "title": "Inventory control", "text": "managed stock and distribution of promotional materials (trade marketing) and office supplies." },
+          { "title": "Sales analysis", "text": "analyzed sales volumes, commercial KPIs, and optimized administrative routines via macros." }
+        ]
+      },
+      "exp5": {
+        "position": "Apprentice - Administrative / Production Assistant",
+        "highlights": [
+          { "title": "Operational management", "text": "worked with Excel in operational management. Data entry and reading in SAP." },
+          { "title": "Customer and support", "text": "customer service, bottle returns center, and LPG supplier support. Assisted queue management and supported vendors." },
+          { "title": "Quality control", "text": "quality control and inspection in cylinder production." }
+        ]
+      }
+    }
+  },
+  "education": {
+    "title": "Academic Education",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "grade": "Grade",
+    "items": {
+      "edu1": {
+        "degree": "Postgraduate",
+        "field": "Full Stack Java Developer",
+        "description": "Postgraduate program focused on Full Stack Java development with emphasis on Spring and modern development practices."
+      },
+      "edu2": {
+        "degree": "Postgraduate",
+        "field": "Project Management",
+        "description": "Postgraduate in project management with a focus on Agile practices and PMI."
+      },
+      "edu3": {
+        "degree": "Bachelor (in progress)",
+        "field": "Computer Science",
+        "description": "Bachelor's degree in progress in Computer Science."
+      },
+      "edu4": {
+        "degree": "Bachelor's Degree",
+        "field": "Law",
+        "description": "Bachelor of Law."
+      }
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "My recent GitHub work",
+    "viewDetails": "View Details",
+    "viewCode": "View Code",
+    "liveDemo": "Live Demo",
+    "technologies": "Technologies",
+    "description": "Description",
+    "filters": {
+      "all": "All"
+    },
+    "loading": "Loading projects...",
+    "github": "GitHub",
+    "demo": "Demo",
+    "readme": "README",
+    "noDescription": "No description available",
+    "empty": "No projects found for this filter.",
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page"
+    }
+  },
+  "certifications": {
+    "title": "Certifications",
+    "subtitle": "Courses and certificates earned",
+    "viewCertificate": "View Certificate",
+    "download": "Download",
+    "issuedBy": "Issued by",
+    "issuedDate": "Issue Date",
+    "loading": "Loading certificates...",
+    "retry": "Try again",
+    "empty": "No certificates found.",
+    "view": "View",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "zoomReset": "Reset zoom",
+    "zoomAuto": "Auto",
+    "rotate": "Rotate 90°",
+    "openGithub": "Open on GitHub",
+    "close": "Close modal"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "subtitle": "Let's talk about opportunities or projects!",
+    "infoTitle": "Contact Information",
+    "infoDescription": "I'm available for job opportunities, freelance work, and interesting projects. Reach out through any of the channels below!",
+    "formTitle": "Send a Message",
+    "formDescription": "Fill out the form below and I'll get back to you as soon as possible!",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subject": "Subject",
+    "subjectPlaceholder": "Message subject",
+    "message": "Message",
+    "messagePlaceholder": "Write your message here...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent successfully! I'll get back to you soon.",
+    "error": "Error sending message. Please try again or contact me directly by email.",
+    "labels": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "whatsapp": "WhatsApp",
+      "address": "Address"
+    }
+  },
+  "chat": {
+    "title": "AI Chat",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "clear": "Clear",
+    "newChat": "New Chat",
+    "thinking": "Thinking...",
+    "error": "Error sending message",
+    "initialMessage": "Hi! I'm the AI trained with Wesley's portfolio. You can ask about technologies he masters, projects he has built, or his professional experiences.",
+    "headerTitle": "Chat about Wesley",
+    "headerSubtitle": "Ask about experience, projects, and tech stack.",
+    "close": "Close chat",
+    "avatarAlt": "AI Avatar",
+    "openAria": "Open AI chat about Wesley"
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "builtWith": "Built with",
+    "and": "and",
+    "description": "Full Stack Developer passionate about solving people's problems, crafting innovative solutions, and building amazing digital experiences.",
+    "quickLinks": "Quick Links",
+    "social": "Social"
+  }
+}

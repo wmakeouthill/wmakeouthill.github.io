@@ -1,8 +1,10 @@
 .chat-widget-container {
+  --chat-gap: 0.75rem;
+  --scroll-btn-size: 50px;
   position: fixed;
   /* Posição padrão: alinhado com scroll-to-top quando ele não está visível */
-  bottom: 0.75rem;
-  right: 0.75rem;
+  bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+  right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
   z-index: var(--z-fixed);
   font-family: var(--font-primary);
   transition: all var(--transition-normal);
@@ -15,9 +17,11 @@
 
 /* Quando scroll-to-top está visível, move o chat para a esquerda na MESMA LINHA (mesmo bottom) */
 .chat-widget-container.scroll-top-visible {
-  bottom: 0.75rem;
+  bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
   /* Mesma linha do scroll-to-top */
-  right: calc(0.75rem + 50px + 0.75rem);
+  right: calc(
+    max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + var(--chat-gap)
+  );
   /* Move para a esquerda */
 }
 
@@ -46,13 +50,15 @@
   }
 
   .chat-widget-container {
-    bottom: 0.75rem;
-    right: 0.75rem;
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
   }
 
   .chat-widget-container.scroll-top-visible {
-    bottom: 0.75rem;
-    right: calc(0.75rem + 50px + 0.75rem);
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: calc(
+      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + var(--chat-gap)
+    );
   }
 }
 
@@ -140,16 +146,20 @@
 
 @media (max-width: 768px) {
   .chat-widget-container {
-    bottom: 1rem;
-    right: 1rem;
+    --chat-gap: 1rem;
+    --scroll-btn-size: 44px;
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
     display: flex !important;
   }
 
   .chat-widget-container.scroll-top-visible {
     /* Em mobile, scroll-to-top é menor (44px) - mesma linha */
-    bottom: 1rem;
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
     /* Mesma linha do scroll-to-top em mobile */
-    right: calc(1rem + 44px + 0.5rem);
+    right: calc(
+      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + 0.5rem
+    );
     /* Move para a esquerda */
   }
 
@@ -174,13 +184,17 @@
 
 @media (max-width: 480px) {
   .chat-widget-container {
-    bottom: 0.75rem;
-    right: 0.75rem;
+    --chat-gap: 0.75rem;
+    --scroll-btn-size: 40px;
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem);
   }
 
   .chat-widget-container.scroll-top-visible {
-    bottom: 0.75rem;
-    right: calc(0.75rem + 44px + 0.5rem);
+    bottom: max(var(--chat-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: calc(
+      max(var(--chat-gap), env(safe-area-inset-right, 0px) + 0.35rem) + var(--scroll-btn-size) + 0.5rem
+    );
   }
 
   .chat-messages {
