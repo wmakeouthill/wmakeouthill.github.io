@@ -18,7 +18,7 @@
 .timeline-item {
   display: grid;
   grid-template-columns: 40px 1fr;
-  gap: 2rem;
+  gap: 0.85rem;
   margin-bottom: 2rem;
   position: relative;
 }
@@ -75,7 +75,7 @@
 }
 
 .experience-card:hover {
-  transform: translateX(10px);
+  transform: translateX(3px);
   border-color: var(--color-accent);
   box-shadow: var(--shadow-lg);
 }
@@ -152,19 +152,19 @@
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
   }
-  
+
   .experience .section-title {
     margin-bottom: 1.5rem;
   }
-  
+
   .timeline {
     margin-top: 1.5rem;
   }
-  
+
   .timeline-item {
     margin-bottom: 1.5rem;
   }
-  
+
   .timeline-item:last-child {
     margin-bottom: 0;
   }
@@ -175,21 +175,21 @@
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
   }
-  
+
   .experience .section-title {
     margin-bottom: 1.25rem;
   }
-  
+
   .timeline {
     margin-top: 1.25rem;
   }
-  
+
   .timeline-item {
-    grid-template-columns: 30px 1fr;
-    gap: 1rem;
+    grid-template-columns: 28px 1fr;
+    gap: 0.85rem;
     margin-bottom: 1.25rem;
   }
-  
+
   .timeline-item:last-child {
     margin-bottom: 0;
   }
@@ -226,19 +226,19 @@
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
-  
+
   .experience .section-title {
     margin-bottom: 1rem;
   }
-  
+
   .timeline {
     margin-top: 1rem;
   }
-  
+
   .timeline-item {
     margin-bottom: 1rem;
   }
-  
+
   .timeline-item:last-child {
     margin-bottom: 0;
   }
@@ -247,7 +247,7 @@
 /* Scroll Animation */
 .experience-card {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-12px);
   transition: all 0.6s ease;
 }
 
@@ -258,7 +258,7 @@
 
 .experience-card:hover,
 .experience-card.auto-hover {
-  transform: translateY(-5px) translateX(10px);
+  transform: translateY(-2px) translateX(3px);
   box-shadow: var(--shadow-lg);
   background: var(--bg-primary);
   border-color: var(--color-accent);
