@@ -3,39 +3,45 @@ app-chat-floating-button {
   display: block !important;
 }
 
+.chat-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .chat-avatar {
   width: 5.5rem;
   height: 5.5rem;
   object-fit: cover;
   object-position: center;
-  cursor: pointer;
   transition: all var(--transition-fast);
   border-radius: 50%;
   box-shadow: var(--shadow-md);
-  outline: none;
   display: block;
   margin: 0;
   padding: 0;
   vertical-align: bottom;
   margin-bottom: -0.25rem;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
   position: relative;
   z-index: var(--z-fixed);
-  /* Garantir que sempre apareça */
   flex-shrink: 0;
   min-width: 5.5rem;
   min-height: 5.5rem;
-  /* Garantir que a imagem não seja cortada */
   overflow: hidden;
+  opacity: 0.6; /* 60% de transparência quando fechado */
 }
 
 .chat-avatar:hover,
-.chat-avatar.chat-open {
+.chat-avatar.chat-open,
+.chat-avatar-wrapper:focus-visible .chat-avatar {
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 8px 24px rgba(219, 194, 125, 0.45);
+  opacity: 1;
 }
 
 .chat-avatar:active {
@@ -43,8 +49,25 @@ app-chat-floating-button {
   box-shadow: var(--shadow-md);
 }
 
-.chat-avatar:focus {
-  outline: none;
+.chat-unread-badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  border-radius: var(--radius-full);
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--bg-secondary);
+  z-index: calc(var(--z-fixed) + 1);
+  line-height: 1;
 }
 
 /* Tablets */
@@ -68,7 +91,8 @@ app-chat-floating-button {
   }
 
   .chat-avatar:hover,
-  .chat-avatar.chat-open {
+  .chat-avatar.chat-open,
+  .chat-avatar-wrapper:focus-visible .chat-avatar {
     transform: translateY(-1px) scale(1.03);
   }
 
@@ -84,6 +108,13 @@ app-chat-floating-button {
     min-width: 4rem;
     min-height: 4rem;
     margin-bottom: -0.15rem;
+  }
+
+  .chat-unread-badge {
+    min-width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.7rem;
+    padding: 0 0.25rem;
   }
 }
 

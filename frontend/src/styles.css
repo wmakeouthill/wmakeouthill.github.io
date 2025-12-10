@@ -439,11 +439,13 @@ a:hover {
    Scroll to Top Button
    =========================== */
 .scroll-to-top {
+  --scroll-gap: 0.75rem;
+  --scroll-size: 50px;
   position: fixed;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  width: 50px;
-  height: 50px;
+  bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+  right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+  width: var(--scroll-size);
+  height: var(--scroll-size);
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: var(--color-white);
   border: none;
@@ -463,8 +465,8 @@ a:hover {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   /* Garantir que sempre apareça na tela */
-  min-width: 50px;
-  min-height: 50px;
+  min-width: var(--scroll-size);
+  min-height: var(--scroll-size);
   flex-shrink: 0;
 }
 
@@ -549,24 +551,24 @@ a:hover {
 /* Tablets */
 @media (max-width: 1024px) and (min-width: 769px) {
   .scroll-to-top {
-    width: 50px;
-    height: 50px;
-    bottom: 0.75rem;
-    right: 0.75rem;
-    min-width: 50px;
-    min-height: 50px;
+    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
+    min-width: var(--scroll-size);
+    min-height: var(--scroll-size);
   }
 }
 
 @media (max-width: 768px) {
   .scroll-to-top {
-    width: 44px;
-    height: 44px;
-    bottom: 1rem;
-    right: 1rem;
+    --scroll-gap: 1rem;
+    --scroll-size: 44px;
+    width: var(--scroll-size);
+    height: var(--scroll-size);
+    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
     font-size: 1.25rem;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--scroll-size);
+    min-height: var(--scroll-size);
   }
 }
 
@@ -578,13 +580,15 @@ a:hover {
   }
 
   .scroll-to-top {
-    width: 40px;
-    height: 40px;
-    bottom: 0.75rem;
-    right: 0.75rem;
+    --scroll-gap: 0.75rem;
+    --scroll-size: 40px;
+    width: var(--scroll-size);
+    height: var(--scroll-size);
+    bottom: max(var(--scroll-gap), env(safe-area-inset-bottom, 0px) + 0.35rem);
+    right: max(var(--scroll-gap), env(safe-area-inset-right, 0px) + 0.35rem);
     font-size: 1.125rem;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: var(--scroll-size);
+    min-height: var(--scroll-size);
   }
 }
 

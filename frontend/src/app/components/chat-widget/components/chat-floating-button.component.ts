@@ -13,5 +13,6 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
 export class ChatFloatingButtonComponent {
   readonly onClick = output<void>();
   readonly isOpen = input<boolean>(false);
+  readonly unreadCount = input<number>(0);
 }
 

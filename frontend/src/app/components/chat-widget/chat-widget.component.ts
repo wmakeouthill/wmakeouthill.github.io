@@ -67,6 +67,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   inputText = signal('');
   messages = signal<ChatMessage[]>([]);
+  unreadCount = signal(0);
+  private lastProcessedLength = 0;
+  private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
 
   readonly initialMessage = computed<ChatMessage>(() => ({
@@ -102,6 +105,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.configureChatOpenEffects();
     this.configureLoadingEffects();
     this.configureLanguageEffect();
+    this.configureUnreadTracking();
     this.configurarPersistenciaMensagens();
   }
 
@@ -124,7 +128,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         if (this.messages().length === 0) {
           this.messages.set([this.initialMessage()]);
         }
+        this.marcarComoLidas();
       }, 150);
+    }
+    if (!this.isOpen()) {
+      // Ao fechar, congela o estado atual para contagem de novas mensagens
+      this.lastProcessedLength = this.messages().length;
     }
   }
 
@@ -242,6 +251,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (mensagensSalvas.length > 0) {
       const mensagensConvertidas = await this.converterMensagensSalvas(mensagensSalvas);
       this.messages.set(mensagensConvertidas);
+      this.marcarComoLidas();
       // Se o chat já estiver aberto, garante scroll para o final
       if (this.isOpen()) {
         setTimeout(() => {
@@ -250,6 +260,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       }
     } else {
       this.messages.set([this.initialMessage()]);
+      this.marcarComoLidas();
     }
   }
 
@@ -304,6 +315,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
     // Limpa mensagens no frontend
     this.messages.set([this.initialMessage()]);
+    this.marcarComoLidas();
 
     // Limpa sessionStorage (remove sessionId e mensagens)
     limparSessionStorage();
@@ -317,6 +329,38 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         error: () => console.warn('Erro ao limpar histórico no backend')
       });
     }
+  }
+
+  private configureUnreadTracking(): void {
+    effect(() => {
+      const msgs = this.messages();
+      const chatAberto = this.isOpen();
+
+      // Primeiro ciclo: apenas inicializa baseline para evitar badge na mensagem inicial
+      if (!this.unreadInitialized) {
+        this.lastProcessedLength = msgs.length;
+        this.unreadCount.set(0);
+        this.unreadInitialized = true;
+        return;
+      }
+
+      if (chatAberto) {
+        this.marcarComoLidas();
+        return;
+      }
+
+      const novasMensagens = msgs.slice(this.lastProcessedLength);
+      const novasDoAssistente = novasMensagens.filter((m) => m.from === 'assistant').length;
+      if (novasDoAssistente > 0) {
+        this.unreadCount.update((valorAtual) => valorAtual + novasDoAssistente);
+      }
+      this.lastProcessedLength = msgs.length;
+    });
+  }
+
+  private marcarComoLidas(): void {
+    this.lastProcessedLength = this.messages().length;
+    this.unreadCount.set(0);
   }
 }
 
