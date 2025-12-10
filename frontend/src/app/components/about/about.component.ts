@@ -15,9 +15,20 @@ export class AboutComponent implements OnInit, AfterViewInit {
   private readonly i18n = inject(I18nService);
 
   @ViewChild('highlightsContainer') highlightsContainer!: ElementRef;
+
+  private readonly baseHighlights = [
+    { id: 1, icon: '💼', key: 'about.highlights.experience' },
+    { id: 2, icon: '🎓', key: 'about.highlights.education' },
+    { id: 3, icon: '🚀', key: 'about.highlights.projects' },
+    { id: 4, icon: '✅', key: 'about.highlights.status' }
+  ];
+
   readonly personalInfo = {
     name: 'Wesley de Carvalho Augusto Correia',
-    title: computed(() => this.i18n.translate('about.titleRole')),
+    title: computed(() => {
+      this.i18n.translationsSignal(); // Reage a mudanças nas traduções
+      return this.i18n.translate('about.titleRole');
+    }),
     yearsOfExperience: 6,
     age: 29,
     location: 'Duque de Caxias, RJ, Brasil',
@@ -25,19 +36,26 @@ export class AboutComponent implements OnInit, AfterViewInit {
     driverLicense: 'AB',
     available: true,
     bio: computed(() => {
+      this.i18n.translationsSignal(); // Reage a mudanças nas traduções
       const value = this.i18n.translate('about.bio');
       return Array.isArray(value) ? value : [value];
     })
   };
 
-  readonly highlights = computed(() => [
-    { icon: '💼', title: this.i18n.translate('about.highlights.experience.title'), value: this.i18n.translate('about.highlights.experience.value') },
-    { icon: '🎓', title: this.i18n.translate('about.highlights.education.title'), value: this.i18n.translate('about.highlights.education.value') },
-    { icon: '🚀', title: this.i18n.translate('about.highlights.projects.title'), value: this.i18n.translate('about.highlights.projects.value') },
-    { icon: '✅', title: this.i18n.translate('about.highlights.status.title'), value: this.i18n.translate('about.highlights.status.value') }
-  ]);
+  readonly highlights = computed(() => {
+    // Reage a mudanças nas traduções
+    this.i18n.translationsSignal();
+
+    return this.baseHighlights.map((highlight) => ({
+      id: highlight.id,
+      icon: highlight.icon,
+      title: this.i18n.translate(`${highlight.key}.title`),
+      value: this.i18n.translate(`${highlight.key}.value`)
+    }));
+  });
 
   readonly softSkills = computed(() => {
+    this.i18n.translationsSignal(); // Reage a mudanças nas traduções
     const skills = this.i18n.translate('about.softSkills.items');
     return Array.isArray(skills) ? skills : [skills];
   });
@@ -72,7 +90,8 @@ export class AboutComponent implements OnInit, AfterViewInit {
 
     // Observe highlight cards
     const highlightCards = this.highlightsContainer?.nativeElement?.querySelectorAll('.highlight-card');
-    highlightCards?.forEach((card: Element) => {
+    highlightCards?.forEach((card: Element, index: number) => {
+      (card as HTMLElement).style.transitionDelay = `${index * 0.1}s`;
       observer.observe(card);
     });
   }

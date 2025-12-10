@@ -25,7 +25,7 @@
         </div>
 
         <div class="about-highlights" #highlightsContainer>
-          @for (highlight of highlights(); track highlight.title) {
+          @for (highlight of highlights(); track highlight.id) {
           <div class="highlight-card">
             <span class="highlight-icon">{{ highlight.icon }}</span>
             <div class="highlight-content">
