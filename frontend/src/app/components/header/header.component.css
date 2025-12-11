@@ -92,6 +92,15 @@
   width: 100%;
 }
 
+/* Active state - section currently in view */
+.nav-link.active {
+  color: var(--color-accent);
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
 /* Social Links */
 .nav-social {
   display: flex;
@@ -256,6 +265,13 @@
   color: var(--color-accent);
   background: var(--bg-hover);
   padding-left: 2.5rem;
+}
+
+/* Active state for mobile navigation */
+.mobile-nav-link.active {
+  color: var(--color-accent);
+  background: var(--bg-hover);
+  border-left: 3px solid var(--color-accent);
 }
 
 .mobile-social {
