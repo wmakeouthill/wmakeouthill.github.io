@@ -1,4 +1,4 @@
-<section id="certifications" class="section certifications">
+<section id="certifications" class="section certifications" #certificationsSection>
   <div class="container">
     <div class="section-title">
       <h2>{{ 'certifications.title' | translate }}</h2>
@@ -33,7 +33,7 @@
     <!-- Certificados Grid -->
     @if (!loading() && !error() && certificados().length > 0) {
       <div class="certifications-grid">
-        @for (cert of certificados(); track cert.sha) {
+        @for (cert of paginatedCertificados(); track cert.sha) {
           <div
             class="cert-card"
             (click)="openCertificado(cert)"
@@ -82,6 +82,43 @@
           </div>
         }
       </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button
+            class="pagination-btn"
+            [class.disabled]="currentPage() === 1"
+            (click)="previousPage()"
+            aria-label="{{ 'projects.pagination.previous' | translate }}"
+          >
+            ‹
+          </button>
+
+          @for (page of pageNumbers(); track page) {
+            @if (page === -1) {
+              <span class="pagination-ellipsis">...</span>
+            } @else {
+              <button
+                class="pagination-btn"
+                [class.active]="currentPage() === page"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+
+          <button
+            class="pagination-btn"
+            [class.disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+            aria-label="{{ 'projects.pagination.next' | translate }}"
+          >
+            ›
+          </button>
+        </div>
+      }
     }
   </div>
 </section>
