@@ -4,7 +4,7 @@
 #
 # IMPORTANTE: Este script é adaptado para o projeto-wesley (Portfolio Wesley)
 # - Estrutura: backend Spring Boot + frontend Angular
-# - Secrets necessários: OPENAI_API_KEY, GMAIL_USERNAME, GMAIL_APP_PASSWORD, EMAIL_RECIPIENT, GITHUB_API_TOKEN
+# - Secrets necessários: GEMINI_API_KEY, OPENAI_API_KEY (fallback), GMAIL_USERNAME, GMAIL_APP_PASSWORD, EMAIL_RECIPIENT, GITHUB_API_TOKEN
 # - Sem banco de dados (aplicação stateless)
 
 $ErrorActionPreference = "Stop"
@@ -241,7 +241,8 @@ Write-Host "Tag com timestamp: $TIMESTAMP_TAG" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Proximos passos:" -ForegroundColor Yellow
 Write-Host "  1. Verifique se os secrets existem no Secret Manager:" -ForegroundColor Yellow
-Write-Host "     - openai-api-key" -ForegroundColor Yellow
+Write-Host "     - gemini-api-key (primário)" -ForegroundColor Yellow
+Write-Host "     - openai-api-key (fallback)" -ForegroundColor Yellow
 Write-Host "     - gmail-username" -ForegroundColor Yellow
 Write-Host "     - gmail-app-password" -ForegroundColor Yellow
 Write-Host "     - email-recipient" -ForegroundColor Yellow
@@ -268,11 +269,12 @@ if ($deploy -eq "S" -or $deploy -eq "s" -or $deploy -eq "Y" -or $deploy -eq "y")
     
     # Verificar se os secrets existem
     $secrets = @(
-        @{Name="openai-api-key"; EnvVar="OPENAI_API_KEY"},
-        @{Name="gmail-username"; EnvVar="GMAIL_USERNAME"},
-        @{Name="gmail-app-password"; EnvVar="GMAIL_APP_PASSWORD"},
-        @{Name="email-recipient"; EnvVar="EMAIL_RECIPIENT"},
-        @{Name="github-api-token"; EnvVar="GITHUB_API_TOKEN"}
+        @{Name="gemini-api-key"; EnvVar="GEMINI_API_KEY"; Required=$true},
+        @{Name="openai-api-key"; EnvVar="OPENAI_API_KEY"; Required=$false},
+        @{Name="gmail-username"; EnvVar="GMAIL_USERNAME"; Required=$true},
+        @{Name="gmail-app-password"; EnvVar="GMAIL_APP_PASSWORD"; Required=$true},
+        @{Name="email-recipient"; EnvVar="EMAIL_RECIPIENT"; Required=$true},
+        @{Name="github-api-token"; EnvVar="GITHUB_API_TOKEN"; Required=$true}
     )
     
     $missingSecrets = @()
@@ -314,7 +316,7 @@ if ($deploy -eq "S" -or $deploy -eq "s" -or $deploy -eq "Y" -or $deploy -eq "y")
         --max-instances 10 `
         --min-instances 0 `
         --port 8080 `
-        --set-secrets="OPENAI_API_KEY=openai-api-key:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,EMAIL_RECIPIENT=email-recipient:latest,GITHUB_API_TOKEN=github-api-token:latest" `
+        --set-secrets="GEMINI_API_KEY=gemini-api-key:latest,OPENAI_API_KEY=openai-api-key:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,EMAIL_RECIPIENT=email-recipient:latest,GITHUB_API_TOKEN=github-api-token:latest" `
         --set-env-vars="SERVER_PORT=8080,SPRING_PROFILES_ACTIVE=prod,LOG_LEVEL=INFO,GITHUB_USERNAME=wmakeouthill" `
         --project=$PROJECT_ID
     
@@ -336,20 +338,24 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Para criar os secrets no Secret Manager, execute os comandos abaixo:" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "1. OPENAI_API_KEY (chave da API OpenAI):" -ForegroundColor Green
-Write-Host "   echo -n 'sk-...' | gcloud secrets create openai-api-key --data-file=- --project=$PROJECT_ID" -ForegroundColor Cyan
+Write-Host "1. GEMINI_API_KEY (chave da API Gemini - primário, mais rápido):" -ForegroundColor Green
+Write-Host "   echo -n 'AIzaSy...' | gcloud secrets create gemini-api-key --data-file=- --project=`$PROJECT_ID" -ForegroundColor Cyan
+Write-Host "   (Obtenha em: https://aistudio.google.com)" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "2. GMAIL_USERNAME (seu email Gmail):" -ForegroundColor Green
+Write-Host "2. OPENAI_API_KEY (fallback, opcional):" -ForegroundColor Green
+Write-Host "   echo -n 'sk-...' | gcloud secrets create openai-api-key --data-file=- --project=`$PROJECT_ID" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "3. GMAIL_USERNAME (seu email Gmail):" -ForegroundColor Green
 Write-Host "   echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file=- --project=$PROJECT_ID" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "3. GMAIL_APP_PASSWORD (senha de app do Gmail):" -ForegroundColor Green
+Write-Host "4. GMAIL_APP_PASSWORD (senha de app do Gmail):" -ForegroundColor Green
 Write-Host "   echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-file=- --project=$PROJECT_ID" -ForegroundColor Cyan
 Write-Host "   (Crie em: https://myaccount.google.com/apppasswords)" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "4. EMAIL_RECIPIENT (email que recebera as mensagens do formulario):" -ForegroundColor Green
+Write-Host "5. EMAIL_RECIPIENT (email que recebera as mensagens do formulario):" -ForegroundColor Green
 Write-Host "   echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-file=- --project=$PROJECT_ID" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "5. GITHUB_API_TOKEN (Personal Access Token do GitHub - somente leitura):" -ForegroundColor Green
+Write-Host "6. GITHUB_API_TOKEN (Personal Access Token do GitHub - somente leitura):" -ForegroundColor Green
 Write-Host "   echo -n 'ghp_...' | gcloud secrets create github-api-token --data-file=- --project=$PROJECT_ID" -ForegroundColor Cyan
 Write-Host "   (Crie em: https://github.com/settings/tokens)" -ForegroundColor Yellow
 Write-Host ""
