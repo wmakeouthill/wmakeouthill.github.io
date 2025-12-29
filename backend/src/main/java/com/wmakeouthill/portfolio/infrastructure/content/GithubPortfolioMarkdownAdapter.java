@@ -30,45 +30,14 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
   private static final int MAX_CHARS_PER_FILE = 4000;
   private static final String ENGLISH_SUFFIX = "-english";
 
-  private static final Map<String, MarkdownMetadata> METADADOS = Map.ofEntries(
-      Map.entry("curriculo", metadata(true, Set.of("curriculo", "perfil", "experiencia", "trabalho", "contato"))),
-      Map.entry("stacks",
-          metadata(true, Set.of("stack", "tecnologias", "skills", "tech stack", "technologies", "skills list"))),
-      Map.entry("readme", metadata(false, Set.of("portfolio", "resumo", "summary", "overview"))),
-      Map.entry("readme_github_profile", metadata(false, Set.of("perfil", "github", "profile", "github profile"))),
-      Map.entry("aa_space", metadata(false, Set.of("projeto", "aa space", "comunidade", "community", "support group"))),
-      Map.entry("experimenta-ai---soneca",
-          metadata(false, Set.of("projeto", "lanchonete", "clean architecture", "snack bar", "pos"))),
-      Map.entry("first-angular-app",
-          metadata(false, Set.of("projeto", "angular", "iniciante", "beginner", "hello world"))),
-      Map.entry("investment_calculator",
-          metadata(false, Set.of("projeto", "investimento", "calculadora", "investment", "calculator", "finance"))),
-      Map.entry("lobby-pedidos", metadata(false, Set.of("projeto", "pedidos", "automacao", "orders", "order queue"))),
-      Map.entry("lol-matchmaking-fazenda",
-          metadata(false, Set.of("projeto", "lol", "matchmaking", "league", "league of legends"))),
-      Map.entry("mercearia-r-v",
-          metadata(false, Set.of("projeto", "varejo", "estoque", "grocery", "inventory", "retail"))),
-      Map.entry("obaid-with-bro", metadata(false, Set.of("projeto", "chatbot", "obaid", "devil chat", "bot"))),
-      Map.entry("pinta-como-eu-pinto", metadata(false, Set.of("projeto", "arte", "pintura", "art", "painting"))),
-      Map.entry("pintarapp", metadata(false, Set.of("projeto", "pintura", "app", "painting app", "drawing app"))),
-      Map.entry("traffic_manager",
-          metadata(false, Set.of("projeto", "dashboard", "tempo real", "real time", "monitoring"))),
-      Map.entry("wmakeouthill.github.io",
-          metadata(false,
-              Set.of("projeto", "portfolio", "site", "angular", "spring boot", "portfolio site", "personal site"))),
-      Map.entry("wmakeouthill", metadata(false, Set.of("projeto", "perfil", "github", "wesley", "github profile"))),
-      Map.entry("anbima-selic-banco-central",
-          metadata(false, Set.of("experiencia", "trabalho", "emprego", "anbima", "selic", "banco central",
-              "experience", "work", "central bank", "selic system"))),
-      Map.entry("gondim-albuquerque-negreiros",
-          metadata(false, Set.of("experiencia", "trabalho", "emprego", "juridico", "advocacia",
-              "legal", "law firm", "paralegal"))),
-      Map.entry("liquigas-petrobras",
-          metadata(false, Set.of("experiencia", "trabalho", "emprego", "liquigas", "petrobras",
-              "gas", "logistics", "quality control"))),
-      Map.entry("phillip-morris",
-          metadata(false, Set.of("experiencia", "trabalho", "emprego", "phillip morris", "tabaco",
-              "philip morris", "tobacco", "salesforce"))));
+  /**
+   * Metadados estáticos APENAS para arquivos preferenciais (currículo, stacks).
+   * Novos projetos são detectados dinamicamente do GitHub.
+   */
+  private static final Map<String, MarkdownMetadata> METADADOS_PREFERENCIAIS = Map.of(
+      "curriculo", metadata(true, Set.of("curriculo", "perfil", "experiencia", "trabalho", "contato",
+          "resume", "profile", "experience", "work", "contact")),
+      "stacks", metadata(true, Set.of("stack", "tecnologias", "skills", "tech stack", "technologies")));
 
   private final GithubRepositoryContentPort githubContentPort;
 
@@ -202,16 +171,51 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
         metadata.tags()));
   }
 
+  /**
+   * Obtém metadados para um arquivo.
+   * Para arquivos preferenciais (currículo, stacks) usa metadados estáticos.
+   * Para projetos, gera tags dinamicamente do nome do arquivo.
+   */
   private MarkdownMetadata obterMetadata(String nome, boolean projeto) {
     String chave = nome.toLowerCase(Locale.ROOT);
-    MarkdownMetadata metadata = METADADOS.get(chave);
-    if (metadata != null) {
-      return metadata;
+
+    // Verifica se é arquivo preferencial (currículo, stacks)
+    MarkdownMetadata preferencial = METADADOS_PREFERENCIAIS.get(chave);
+    if (preferencial != null) {
+      return preferencial;
     }
-    Set<String> tags = projeto
-        ? Set.of("projeto", chave)
-        : Set.of("portfolio", chave);
+
+    // Gera tags dinamicamente do nome do projeto
+    Set<String> tags = gerarTagsDinamicas(chave, projeto);
     return new MarkdownMetadata(false, tags);
+  }
+
+  /**
+   * Gera tags automaticamente a partir do nome do projeto.
+   * Ex: "lol-matchmaking-fazenda" → ["projeto", "lol", "matchmaking", "fazenda"]
+   */
+  private Set<String> gerarTagsDinamicas(String nome, boolean projeto) {
+    Set<String> tags = new java.util.HashSet<>();
+
+    // Tag base
+    tags.add(projeto ? "projeto" : "portfolio");
+    tags.add(nome);
+
+    // Extrai palavras do nome (split por - e _)
+    String[] partes = nome.split("[-_]+");
+    for (String parte : partes) {
+      if (parte.length() > 2) {
+        tags.add(parte.toLowerCase(Locale.ROOT));
+      }
+    }
+
+    // Versão sem separadores
+    tags.add(nome.replace("-", "").replace("_", ""));
+
+    // Versão com espaços (para busca natural)
+    tags.add(nome.replace("-", " ").replace("_", " "));
+
+    return tags;
   }
 
   private String limitarTamanho(String conteudo) {
