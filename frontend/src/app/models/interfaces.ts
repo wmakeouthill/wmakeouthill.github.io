@@ -36,7 +36,7 @@ export interface Skill {
   // level numérico foi substituído por uma label categórica para evitar autoavaliação precisa
   levelLabel?: 'Básico' | 'Intermediário' | 'Avançado' | 'Produção';
   levelKey?: 'beginner' | 'intermediate' | 'advanced' | 'production';
-  category: 'frontend' | 'backend' | 'database' | 'devops' | 'other';
+  category: 'architecture' | 'frontend' | 'backend' | 'database' | 'devops' | 'other';
   icon?: string;
   // opcional: em quantos projetos essa skill foi utilizada (para evidência)
   projectsCount?: number;

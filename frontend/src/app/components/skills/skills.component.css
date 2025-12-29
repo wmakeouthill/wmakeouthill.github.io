@@ -42,7 +42,7 @@
 }
 
 .skill-card {
-  padding: 1.5rem;
+  padding: 0.875rem 1rem;
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   transition: all var(--transition-normal);
@@ -59,37 +59,44 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .skill-icon {
   font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
 .skill-name {
   font-weight: 600;
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .skill-badge {
   background: rgba(219, 194, 125, 0.1);
   color: var(--color-accent);
-  padding: 0.375rem 0.875rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-weight: 500;
-  font-size: 0.875rem;
-  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  flex-shrink: 0;
   border: 1px solid rgba(219, 194, 125, 0.2);
 }
 
 .skill-meta {
-  margin-top: 0.5rem;
+  margin-top: 0.375rem;
 }
 
 .projects-count {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 @media (max-width: 1024px) {
@@ -97,11 +104,11 @@
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
   }
-  
+
   .skills .section-title {
     margin-bottom: 1.5rem;
   }
-  
+
   .skills-categories {
     margin-top: 1.5rem;
     gap: 1.5rem;
@@ -113,16 +120,16 @@
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
   }
-  
+
   .skills .section-title {
     margin-bottom: 1.25rem;
   }
-  
+
   .skills-categories {
     margin-top: 1.25rem;
     gap: 1.25rem;
   }
-  
+
   .category-section {
     padding: 1.5rem;
   }
@@ -141,11 +148,11 @@
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
-  
+
   .skills .section-title {
     margin-bottom: 1rem;
   }
-  
+
   .skills-categories {
     margin-top: 1rem;
     gap: 1rem;
