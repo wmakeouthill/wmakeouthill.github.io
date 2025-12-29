@@ -26,6 +26,11 @@ export class SkillsComponent {
     { name: 'RxJS', levelKey: 'advanced', projectsCount: 6, category: 'frontend', icon: '⚡' },
     { name: 'Chart.js', levelKey: 'advanced', projectsCount: 2, category: 'frontend', icon: '⚡' },
     { name: 'Socket.IO', levelKey: 'advanced', projectsCount: 3, category: 'frontend', icon: '⚡' },
+    { name: 'Google Maps API', levelKey: 'advanced', projectsCount: 2, category: 'frontend', icon: '⚡' },
+    { name: 'PWA', levelKey: 'advanced', projectsCount: 2, category: 'frontend', icon: '⚡' },
+    { name: 'SSE (Server-Sent Events)', levelKey: 'advanced', projectsCount: 2, category: 'frontend', icon: '⚡' },
+    { name: 'Chrome Extension (MV3)', levelKey: 'advanced', projectsCount: 1, category: 'frontend', icon: '⚡' },
+    { name: 'Angular Signals/Zoneless', levelKey: 'advanced', projectsCount: 4, category: 'frontend', icon: '⚡' },
 
     // Backend
     { name: 'Java', levelKey: 'production', projectsCount: 5, category: 'backend', icon: 'java.svg' },
@@ -43,6 +48,7 @@ export class SkillsComponent {
     { name: 'Python', levelKey: 'advanced', projectsCount: 3, category: 'backend', icon: 'python.svg' },
     { name: 'VBA', levelKey: 'advanced', projectsCount: 4, category: 'backend', icon: '⚡' },
     { name: 'Selenium', levelKey: 'advanced', projectsCount: 3, category: 'backend', icon: '⚡' },
+    { name: 'OAuth 2.0 (Google)', levelKey: 'advanced', projectsCount: 2, category: 'backend', icon: '⚡' },
 
     // Database
     { name: 'Oracle', levelKey: 'production', projectsCount: 3, category: 'database', icon: 'oracle.svg' },
