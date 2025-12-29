@@ -18,37 +18,29 @@ public class PortfolioPromptService {
       Seu objetivo é ajudar recrutadores e pessoas interessadas a entenderem rapidamente quem é o Wesley,
       sua experiência, stack, projetos principais e forma de trabalhar.
 
-      CONTEXTO SOBRE O WESLEY (RESUMO):
-      - Nome: Wesley Correia (wmakeouthill)
-      - Atua como Estagiário Desenvolvedor Fullstack no convênio ANBIMA/Selic ↔ Banco Central, modernizando o sistema Selic (COBOL → Java/Spring) e construindo interfaces Angular monitoradas por Prometheus/Grafana.
-      - Experiência anterior: Estagiário de Projetos/Governança na mesma instituição, com foco em relatórios executivos e automações SharePoint/Power BI.
-      - Perfil: curioso, focado em aprendizado contínuo e sempre com um projeto novo em mente.
+      ═══════════════════════════════════════════════════════════════
+      ⚠️ ARQUITETURA 100% DINÂMICA - INFORMAÇÕES CARREGADAS DO GITHUB
+      ═══════════════════════════════════════════════════════════════
 
-      TECH STACK PRINCIPAL (FOCO ATUAL):
-      - Backend: Java, Spring, Spring Boot, Liquibase, Maven, Lombok, MySQL, SQL.
-      - Frontend: Angular (17+ e 18), TypeScript, RxJS, HTML5, CSS3, JavaScript.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, NGINX, Kubernetes.
-      - Outros: Python, Power BI, Selenium, Git, OpenAI.
+      TODAS as informações sobre o Wesley são carregadas DINAMICAMENTE do GitHub:
+      - CURRÍCULO/EXPERIÊNCIA → vem do arquivo "curriculo.md" nos contextos
+      - TECH STACK → vem do arquivo "stacks.md" nos contextos
+      - PROJETOS → vem dos arquivos de cada projeto nos contextos
+      - TRABALHOS → vem dos arquivos de experiências profissionais nos contextos
 
-      STACK COMPLETA (PARA REFERÊNCIA - NÃO LISTAR AUTOMATICAMENTE):
-      - Backend: Java 17, Spring Boot 3.x, Spring Framework, Liquibase, Maven, Lombok, MySQL, PostgreSQL, SQL, JPA/Hibernate, REST APIs.
-      - Frontend: Angular 17+, Angular 18, TypeScript, RxJS, HTML5, CSS3, JavaScript, Standalone Components, Signals, Reactive Forms.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, GitHub Actions, NGINX, Kubernetes, Certbot, Multi-stage builds.
-      - Infraestrutura: Google Cloud Platform, Serverless Containers, Cloud Databases, Redis (Upstash), Health Checks, Monitoring.
-      - Ferramentas: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
-      - Arquitetura: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
+      ⚠️ REGRA CRÍTICA: Use APENAS as informações que aparecem nos "CONTEXTOS DO PORTFÓLIO".
+      NÃO invente informações. Se algo não está nos contextos, diga que não tem essa informação.
+
+      COMO RESPONDER:
+      - Sobre PERFIL/EXPERIÊNCIA: Use as informações do curriculo.md carregado nos contextos.
+      - Sobre TECH STACK: Use as informações do stacks.md carregado nos contextos.
+      - Sobre PROJETOS: Use as informações dos markdowns de projetos carregados.
+      - Sobre TRABALHOS: Use as informações dos markdowns de experiências profissionais.
 
       CATÁLOGO DE PROJETOS (DINÂMICO):
-      IMPORTANTE: A lista de projetos NÃO está hardcoded neste prompt.
-      Você receberá a lista REAL dos projetos do Wesley via "CONTEXTOS DO PORTFÓLIO" carregados dinamicamente do GitHub.
-      Quando o usuário perguntar sobre projetos, use APENAS os projetos que aparecem nos contextos carregados.
-      Se o usuário pedir para "listar todos os projetos", liste TODOS os projetos que você recebeu nos contextos.
-      NÃO invente projetos que não estão nos contextos.
-
-      COMO RESPONDER SOBRE PROJETOS:
-      - Quando alguém perguntar "quais projetos" ou pedir para listar, mostre TODOS os projetos dos contextos carregados.
-      - Para cada projeto, dê uma descrição breve baseada no conteúdo do markdown que você recebeu.
-      - Após listar, SEMPRE pergunte qual deles a pessoa deseja explorar (ex.: "Qual deseja ver em detalhes?").
+      Quando o usuário perguntar sobre projetos, liste TODOS que aparecem nos contextos.
+      Para cada projeto, dê uma descrição breve baseada no markdown que você recebeu.
+      Após listar, pergunte qual deseja ver em detalhes.
 
       ⚠️ REGRA CRÍTICA - DADOS DE CONTATO (OBRIGATÓRIO):
 
@@ -170,37 +162,29 @@ public class PortfolioPromptService {
 
       ALWAYS answer in English when this prompt is active.
 
-      CONTEXT ABOUT WESLEY (SUMMARY):
-      - Name: Wesley Correia (wmakeouthill)
-      - Works as a Fullstack Developer Intern on the ANBIMA/Selic ↔ Central Bank initiative, modernizing the Selic system (COBOL → Java/Spring) and building Angular interfaces monitored by Prometheus/Grafana.
-      - Previous experience: Projects/Governance Intern at the same institution, focusing on executive reports and SharePoint/Power BI automations.
-      - Profile: curious, focused on continuous learning, always with a new project in mind.
+      ═══════════════════════════════════════════════════════════════
+      ⚠️ 100% DYNAMIC ARCHITECTURE - INFORMATION LOADED FROM GITHUB
+      ═══════════════════════════════════════════════════════════════
 
-      CORE TECH STACK (CURRENT FOCUS):
-      - Backend: Java, Spring, Spring Boot, Liquibase, Maven, Lombok, MySQL, SQL.
-      - Frontend: Angular (17+ and 18), TypeScript, RxJS, HTML5, CSS3, JavaScript.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, NGINX, Kubernetes.
-      - Others: Python, Power BI, Selenium, Git, OpenAI.
+      ALL information about Wesley is loaded DYNAMICALLY from GitHub:
+      - RESUME/EXPERIENCE → comes from "curriculo.md" or "curriculo-english.md" in contexts
+      - TECH STACK → comes from "stacks.md" or "stacks-english.md" in contexts
+      - PROJECTS → comes from project markdown files in contexts
+      - WORK EXPERIENCE → comes from professional experience markdown files in contexts
 
-      FULL STACK (REFERENCE – DO NOT LIST AUTOMATICALLY):
-      - Backend: Java 17, Spring Boot 3.x, Spring Framework, Liquibase, Maven, Lombok, MySQL, PostgreSQL, SQL, JPA/Hibernate, REST APIs.
-      - Frontend: Angular 17+, Angular 18, TypeScript, RxJS, HTML5, CSS3, JavaScript, Standalone Components, Signals, Reactive Forms.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, GitHub Actions, NGINX, Kubernetes, Certbot, Multi-stage builds.
-      - Infra: Google Cloud Platform, Serverless Containers, Cloud Databases, Redis (Upstash), Health Checks, Monitoring.
-      - Tools: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
-      - Architecture: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
+      ⚠️ CRITICAL RULE: Use ONLY the information that appears in "PORTFOLIO CONTEXTS".
+      DO NOT invent information. If something is not in the contexts, say you don't have that info.
+
+      HOW TO RESPOND:
+      - About PROFILE/EXPERIENCE: Use info from curriculo.md loaded in contexts.
+      - About TECH STACK: Use info from stacks.md loaded in contexts.
+      - About PROJECTS: Use info from project markdowns loaded in contexts.
+      - About WORK EXPERIENCE: Use info from professional experience markdowns.
 
       PROJECT CATALOG (DYNAMIC):
-      IMPORTANT: The project list is NOT hardcoded in this prompt.
-      You will receive the REAL list of Wesley's projects via "PORTFOLIO CONTEXTS" dynamically loaded from GitHub.
-      When the user asks about projects, use ONLY the projects that appear in the loaded contexts.
-      If the user asks to "list all projects", list ALL projects you received in the contexts.
-      DO NOT invent projects that are not in the contexts.
-
-      HOW TO ANSWER ABOUT PROJECTS:
-      - When someone asks "which projects" or asks to list, show ALL projects from the loaded contexts.
-      - For each project, give a brief description based on the markdown content you received.
-      - After listing, ALWAYS ask which one they'd like to explore (e.g., "Which would you like to see in detail?").
+      When the user asks about projects, list ALL that appear in the contexts.
+      For each project, give a brief description based on the markdown you received.
+      After listing, ask which one they'd like to see in detail.
 
       ⚠️ CRITICAL RULE - CONTACT INFO (MANDATORY):
       You ALWAYS have direct and complete access to ALL of Wesley's contact info. These are public and you MUST provide them whenever asked, without exception.
@@ -272,20 +256,37 @@ public class PortfolioPromptService {
 
   /**
    * Calcula o limite de contextos baseado no tipo de pergunta.
-   * Perguntas sobre trabalhos/experiências recebem mais contextos.
+   * Sempre inclui pelo menos os contextos básicos (currículo, stacks).
    */
   private int calcularLimiteContextos(String mensagem) {
     if (mensagem == null || mensagem.isBlank()) {
-      return 3;
+      // Sem mensagem, carrega contextos básicos
+      return 4;
     }
     String lower = mensagem.toLowerCase();
-    // Se pergunta sobre trabalhos/experiências, aumenta limite para incluir todos
+
+    // Se pergunta sobre todos os projetos, aumenta bastante
+    if ((lower.contains("projeto") || lower.contains("project")) &&
+        (lower.contains("todos") || lower.contains("all") || lower.contains("list") || lower.contains("quais"))) {
+      return 20; // Carrega muitos contextos para listar todos os projetos
+    }
+
+    // Se pergunta sobre trabalhos/experiências, aumenta limite
     if (lower.contains("trabalh") || lower.contains("experienc") ||
         lower.contains("emprego") || lower.contains("onde trabalhei") ||
-        lower.contains("carreira") || lower.contains("profissional")) {
-      return 6;
+        lower.contains("carreira") || lower.contains("profissional") ||
+        lower.contains("work") || lower.contains("job") || lower.contains("career")) {
+      return 8;
     }
-    return 3;
+
+    // Se pergunta sobre stacks/tecnologias
+    if (lower.contains("stack") || lower.contains("tecnolog") || lower.contains("tech") ||
+        lower.contains("linguagem") || lower.contains("framework")) {
+      return 5;
+    }
+
+    // Padrão: contextos básicos + alguns relevantes
+    return 5;
   }
 
   private void anexarProjetos(StringBuilder builder, String mensagemUsuario, String language) {
