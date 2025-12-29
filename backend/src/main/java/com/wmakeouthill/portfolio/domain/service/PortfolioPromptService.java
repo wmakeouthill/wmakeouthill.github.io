@@ -38,35 +38,17 @@ public class PortfolioPromptService {
       - Ferramentas: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
       - Arquitetura: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
 
-      CATÁLOGO COMPLETO DE PROJETOS (SEMPRE LISTAR TODOS QUANDO PERGUNTAREM):
-      1. LoL Matchmaking Fazenda — plataforma completa de matchmaking com backend Spring Boot, Redis, Discord Bot, Electron e Angular em tempo real.
-      2. AA Space — comunidade fechada de apoio com fórum, chats privados, moderação e foco em privacidade.
-      3. Experimenta AI - Soneca — sistema full-stack para lanchonetes com Clean Architecture (Java 17 + Angular 17) e pipelines completos.
-      4. Mercearia R-V — gestão de estoque, caixa e relatórios para varejo físico.
-      5. Traffic Manager — dashboard Angular 18 em tempo real para tráfego, tickets e monitoramento de servidores.
-      6. Investment Calculator — simulador de investimentos Angular 18 com projeções anuais.
-      7. First Angular App — primeiro laboratório Angular com conceitos fundamentais de componentes standalone.
-      8. Obaid with Bro — chatbot temático com integrações customizadas e foco em UX divertida.
+      CATÁLOGO DE PROJETOS (DINÂMICO):
+      IMPORTANTE: A lista de projetos NÃO está hardcoded neste prompt.
+      Você receberá a lista REAL dos projetos do Wesley via "CONTEXTOS DO PORTFÓLIO" carregados dinamicamente do GitHub.
+      Quando o usuário perguntar sobre projetos, use APENAS os projetos que aparecem nos contextos carregados.
+      Se o usuário pedir para "listar todos os projetos", liste TODOS os projetos que você recebeu nos contextos.
+      NÃO invente projetos que não estão nos contextos.
 
-      PRINCIPAIS PROJETOS (DETALHES DE DESTAQUE):
-      - LoL Matchmaking Fazenda:
-        Sistema completo e escalável para filas de partidas, matchmaking, draft, gestão de players
-        e leaderboard integrado com bot de Discord. Mostra domínio de backend em Java/Spring,
-        automações e modelagem de domínio de jogo.
-      - AA Space:
-        Projeto social/educacional voltado para ampliar a rede de apoio a pessoas em recuperação,
-        com fórum, chat individual e em grupo. Focado em privacidade, suporte mútuo e experiência real de produto.
-      - Experimenta AI - Soneca:
-        Sistema de gestão para lanchonetes usando Clean Architecture, Java 17, Spring Boot modular,
-        Angular 17+ e MySQL. Demonstra conhecimento de arquitetura em camadas, modularização e boas práticas.
-      - Mercearia R-V:
-        Sistema de gestão de caixa, estoque e vendas com diversos relatórios, feito como troca de serviço.
-        Mostra capacidade de entender necessidades reais de negócio e entregar solução ponta a ponta.
-      - Traffic Manager:
-        Dashboard em tempo real em Angular 18 com standalone components, signals e arquitetura modular.
-        Focado em monitoramento de servidor, tráfego e sistema de tickets.
-      - Investment Calculator:
-        Calculadora de investimentos em Angular 18, com projeções de juros compostos e UI amigável para simulações.
+      COMO RESPONDER SOBRE PROJETOS:
+      - Quando alguém perguntar "quais projetos" ou pedir para listar, mostre TODOS os projetos dos contextos carregados.
+      - Para cada projeto, dê uma descrição breve baseada no conteúdo do markdown que você recebeu.
+      - Após listar, SEMPRE pergunte qual deles a pessoa deseja explorar (ex.: "Qual deseja ver em detalhes?").
 
       ⚠️ REGRA CRÍTICA - DADOS DE CONTATO (OBRIGATÓRIO):
 
@@ -208,29 +190,17 @@ public class PortfolioPromptService {
       - Tools: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
       - Architecture: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
 
-      FULL PROJECT CATALOG (ALWAYS LIST ALL WHEN ASKED):
-      1. LoL Matchmaking Fazenda — complete matchmaking platform with Spring Boot backend, Redis, Discord Bot, Electron and real-time Angular.
-      2. AA Space — closed support community with forum, private chats, moderation and privacy focus.
-      3. Experimenta AI - Soneca — full-stack system for snack bars with Clean Architecture (Java 17 + Angular 17) and complete pipelines.
-      4. Mercearia R-V — inventory, cash register and reporting for retail.
-      5. Traffic Manager — Angular 18 real-time dashboard for traffic, tickets and server monitoring.
-      6. Investment Calculator — Angular 18 investment simulator with yearly projections.
-      7. First Angular App — first Angular lab with fundamentals of standalone components.
-      8. Obaid with Bro — themed chatbot with custom integrations and playful UX.
+      PROJECT CATALOG (DYNAMIC):
+      IMPORTANT: The project list is NOT hardcoded in this prompt.
+      You will receive the REAL list of Wesley's projects via "PORTFOLIO CONTEXTS" dynamically loaded from GitHub.
+      When the user asks about projects, use ONLY the projects that appear in the loaded contexts.
+      If the user asks to "list all projects", list ALL projects you received in the contexts.
+      DO NOT invent projects that are not in the contexts.
 
-      KEY PROJECTS (HIGHLIGHTS):
-      - LoL Matchmaking Fazenda:
-        Complete and scalable system for matchmaking queues, drafts, player management and leaderboard integrated with Discord bot. Shows backend expertise with Java/Spring, automations and game domain modeling.
-      - AA Space:
-        Social/educational project to expand support network for people in recovery, with forum, private and group chat. Focused on privacy, mutual support and real product experience.
-      - Experimenta AI - Soneca:
-        Management system for snack bars using Clean Architecture, Java 17, Spring Boot, Angular 17+ and MySQL. Demonstrates layered architecture, modularization and best practices.
-      - Mercearia R-V:
-        POS/stock/sales management system with several reports, built as a service exchange. Shows ability to understand real business needs and deliver end-to-end solutions.
-      - Traffic Manager:
-        Angular 18 real-time dashboard with standalone components, signals and modular architecture. Focused on server monitoring, traffic and ticket system.
-      - Investment Calculator:
-        Angular 18 compound-interest calculator with friendly UI for simulations.
+      HOW TO ANSWER ABOUT PROJECTS:
+      - When someone asks "which projects" or asks to list, show ALL projects from the loaded contexts.
+      - For each project, give a brief description based on the markdown content you received.
+      - After listing, ALWAYS ask which one they'd like to explore (e.g., "Which would you like to see in detail?").
 
       ⚠️ CRITICAL RULE - CONTACT INFO (MANDATORY):
       You ALWAYS have direct and complete access to ALL of Wesley's contact info. These are public and you MUST provide them whenever asked, without exception.
@@ -322,14 +292,34 @@ public class PortfolioPromptService {
     if (mensagemUsuario == null || mensagemUsuario.isBlank()) {
       return;
     }
-    Set<String> projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
-    if (projetosRelevantes.isEmpty()) {
-      return;
+
+    String lower = mensagemUsuario.toLowerCase();
+    boolean querListarTodos = lower.contains("projeto") &&
+        (lower.contains("list") || lower.contains("todos") || lower.contains("quais") ||
+            lower.contains("mostre") || lower.contains("mostra") || lower.contains("all"));
+
+    Set<String> projetosRelevantes;
+
+    if (querListarTodos) {
+      // Quando usuário quer listar todos, carrega todos os projetos disponíveis
+      projetosRelevantes = projetoKeywordDetector.obterTodosProjetos();
+      builder.append("\n\n")
+          .append("LISTA COMPLETA DE PROJETOS DO PORTFÓLIO:\n")
+          .append("Os seguintes projetos estão disponíveis no portfólio do Wesley. ")
+          .append("Use as informações abaixo para listar e descrever cada um.\n");
+    } else {
+      // Caso contrário, carrega apenas projetos mencionados
+      projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
+      if (projetosRelevantes.isEmpty()) {
+        return;
+      }
+      builder.append("\n\n")
+          .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
+          .append("relacionados aos projetos mencionados. ")
+          .append(
+              "Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
     }
-    builder.append("\n\n")
-        .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
-        .append("relacionados aos projetos mencionados. ")
-        .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
+
     projetosRelevantes.forEach(nomeProjeto -> portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto, language)
         .ifPresent(markdown -> anexarMarkdown(builder, markdown)));
   }
