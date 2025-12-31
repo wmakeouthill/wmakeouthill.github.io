@@ -3,13 +3,8 @@
     <h2>{{ 'chat.headerTitle' | translate }}</h2>
     <p>{{ 'chat.headerSubtitle' | translate }}</p>
   </div>
-  <button
-    type="button"
-    class="chat-close-button"
-    (click)="onClose.emit()"
-    [aria-label]="'chat.close' | translate"
-  >
+
+  <button type="button" class="chat-close-button" (click)="onClose.emit()" [aria-label]="'chat.close' | translate">
     ✕
   </button>
 </header>
-

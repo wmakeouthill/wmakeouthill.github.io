@@ -1,35 +1,23 @@
 <div class="chat-widget-container" [class.scroll-top-visible]="scrollToTopVisible()">
-  <app-chat-floating-button
-    [isOpen]="isOpen()"
-    [unreadCount]="unreadCount()"
-    (onClick)="toggleOpen()"
-  />
+  <app-chat-floating-button [isOpen]="isOpen()" [unreadCount]="unreadCount()" (onClick)="toggleOpen()" />
 
   @if (isOpen()) {
-    <section class="chat-panel" aria-label="Chat com IA sobre o Wesley">
-      <app-chat-header (onClose)="toggleOpen()" />
+  <section class="chat-panel" aria-label="Chat com IA sobre o Wesley">
+    <app-chat-header (onClose)="toggleOpen()" />
 
-      <div class="chat-messages" role="log" #messagesContainer>
-        @for (message of messages(); track message.timestamp) {
-          <app-chat-message [message]="message" />
-        }
+    <div class="chat-messages" role="log" #messagesContainer>
+      @for (message of messages(); track message.timestamp) {
+      <app-chat-message [message]="message" />
+      }
 
-        @if (isLoading()) {
-          <app-chat-loading />
-        }
-      </div>
+      @if (isLoading()) {
+      <app-chat-loading />
+      }
+    </div>
 
-      <app-chat-input
-        [isLoading]="isLoading()"
-        [inputText]="inputText()"
-        [canSend]="canSend()"
-        [shouldFocus]="isOpen()"
-        (onInputChange)="handleInputChange($event)"
-        (onSend)="sendMessage()"
-        (onNewConversation)="iniciarNovaConversa()"
-      />
-    </section>
+    <app-chat-input [isLoading]="isLoading()" [inputText]="inputText()" [canSend]="canSend()" [shouldFocus]="isOpen()"
+      [selectedModel]="selectedModel()" (onInputChange)="handleInputChange($event)" (onSend)="sendMessage()"
+      (onNewConversation)="iniciarNovaConversa()" (onModelChange)="selectedModel.set($event)" />
+  </section>
   }
 </div>
-
-

@@ -13,4 +13,3 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
 export class ChatHeaderComponent {
   readonly onClose = output<void>();
 }
-

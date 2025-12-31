@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ChatService, ChatResponse } from '../../services/chat.service';
+import { ChatService, ChatResponse, AIModel } from '../../services/chat.service';
 import { MarkdownChatService } from '../../services/markdown-chat.service';
 import { ChatFloatingButtonComponent } from './components/chat-floating-button.component';
 import { ChatHeaderComponent } from './components/chat-header.component';
@@ -68,6 +68,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   inputText = signal('');
   messages = signal<ChatMessage[]>([]);
   unreadCount = signal(0);
+  selectedModel = signal<AIModel>('gemini');
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
@@ -159,7 +160,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
-    this.chatService.enviarMensagem(text, this.sessionId).subscribe({
+    this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel()).subscribe({
       next: (response: ChatResponse) => {
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();

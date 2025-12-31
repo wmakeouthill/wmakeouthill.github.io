@@ -1,39 +1,40 @@
-<form
-  class="chat-input-area"
-  (ngSubmit)="handleSubmit()"
-  autocomplete="off"
->
-  <textarea
-    #chatInput
-    class="chat-input"
-    [disabled]="isLoading()"
-    [ngModel]="inputText()"
-    (ngModelChange)="handleInputChange($event)"
-    (keydown)="handleKeydown($event)"
-    name="chatInput"
-    [placeholder]="'chat.placeholder' | translate"
-    rows="1"
-  ></textarea>
-  <button
-    type="button"
-    class="chat-new-conversation-button"
-    (click)="iniciarNovaConversa()"
-    [disabled]="isLoading()"
-    [aria-label]="'chat.newChat' | translate"
-    [attr.data-tooltip]="'chat.newChat' | translate"
-  >
-    <img
-      src="/new_conversation.png"
-      [alt]="'chat.newChat' | translate"
-      class="new-conversation-icon"
-    />
+<form class="chat-input-area" (ngSubmit)="handleSubmit()" autocomplete="off">
+  <textarea #chatInput class="chat-input" [disabled]="isLoading()" [ngModel]="inputText()"
+    (ngModelChange)="handleInputChange($event)" (keydown)="handleKeydown($event)" name="chatInput"
+    [placeholder]="'chat.placeholder' | translate" rows="1"></textarea>
+
+  <!-- Model Selector Dropdown - GitHub Copilot Style -->
+  <div class="model-selector">
+    <button type="button" class="model-selector-button" (click)="toggleDropdown()" [disabled]="isLoading()">
+      <span class="model-name">{{ getModelName() }}</span>
+      <span class="dropdown-arrow">▾</span>
+    </button>
+
+    @if (isDropdownOpen()) {
+    <div class="model-dropdown">
+      @for (model of models; track model.id) {
+      <button type="button" class="model-option" [class.selected]="selectedModel() === model.id"
+        (click)="selectModel(model.id)">
+        <span class="model-option-name">
+          {{ model.name }}
+          @if (model.id === 'gemini') {
+          <span class="model-recommended">(Recomendado)</span>
+          }
+        </span>
+        @if (selectedModel() === model.id) {
+        <span class="model-check">✓</span>
+        }
+      </button>
+      }
+    </div>
+    }
+  </div>
+
+  <button type="button" class="chat-new-conversation-button" (click)="iniciarNovaConversa()" [disabled]="isLoading()"
+    [aria-label]="'chat.newChat' | translate" [attr.data-tooltip]="'chat.newChat' | translate">
+    <img src="/new_conversation.png" [alt]="'chat.newChat' | translate" class="new-conversation-icon" />
   </button>
-  <button
-    type="submit"
-    class="chat-send-button"
-    [disabled]="!canSend()"
-  >
+  <button type="submit" class="chat-send-button" [disabled]="!canSend()">
     {{ 'chat.send' | translate }}
   </button>
 </form>
-
