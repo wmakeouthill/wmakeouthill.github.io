@@ -1,5 +1,6 @@
 .chat-message {
-  max-width: 92%;
+  max-width: calc(100% - 0.5rem);
+  /* Espaço igual dos dois lados */
   padding: 0.55rem 0.85rem;
   border-radius: 0.85rem;
   font-size: 0.82rem;

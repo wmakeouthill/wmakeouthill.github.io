@@ -105,19 +105,17 @@
 }
 
 .chat-messages {
-  padding: 0.85rem 0.85rem 0.6rem;
+  padding: 0.85rem 0.35rem 0.6rem 0.85rem;
+  /* Right menor para compensar scrollbar 8px */
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   overflow-y: auto;
   flex: 1;
-  /* Preenche todo espaço vertical disponível */
   min-height: 0;
-  /* Necessário para flex scroll funcionar */
   scrollbar-width: thin;
   scrollbar-color: rgba(219, 194, 125, 0.4) var(--bg-secondary);
   -webkit-overflow-scrolling: touch;
-  /* Scroll suave no iOS */
 }
 
 /* Estilização do scrollbar do chat para WebKit (Chrome, Safari, Edge) */
