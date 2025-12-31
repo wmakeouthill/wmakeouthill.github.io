@@ -14,7 +14,7 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
 export class ChatInputComponent {
   private readonly injector = inject(Injector);
 
-  @ViewChild('chatInput') chatInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('chatInput') chatInput?: ElementRef<HTMLTextAreaElement>;
 
   readonly isLoading = input<boolean>(false);
   readonly inputText = input<string>('');
@@ -41,6 +41,14 @@ export class ChatInputComponent {
 
   handleInputChange(value: string): void {
     this.onInputChange.emit(value);
+  }
+
+  handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.handleSubmit();
+    }
+    // Shift+Enter permite pular linha normalmente (comportamento padrão do textarea)
   }
 
   handleSubmit(): void {

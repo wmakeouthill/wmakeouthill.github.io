@@ -1,11 +1,12 @@
 .chat-input-area {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.04rem;
   padding: 0.7rem 0.85rem 0.8rem;
   border-top: 1px solid rgba(219, 194, 125, 0.25);
   background: rgba(10, 10, 10, 0.96);
-  flex-shrink: 0; /* Evita que o input seja comprimido */
+  flex-shrink: 0;
+  /* Evita que o input seja comprimido */
   /* Suporte para safe-area em dispositivos com notch */
   padding-bottom: max(0.8rem, env(safe-area-inset-bottom, 0px) + 0.5rem);
 }
@@ -39,11 +40,14 @@
   width: auto;
   height: auto;
   min-height: 2rem;
-  min-width: 2rem; /* Área de toque adequada para mobile */
+  min-width: 2rem;
+  /* Área de toque adequada para mobile */
   flex-shrink: 0;
   position: relative;
-  touch-action: manipulation; /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent; /* Remove highlight no iOS */
+  touch-action: manipulation;
+  /* Melhora resposta ao toque */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove highlight no iOS */
 }
 
 .chat-new-conversation-button:hover:not(:disabled) {
@@ -105,22 +109,40 @@
 .chat-input {
   flex: 1;
   padding: 0.5rem 0.85rem;
-  border-radius: var(--radius-full);
+  border-radius: 0.75rem;
+  /* Menos arredondado para funcionar melhor com múltiplas linhas */
   border: 1px solid rgba(148, 163, 184, 0.6);
   background: rgba(20, 20, 20, 0.9);
   color: var(--text-primary);
   font-size: 0.8rem;
   /* Melhorias para mobile */
-  -webkit-appearance: none; /* Remove estilos nativos do iOS */
+  -webkit-appearance: none;
+  /* Remove estilos nativos do iOS */
   appearance: none;
-  touch-action: manipulation; /* Melhora resposta ao toque */
+  touch-action: manipulation;
+  /* Melhora resposta ao toque */
   /* Previne zoom no iOS quando foca no input */
-  font-size: 16px; /* Tamanho mínimo para evitar zoom no iOS */
+  font-size: 16px;
+  /* Tamanho mínimo para evitar zoom no iOS */
+  /* Estilos específicos para textarea */
+  resize: none;
+  /* Impede redimensionamento manual */
+  overflow-y: auto;
+  /* Scroll quando preciso */
+  min-height: 2.2rem;
+  /* Altura mínima (1 linha) */
+  max-height: 6rem;
+  /* Altura máxima (~4-5 linhas) */
+  line-height: 1.4;
+  font-family: inherit;
+  /* Auto height with field-sizing (suporte moderno) */
+  field-sizing: content;
 }
 
 @media (max-width: 640px) {
   .chat-input {
-    font-size: 16px; /* Previne zoom no iOS */
+    font-size: 16px;
+    /* Previne zoom no iOS */
   }
 }
 
@@ -145,9 +167,12 @@
   color: var(--color-dark);
   transition: all var(--transition-fast);
   box-shadow: 0 2px 10px rgba(219, 194, 125, 0.35);
-  touch-action: manipulation; /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent; /* Remove highlight no iOS */
-  min-width: 3.5rem; /* Área de toque adequada para mobile */
+  touch-action: manipulation;
+  /* Melhora resposta ao toque */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove highlight no iOS */
+  min-width: 3.5rem;
+  /* Área de toque adequada para mobile */
 }
 
 .chat-send-button:disabled {
@@ -207,4 +232,3 @@
     height: 1.5rem;
   }
 }
-

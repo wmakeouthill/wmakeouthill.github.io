@@ -3,16 +3,17 @@
   (ngSubmit)="handleSubmit()"
   autocomplete="off"
 >
-  <input
+  <textarea
     #chatInput
-    type="text"
     class="chat-input"
     [disabled]="isLoading()"
     [ngModel]="inputText()"
     (ngModelChange)="handleInputChange($event)"
+    (keydown)="handleKeydown($event)"
     name="chatInput"
     [placeholder]="'chat.placeholder' | translate"
-  />
+    rows="1"
+  ></textarea>
   <button
     type="button"
     class="chat-new-conversation-button"
