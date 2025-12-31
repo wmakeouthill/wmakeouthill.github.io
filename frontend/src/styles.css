@@ -100,7 +100,8 @@ body {
   overflow-x: hidden;
   /* Garantir que não haja margem causando a parte preta */
   min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height para mobile */
+  min-height: 100dvh;
+  /* Dynamic viewport height para mobile */
 }
 
 body:not(.light-mode) {
@@ -115,7 +116,12 @@ body:not(.light-mode) .code-block-enhanced {
 /* ===========================
    Typography
    =========================== */
-h1:not(.markdown-text), h2:not(.markdown-text), h3:not(.markdown-text), h4:not(.markdown-text), h5:not(.markdown-text), h6:not(.markdown-text) {
+h1:not(.markdown-text),
+h2:not(.markdown-text),
+h3:not(.markdown-text),
+h4:not(.markdown-text),
+h5:not(.markdown-text),
+h6:not(.markdown-text) {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
@@ -339,21 +345,53 @@ a:hover {
 }
 
 /* Spacing utilities */
-.mt-1 { margin-top: var(--spacing-sm); }
-.mt-2 { margin-top: var(--spacing-md); }
-.mt-3 { margin-top: var(--spacing-lg); }
+.mt-1 {
+  margin-top: var(--spacing-sm);
+}
 
-.mb-1 { margin-bottom: var(--spacing-sm); }
-.mb-2 { margin-bottom: var(--spacing-md); }
-.mb-3 { margin-bottom: var(--spacing-lg); }
+.mt-2 {
+  margin-top: var(--spacing-md);
+}
 
-.pt-1 { padding-top: var(--spacing-sm); }
-.pt-2 { padding-top: var(--spacing-md); }
-.pt-3 { padding-top: var(--spacing-lg); }
+.mt-3 {
+  margin-top: var(--spacing-lg);
+}
 
-.pb-1 { padding-bottom: var(--spacing-sm); }
-.pb-2 { padding-bottom: var(--spacing-md); }
-.pb-3 { padding-bottom: var(--spacing-lg); }
+.mb-1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.mb-2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.mb-3 {
+  margin-bottom: var(--spacing-lg);
+}
+
+.pt-1 {
+  padding-top: var(--spacing-sm);
+}
+
+.pt-2 {
+  padding-top: var(--spacing-md);
+}
+
+.pt-3 {
+  padding-top: var(--spacing-lg);
+}
+
+.pb-1 {
+  padding-bottom: var(--spacing-sm);
+}
+
+.pb-2 {
+  padding-bottom: var(--spacing-md);
+}
+
+.pb-3 {
+  padding-bottom: var(--spacing-lg);
+}
 
 /* ===========================
    Animations
@@ -362,6 +400,7 @@ a:hover {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -372,6 +411,7 @@ a:hover {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -383,6 +423,7 @@ a:hover {
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -394,6 +435,7 @@ a:hover {
     opacity: 0;
     transform: translateX(-50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -405,6 +447,7 @@ a:hover {
     opacity: 0;
     transform: translateX(50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -412,9 +455,12 @@ a:hover {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
@@ -461,7 +507,8 @@ a:hover {
   justify-content: center;
   font-size: 1.5rem;
   box-shadow: var(--shadow-lg);
-  z-index: 9999 !important; /* Sempre no topo */
+  z-index: 9999 !important;
+  /* Sempre no topo */
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px) scale(0.8);
@@ -656,12 +703,29 @@ a:hover {
 }
 
 /* Escalas mais finas para headings maiores */
-.markdown-content h1 { font-size: calc(var(--md-scale, 1) * 2rem) !important; }
-.markdown-content h2 { font-size: calc(var(--md-scale, 1) * 1.5rem) !important; }
-.markdown-content h3 { font-size: calc(var(--md-scale, 1) * 1.25rem) !important; }
-.markdown-content h4 { font-size: calc(var(--md-scale, 1) * 1.05rem) !important; }
-.markdown-content h5 { font-size: calc(var(--md-scale, 1) * 0.95rem) !important; }
-.markdown-content h6 { font-size: calc(var(--md-scale, 1) * 0.9rem) !important; }
+.markdown-content h1 {
+  font-size: calc(var(--md-scale, 1) * 2rem) !important;
+}
+
+.markdown-content h2 {
+  font-size: calc(var(--md-scale, 1) * 1.5rem) !important;
+}
+
+.markdown-content h3 {
+  font-size: calc(var(--md-scale, 1) * 1.25rem) !important;
+}
+
+.markdown-content h4 {
+  font-size: calc(var(--md-scale, 1) * 1.05rem) !important;
+}
+
+.markdown-content h5 {
+  font-size: calc(var(--md-scale, 1) * 0.95rem) !important;
+}
+
+.markdown-content h6 {
+  font-size: calc(var(--md-scale, 1) * 0.9rem) !important;
+}
 
 /* Mermaid title inserted inline previously — sobrescrever inline styles */
 .mermaid-title {
@@ -882,4 +946,55 @@ a:hover {
 .mermaid-content svg {
   max-width: 100%;
   height: auto;
+}
+
+/* ===========================
+   Chat Message Heading Overrides
+   (Override global h1-h6 sizes for chat messages)
+   =========================== */
+.chat-message-assistant h1,
+.chat-message-assistant h2,
+.chat-message-assistant h3,
+.chat-message-assistant h4,
+.chat-message-assistant h5,
+.chat-message-assistant h6 {
+  margin: 0.35rem 0 0.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.35 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Hierarquia sutil de tamanhos */
+.chat-message-assistant h1 {
+  font-size: 0.9rem !important;
+}
+
+.chat-message-assistant h2 {
+  font-size: 0.87rem !important;
+}
+
+.chat-message-assistant h3 {
+  font-size: 0.85rem !important;
+}
+
+.chat-message-assistant h4 {
+  font-size: 0.83rem !important;
+}
+
+.chat-message-assistant h5 {
+  font-size: 0.82rem !important;
+}
+
+.chat-message-assistant h6 {
+  font-size: 0.8rem !important;
+}
+
+.chat-message-assistant h1:first-child,
+.chat-message-assistant h2:first-child,
+.chat-message-assistant h3:first-child,
+.chat-message-assistant h4:first-child,
+.chat-message-assistant h5:first-child,
+.chat-message-assistant h6:first-child {
+  margin-top: 0 !important;
 }
