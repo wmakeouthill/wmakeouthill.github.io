@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap, catchError } from 'rxjs';
+import { Observable, of, tap, catchError, retry, timer, throwError } from 'rxjs';
 import { resolveApiUrl } from '../utils/api-url.util';
 
 /**
@@ -17,12 +17,21 @@ export interface RepositoryFile {
   type: string;
 }
 
+/** Chave para persistir cache no localStorage */
+const CACHE_KEY = 'portfolio_images_cache';
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+
+interface CachedImages {
+  images: RepositoryFile[];
+  timestamp: number;
+}
+
 /**
  * Service para acessar conteúdo do portfólio (imagens e documentações)
  * servido pelo backend a partir do repositório GitHub.
  *
- * As imagens são buscadas do repositório certificados-wesley/portifolio_imgs
- * e o matching é feito por nome do projeto (flexível).
+ * Usa localStorage para persistir cache entre recarregamentos de página.
+ * Inclui retry automático em caso de falha de rede.
  */
 @Injectable({
   providedIn: 'root'
@@ -36,6 +45,9 @@ export class PortfolioContentService {
   /** Loading state */
   readonly loading = signal(false);
 
+  /** Erro de carregamento */
+  readonly error = signal<string | null>(null);
+
   /** Mapa de nome do projeto -> URL da imagem (cache local) */
   private readonly imageUrlCache = new Map<string, string>();
 
@@ -48,31 +60,120 @@ export class PortfolioContentService {
   /** Registro para evitar logs repetidos por projeto */
   private loggedMissing = new Set<string>();
 
+  /** Flag para indicar se carregamento está em andamento */
+  private loadingInProgress = false;
+
+  constructor() {
+    // Carrega do localStorage na inicialização
+    this.loadFromLocalStorage();
+  }
+
+  /**
+   * Tenta carregar cache do localStorage.
+   */
+  private loadFromLocalStorage(): void {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const data: CachedImages = JSON.parse(cached);
+        const age = Date.now() - data.timestamp;
+
+        if (age < CACHE_TTL_MS && data.images?.length > 0) {
+          console.log(`📦 Carregando ${data.images.length} imagens do localStorage (age: ${Math.round(age / 1000)}s)`);
+          this.imagens.set(data.images);
+          this.buildImageCache(data.images);
+        } else {
+          console.log('🗑️ Cache do localStorage expirado ou vazio, limpando...');
+          localStorage.removeItem(CACHE_KEY);
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar cache do localStorage:', e);
+      localStorage.removeItem(CACHE_KEY);
+    }
+  }
+
+  /**
+   * Persiste cache no localStorage.
+   */
+  private saveToLocalStorage(images: RepositoryFile[]): void {
+    try {
+      const data: CachedImages = {
+        images,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      console.log(`💾 Cache de ${images.length} imagens salvo no localStorage`);
+    } catch (e) {
+      console.warn('Erro ao salvar cache no localStorage:', e);
+    }
+  }
+
   /**
    * Carrega lista de imagens disponíveis do backend.
+   * Com retry automático e persistência em localStorage.
    */
   loadImagens(): Observable<RepositoryFile[]> {
-    if (this.imagens().length > 0) {
+    // Se já tem imagens em memória e não está carregando, retorna
+    if (this.imagens().length > 0 && !this.loadingInProgress) {
       return of(this.imagens());
     }
 
+    // Evita múltiplas requisições simultâneas
+    if (this.loadingInProgress) {
+      return of(this.imagens());
+    }
+
+    this.loadingInProgress = true;
     this.loading.set(true);
+    this.error.set(null);
     const url = resolveApiUrl('/api/content/images');
 
     return this.http.get<RepositoryFile[]>(url).pipe(
+      // Retry com backoff exponencial: 1s, 2s, 4s
+      retry({
+        count: 3,
+        delay: (error, retryCount) => {
+          console.warn(`⚠️ Tentativa ${retryCount}/3 de carregar imagens falhou:`, error.message);
+          return timer(Math.pow(2, retryCount - 1) * 1000);
+        }
+      }),
       tap(imagens => {
         this.imagens.set(imagens);
         this.buildImageCache(imagens);
+        this.saveToLocalStorage(imagens);
         this.loading.set(false);
+        this.loadingInProgress = false;
         console.log(`✅ ${imagens.length} imagens de projetos carregadas do GitHub`);
-        console.log('📷 Imagens disponíveis:', this.availableImageNames);
       }),
       catchError(error => {
-        console.error('Erro ao carregar imagens:', error);
+        console.error('❌ Erro ao carregar imagens após 3 tentativas:', error);
+        this.error.set('Falha ao carregar imagens. Usando cache.');
         this.loading.set(false);
-        return of([]);
+        this.loadingInProgress = false;
+
+        // Se temos cache em memória, usa ele
+        if (this.imagens().length > 0) {
+          return of(this.imagens());
+        }
+
+        // Tenta localStorage como último recurso
+        this.loadFromLocalStorage();
+        return of(this.imagens());
       })
     );
+  }
+
+  /**
+   * Força recarregamento das imagens (ignora cache).
+   */
+  forceReload(): Observable<RepositoryFile[]> {
+    localStorage.removeItem(CACHE_KEY);
+    this.imagens.set([]);
+    this.imageUrlCache.clear();
+    this.cacheReady = false;
+    this.loadingInProgress = false;
+    return this.loadImagens();
   }
 
   /**
@@ -169,10 +270,16 @@ export class PortfolioContentService {
   /**
    * Busca a melhor URL de imagem para um projeto.
    * Usa matching fuzzy para encontrar correspondências.
+   * Agora tenta carregar imagens se cache não estiver pronto.
    */
   findBestImageUrl(projectName: string): string | null {
+    // Se cache não está pronto, tenta carregar em background
+    if (!this.cacheReady && !this.loadingInProgress) {
+      console.log('🔄 Cache não pronto, iniciando carregamento em background...');
+      this.loadImagens().subscribe();
+    }
+
     if (!this.cacheReady) {
-      // Cache ainda não carregado: evita log repetitivo
       return null;
     }
 
@@ -226,6 +333,27 @@ export class PortfolioContentService {
    */
   getAvailableImageNames(): string[] {
     return [...this.availableImageNames];
+  }
+
+  /**
+   * Verifica se o cache está pronto.
+   */
+  isCacheReady(): boolean {
+    return this.cacheReady;
+  }
+
+  /**
+   * Retorna estatísticas do cache.
+   */
+  getCacheStats(): { entries: number; ready: boolean; source: string } {
+    const source = this.imagens().length > 0
+      ? (localStorage.getItem(CACHE_KEY) ? 'memory+localStorage' : 'memory')
+      : 'empty';
+    return {
+      entries: this.imageUrlCache.size,
+      ready: this.cacheReady,
+      source
+    };
   }
 }
 

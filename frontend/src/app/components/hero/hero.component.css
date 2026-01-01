@@ -232,13 +232,15 @@
 
 .hero-name {
   font-size: clamp(2.0rem, 4.2vw, 3.2rem);
-  margin-bottom: 1.5rem;
-  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25em;
+  line-height: 1.5;
   background: linear-gradient(135deg, var(--color-white), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   user-select: none;
+  overflow: visible;
 }
 
 .hero-name::selection {

@@ -51,16 +51,24 @@ export class ProjectsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadProjects();
-    this.loadProjectImages();
-    this.initialized = true;
+    // Carrega imagens PRIMEIRO para evitar flash de placeholders
+    this.loadProjectImages().then(() => {
+      this.loadProjects();
+      this.initialized = true;
+    });
   }
 
   /**
    * Carrega imagens de projetos do repositório GitHub via backend.
+   * Retorna Promise para garantir que imagens estejam prontas antes de projetos.
    */
-  private loadProjectImages(): void {
-    this.portfolioContentService.loadImagens().subscribe();
+  private async loadProjectImages(): Promise<void> {
+    return new Promise((resolve) => {
+      this.portfolioContentService.loadImagens().subscribe({
+        next: () => resolve(),
+        error: () => resolve() // Continua mesmo com erro (usa cache/placeholder)
+      });
+    });
   }
 
   private loadProjects(): void {
@@ -258,16 +266,39 @@ export class ProjectsComponent implements OnInit {
 
   /**
    * Tratamento de erro quando imagem não carrega.
-   * Usa placeholder como fallback.
+   * Tenta recarregar ou usa placeholder como fallback.
    */
   onImageError(event: Event, projectName: string): void {
     const img = event.target as HTMLImageElement;
     const currentSrc = img.src;
 
     // Evita loop infinito - só muda se não for placeholder
-    if (!currentSrc.includes('placehold.co')) {
-      img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+    if (currentSrc.includes('placehold.co')) {
+      return;
     }
+
+    // Se cache não está pronto, tenta recarregar imagens
+    if (!this.portfolioContentService.isCacheReady()) {
+      console.log(`🔄 Recarregando imagens devido erro em: ${projectName}`);
+      this.portfolioContentService.forceReload().subscribe({
+        next: () => {
+          // Tenta nova URL do cache atualizado
+          const newUrl = this.portfolioContentService.findBestImageUrl(projectName);
+          if (newUrl && newUrl !== currentSrc) {
+            img.src = newUrl;
+            return;
+          }
+          img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+        },
+        error: () => {
+          img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+        }
+      });
+      return;
+    }
+
+    // Cache pronto mas imagem não existe - usa placeholder
+    img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
   }
 }
 

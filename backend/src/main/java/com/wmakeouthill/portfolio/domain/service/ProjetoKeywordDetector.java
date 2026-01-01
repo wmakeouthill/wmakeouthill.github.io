@@ -23,7 +23,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ProjetoKeywordDetector {
 
-    private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+    private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
     private static final int MAX_DISTANCE = 2;
 
     private final PortfolioContentPort portfolioContentPort;

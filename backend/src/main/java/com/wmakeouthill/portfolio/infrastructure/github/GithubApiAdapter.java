@@ -31,7 +31,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
   private static final String DEFAULT_API_URL = "https://api.github.com";
   private static final Duration TIMEOUT = Duration.ofSeconds(20);
-  private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+  private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
   private final HttpClient httpClient = HttpClient.newHttpClient();
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -325,8 +325,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
         node.path("followers").asInt(0),
         node.path("following").asInt(0),
         asNullableText(node.get("created_at")),
-        asNullableText(node.get("updated_at"))
-    );
+        asNullableText(node.get("updated_at")));
   }
 
   @Override
