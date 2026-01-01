@@ -258,6 +258,11 @@
     "github": "GitHub",
     "demo": "Demo",
     "readme": "README",
+    "codePreview": "Código",
+    "codePreviewTitle": "Visualizar Código",
+    "codePreviewSelectFile": "Selecione um arquivo para visualizar",
+    "codePreviewLoading": "Carregando estrutura...",
+    "codePreviewEmpty": "Nenhum arquivo encontrado",
     "noDescription": "Sem descrição disponível",
     "empty": "Nenhum projeto encontrado para este filtro.",
     "pagination": {

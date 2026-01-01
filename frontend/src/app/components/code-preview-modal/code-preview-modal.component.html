@@ -1,0 +1,131 @@
+@if (isOpen()) {
+<div class="code-modal-overlay" (click)="closeModal()" (keydown)="onKeyDown($event)">
+    <div class="code-modal-content" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="code-modal-header">
+            <div class="header-title">
+                <svg class="code-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                </svg>
+                <h2>{{ projectName() }}</h2>
+                <span class="header-badge">Code Preview</span>
+            </div>
+            <button class="close-btn" (click)="closeModal()" title="Fechar (ESC)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="code-modal-body">
+            <!-- File Tree Panel -->
+            <aside class="file-tree-panel">
+                <div class="panel-header">
+                    <span class="panel-title">📁 Explorer</span>
+                </div>
+
+                <div class="tree-container">
+                    @if (loadingTree()) {
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <span>{{ 'projects.codePreviewLoading' | translate }}</span>
+                    </div>
+                    } @else if (errorMessage()) {
+                    <div class="error-state">
+                        <span class="error-icon">⚠️</span>
+                        <span>{{ errorMessage() }}</span>
+                    </div>
+                    } @else if (treeStructure().length === 0) {
+                    <div class="empty-state">
+                        <span>{{ 'projects.codePreviewEmpty' | translate }}</span>
+                    </div>
+                    } @else {
+                    <div class="file-tree">
+                        <ng-container
+                            *ngTemplateOutlet="treeTemplate; context: { nodes: treeStructure(), level: 0 }"></ng-container>
+                    </div>
+                    }
+                </div>
+            </aside>
+
+            <!-- Code Viewer Panel -->
+            <main class="code-viewer-panel">
+                <!-- Tabs Bar -->
+                @if (openTabs().length > 0) {
+                <div class="tabs-bar">
+                    @for (tab of openTabs(); track tab.path) {
+                    <div class="tab" [class.active]="tab.path === activeTabPath()" (click)="switchTab(tab)">
+                        <span class="tab-icon">{{ getFileIcon({ name: tab.name, path: tab.path, type: 'file' })
+                            }}</span>
+                        <span class="tab-name">{{ tab.name }}</span>
+                        <button class="tab-close" (click)="closeTab(tab, $event)" title="Fechar aba">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                            </svg>
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
+
+                <!-- Code Content -->
+                <div class="code-content">
+                    @if (activeTab(); as tab) {
+                    @if (tab.loading) {
+                    <div class="loading-file">
+                        <div class="spinner"></div>
+                        <span>Carregando arquivo...</span>
+                    </div>
+                    } @else {
+                    <div class="code-wrapper">
+                        <pre class="code-block"><code [innerHTML]="tab.highlightedContent"></code></pre>
+                    </div>
+                    }
+                    } @else {
+                    <div class="no-file-selected">
+                        <div class="no-file-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                                <path
+                                    d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                            </svg>
+                        </div>
+                        <p>{{ 'projects.codePreviewSelectFile' | translate }}</p>
+                        <span class="hint">Selecione um arquivo na árvore à esquerda para visualizar</span>
+                    </div>
+                    }
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Recursive Tree Template -->
+<ng-template #treeTemplate let-nodes="nodes" let-level="level">
+    @for (node of nodes; track node.path) {
+    <div class="tree-item" [style.padding-left.px]="level * 16">
+        @if (node.type === 'dir') {
+        <div class="tree-node dir" (click)="toggleDirectory(node)">
+            <span class="node-icon">{{ getFileIcon(node) }}</span>
+            <span class="node-name">{{ node.name }}</span>
+            <span class="expand-icon">{{ node.expanded ? '▼' : '▶' }}</span>
+        </div>
+        @if (node.expanded && node.children) {
+        <div class="tree-children">
+            <ng-container
+                *ngTemplateOutlet="treeTemplate; context: { nodes: node.children, level: level + 1 }"></ng-container>
+        </div>
+        }
+        } @else {
+        <div class="tree-node file" (click)="onFileClick(node)" [class.active]="node.path === activeTabPath()">
+            <span class="node-icon">{{ getFileIcon(node) }}</span>
+            <span class="node-name">{{ node.name }}</span>
+        </div>
+        }
+    </div>
+    }
+</ng-template>

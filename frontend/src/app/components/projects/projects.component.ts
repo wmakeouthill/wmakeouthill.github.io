@@ -5,6 +5,7 @@ import { MarkdownService } from '../../services/markdown.service';
 import { PortfolioContentService } from '../../services/portfolio-content.service';
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
+import { CodePreviewModalComponent } from '../code-preview-modal/code-preview-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -12,7 +13,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-projects',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReadmeModalComponent, TranslatePipe],
+  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -31,9 +32,13 @@ export class ProjectsComponent implements OnInit {
   readonly currentPage = signal<number>(1);
   readonly itemsPerPage = 6;
 
-  // Modal state com signals
+  // README Modal state
   readonly showReadmeModal = signal<boolean>(false);
   readonly currentProjectName = signal<string>('');
+
+  // Code Preview Modal state
+  readonly showCodePreviewModal = signal<boolean>(false);
+  readonly currentProjectForPreview = signal<string>('');
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
@@ -246,6 +251,18 @@ export class ProjectsComponent implements OnInit {
     this.showReadmeModal.set(false);
     this.currentProjectName.set('');
     console.log('📱 Modal fechado - cache mantido');
+  }
+
+  openCodePreviewModal(project: GitHubRepository): void {
+    console.log(`💻 Abrindo Code Preview para: ${project.name}`);
+    this.currentProjectForPreview.set(project.name);
+    this.showCodePreviewModal.set(true);
+  }
+
+  closeCodePreviewModal(): void {
+    this.showCodePreviewModal.set(false);
+    this.currentProjectForPreview.set('');
+    console.log('💻 Code Preview fechado');
   }
 
   /**

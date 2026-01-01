@@ -1,8 +1,10 @@
 package com.wmakeouthill.portfolio.infrastructure.web;
 
+import com.wmakeouthill.portfolio.application.dto.FileContentDto;
 import com.wmakeouthill.portfolio.application.dto.GithubProfileDto;
 import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
+import com.wmakeouthill.portfolio.application.dto.RepoTreeResponse;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
 import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterMarkdownProjetoUseCase;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -95,6 +98,35 @@ public class ProjectsController {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
         .body(stats);
+  }
+
+  /**
+   * Retorna a árvore de arquivos de um repositório.
+   * Cache: 1 hora.
+   */
+  @GetMapping("/{repoName}/tree")
+  public ResponseEntity<RepoTreeResponse> obterArvore(@PathVariable String repoName) {
+    log.debug("Buscando árvore do repositório: {}", repoName);
+    var tree = githubProjectsPort.buscarArvoreRepositorio(repoName);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+        .body(new RepoTreeResponse(tree));
+  }
+
+  /**
+   * Retorna o conteúdo de um arquivo específico do repositório.
+   * Cache: 1 hora.
+   */
+  @GetMapping("/{repoName}/contents")
+  public ResponseEntity<FileContentDto> obterConteudoArquivo(
+      @PathVariable String repoName,
+      @RequestParam String path) {
+    log.debug("Buscando conteúdo do arquivo: {}/{}", repoName, path);
+    return githubProjectsPort.buscarConteudoArquivo(repoName, path)
+        .map(content -> ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+            .body(content))
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   /**
