@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
@@ -11,12 +11,14 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly isScrolled = signal(false);
   readonly isMobileMenuOpen = signal(false);
   readonly showLanguageHint = signal(true);
+  readonly activeSection = signal<string>('hero');
 
   private hintTimeoutId: number | undefined;
+  private sectionObserver: IntersectionObserver | null = null;
 
   readonly navItems = [
     { labelKey: 'header.home', section: 'hero' },
@@ -36,6 +38,46 @@ export class HeaderComponent {
 
   constructor() {
     this.scheduleHintAutoHide();
+  }
+
+  ngOnInit(): void {
+    this.initSectionObserver();
+  }
+
+  ngAfterViewInit(): void {
+    this.observeSections();
+  }
+
+  ngOnDestroy(): void {
+    this.sectionObserver?.disconnect();
+    if (this.hintTimeoutId) {
+      clearTimeout(this.hintTimeoutId);
+    }
+  }
+
+  private initSectionObserver(): void {
+    const options: IntersectionObserverInit = {
+      root: null,
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0
+    };
+
+    this.sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.activeSection.set(entry.target.id);
+        }
+      });
+    }, options);
+  }
+
+  private observeSections(): void {
+    this.navItems.forEach((item) => {
+      const section = document.getElementById(item.section);
+      if (section && this.sectionObserver) {
+        this.sectionObserver.observe(section);
+      }
+    });
   }
 
   toggleMobileMenu() {

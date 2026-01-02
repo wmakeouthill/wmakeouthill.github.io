@@ -2,6 +2,7 @@ package com.wmakeouthill.portfolio.infrastructure.github;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wmakeouthill.portfolio.infrastructure.cache.ConditionalResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ import java.util.Optional;
 
 /**
  * Cliente HTTP reutilizável para chamadas à API do GitHub.
- * Centraliza autenticação, headers e encoding de URLs.
+ * Centraliza autenticação, headers, encoding de URLs e suporte a ETag.
  */
 @Slf4j
 @Component
@@ -68,6 +69,52 @@ public class GithubHttpClient {
   }
 
   /**
+   * Lista conteúdo com suporte a ETag (conditional request).
+   * Se o ETag não mudou, retorna NOT_MODIFIED economizando bandwidth.
+   */
+  public ConditionalResponse<JsonNode> listarConteudoPastaCondicional(String repoName, String path, String etag) {
+    String url = API_URL + "/repos/" + username + "/" + repoName + "/contents/" + path;
+    log.debug("Buscando conteúdo (ETag conditional): {}", url);
+
+    try {
+      HttpRequest.Builder builder = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .timeout(TIMEOUT)
+          .headers(buildApiHeaders())
+          .GET();
+
+      // Adiciona header If-None-Match se temos ETag
+      if (etag != null && !etag.isBlank()) {
+        builder.header("If-None-Match", etag);
+      }
+
+      HttpRequest request = builder.build();
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      // 304 Not Modified - dados não mudaram
+      if (response.statusCode() == 304) {
+        log.debug("ETag válido, dados não modificados: {}", path);
+        return ConditionalResponse.notModified();
+      }
+
+      // 200 OK - dados novos
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        String newEtag = response.headers().firstValue("ETag").orElse(null);
+        JsonNode data = objectMapper.readTree(response.body());
+        log.debug("Dados atualizados, novo ETag: {}",
+            newEtag != null ? newEtag.substring(0, Math.min(15, newEtag.length())) + "..." : "null");
+        return ConditionalResponse.ok(data, newEtag);
+      }
+
+      log.error("Erro ao buscar {}: status={}", path, response.statusCode());
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro HTTP ao buscar: {}", path, e);
+    }
+    return ConditionalResponse.error();
+  }
+
+  /**
    * Baixa bytes de um arquivo raw do repositório.
    */
   public Optional<byte[]> baixarArquivoRaw(String repoName, String path) {
@@ -103,7 +150,8 @@ public class GithubHttpClient {
     String[] segments = path.split("/");
     StringBuilder encodedPath = new StringBuilder();
     for (int i = 0; i < segments.length; i++) {
-      if (i > 0) encodedPath.append("/");
+      if (i > 0)
+        encodedPath.append("/");
       encodedPath.append(URLEncoder.encode(segments[i], StandardCharsets.UTF_8)
           .replace("+", "%20"));
     }
@@ -149,4 +197,3 @@ public class GithubHttpClient {
     return "";
   }
 }
-

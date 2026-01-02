@@ -3,8 +3,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { resolveApiUrl } from '../utils/api-url.util';
 
+export type AIModel = 'gemini' | 'gpt';
+
 export interface ChatRequest {
   message: string;
+  model?: AIModel;
 }
 
 export interface ChatResponse {
@@ -24,15 +27,16 @@ export class ChatService {
    * 
    * @param mensagem texto da mensagem
    * @param sessionId identificador da sessão (enviado no header X-Session-ID)
+   * @param model modelo de IA a usar: 'gemini' (padrão) ou 'gpt'
    */
-  enviarMensagem(mensagem: string, sessionId?: string): Observable<ChatResponse> {
-    const body: ChatRequest = { message: mensagem };
-    
+  enviarMensagem(mensagem: string, sessionId?: string, model: AIModel = 'gemini'): Observable<ChatResponse> {
+    const body: ChatRequest = { message: mensagem, model };
+
     let headers = new HttpHeaders();
     if (sessionId) {
       headers = headers.set('X-Session-ID', sessionId);
     }
-    
+
     return this.http.post<ChatResponse>(this.apiUrl, body, { headers });
   }
 
@@ -46,7 +50,7 @@ export class ChatService {
     if (sessionId) {
       headers = headers.set('X-Session-ID', sessionId);
     }
-    
+
     return this.http.post<void>(`${this.apiUrl}/clear`, {}, { headers });
   }
 }

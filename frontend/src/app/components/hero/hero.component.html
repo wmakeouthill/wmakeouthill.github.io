@@ -7,7 +7,12 @@
   <div class="hero-content container">
     <!-- Desktop layout: full text section -->
     <div class="hero-text fade-in-up">
-      <p class="hero-greeting">{{ 'hero.greeting' | translate }}</p>
+      <div class="java-code-line">
+        <span class="java-class">System</span><span class="java-dot">.</span><span class="java-method">out</span><span
+          class="java-dot">.</span><span class="java-method">println</span><span class="java-paren">(</span><span
+          class="java-string">"Hello World, I am: "</span><span class="java-paren">)</span><span
+          class="java-semicolon">;</span>
+      </div>
       <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
 
       <div class="hero-title">
@@ -65,7 +70,12 @@
 
     <!-- Mobile layout: greeting and name first -->
     <div class="hero-greeting-section fade-in-up">
-      <p class="hero-greeting">{{ 'hero.greeting' | translate }}</p>
+      <div class="java-code-line">
+        <span class="java-class">System</span><span class="java-dot">.</span><span class="java-method">out</span><span
+          class="java-dot">.</span><span class="java-method">println</span><span class="java-paren">(</span><span
+          class="java-string">"Hello World, I am"</span><span class="java-paren">)</span><span
+          class="java-semicolon">;</span>
+      </div>
       <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
     </div>
 
@@ -113,30 +123,16 @@
     </div>
     <!-- indicador inline agora posicionado após a imagem para não afetar o layout da mesma -->
     <div class="hero-scroll-row">
-      <div
-        class="scroll-indicator-inline"
-        (click)="scrollToSection('about')"
-        (keydown.enter)="scrollToSection('about')"
-        (keydown.space)="scrollToSection('about')"
-        tabindex="0"
-        role="button"
-        aria-label="Scroll para seção sobre"
-      >
+      <div class="scroll-indicator-inline" (click)="scrollToSection('about')" (keydown.enter)="scrollToSection('about')"
+        (keydown.space)="scrollToSection('about')" tabindex="0" role="button" aria-label="Scroll para seção sobre">
         <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
         <div class="scroll-arrow">↓</div>
       </div>
     </div>
   </div>
 
-  <div
-    class="scroll-indicator"
-    (click)="scrollToSection('about')"
-    (keydown.enter)="scrollToSection('about')"
-    (keydown.space)="scrollToSection('about')"
-    tabindex="0"
-    role="button"
-    aria-label="Scroll para seção sobre"
-  >
+  <div class="scroll-indicator" (click)="scrollToSection('about')" (keydown.enter)="scrollToSection('about')"
+    (keydown.space)="scrollToSection('about')" tabindex="0" role="button" aria-label="Scroll para seção sobre">
     <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
     <div class="scroll-arrow">↓</div>
   </div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
@@ -17,6 +17,8 @@ export class CertificationsComponent implements OnInit {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18nService = inject(I18nService);
 
+  readonly certificationsSection = viewChild<ElementRef<HTMLElement>>('certificationsSection');
+
   /** Lista de certificados (sem o currículo) */
   readonly certificados = this.certificationsService.certificados;
 
@@ -31,6 +33,59 @@ export class CertificationsComponent implements OnInit {
 
   /** Controle do modal de visualização */
   readonly isModalOpen = signal(false);
+
+  /** Paginação */
+  readonly currentPage = signal<number>(1);
+  readonly itemsPerPage = 6;
+
+  // Computed para certificados paginados
+  readonly paginatedCertificados = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.certificados().slice(startIndex, endIndex);
+  });
+
+  // Computed para total de páginas
+  readonly totalPages = computed(() => {
+    return Math.ceil(this.certificados().length / this.itemsPerPage);
+  });
+
+  // Computed para números de página (com ellipsis)
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (current <= 3) {
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push(-1);
+        pages.push(total);
+      } else if (current >= total - 2) {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = total - 4; i <= total; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = current - 1; i <= current + 1; i++) {
+          pages.push(i);
+        }
+        pages.push(-1);
+        pages.push(total);
+      }
+    }
+
+    return pages;
+  });
 
   /** Zoom do PDF no modal */
   pdfZoom = 1.0;
@@ -135,6 +190,44 @@ export class CertificationsComponent implements OnInit {
    */
   refresh(): void {
     this.certificationsService.refresh().subscribe();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PAGINAÇÃO
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.scrollToCertificationsSection();
+    }
+  }
+
+  private scrollToCertificationsSection(): void {
+    const section = this.certificationsSection();
+    if (section?.nativeElement) {
+      section.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    } else {
+      const el = document.getElementById('certifications');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      this.goToPage(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.goToPage(this.currentPage() + 1);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

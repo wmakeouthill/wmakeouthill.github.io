@@ -6,12 +6,14 @@
   justify-content: space-between;
   gap: 0.5rem;
   background: rgba(10, 10, 10, 0.96);
-  flex-shrink: 0; /* Evita que o header seja comprimido */
+  flex-shrink: 0;
+  /* Evita que o header seja comprimido */
 }
 
 .chat-header-info {
   flex: 1;
-  min-width: 0; /* Permite que o texto quebre se necessário */
+  min-width: 0;
+  /* Permite que o texto quebre se necessário */
 }
 
 .chat-header-info h2 {
@@ -30,6 +32,54 @@
   overflow-wrap: break-word;
 }
 
+/* Model Toggle Button */
+.chat-model-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.25rem;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--transition-fast);
+}
+
+.chat-model-toggle:hover {
+  transform: scale(1.05);
+}
+
+.chat-model-toggle:active {
+  transform: scale(0.95);
+}
+
+.model-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.model-badge.gemini {
+  background: linear-gradient(135deg, #4285f4, #00bcd4);
+  color: white;
+}
+
+.model-badge.gpt {
+  background: linear-gradient(135deg, #10a37f, #1a7f64);
+  color: white;
+}
+
 .chat-close-button {
   border: none;
   background: transparent;
@@ -37,14 +87,18 @@
   cursor: pointer;
   font-size: 1rem;
   padding: 0.15rem;
-  flex-shrink: 0; /* Mantém o botão sempre visível */
-  min-width: 2rem; /* Área de toque adequada para mobile */
+  flex-shrink: 0;
+  /* Mantém o botão sempre visível */
+  min-width: 2rem;
+  /* Área de toque adequada para mobile */
   min-height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: manipulation; /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent; /* Remove highlight no iOS */
+  touch-action: manipulation;
+  /* Melhora resposta ao toque */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove highlight no iOS */
 }
 
 .chat-close-button:hover {
@@ -59,7 +113,8 @@
 @media (max-width: 640px) {
   .chat-header {
     padding: 0.75rem 1rem;
-    padding-top: max(0.75rem, env(safe-area-inset-top, 0px) + 0.5rem); /* Safe area para notch */
+    padding-top: max(0.75rem, env(safe-area-inset-top, 0px) + 0.5rem);
+    /* Safe area para notch */
   }
 
   .chat-header-info h2 {
@@ -91,4 +146,3 @@
     font-size: 0.65rem;
   }
 }
-

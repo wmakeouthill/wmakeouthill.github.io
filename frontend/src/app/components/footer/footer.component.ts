@@ -31,6 +31,8 @@ export class FooterComponent {
   socialLinks = [
     { platform: 'GitHub', url: 'https://github.com/WesleyAugusto', iconSrc: 'assets/icons/github-octocat.svg' },
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' },
+    { platform: 'X', url: 'https://twitter.com/wmakeouthill', iconSrc: 'assets/icons/x.svg' },
+    { platform: 'Reddit', url: 'https://reddit.com/user/wmakeouthill', iconSrc: 'assets/icons/reddit.svg' },
     { platform: 'WhatsApp', url: 'https://wa.me/5521983866676?text=Olá!%20Vi%20seu%20portfólio%20e%20gostaria%20de%20entrar%20em%20contato.', iconSrc: 'assets/icons/whatsapp.svg' },
     { platform: 'Email', url: 'mailto:wcacorreia1995@gmail.com', iconSrc: 'assets/icons/gmail.svg' }
   ];

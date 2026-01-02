@@ -5,7 +5,8 @@
   /* Posição padrão: alinhado com scroll-to-top quando ele não está visível */
   bottom: var(--chat-gap) !important;
   right: var(--chat-gap) !important;
-  z-index: 9998; /* Abaixo do scroll-to-top */
+  z-index: 9998;
+  /* Abaixo do scroll-to-top */
   font-family: var(--font-primary);
   transition: right var(--transition-normal);
   display: flex;
@@ -31,7 +32,8 @@
   right: calc(100% + 0.75rem);
   width: 750px;
   max-width: calc(100vw - 2rem);
-  max-height: calc(100dvh - 2.5rem); /* Dynamic viewport height para mobile */
+  max-height: calc(100dvh - 2.5rem);
+  /* Dynamic viewport height para mobile */
   background: var(--bg-secondary);
   color: var(--text-primary);
   border-radius: var(--radius-lg);
@@ -69,9 +71,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100dvw; /* Dynamic viewport width para mobile */
-    max-width: 100dvw; /* Dynamic viewport width para mobile */
-    max-height: 100dvh; /* Dynamic viewport height para mobile */
+    width: 100dvw;
+    /* Dynamic viewport width para mobile */
+    max-width: 100dvw;
+    /* Dynamic viewport width para mobile */
+    max-height: 100dvh;
+    /* Dynamic viewport height para mobile */
     border-radius: 0;
     border: none;
     border-top: 1px solid rgba(219, 194, 125, 0.25);
@@ -95,21 +100,22 @@
   }
 
   .chat-messages {
-    max-height: calc(100dvh - 9rem);
     padding: 0.75rem 0.75rem 0.5rem;
   }
 }
 
 .chat-messages {
-  padding: 0.85rem 0.85rem 0.6rem;
+  padding: 0.85rem 0.35rem 0.6rem 0.85rem;
+  /* Right menor para compensar scrollbar 8px */
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   overflow-y: auto;
-  max-height: 520px;
+  flex: 1;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: rgba(219, 194, 125, 0.4) var(--bg-secondary);
-  -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Estilização do scrollbar do chat para WebKit (Chrome, Safari, Edge) */
@@ -171,9 +177,9 @@
   }
 
   .chat-messages {
-    max-height: calc(100dvh - 9rem); /* Ajuste dinâmico para mobile (header + input) */
     padding: 0.75rem 0.75rem 0.5rem;
-    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Scroll suave no iOS */
     /* Garantir que o scroll funcione bem em mobile */
     overscroll-behavior: contain;
   }
@@ -193,9 +199,9 @@
   }
 
   .chat-messages {
-    max-height: calc(100dvh - 8.5rem); /* Ajuste para telas menores */
     padding: 0.65rem 0.65rem 0.45rem;
-    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Scroll suave no iOS */
     overscroll-behavior: contain;
   }
 }

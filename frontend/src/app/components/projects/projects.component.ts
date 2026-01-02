@@ -5,6 +5,7 @@ import { MarkdownService } from '../../services/markdown.service';
 import { PortfolioContentService } from '../../services/portfolio-content.service';
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
+import { CodePreviewModalComponent } from '../code-preview-modal/code-preview-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -12,7 +13,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-projects',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReadmeModalComponent, TranslatePipe],
+  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -31,9 +32,13 @@ export class ProjectsComponent implements OnInit {
   readonly currentPage = signal<number>(1);
   readonly itemsPerPage = 6;
 
-  // Modal state com signals
+  // README Modal state
   readonly showReadmeModal = signal<boolean>(false);
   readonly currentProjectName = signal<string>('');
+
+  // Code Preview Modal state
+  readonly showCodePreviewModal = signal<boolean>(false);
+  readonly currentProjectForPreview = signal<string>('');
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
@@ -51,16 +56,24 @@ export class ProjectsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadProjects();
-    this.loadProjectImages();
-    this.initialized = true;
+    // Carrega imagens PRIMEIRO para evitar flash de placeholders
+    this.loadProjectImages().then(() => {
+      this.loadProjects();
+      this.initialized = true;
+    });
   }
 
   /**
    * Carrega imagens de projetos do repositório GitHub via backend.
+   * Retorna Promise para garantir que imagens estejam prontas antes de projetos.
    */
-  private loadProjectImages(): void {
-    this.portfolioContentService.loadImagens().subscribe();
+  private async loadProjectImages(): Promise<void> {
+    return new Promise((resolve) => {
+      this.portfolioContentService.loadImagens().subscribe({
+        next: () => resolve(),
+        error: () => resolve() // Continua mesmo com erro (usa cache/placeholder)
+      });
+    });
   }
 
   private loadProjects(): void {
@@ -240,6 +253,18 @@ export class ProjectsComponent implements OnInit {
     console.log('📱 Modal fechado - cache mantido');
   }
 
+  openCodePreviewModal(project: GitHubRepository): void {
+    console.log(`💻 Abrindo Code Preview para: ${project.name}`);
+    this.currentProjectForPreview.set(project.name);
+    this.showCodePreviewModal.set(true);
+  }
+
+  closeCodePreviewModal(): void {
+    this.showCodePreviewModal.set(false);
+    this.currentProjectForPreview.set('');
+    console.log('💻 Code Preview fechado');
+  }
+
   /**
    * Retorna a URL da imagem do projeto.
    * Busca primeiro no cache do serviço (que tem o nome correto do arquivo).
@@ -258,16 +283,39 @@ export class ProjectsComponent implements OnInit {
 
   /**
    * Tratamento de erro quando imagem não carrega.
-   * Usa placeholder como fallback.
+   * Tenta recarregar ou usa placeholder como fallback.
    */
   onImageError(event: Event, projectName: string): void {
     const img = event.target as HTMLImageElement;
     const currentSrc = img.src;
 
     // Evita loop infinito - só muda se não for placeholder
-    if (!currentSrc.includes('placehold.co')) {
-      img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+    if (currentSrc.includes('placehold.co')) {
+      return;
     }
+
+    // Se cache não está pronto, tenta recarregar imagens
+    if (!this.portfolioContentService.isCacheReady()) {
+      console.log(`🔄 Recarregando imagens devido erro em: ${projectName}`);
+      this.portfolioContentService.forceReload().subscribe({
+        next: () => {
+          // Tenta nova URL do cache atualizado
+          const newUrl = this.portfolioContentService.findBestImageUrl(projectName);
+          if (newUrl && newUrl !== currentSrc) {
+            img.src = newUrl;
+            return;
+          }
+          img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+        },
+        error: () => {
+          img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
+        }
+      });
+      return;
+    }
+
+    // Cache pronto mas imagem não existe - usa placeholder
+    img.src = this.portfolioContentService.getPlaceholderUrl(projectName);
   }
 }
 

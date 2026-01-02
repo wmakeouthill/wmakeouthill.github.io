@@ -1,1577 +1,1212 @@
-# ☕ Diretrizes de Desenvolvimento Backend
-## Java 17 • Spring Boot 3 • Clean Architecture • DDD
+# ☕ Diretrizes de Desenvolvimento Backend — Java 21/25 LTS / Spring Boot 3.4.x/3.5.x
 
-> **Este documento define os princípios, padrões e regras OBRIGATÓRIAS para desenvolvimento backend.**
+> **Este documento define os princípios, padrões e regras OBRIGATÓRIAS para desenvolvimento backend moderno.**
 > Consulte `.cursorrules` para visão geral e `.cursorrules-frontend` para regras do frontend.
-
----
-
-## 📋 ÍNDICE
-
-1. [Stack Tecnológica](#1-stack-tecnológica)
-2. [Clean Architecture](#2-clean-architecture)
-3. [Domain-Driven Design (DDD)](#3-domain-driven-design-ddd)
-4. [Princípios SOLID](#4-princípios-solid)
-5. [Estrutura de Pacotes](#5-estrutura-de-pacotes)
-6. [Camada Domain](#6-camada-domain)
-7. [Camada Application](#7-camada-application)
-8. [Camada Infrastructure](#8-camada-infrastructure)
-9. [Lombok e Java 17](#9-lombok-e-java-17)
-10. [Mappers e Conversões](#10-mappers-e-conversões)
-11. [Persistência e Repositórios](#11-persistência-e-repositórios)
-12. [Validações e Exceções](#12-validações-e-exceções)
-13. [Migrações com Liquibase](#13-migrações-com-liquibase)
-14. [Testes](#14-testes)
-15. [Anti-Patterns](#15-anti-patterns)
-16. [Checklist de Qualidade](#16-checklist-de-qualidade)
 
 ---
 
 ## 1. STACK TECNOLÓGICA
 
-### Versões Obrigatórias
-
 | Tecnologia   | Versão      | Observação                           |
 |--------------|-------------|--------------------------------------|
-| Java         | 17          | LTS - versão exata                   |
-| Spring Boot  | 3.2.3+      | WebFlux ou MVC                       |
-| Liquibase    | 4.25.0+     | Migrações de banco                   |
-| Maven        | 3.8+        | Build tool padrão                    |
-| MySQL        | 8.0+        | Banco de dados                       |
-| Lombok       | Latest      | Redução de boilerplate               |
+| Java         | **21 LTS** (obrigatório) / **25 LTS** (preferido) | Java 25 LTS previsto set/2025 |
+| Spring Boot  | **3.4.x** / **3.5.x** | 3.5 previsto mai/2025 com melhorias |
+| Spring       | **6.2.x**   | Compatível com Spring Boot 3.4/3.5   |
+| Maven        | **3.9+**    | Build tool padrão                    |
+| Gradle       | **8.x**     | Alternativa ao Maven                 |
+| Liquibase    | **4.x**     | Migrações de banco                   |
+| Flyway       | **10.x**    | Alternativa ao Liquibase             |
+| Lombok       | **Latest**  | Redução de boilerplate               |
+| MapStruct    | **1.6.x**   | Mapeamento de objetos (preferido)    |
+| JUnit        | **5.11+**   | Framework de testes                  |
+| Mockito      | **5.x**     | Framework de mocking                 |
+| ArchUnit     | **1.3+**    | Validação de arquitetura             |
 
-### Dependências Compartilhadas
+---
 
-```xml
-<!-- Sempre usar kernel-compartilhado -->
-<dependency>
-    <groupId>com.snackbar</groupId>
-    <artifactId>kernel-compartilhado</artifactId>
-    <version>${project.version}</version>
-</dependency>
+## 2. RECURSOS MODERNOS DO JAVA 21+ (OBRIGATÓRIOS)
+
+### 2.1 Java Records para Value Objects
+
+```java
+// ✅ CORRETO - Record imutável por padrão
+public record Email(String valor) {
+    public Email {
+        if (valor == null || !valor.contains("@")) {
+            throw new IllegalArgumentException("Email inválido");
+        }
+    }
+}
+
+public record Dinheiro(BigDecimal valor, String moeda) {
+    public static final Dinheiro ZERO = new Dinheiro(BigDecimal.ZERO, "BRL");
+    
+    public Dinheiro {
+        Objects.requireNonNull(valor, "Valor não pode ser nulo");
+        Objects.requireNonNull(moeda, "Moeda não pode ser nula");
+        if (valor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Valor não pode ser negativo");
+        }
+    }
+    
+    public Dinheiro somar(Dinheiro outro) {
+        if (!this.moeda.equals(outro.moeda)) {
+            throw new IllegalArgumentException("Moedas diferentes");
+        }
+        return new Dinheiro(this.valor.add(outro.valor), this.moeda);
+    }
+}
+
+// ❌ ERRADO - Classe para Value Object
+public class Email {
+    private String valor;
+    public void setValor(String valor) { this.valor = valor; } // Mutável!
+}
+```
+
+### 2.2 Pattern Matching e Sealed Classes
+
+```java
+// ✅ Sealed classes para hierarquias fechadas
+public sealed interface Resultado<T> permits Sucesso, Falha {
+}
+
+public record Sucesso<T>(T valor) implements Resultado<T> {}
+public record Falha<T>(String erro, String codigo) implements Resultado<T> {}
+
+// ✅ Pattern matching com switch
+public String processar(Resultado<?> resultado) {
+    return switch (resultado) {
+        case Sucesso(var valor) -> "Sucesso: " + valor;
+        case Falha(var erro, var codigo) -> "Erro %s: %s".formatted(codigo, erro);
+    };
+}
+
+// ✅ Pattern matching com instanceof
+public void processar(Object obj) {
+    if (obj instanceof Pedido pedido && pedido.isAtivo()) {
+        processarPedido(pedido);
+    }
+}
+```
+
+### 2.3 Virtual Threads (Spring Boot 3.2+)
+
+```yaml
+# application.yml - Habilitar Virtual Threads
+spring:
+  threads:
+    virtual:
+      enabled: true
+```
+
+```java
+// ✅ Operações I/O blocking se beneficiam de Virtual Threads
+@Async
+public CompletableFuture<Relatorio> gerarRelatorio(FiltroRelatorio filtro) {
+    var dados = repositorio.buscarDados(filtro);
+    return CompletableFuture.completedFuture(gerador.gerar(dados));
+}
 ```
 
 ---
 
-## 2. CLEAN ARCHITECTURE
+## 3. CLEAN ARCHITECTURE E DDD
 
-### 2.1 Visão Geral
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      INFRASTRUCTURE                          │
-│  Controllers, Repositories, External Services, Config        │
-│                                                              │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                     APPLICATION                        │  │
-│  │       Use Cases, DTOs, Application Services            │  │
-│  │                                                        │  │
-│  │  ┌─────────────────────────────────────────────────┐  │  │
-│  │  │                    DOMAIN                        │  │  │
-│  │  │    Entities, Value Objects, Domain Services      │  │  │
-│  │  │         ❌ ZERO dependências externas            │  │  │
-│  │  └─────────────────────────────────────────────────┘  │  │
-│  │                                                        │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 2.2 Regra de Dependência (INVIOLÁVEL)
+### Regra de Dependência
 
 ```
-Infrastructure  →  Application  →  Domain
-     ↓                  ↓             ↓
-  Frameworks         Ports        Entidades
-  BD, Web, etc.    Interfaces    Value Objects
-                   Use Cases     Regras Negócio
+Infrastructure → Application → Domain
 ```
 
-✅ **Camadas externas DEPENDEM de camadas internas**
-❌ **Camadas internas NUNCA dependem de camadas externas**
+- **Domain**: Regras de negócio puras, ZERO dependências de frameworks
+- **Application**: Orquestração, use cases, DTOs, ports
+- **Infrastructure**: Implementações técnicas, adapters, controllers, JPA, config
 
-### 2.3 Regras por Camada
-
-| Camada         | Pode Depender De        | NÃO Pode Depender De        |
-|----------------|------------------------|-----------------------------|
-| Domain         | Nada (é o núcleo)      | Application, Infrastructure |
-| Application    | Domain                 | Infrastructure              |
-| Infrastructure | Application, Domain    | -                           |
-
----
-
-## 3. DOMAIN-DRIVEN DESIGN (DDD)
-
-### 3.1 Building Blocks
+### Estrutura de Pacotes (Hexagonal/Ports & Adapters)
 
 ```
-Domain/
-├── entities/           # Entidades com identidade
-├── valueobjects/       # Objetos imutáveis sem identidade
-├── aggregates/         # Clusters de entidades (se aplicável)
-├── services/           # Lógica de domínio entre entidades
-├── events/             # Eventos de domínio
-└── exceptions/         # Exceções de domínio
-```
-
-### 3.2 Entidades
-
-```java
-// ✅ CORRETO - Entidade rica com comportamento
-public class Pedido {
-    private final String id;
-    private final List<ItemPedido> itens;
-    private StatusPedido status;
-    private final Instant criadoEm;
-    
-    // Construtor privado - use factory method
-    private Pedido(String id, List<ItemPedido> itens) {
-        this.id = id;
-        this.itens = new ArrayList<>(itens);
-        this.status = StatusPedido.PENDENTE;
-        this.criadoEm = Instant.now();
-    }
-    
-    // Factory method - único ponto de criação
-    public static Pedido criar(List<ItemPedido> itens) {
-        validarItens(itens);
-        return new Pedido(UUID.randomUUID().toString(), itens);
-    }
-    
-    // Comportamento de negócio na entidade
-    public void confirmar() {
-        if (this.status != StatusPedido.PENDENTE) {
-            throw new EstadoInvalidoException("Pedido não pode ser confirmado");
-        }
-        this.status = StatusPedido.CONFIRMADO;
-    }
-    
-    public void adicionarItem(ItemPedido item) {
-        validarPodeModificar();
-        this.itens.add(item);
-    }
-    
-    public BigDecimal calcularTotal() {
-        return itens.stream()
-            .map(ItemPedido::getSubtotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-    
-    // Validação de invariantes
-    private static void validarItens(List<ItemPedido> itens) {
-        if (itens == null || itens.isEmpty()) {
-            throw new RegraDeNegocioException("Pedido deve ter ao menos um item");
-        }
-    }
-    
-    private void validarPodeModificar() {
-        if (this.status != StatusPedido.PENDENTE) {
-            throw new EstadoInvalidoException("Pedido não pode ser modificado");
-        }
-    }
-    
-    // Getters - NUNCA setters públicos
-    public String getId() { return id; }
-    public List<ItemPedido> getItens() { return Collections.unmodifiableList(itens); }
-    public StatusPedido getStatus() { return status; }
-}
-
-// ❌ ERRADO - Entidade anêmica (apenas dados)
-public class Pedido {
-    private String id;
-    private List<ItemPedido> itens;
-    private StatusPedido status;
-    
-    // Getters e setters...
-    public void setStatus(StatusPedido status) { this.status = status; }
-    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
-}
-```
-
-### 3.3 Value Objects
-
-```java
-// ✅ CORRETO - Value Object imutável com validação
-public record Preco(BigDecimal valor) {
-    
-    public Preco {
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ValorInvalidoException("Preço deve ser positivo");
-        }
-    }
-    
-    public static Preco of(BigDecimal valor) {
-        return new Preco(valor);
-    }
-    
-    public static Preco zero() {
-        return new Preco(BigDecimal.ZERO);
-    }
-    
-    public Preco somar(Preco outro) {
-        return new Preco(this.valor.add(outro.valor));
-    }
-    
-    public Preco multiplicar(int quantidade) {
-        return new Preco(this.valor.multiply(BigDecimal.valueOf(quantidade)));
-    }
-    
-    public boolean maiorQue(Preco outro) {
-        return this.valor.compareTo(outro.valor) > 0;
-    }
-}
-
-// ✅ CORRETO - Value Object para CPF
-public record CPF(String valor) {
-    
-    private static final Pattern PATTERN = Pattern.compile("\\d{11}");
-    
-    public CPF {
-        String limpo = valor.replaceAll("[^0-9]", "");
-        if (!PATTERN.matcher(limpo).matches() || !validarDigitos(limpo)) {
-            throw new CPFInvalidoException(valor);
-        }
-        valor = limpo; // Armazena apenas números
-    }
-    
-    public static CPF of(String valor) {
-        return new CPF(valor);
-    }
-    
-    public String formatado() {
-        return valor.substring(0, 3) + "." + 
-               valor.substring(3, 6) + "." + 
-               valor.substring(6, 9) + "-" + 
-               valor.substring(9);
-    }
-    
-    private static boolean validarDigitos(String cpf) {
-        // Lógica de validação de dígitos verificadores
-    }
-}
-```
-
-### 3.4 Domain Services
-
-```java
-// ✅ CORRETO - Lógica que não pertence a uma entidade específica
-public class CalculadoraDescontoService {
-    
-    public BigDecimal calcularDesconto(Pedido pedido, Cliente cliente) {
-        BigDecimal total = pedido.calcularTotal();
-        BigDecimal desconto = BigDecimal.ZERO;
-        
-        // Desconto por fidelidade
-        if (cliente.ehFidelidade()) {
-            desconto = desconto.add(total.multiply(new BigDecimal("0.05")));
-        }
-        
-        // Desconto por valor
-        if (total.compareTo(new BigDecimal("100")) > 0) {
-            desconto = desconto.add(total.multiply(new BigDecimal("0.10")));
-        }
-        
-        return desconto;
-    }
-}
+src/main/java/br/com/empresa/{modulo}/
+├── domain/                     # NÚCLEO - Regras de negócio puras
+│   ├── entities/               # Entidades ricas com comportamento
+│   ├── valueobjects/           # Records imutáveis (Java Records)
+│   ├── services/               # Serviços de domínio
+│   ├── repositories/           # Interfaces de repositório (Ports)
+│   ├── events/                 # Eventos de domínio
+│   ├── specifications/         # Regras combináveis (Specification Pattern)
+│   └── exceptions/             # Exceções de domínio
+│
+├── application/                # CASOS DE USO - Orquestração
+│   ├── usecases/               # Casos de uso específicos
+│   ├── dtos/                   # Data Transfer Objects (Records)
+│   ├── ports/                  # Interfaces (Hexagonal)
+│   │   ├── in/                 # Portas de entrada (Driving)
+│   │   └── out/                # Portas de saída (Driven)
+│   ├── services/               # Serviços de aplicação
+│   └── mappers/                # MapStruct interfaces
+│
+├── infrastructure/             # ADAPTADORES - Implementações técnicas
+│   ├── persistence/            # JPA/JDBC
+│   │   ├── entities/           # Entidades JPA (@Entity)
+│   │   ├── repositories/       # Implementações JPA
+│   │   └── mappers/            # Mappers Domain ↔ JPA Entity
+│   ├── web/                    # REST API
+│   │   ├── controllers/        # REST Controllers
+│   │   ├── handlers/           # Exception handlers
+│   │   └── mappers/            # Mappers DTO ↔ Response
+│   ├── external/               # Clientes externos (Feign, REST, WebClient)
+│   ├── messaging/              # JMS, Kafka, RabbitMQ
+│   └── config/                 # Configurações Spring, Jackson, Security
+│
+└── interfaces/                 # CONTRATOS DE API (OpenAPI)
+    └── rest/
+        └── v1/
+            └── *API.java       # Interfaces com anotações OpenAPI
 ```
 
 ---
 
 ## 4. PRINCÍPIOS SOLID
 
-### S - Single Responsibility
+| Princípio | Aplicação Prática | Regra |
+|-----------|-------------------|-------|
+| **S**ingle Responsibility | Uma classe = uma responsabilidade | Use cases separados por operação |
+| **O**pen/Closed | Extensível via interfaces | Strategies, Decorators, Specifications |
+| **L**iskov Substitution | Subtipos substituíveis | Sealed classes, herança consciente |
+| **I**nterface Segregation | Interfaces pequenas | Ports específicos (save, find, delete) |
+| **D**ependency Inversion | Depender de abstrações | Injeção via construtor, Ports no domain |
 
 ```java
-// ✅ CORRETO - Uma responsabilidade por classe
+// ✅ Interface Segregation - Ports específicos
+public interface SalvarPedidoPort {
+    Pedido salvar(Pedido pedido);
+}
+
+public interface BuscarPedidoPort {
+    Optional<Pedido> buscarPorId(PedidoId id);
+    List<Pedido> buscarPorCliente(ClienteId clienteId);
+}
+
+// ❌ ERRADO - Interface genérica demais
+public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+    // Expõe tudo do JPA para o domain - PROIBIDO!
+}
+```
+
+---
+
+## 5. REUTILIZAÇÃO DE MAPPERS E JACKSON
+
+### 5.1 JacksonConfig (Singleton via DI)
+
+```java
+@Configuration
+public class JacksonConfig {
+    
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        return JsonMapper.builder()
+            .addModule(new JavaTimeModule())
+            .addModule(new ParameterNamesModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .build();
+    }
+    
+    @Bean
+    public ObjectReaderFactory objectReaderFactory(ObjectMapper objectMapper) {
+        return new ObjectReaderFactory(objectMapper);
+    }
+}
+
+// ✅ CORRETO - Injeção via DI
+@Service
+@RequiredArgsConstructor
+public class ImportacaoService {
+    private final ObjectMapper objectMapper; // Singleton do Spring
+    
+    public List<Produto> importar(InputStream input) throws IOException {
+        return objectMapper.readValue(input, new TypeReference<>() {});
+    }
+}
+
+// ❌ ERRADO - Singleton manual ou new
+public class JsonUtil {
+    private static final ObjectMapper MAPPER = new ObjectMapper(); // PROIBIDO!
+}
+```
+
+### 5.2 MapStruct (Preferido para Mapeamentos)
+
+```java
+// Configuração MapStruct com Spring
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface PedidoMapper {
+    
+    @Mapping(target = "clienteNome", source = "cliente.nome")
+    @Mapping(target = "valorTotal", expression = "java(pedido.calcularTotal())")
+    PedidoResponse toResponse(Pedido pedido);
+    
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dataCriacao", expression = "java(java.time.LocalDateTime.now())")
+    Pedido toDomain(CriarPedidoRequest request);
+    
+    List<PedidoResponse> toResponseList(List<Pedido> pedidos);
+}
+
+// Uso no Use Case
 @Service
 @RequiredArgsConstructor
 public class CriarPedidoUseCase {
     private final PedidoRepositoryPort repository;
-    
-    public PedidoDTO executar(CriarPedidoRequest request) {
-        // Apenas criação de pedido
-    }
-}
-
-@Service
-@RequiredArgsConstructor
-public class CancelarPedidoUseCase {
-    private final PedidoRepositoryPort repository;
-    private final NotificacaoPort notificacao;
-    
-    public void executar(String pedidoId) {
-        // Apenas cancelamento de pedido
-    }
-}
-
-// ❌ ERRADO - Múltiplas responsabilidades
-@Service
-public class PedidoService {
-    public PedidoDTO criar(...) { }
-    public void cancelar(...) { }
-    public void atualizar(...) { }
-    public List<PedidoDTO> buscarTodos(...) { }
-    public void enviarNotificacao(...) { }
-    public void gerarRelatorio(...) { }
-}
-```
-
-### O - Open/Closed
-
-```java
-// ✅ CORRETO - Extensível via interface
-public interface ValidadorPedido {
-    void validar(Pedido pedido);
-}
-
-@Component
-public class ValidadorItensObrigatorios implements ValidadorPedido {
-    public void validar(Pedido pedido) {
-        if (pedido.getItens().isEmpty()) {
-            throw new ValidacaoException("Pedido deve ter itens");
-        }
-    }
-}
-
-@Component
-public class ValidadorValorMinimo implements ValidadorPedido {
-    public void validar(Pedido pedido) {
-        if (pedido.calcularTotal().compareTo(new BigDecimal("10")) < 0) {
-            throw new ValidacaoException("Valor mínimo é R$ 10,00");
-        }
-    }
-}
-
-// Adicionar novos validadores sem modificar existentes
-@Component
-public class ValidadorHorarioFuncionamento implements ValidadorPedido {
-    public void validar(Pedido pedido) { ... }
-}
-```
-
-### L - Liskov Substitution
-
-```java
-// ✅ CORRETO - Subtipos são substituíveis
-public abstract class Pagamento {
-    protected BigDecimal valor;
-    protected StatusPagamento status;
-    
-    public abstract void processar();
-    public abstract void estornar();
-    
-    public BigDecimal getValor() { return valor; }
-    public StatusPagamento getStatus() { return status; }
-}
-
-public class PagamentoCartao extends Pagamento {
-    private final String numeroCartao;
-    
-    @Override
-    public void processar() {
-        // Processa cartão
-        this.status = StatusPagamento.APROVADO;
-    }
-    
-    @Override
-    public void estornar() {
-        // Estorna cartão
-        this.status = StatusPagamento.ESTORNADO;
-    }
-}
-
-public class PagamentoPix extends Pagamento {
-    private final String chavePix;
-    
-    @Override
-    public void processar() { ... }
-    
-    @Override
-    public void estornar() { ... }
-}
-```
-
-### I - Interface Segregation
-
-```java
-// ✅ CORRETO - Interfaces pequenas e focadas
-public interface PedidoRepositoryPort {
-    Pedido salvar(Pedido pedido);
-    Optional<Pedido> buscarPorId(String id);
-    List<Pedido> buscarPorCliente(String clienteId);
-}
-
-public interface PedidoRelatorioPort {
-    List<Pedido> buscarPorPeriodo(LocalDate inicio, LocalDate fim);
-    BigDecimal calcularTotalPeriodo(LocalDate inicio, LocalDate fim);
-}
-
-public interface PedidoNotificacaoPort {
-    void notificarCriacao(Pedido pedido);
-    void notificarAtualizacao(Pedido pedido);
-}
-
-// ❌ ERRADO - Interface muito grande
-public interface PedidoPort {
-    Pedido salvar(Pedido pedido);
-    Optional<Pedido> buscarPorId(String id);
-    List<Pedido> buscarTodos();
-    List<Pedido> buscarPorCliente(String clienteId);
-    List<Pedido> buscarPorPeriodo(LocalDate inicio, LocalDate fim);
-    void excluir(String id);
-    void notificar(Pedido pedido);
-    void enviarEmail(Pedido pedido);
-    BigDecimal calcularTotal(String id);
-    void gerarRelatorio(LocalDate data);
-}
-```
-
-### D - Dependency Inversion
-
-```java
-// ✅ CORRETO - Depende de abstrações (Port interfaces)
-@Service
-@RequiredArgsConstructor
-public class CriarPedidoUseCase {
-    // Depende de interfaces (ports), não de implementações
-    private final PedidoRepositoryPort repository;  // Interface
-    private final ClienteRepositoryPort clienteRepository;  // Interface
-    private final NotificacaoPort notificacao;  // Interface
-    
-    public PedidoDTO executar(CriarPedidoRequest request) {
-        Cliente cliente = clienteRepository.buscarPorId(request.clienteId())
-            .orElseThrow(() -> new ClienteNaoEncontradoException(request.clienteId()));
-            
-        Pedido pedido = Pedido.criar(request.itens());
-        Pedido salvo = repository.salvar(pedido);
-        
-        notificacao.notificarNovoPedido(salvo);
-        
-        return PedidoDTO.from(salvo);
-    }
-}
-
-// ❌ ERRADO - Depende de implementação concreta
-@Service
-public class CriarPedidoUseCase {
-    private final PedidoJpaRepository repository;  // Implementação concreta
-    private final EmailService emailService;  // Implementação concreta
-}
-```
-
----
-
-## 5. ESTRUTURA DE PACOTES
-
-### 5.1 Estrutura por Módulo
-
-```
-com.snackbar.{modulo}/
-├── domain/
-│   ├── entities/
-│   │   └── Pedido.java
-│   ├── valueobjects/
-│   │   ├── Preco.java
-│   │   └── StatusPedido.java
-│   ├── services/
-│   │   └── CalculadoraDescontoService.java
-│   └── exceptions/
-│       ├── PedidoNaoEncontradoException.java
-│       └── EstadoInvalidoException.java
-│
-├── application/
-│   ├── usecases/
-│   │   ├── CriarPedidoUseCase.java
-│   │   ├── BuscarPedidoUseCase.java
-│   │   └── CancelarPedidoUseCase.java
-│   ├── dtos/
-│   │   ├── PedidoDTO.java
-│   │   ├── CriarPedidoRequest.java
-│   │   └── AtualizarPedidoRequest.java
-│   └── ports/
-│       ├── in/
-│       │   └── PedidoUseCasePort.java
-│       └── out/
-│           ├── PedidoRepositoryPort.java
-│           └── NotificacaoPort.java
-│
-└── infrastructure/
-    ├── persistence/
-    │   ├── entities/
-    │   │   └── PedidoEntity.java
-    │   ├── repositories/
-    │   │   ├── PedidoJpaRepository.java
-    │   │   └── PedidoRepositoryAdapter.java
-    │   └── mappers/
-    │       └── PedidoMapper.java
-    ├── web/
-    │   ├── controllers/
-    │   │   └── PedidoController.java
-    │   └── handlers/
-    │       └── GlobalExceptionHandler.java
-    ├── services/
-    │   └── NotificacaoAdapter.java
-    └── config/
-        └── PedidoConfig.java
-```
-
-### 5.2 Kernel Compartilhado
-
-```
-com.snackbar.kernel/
-├── domain/
-│   ├── valueobjects/
-│   │   └── Dinheiro.java
-│   └── exceptions/
-│       └── DominioException.java
-├── application/
-│   ├── dtos/
-│   │   └── PaginacaoDTO.java
-│   └── ports/
-│       └── UseCase.java
-└── infrastructure/
-    ├── mappers/
-    │   ├── MapperUtils.java
-    │   └── MapperRegistry.java
-    └── config/
-        └── CommonConfig.java
-```
-
----
-
-## 6. CAMADA DOMAIN
-
-### 6.1 Regras da Camada
-
-✅ **PODE TER:**
-- Entidades e Aggregates
-- Value Objects
-- Domain Services
-- Exceções de domínio
-- Interfaces/Ports (quando necessário)
-- Enums de domínio
-- Eventos de domínio
-
-❌ **NÃO PODE TER:**
-- Anotações Spring (`@Service`, `@Component`, etc.)
-- Dependências de frameworks
-- Anotações JPA
-- Imports de `org.springframework.*`
-- Imports de `jakarta.persistence.*`
-
-### 6.2 Exemplos Práticos
-
-```java
-// ✅ CORRETO - Entidade de domínio pura
-package com.snackbar.pedidos.domain.entities;
-
-import com.snackbar.pedidos.domain.valueobjects.Preco;
-import com.snackbar.pedidos.domain.valueobjects.StatusPedido;
-import com.snackbar.pedidos.domain.exceptions.EstadoInvalidoException;
-
-public class Pedido {
-    private final String id;
-    private StatusPedido status;
-    private final Preco total;
-    
-    // Lógica de domínio...
-}
-
-// ❌ ERRADO - Domínio poluído com framework
-package com.snackbar.pedidos.domain.entities;
-
-import jakarta.persistence.*;  // ❌ JPA no domínio
-import org.springframework.stereotype.Component;  // ❌ Spring no domínio
-
-@Entity
-@Table(name = "pedidos")
-public class Pedido {
-    @Id
-    private String id;
-    
-    @Enumerated(EnumType.STRING)
-    private StatusPedido status;
-}
-```
-
----
-
-## 7. CAMADA APPLICATION
-
-### 7.1 Use Cases
-
-```java
-@Service
-@RequiredArgsConstructor
-public class CriarPedidoUseCase {
-    private final PedidoRepositoryPort pedidoRepository;
-    private final ProdutoRepositoryPort produtoRepository;
-    private final ValidadorPedidoService validador;
-    private final MapperUtils mapper = MapperUtils.getInstance();
+    private final PedidoMapper mapper; // Injetado automaticamente
     
     @Transactional
-    public PedidoDTO executar(CriarPedidoRequest request) {
-        // 1. Validar request
-        validarRequest(request);
-        
-        // 2. Buscar dependências
-        List<Produto> produtos = buscarProdutos(request.itensIds());
-        
-        // 3. Criar entidade de domínio
-        Pedido pedido = criarPedido(request, produtos);
-        
-        // 4. Validar regras de negócio
-        validador.validar(pedido);
-        
-        // 5. Persistir
-        Pedido salvo = pedidoRepository.salvar(pedido);
-        
-        // 6. Retornar DTO
-        return PedidoDTO.from(salvo);
-    }
-    
-    private void validarRequest(CriarPedidoRequest request) {
-        if (request.clienteId() == null || request.clienteId().isBlank()) {
-            throw new ValidacaoException("Cliente é obrigatório");
-        }
-        if (request.itensIds() == null || request.itensIds().isEmpty()) {
-            throw new ValidacaoException("Pedido deve ter itens");
-        }
-    }
-    
-    private List<Produto> buscarProdutos(List<String> ids) {
-        return ids.stream()
-            .map(id -> produtoRepository.buscarPorId(id)
-                .orElseThrow(() -> new ProdutoNaoEncontradoException(id)))
-            .toList();
-    }
-    
-    private Pedido criarPedido(CriarPedidoRequest request, List<Produto> produtos) {
-        List<ItemPedido> itens = produtos.stream()
-            .map(p -> ItemPedido.criar(p, 1))
-            .toList();
-        return Pedido.criar(request.clienteId(), itens);
+    public PedidoResponse executar(CriarPedidoRequest request) {
+        var pedido = mapper.toDomain(request);
+        var salvo = repository.salvar(pedido);
+        return mapper.toResponse(salvo);
     }
 }
 ```
 
-### 7.2 DTOs
+---
+
+## 6. DTOs COMO RECORDS
 
 ```java
-// ✅ CORRETO - DTO como record com factory method
-public record PedidoDTO(
-    String id,
-    String clienteId,
-    List<ItemPedidoDTO> itens,
-    String status,
-    BigDecimal total,
-    Instant criadoEm
-) {
-    public static PedidoDTO from(Pedido pedido) {
-        return new PedidoDTO(
-            pedido.getId(),
-            pedido.getClienteId(),
-            pedido.getItens().stream()
-                .map(ItemPedidoDTO::from)
-                .toList(),
-            pedido.getStatus().name(),
-            pedido.calcularTotal(),
-            pedido.getCriadoEm()
-        );
-    }
-}
-
-// ✅ CORRETO - Request DTO com validações
+// ✅ Request DTO com validação
 public record CriarPedidoRequest(
     @NotBlank(message = "Cliente é obrigatório")
     String clienteId,
     
-    @NotEmpty(message = "Pedido deve ter itens")
-    List<@Valid ItemPedidoRequest> itens,
+    @NotEmpty(message = "Itens são obrigatórios")
+    @Valid
+    List<ItemPedidoRequest> itens,
     
+    @Size(max = 500, message = "Observação deve ter no máximo 500 caracteres")
     String observacao
-) { }
+) {}
+
+public record ItemPedidoRequest(
+    @NotBlank String produtoId,
+    @Positive int quantidade,
+    @PositiveOrZero BigDecimal desconto
+) {}
+
+// ✅ Response DTO
+public record PedidoResponse(
+    String id,
+    String clienteNome,
+    List<ItemPedidoResponse> itens,
+    BigDecimal valorTotal,
+    String status,
+    LocalDateTime dataCriacao
+) {}
 ```
 
-### 7.3 Ports (Interfaces)
+---
+
+## 7. ACID E TRANSAÇÕES
+
+### Regras Obrigatórias
+
+- ✅ `@Transactional` no nível do Use Case/Application Service
+- ✅ `@Transactional(readOnly = true)` para queries
+- ❌ NUNCA chamadas HTTP/externas dentro de transações
+- ❌ NUNCA transações longas (>2 segundos)
 
 ```java
-// Port de saída (o que o Use Case precisa)
-package com.snackbar.pedidos.application.ports.out;
-
-public interface PedidoRepositoryPort {
-    Pedido salvar(Pedido pedido);
-    Optional<Pedido> buscarPorId(String id);
-    List<Pedido> buscarPorCliente(String clienteId);
-    List<Pedido> buscarPorStatus(StatusPedido status);
-    void excluir(String id);
+// ✅ CORRETO - Transação no Use Case
+@Service
+@RequiredArgsConstructor
+public class ProcessarPedidoUseCase {
+    private final PedidoRepositoryPort pedidoRepo;
+    private final ApplicationEventPublisher eventPublisher;
+    private final PedidoMapper mapper;
+    
+    @Transactional
+    public PedidoResponse executar(String pedidoId) {
+        // 1. Buscar e atualizar pedido (dentro da transação)
+        var pedido = pedidoRepo.buscarPorId(pedidoId)
+            .orElseThrow(() -> new PedidoNaoEncontradoException(pedidoId));
+        
+        pedido.confirmar();
+        pedidoRepo.salvar(pedido);
+        
+        // 2. Publicar evento para processamento assíncrono
+        eventPublisher.publishEvent(new PedidoConfirmadoEvent(pedido.getId()));
+        
+        return mapper.toResponse(pedido);
+    }
 }
+```
 
-// Port de entrada (o que expõe para fora)
-package com.snackbar.pedidos.application.ports.in;
+### Outbox Pattern para Eventos
 
-public interface CriarPedidoUseCasePort {
-    PedidoDTO executar(CriarPedidoRequest request);
+```java
+@Entity
+@Table(name = "outbox_events")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class OutboxEvent {
+    @Id
+    private UUID id = UUID.randomUUID();
+    private String aggregateType;
+    private String aggregateId;
+    private String eventType;
+    
+    @Column(columnDefinition = "jsonb")
+    private String payload;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private boolean processed = false;
+    
+    public static OutboxEvent criar(DomainEvent event, ObjectMapper mapper) throws JsonProcessingException {
+        var outbox = new OutboxEvent();
+        outbox.aggregateType = event.getAggregateType();
+        outbox.aggregateId = event.getAggregateId();
+        outbox.eventType = event.getClass().getSimpleName();
+        outbox.payload = mapper.writeValueAsString(event);
+        return outbox;
+    }
+}
+```
+
+### Idempotency Key
+
+```java
+@Service
+@RequiredArgsConstructor
+public class ProcessarPagamentoUseCase {
+    private final IdempotencyKeyRepository idempotencyRepo;
+    
+    @Transactional
+    public ResultadoPagamento executar(String idempotencyKey, PagamentoRequest request) {
+        // Verifica se já foi processado
+        var existente = idempotencyRepo.findByKey(idempotencyKey);
+        if (existente.isPresent()) {
+            return existente.get().getResultado();
+        }
+        
+        // Processa e salva com idempotency key
+        var resultado = processarPagamento(request);
+        idempotencyRepo.save(new IdempotencyRecord(idempotencyKey, resultado));
+        return resultado;
+    }
 }
 ```
 
 ---
 
-## 8. CAMADA INFRASTRUCTURE
-
-### 8.1 Entities JPA
+## 8. ENTIDADES RICAS (DDD)
 
 ```java
 @Entity
 @Table(name = "pedidos")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)  // Para JPA
-@AllArgsConstructor(access = AccessLevel.PRIVATE)   // Para Builder
-@Builder
-public class PedidoEntity {
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA
+public class Pedido {
     
-    @Id
-    private String id;
+    @EmbeddedId
+    private PedidoId id;
     
-    @Column(name = "cliente_id", nullable = false)
-    private String clienteId;
+    @Embedded
+    private ClienteId clienteId;
     
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ItemPedidoEntity> itens = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemPedido> itens = new ArrayList<>();
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusPedido status;
+    private StatusPedido status = StatusPedido.RASCUNHO;
     
-    @Column(precision = 10, scale = 2)
-    private BigDecimal total;
+    private LocalDateTime dataCriacao;
+    private LocalDateTime dataConfirmacao;
     
-    @Column(name = "criado_em", nullable = false)
-    private Instant criadoEm;
-    
-    @Column(name = "atualizado_em")
-    private Instant atualizadoEm;
-    
-    @PrePersist
-    void prePersist() {
-        this.criadoEm = Instant.now();
+    // ✅ Factory Method - Criação controlada
+    public static Pedido criar(ClienteId clienteId) {
+        var pedido = new Pedido();
+        pedido.id = PedidoId.gerar();
+        pedido.clienteId = clienteId;
+        pedido.dataCriacao = LocalDateTime.now();
+        return pedido;
     }
     
-    @PreUpdate
-    void preUpdate() {
-        this.atualizadoEm = Instant.now();
+    // ✅ Comportamento de negócio na entidade
+    public void adicionarItem(Produto produto, int quantidade) {
+        validarPodeSerAlterado();
+        
+        var itemExistente = itens.stream()
+            .filter(i -> i.getProdutoId().equals(produto.getId()))
+            .findFirst();
+        
+        if (itemExistente.isPresent()) {
+            itemExistente.get().incrementarQuantidade(quantidade);
+        } else {
+            itens.add(ItemPedido.criar(produto, quantidade));
+        }
+    }
+    
+    public void confirmar() {
+        if (this.status != StatusPedido.RASCUNHO) {
+            throw new EstadoInvalidoException("Pedido não pode ser confirmado");
+        }
+        if (this.itens.isEmpty()) {
+            throw new RegraDeNegocioException("Pedido deve ter pelo menos um item");
+        }
+        this.status = StatusPedido.CONFIRMADO;
+        this.dataConfirmacao = LocalDateTime.now();
+    }
+    
+    public Dinheiro calcularTotal() {
+        return itens.stream()
+            .map(ItemPedido::calcularSubtotal)
+            .reduce(Dinheiro.ZERO, Dinheiro::somar);
+    }
+    
+    public boolean isAtivo() {
+        return this.status != StatusPedido.CANCELADO;
+    }
+    
+    private void validarPodeSerAlterado() {
+        if (this.status != StatusPedido.RASCUNHO) {
+            throw new EstadoInvalidoException("Pedido confirmado não pode ser alterado");
+        }
     }
 }
 ```
 
-### 8.2 Repository Adapter
+---
+
+## 9. DESIGN PATTERNS OBRIGATÓRIOS
+
+### Strategy Pattern
 
 ```java
+public interface CalculoFreteStrategy {
+    BigDecimal calcular(Pedido pedido);
+    boolean suporta(TipoFrete tipo);
+}
+
 @Component
-@RequiredArgsConstructor
-public class PedidoRepositoryAdapter implements PedidoRepositoryPort {
-    
-    private final PedidoJpaRepository jpaRepository;
-    private final PedidoMapper mapper;
-    
-    @Override
-    public Pedido salvar(Pedido pedido) {
-        PedidoEntity entity = mapper.toEntity(pedido);
-        PedidoEntity salvo = jpaRepository.save(entity);
-        return mapper.toDomain(salvo);
-    }
-    
-    @Override
-    public Optional<Pedido> buscarPorId(String id) {
-        return jpaRepository.findById(id)
-            .map(mapper::toDomain);
-    }
-    
-    @Override
-    public List<Pedido> buscarPorCliente(String clienteId) {
-        return jpaRepository.findByClienteId(clienteId).stream()
-            .map(mapper::toDomain)
-            .toList();
-    }
-    
-    @Override
-    public List<Pedido> buscarPorStatus(StatusPedido status) {
-        return jpaRepository.findByStatus(status).stream()
-            .map(mapper::toDomain)
-            .toList();
-    }
-    
-    @Override
-    public void excluir(String id) {
-        jpaRepository.deleteById(id);
-    }
+public class FreteCorreiosStrategy implements CalculoFreteStrategy {
+    public BigDecimal calcular(Pedido pedido) { /* impl */ }
+    public boolean suporta(TipoFrete tipo) { return tipo == TipoFrete.CORREIOS; }
 }
-```
 
-### 8.3 Controllers
-
-```java
-@RestController
-@RequestMapping("/api/pedidos")
-@RequiredArgsConstructor
-public class PedidoController {
-    
-    private final CriarPedidoUseCase criarPedidoUseCase;
-    private final BuscarPedidoUseCase buscarPedidoUseCase;
-    private final ListarPedidosUseCase listarPedidosUseCase;
-    private final CancelarPedidoUseCase cancelarPedidoUseCase;
-    
-    @PostMapping
-    public ResponseEntity<PedidoDTO> criar(@Valid @RequestBody CriarPedidoRequest request) {
-        PedidoDTO pedido = criarPedidoUseCase.executar(request);
-        URI location = URI.create("/api/pedidos/" + pedido.id());
-        return ResponseEntity.created(location).body(pedido);
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<PedidoDTO> buscarPorId(@PathVariable String id) {
-        return buscarPedidoUseCase.executar(id)
-            .map(ResponseEntity::ok)
-            .orElseThrow(() -> new PedidoNaoEncontradoException(id));
-    }
-    
-    @GetMapping
-    public ResponseEntity<List<PedidoDTO>> listar(
-            @RequestParam(required = false) String clienteId,
-            @RequestParam(required = false) String status) {
-        var filtro = new FiltroPedido(clienteId, status);
-        return ResponseEntity.ok(listarPedidosUseCase.executar(filtro));
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelar(@PathVariable String id) {
-        cancelarPedidoUseCase.executar(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-```
-
----
-
-## 9. LOMBOK E JAVA 17
-
-### 9.1 Lombok Obrigatório
-
-```java
-// ✅ CORRETO - Sempre usar @RequiredArgsConstructor
 @Service
 @RequiredArgsConstructor
-public class MeuUseCase {
-    private final RepositoryPort repository;  // final = injetado
-    private final OutroService servico;       // final = injetado
-    private final MapperUtils mapper = MapperUtils.getInstance();  // não-final = não injetado
-}
-
-// ✅ CORRETO - Entities JPA com Lombok
-@Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProdutoEntity { }
-
-// ❌ PROIBIDO - Construtor manual
-@Service
-public class MeuUseCase {
-    private final RepositoryPort repository;
+public class CalculadorFrete {
+    private final List<CalculoFreteStrategy> strategies;
     
-    public MeuUseCase(RepositoryPort repository) {  // ❌ NUNCA
-        this.repository = repository;
+    public BigDecimal calcular(Pedido pedido, TipoFrete tipo) {
+        return strategies.stream()
+            .filter(s -> s.suporta(tipo))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Tipo não suportado: " + tipo))
+            .calcular(pedido);
     }
 }
 ```
 
-### 9.2 Records do Java 17
+### Specification Pattern
 
 ```java
-// ✅ CORRETO - Records para DTOs imutáveis
-public record ProdutoDTO(
-    String id,
-    String nome,
-    BigDecimal preco,
-    String categoria
-) {
-    // Compact constructor para validação
-    public ProdutoDTO {
-        Objects.requireNonNull(id, "ID não pode ser nulo");
-        Objects.requireNonNull(nome, "Nome não pode ser nulo");
+public interface Specification<T> {
+    boolean isSatisfiedBy(T entity);
+    
+    default Specification<T> and(Specification<T> other) {
+        return entity -> this.isSatisfiedBy(entity) && other.isSatisfiedBy(entity);
     }
     
-    // Factory method
-    public static ProdutoDTO from(Produto produto) {
-        return new ProdutoDTO(
-            produto.getId(),
-            produto.getNome(),
-            produto.getPreco().valor(),
-            produto.getCategoria().nome()
-        );
+    default Specification<T> or(Specification<T> other) {
+        return entity -> this.isSatisfiedBy(entity) || other.isSatisfiedBy(entity);
     }
 }
-```
 
-### 9.3 Outras Features do Java 17
-
-```java
-// Pattern Matching com instanceof
-if (objeto instanceof Produto produto) {
-    System.out.println(produto.getNome());
+public class PedidoAtivoSpec implements Specification<Pedido> {
+    public boolean isSatisfiedBy(Pedido pedido) {
+        return pedido.getStatus() != StatusPedido.CANCELADO;
+    }
 }
 
-// Switch Expression
-String descricao = switch (status) {
-    case PENDENTE -> "Aguardando";
-    case EM_PREPARO -> "Preparando";
-    case PRONTO -> "Pronto para retirada";
-    case ENTREGUE -> "Finalizado";
-};
+public class PedidoComValorMinimoSpec implements Specification<Pedido> {
+    private final BigDecimal valorMinimo;
+    
+    public PedidoComValorMinimoSpec(BigDecimal valorMinimo) {
+        this.valorMinimo = valorMinimo;
+    }
+    
+    public boolean isSatisfiedBy(Pedido pedido) {
+        return pedido.calcularTotal().valor().compareTo(valorMinimo) >= 0;
+    }
+}
 
-// Text Blocks
-String query = """
-    SELECT p.id, p.nome, p.preco
-    FROM produtos p
-    WHERE p.categoria = :categoria
-    ORDER BY p.nome
-    """;
-
-// Streams com toList()
-List<String> nomes = produtos.stream()
-    .map(Produto::getNome)
-    .toList();  // ✅ Java 16+ (não Collectors.toList())
+// Uso combinado
+var spec = new PedidoAtivoSpec().and(new PedidoComValorMinimoSpec(new BigDecimal("100")));
+var pedidosValidos = pedidos.stream().filter(spec::isSatisfiedBy).toList();
 ```
 
 ---
 
-## 10. MAPPERS E CONVERSÕES
+## 10. TESTES
 
-### 10.1 MapperUtils Singleton
-
-```java
-// ✅ CORRETO - Sempre singleton
-private final MapperUtils mapper = MapperUtils.getInstance();
-
-// ❌ PROIBIDO - Nova instância
-private final MapperUtils mapper = new MapperUtils();  // ❌ NUNCA
-```
-
-### 10.2 Mapper Específico de Domínio
-
-```java
-@Component
-public class PedidoMapper {
-    
-    public PedidoEntity toEntity(Pedido pedido) {
-        return PedidoEntity.builder()
-            .id(pedido.getId())
-            .clienteId(pedido.getClienteId())
-            .status(pedido.getStatus())
-            .total(pedido.calcularTotal())
-            .criadoEm(pedido.getCriadoEm())
-            .itens(pedido.getItens().stream()
-                .map(this::toItemEntity)
-                .toList())
-            .build();
-    }
-    
-    public Pedido toDomain(PedidoEntity entity) {
-        List<ItemPedido> itens = entity.getItens().stream()
-            .map(this::toItemDomain)
-            .toList();
-            
-        return Pedido.reconstituir(
-            entity.getId(),
-            entity.getClienteId(),
-            itens,
-            entity.getStatus(),
-            entity.getCriadoEm()
-        );
-    }
-    
-    private ItemPedidoEntity toItemEntity(ItemPedido item) {
-        return ItemPedidoEntity.builder()
-            .id(item.getId())
-            .produtoId(item.getProdutoId())
-            .quantidade(item.getQuantidade())
-            .precoUnitario(item.getPrecoUnitario().valor())
-            .build();
-    }
-    
-    private ItemPedido toItemDomain(ItemPedidoEntity entity) {
-        return ItemPedido.reconstituir(
-            entity.getId(),
-            entity.getProdutoId(),
-            entity.getQuantidade(),
-            Preco.of(entity.getPrecoUnitario())
-        );
-    }
-}
-```
-
-### 10.3 Verificar Antes de Criar
-
-```java
-// ✅ SEMPRE verifique se já existe no kernel-compartilhado:
-// - MapperUtils.getInstance()
-// - MapperRegistry.getInstance()
-
-// ✅ SEMPRE verifique se já existe mapper similar no módulo
-
-// ❌ NUNCA crie mapper duplicado
-```
-
----
-
-## 11. PERSISTÊNCIA E REPOSITÓRIOS
-
-### 11.1 JPA Repository Interface
-
-```java
-public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, String> {
-    
-    List<PedidoEntity> findByClienteId(String clienteId);
-    
-    List<PedidoEntity> findByStatus(StatusPedido status);
-    
-    @Query("SELECT p FROM PedidoEntity p WHERE p.criadoEm BETWEEN :inicio AND :fim")
-    List<PedidoEntity> findByPeriodo(
-        @Param("inicio") Instant inicio,
-        @Param("fim") Instant fim
-    );
-    
-    @Query("SELECT SUM(p.total) FROM PedidoEntity p WHERE p.status = :status")
-    Optional<BigDecimal> calcularTotalPorStatus(@Param("status") StatusPedido status);
-}
-```
-
-### 11.2 Queries Complexas
-
-```java
-@Repository
-@RequiredArgsConstructor
-public class PedidoQueryRepository {
-    
-    private final EntityManager entityManager;
-    
-    public List<PedidoResumoDTO> buscarResumoPorPeriodo(LocalDate inicio, LocalDate fim) {
-        String jpql = """
-            SELECT new com.snackbar.pedidos.application.dtos.PedidoResumoDTO(
-                p.id,
-                p.clienteId,
-                p.status,
-                p.total,
-                p.criadoEm
-            )
-            FROM PedidoEntity p
-            WHERE p.criadoEm BETWEEN :inicio AND :fim
-            ORDER BY p.criadoEm DESC
-            """;
-            
-        return entityManager.createQuery(jpql, PedidoResumoDTO.class)
-            .setParameter("inicio", inicio.atStartOfDay().toInstant(ZoneOffset.UTC))
-            .setParameter("fim", fim.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC))
-            .getResultList();
-    }
-}
-```
-
----
-
-## 12. VALIDAÇÕES E EXCEÇÕES
-
-### 12.1 Hierarquia de Exceções
-
-```java
-// Exceção base do domínio
-public abstract class DominioException extends RuntimeException {
-    protected DominioException(String mensagem) {
-        super(mensagem);
-    }
-}
-
-// Exceções específicas
-public class EntidadeNaoEncontradaException extends DominioException {
-    public EntidadeNaoEncontradaException(String entidade, String id) {
-        super(String.format("%s não encontrado(a): %s", entidade, id));
-    }
-}
-
-public class PedidoNaoEncontradoException extends EntidadeNaoEncontradaException {
-    public PedidoNaoEncontradoException(String id) {
-        super("Pedido", id);
-    }
-}
-
-public class RegraDeNegocioException extends DominioException {
-    public RegraDeNegocioException(String mensagem) {
-        super(mensagem);
-    }
-}
-
-public class EstadoInvalidoException extends RegraDeNegocioException {
-    public EstadoInvalidoException(String mensagem) {
-        super(mensagem);
-    }
-}
-```
-
-### 12.2 Exception Handler Global
-
-```java
-@RestControllerAdvice
-@Slf4j
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(EntidadeNaoEncontradaException.class)
-    public ResponseEntity<ErroResponse> handleEntidadeNaoEncontrada(EntidadeNaoEncontradaException ex) {
-        log.warn("Entidade não encontrada: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErroResponse(ex.getMessage(), "NOT_FOUND"));
-    }
-    
-    @ExceptionHandler(RegraDeNegocioException.class)
-    public ResponseEntity<ErroResponse> handleRegraDeNegocio(RegraDeNegocioException ex) {
-        log.warn("Regra de negócio violada: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-            .body(new ErroResponse(ex.getMessage(), "BUSINESS_RULE_VIOLATION"));
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErroValidacaoResponse> handleValidacao(MethodArgumentNotValidException ex) {
-        List<CampoErro> erros = ex.getBindingResult().getFieldErrors().stream()
-            .map(e -> new CampoErro(e.getField(), e.getDefaultMessage()))
-            .toList();
-        return ResponseEntity.badRequest()
-            .body(new ErroValidacaoResponse("Dados inválidos", erros));
-    }
-}
-
-public record ErroResponse(String mensagem, String codigo) { }
-public record CampoErro(String campo, String mensagem) { }
-public record ErroValidacaoResponse(String mensagem, List<CampoErro> erros) { }
-```
-
-### 12.3 Validação em Use Cases
-
-```java
-@Service
-@RequiredArgsConstructor
-public class CriarPedidoUseCase {
-    
-    public PedidoDTO executar(CriarPedidoRequest request) {
-        // Validação de entrada
-        validarRequest(request);
-        
-        // Validação de regras de negócio
-        validarRegrasNegocio(request);
-        
-        // ... resto da lógica
-    }
-    
-    private void validarRequest(CriarPedidoRequest request) {
-        List<String> erros = new ArrayList<>();
-        
-        if (request.clienteId() == null || request.clienteId().isBlank()) {
-            erros.add("Cliente é obrigatório");
-        }
-        if (request.itens() == null || request.itens().isEmpty()) {
-            erros.add("Pedido deve ter ao menos um item");
-        }
-        
-        if (!erros.isEmpty()) {
-            throw new ValidacaoException(String.join("; ", erros));
-        }
-    }
-}
-```
-
----
-
-## 13. MIGRAÇÕES COM LIQUIBASE
-
-### 13.1 Estrutura de Arquivos
+### Estrutura de Testes
 
 ```
-src/main/resources/db/changelog/
-├── db.changelog-master.yml
-├── changes/
-│   ├── 20240101120000-criar-tabela-produtos.yml
-│   ├── 20240102100000-criar-tabela-pedidos.yml
-│   └── 20240103090000-adicionar-coluna-observacao.yml
-└── data/
-    └── 20240101130000-dados-iniciais.yml
-```
-
-### 13.2 Changelog Master
-
-```yaml
-# db.changelog-master.yml
-databaseChangeLog:
-  - includeAll:
-      path: db/changelog/changes/
-      relativeToChangelogFile: false
-```
-
-### 13.3 Changeset Exemplo
-
-```yaml
-# 20240101120000-criar-tabela-produtos.yml
-databaseChangeLog:
-  - changeSet:
-      id: 20240101120000-criar-tabela-produtos
-      author: desenvolvedor
-      changes:
-        - createTable:
-            tableName: produtos
-            columns:
-              - column:
-                  name: id
-                  type: VARCHAR(36)
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: nome
-                  type: VARCHAR(100)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: preco
-                  type: DECIMAL(10, 2)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: categoria_id
-                  type: VARCHAR(36)
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_produto_categoria
-                    references: categorias(id)
-              - column:
-                  name: criado_em
-                  type: TIMESTAMP
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-        
-        - createIndex:
-            tableName: produtos
-            indexName: idx_produto_categoria
-            columns:
-              - column:
-                  name: categoria_id
-      
-      rollback:
-        - dropTable:
-            tableName: produtos
-```
-
-### 13.4 Regras Obrigatórias
-
-- ✅ **SEMPRE** inclua rollback
-- ✅ **SEMPRE** use nomenclatura: `{YYYYMMDDHHmmss}-{descricao}.yml`
-- ✅ **SEMPRE** crie índices para campos de busca frequente
-- ✅ **SEMPRE** use constraints apropriadas (NOT NULL, UNIQUE, FK)
-- ❌ **NUNCA** altere changelogs já aplicados
-- ❌ **NUNCA** use IDs sequenciais simples (1, 2, 3)
-
----
-
-## 14. TESTES
-
-### 14.1 Estrutura de Testes
-
-```
-src/test/java/com/snackbar/pedidos/
-├── domain/
-│   ├── entities/
+src/test/java/
+├── unit/                       # Testes unitários (domain, use cases)
+│   ├── domain/
 │   │   └── PedidoTest.java
-│   └── valueobjects/
-│       └── PrecoTest.java
-├── application/
-│   └── usecases/
-│       ├── CriarPedidoUseCaseTest.java
-│       └── CancelarPedidoUseCaseTest.java
-└── infrastructure/
-    ├── persistence/
-    │   └── PedidoRepositoryAdapterTest.java
-    └── web/
-        └── PedidoControllerTest.java
+│   └── application/
+│       └── CriarPedidoUseCaseTest.java
+├── integration/                # Testes de integração
+│   ├── persistence/
+│   │   └── PedidoRepositoryIT.java
+│   └── web/
+│       └── PedidoControllerIT.java
+└── architecture/               # Testes de arquitetura (ArchUnit)
+    └── ArchitectureTest.java
 ```
 
-### 14.2 Testes de Domínio
-
-```java
-class PedidoTest {
-    
-    @Test
-    void deveCriarPedidoComStatusPendente() {
-        // Arrange
-        List<ItemPedido> itens = List.of(
-            ItemPedido.criar(criarProduto(), 2)
-        );
-        
-        // Act
-        Pedido pedido = Pedido.criar("cliente-123", itens);
-        
-        // Assert
-        assertThat(pedido.getStatus()).isEqualTo(StatusPedido.PENDENTE);
-        assertThat(pedido.getItens()).hasSize(1);
-    }
-    
-    @Test
-    void deveLancarExcecaoAoCriarPedidoSemItens() {
-        // Arrange & Act & Assert
-        assertThatThrownBy(() -> Pedido.criar("cliente-123", List.of()))
-            .isInstanceOf(RegraDeNegocioException.class)
-            .hasMessageContaining("deve ter ao menos um item");
-    }
-    
-    @Test
-    void deveConfirmarPedidoPendente() {
-        // Arrange
-        Pedido pedido = criarPedidoPendente();
-        
-        // Act
-        pedido.confirmar();
-        
-        // Assert
-        assertThat(pedido.getStatus()).isEqualTo(StatusPedido.CONFIRMADO);
-    }
-    
-    @Test
-    void naoDeveConfirmarPedidoJaConfirmado() {
-        // Arrange
-        Pedido pedido = criarPedidoConfirmado();
-        
-        // Act & Assert
-        assertThatThrownBy(pedido::confirmar)
-            .isInstanceOf(EstadoInvalidoException.class);
-    }
-}
-```
-
-### 14.3 Testes de Use Case
+### Exemplo de Teste Unitário
 
 ```java
 @ExtendWith(MockitoExtension.class)
 class CriarPedidoUseCaseTest {
     
     @Mock
-    private PedidoRepositoryPort pedidoRepository;
+    private PedidoRepositoryPort repository;
     
     @Mock
-    private ProdutoRepositoryPort produtoRepository;
+    private PedidoMapper mapper;
     
     @InjectMocks
     private CriarPedidoUseCase useCase;
     
     @Test
+    @DisplayName("Deve criar pedido com sucesso")
     void deveCriarPedidoComSucesso() {
         // Arrange
-        CriarPedidoRequest request = new CriarPedidoRequest(
-            "cliente-123",
-            List.of(new ItemPedidoRequest("produto-1", 2))
-        );
+        var request = new CriarPedidoRequest("cliente-123", List.of(
+            new ItemPedidoRequest("produto-1", 2, BigDecimal.ZERO)
+        ), null);
         
-        Produto produto = criarProdutoMock();
-        when(produtoRepository.buscarPorId("produto-1"))
-            .thenReturn(Optional.of(produto));
-        when(pedidoRepository.salvar(any()))
-            .thenAnswer(inv -> inv.getArgument(0));
+        var pedidoEsperado = Pedido.criar(new ClienteId("cliente-123"));
+        var responseEsperado = new PedidoResponse("ped-1", "Cliente", List.of(), 
+            BigDecimal.TEN, "RASCUNHO", LocalDateTime.now());
+        
+        when(mapper.toDomain(request)).thenReturn(pedidoEsperado);
+        when(repository.salvar(any())).thenReturn(pedidoEsperado);
+        when(mapper.toResponse(pedidoEsperado)).thenReturn(responseEsperado);
         
         // Act
-        PedidoDTO resultado = useCase.executar(request);
+        var resultado = useCase.executar(request);
         
         // Assert
         assertThat(resultado).isNotNull();
-        assertThat(resultado.clienteId()).isEqualTo("cliente-123");
-        verify(pedidoRepository).salvar(any(Pedido.class));
-    }
-    
-    @Test
-    void deveLancarExcecaoQuandoProdutoNaoExiste() {
-        // Arrange
-        CriarPedidoRequest request = new CriarPedidoRequest(
-            "cliente-123",
-            List.of(new ItemPedidoRequest("produto-inexistente", 1))
-        );
-        
-        when(produtoRepository.buscarPorId("produto-inexistente"))
-            .thenReturn(Optional.empty());
-        
-        // Act & Assert
-        assertThatThrownBy(() -> useCase.executar(request))
-            .isInstanceOf(ProdutoNaoEncontradoException.class);
+        assertThat(resultado.id()).isEqualTo("ped-1");
+        verify(repository).salvar(any(Pedido.class));
     }
 }
 ```
 
-### 14.4 Testes de Integração
+### ArchUnit - Validação de Arquitetura
 
 ```java
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class PedidoControllerIntegrationTest {
+@AnalyzeClasses(packages = "br.com.empresa.modulo")
+class ArchitectureTest {
     
-    @Autowired
-    private MockMvc mockMvc;
+    @ArchTest
+    static final ArchRule domain_nao_deve_depender_de_infrastructure =
+        noClasses()
+            .that().resideInAPackage("..domain..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..infrastructure..", "..application..");
     
-    @Autowired
-    private ObjectMapper objectMapper;
+    @ArchTest
+    static final ArchRule use_cases_devem_ser_services =
+        classes()
+            .that().resideInAPackage("..application.usecases..")
+            .and().haveSimpleNameEndingWith("UseCase")
+            .should().beAnnotatedWith(Service.class);
     
-    @Autowired
-    private PedidoJpaRepository pedidoRepository;
-    
-    @Test
-    void deveCriarPedidoViaApi() throws Exception {
-        // Arrange
-        CriarPedidoRequest request = new CriarPedidoRequest(
-            "cliente-123",
-            List.of(new ItemPedidoRequest("produto-1", 2))
-        );
-        
-        // Act & Assert
-        mockMvc.perform(post("/api/pedidos")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").exists())
-            .andExpect(jsonPath("$.status").value("PENDENTE"));
-    }
-    
-    @Test
-    void deveRetornar404QuandoPedidoNaoExiste() throws Exception {
-        mockMvc.perform(get("/api/pedidos/id-inexistente"))
-            .andExpect(status().isNotFound());
-    }
+    @ArchTest
+    static final ArchRule controllers_devem_estar_em_web =
+        classes()
+            .that().areAnnotatedWith(RestController.class)
+            .should().resideInAPackage("..infrastructure.web..");
 }
 ```
 
 ---
 
-## 15. ANTI-PATTERNS
-
-### ❌ Proibições Absolutas
-
-1. **Entidades anêmicas** (apenas getters/setters, sem comportamento)
-2. **Domínio com dependências de framework** (JPA, Spring no domain)
-3. **Construtor manual quando Lombok resolve** (`@RequiredArgsConstructor`)
-4. **`new MapperUtils()`** ao invés de `.getInstance()`
-5. **God Classes** com múltiplas responsabilidades
-6. **Retornar `null`** quando pode usar `Optional`
-7. **Catch vazio** ou genérico demais
-8. **Queries SQL** diretamente no Controller
-9. **Lógica de negócio** no Controller
-10. **Camadas invertidas** (Domain dependendo de Infrastructure)
-11. **Use Cases fazendo muitas coisas** (dividir em casos menores)
-12. **DTOs sem validação** de entrada
-
-### ⚠️ Code Smells a Evitar
-
-```java
-// ❌ Service gigante fazendo tudo
-@Service
-public class PedidoService {
-    // 500+ linhas
-    // CRUD + validação + cálculos + notificação + relatórios
-}
-
-// ❌ Entidade anêmica
-public class Pedido {
-    private String id;
-    private StatusPedido status;
-    
-    // Apenas getters e setters
-    public void setStatus(StatusPedido status) { this.status = status; }
-}
-
-// ❌ Regra de negócio no Controller
-@PostMapping
-public ResponseEntity<PedidoDTO> criar(@RequestBody CriarPedidoRequest request) {
-    if (request.getValor() < 10) {  // ❌ Regra aqui
-        throw new RuntimeException("Valor mínimo...");
-    }
-    // ...
-}
-
-// ❌ Domain com JPA
-package com.snackbar.pedidos.domain.entities;
-@Entity  // ❌ JPA no domínio
-public class Pedido { }
-```
-
----
-
-## 16. CHECKLIST DE QUALIDADE
-
-### Antes de Criar uma Classe
-
-- [ ] Verificar se não existe classe similar
-- [ ] Definir em qual camada pertence (Domain/Application/Infrastructure)
-- [ ] Planejar responsabilidade única
-- [ ] Definir se usará Lombok
+## 11. CHECKLIST DE QUALIDADE
 
 ### Antes de Commitar
 
-- [ ] Clean Architecture respeitada (dependências corretas)
-- [ ] Domain sem dependências de framework
-- [ ] Usando `@RequiredArgsConstructor` (não construtor manual)
-- [ ] Usando `MapperUtils.getInstance()` (singleton)
-- [ ] Use Cases pequenos e focados
-- [ ] Entidades ricas (com comportamento)
-- [ ] Value Objects imutáveis
-- [ ] Exceções específicas e tratadas
-- [ ] Arquivos com menos de 300 linhas
-- [ ] Métodos com menos de 20 linhas
-- [ ] Testes para lógica de negócio
-- [ ] Migrações Liquibase com rollback
+#### Arquitetura
 
-### Revisão de Arquitetura
+- [ ] Clean Architecture respeitada (Domain sem dependências)
+- [ ] Ports & Adapters implementados corretamente
+- [ ] Use Cases pequenos e focados (Single Responsibility)
+- [ ] MapStruct para mapeamentos
+- [ ] JacksonConfig centralizado (sem `new ObjectMapper()`)
 
-- [ ] Interfaces (Ports) definidas na Application
-- [ ] Implementações (Adapters) na Infrastructure
-- [ ] DTOs na Application, não no Domain
-- [ ] Validações de entrada nos Use Cases
-- [ ] Regras de negócio nas Entidades/Domain Services
+#### Código
+
+- [ ] Java Records para Value Objects e DTOs
+- [ ] `@RequiredArgsConstructor` para injeção
+- [ ] Sealed classes para hierarquias fechadas
+- [ ] Pattern matching onde aplicável
+- [ ] Optional ao invés de null
+- [ ] Exceções específicas de domínio
+- [ ] Entidades ricas com comportamento
+
+#### Transações
+
+- [ ] `@Transactional` no Use Case
+- [ ] `@Transactional(readOnly = true)` para queries
+- [ ] Sem chamadas externas dentro de transações
+- [ ] Outbox Pattern para eventos críticos
+
+#### Testes
+
+- [ ] Testes unitários para Use Cases e Domain
+- [ ] Testes de integração para Controllers e Repositories
+- [ ] ArchUnit validando arquitetura
+- [ ] Cobertura mínima 80%
 
 ---
 
-## 📚 RECURSOS DO PROJETO
+## 12. ANTI-PATTERNS (PROIBIDOS)
 
-### Kernel Compartilhado
+### Código
+
+1. ❌ Entidades anêmicas (apenas getters/setters)
+2. ❌ `new ObjectMapper()` espalhado no código
+3. ❌ Singleton manual (`getInstance()`, static cache)
+4. ❌ Construtor manual quando Lombok resolve
+5. ❌ Classes para Value Objects (use Records)
+6. ❌ Retornar null (use Optional)
+7. ❌ Catch vazio ou genérico
+8. ❌ Magic numbers/strings
+9. ❌ God Classes (>300 linhas)
+10. ❌ Métodos gigantes (>20 linhas)
+
+### Arquitetura
+
+11. ❌ Domain dependendo de Infrastructure
+12. ❌ Lógica de negócio no Controller
+13. ❌ JPA annotations expostas para Domain (use mapper separado)
+14. ❌ Use Cases fazendo muitas coisas
+15. ❌ Chamadas HTTP dentro de transações
+16. ❌ Queries SQL no Controller
+17. ❌ Mappers manuais repetidos (use MapStruct)
+
+---
+
+## 13. 🔐 SEGURANÇA BACKEND (OWASP / Spring Security 6.x)
+
+### 13.1 Configuração Spring Security 6.x
 
 ```java
-// Mappers
-MapperUtils.getInstance()
-MapperRegistry.getInstance()
-
-// Value Objects comuns
-Dinheiro.of(valor)
-
-// Exceções base
-DominioException
-EntidadeNaoEncontradaException
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+            // ✅ CSRF - Habilitar para apps com sessão, desabilitar para APIs stateless
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+            )
+            
+            // ✅ CORS - Whitelist de origens permitidas
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // ✅ Session - STATELESS para APIs REST
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            
+            // ✅ OAuth2/JWT - Resource Server
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+            )
+            
+            // ✅ Headers de Segurança
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; frame-ancestors 'none'"))
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(Customizer.withDefaults())
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
+            )
+            
+            // ✅ Autorização - Deny by default
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            
+            // ✅ Exception Handling
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(new Http401EntryPoint())
+                .accessDeniedHandler(new Http403Handler())
+            )
+            .build();
+    }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        var config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("https://meudominio.com.br")); // ✅ NUNCA usar "*" em produção
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Request-ID"));
+        config.setExposedHeaders(List.of("X-Request-ID", "X-Correlation-ID"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+        
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        return source;
+    }
+}
 ```
 
-### Estrutura de Módulos
+### 13.2 Method Security (Autorização Granular)
 
+```java
+// ✅ SEMPRE validar autorização no método - NUNCA confie apenas na URL
+@Service
+@RequiredArgsConstructor
+public class PedidoService {
+    
+    private final PedidoRepository repository;
+    private final AuthorizationService authService;
+    
+    // ✅ Role-based
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Pedido> listarTodos() { ... }
+    
+    // ✅ Permission-based
+    @PreAuthorize("hasAuthority('PEDIDO_LEITURA')")
+    public Pedido buscarPorId(UUID id) { ... }
+    
+    // ✅ Owner check - usuário só acessa seus recursos
+    @PreAuthorize("@authService.isOwner(#id, authentication.name)")
+    public void deletar(UUID id) { ... }
+    
+    // ✅ Combinação de roles
+    @PreAuthorize("hasRole('ADMIN') or @authService.isOwner(#id, authentication)")
+    public Pedido atualizar(UUID id, AtualizarPedidoRequest request) { ... }
+    
+    // ✅ Post-authorization - validar retorno
+    @PostAuthorize("returnObject.clienteId == authentication.name or hasRole('ADMIN')")
+    public Pedido buscar(UUID id) { ... }
+}
+
+// ✅ Service de autorização customizado
+@Service("authService")
+@RequiredArgsConstructor
+public class AuthorizationService {
+    
+    private final PedidoRepository pedidoRepository;
+    
+    public boolean isOwner(UUID resourceId, String username) {
+        return pedidoRepository.findById(resourceId)
+            .map(pedido -> pedido.getClienteId().equals(username))
+            .orElse(false);
+    }
+    
+    public boolean isOwner(UUID resourceId, Authentication auth) {
+        return isOwner(resourceId, auth.getName());
+    }
+}
 ```
-├── kernel-compartilhado/    # Classes compartilhadas
-├── autenticacao/            # Módulo de autenticação
-├── gestao-cardapio/         # Gestão de cardápio
-├── gestao-clientes/         # Gestão de clientes
-├── gestao-pedidos/          # Gestão de pedidos
-├── impressao-cupom-fiscal/  # Impressão fiscal
-└── sistema-orquestrador/    # Orquestração de serviços
+
+### 13.3 Input Validation (Prevenção de Injection)
+
+```java
+// ✅ Bean Validation - SEMPRE validar inputs
+public record CriarUsuarioRequest(
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]+$", message = "Nome contém caracteres inválidos")
+    String nome,
+    
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email inválido")
+    String email,
+    
+    @NotBlank(message = "Senha é obrigatória")
+    @ValidSenha  // Custom validator
+    String senha,
+    
+    @NotNull(message = "CPF é obrigatório")
+    @ValidCpf    // Custom validator
+    String cpf
+) {}
+
+// ✅ Custom Validator para senha forte
+@Target({FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = SenhaValidator.class)
+public @interface ValidSenha {
+    String message() default "Senha deve ter mínimo 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}
+
+public class SenhaValidator implements ConstraintValidator<ValidSenha, String> {
+    private static final Pattern SENHA_PATTERN = Pattern.compile(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+    );
+    
+    @Override
+    public boolean isValid(String senha, ConstraintValidatorContext context) {
+        return senha != null && SENHA_PATTERN.matcher(senha).matches();
+    }
+}
+
+// ✅ Controller - @Valid obrigatório
+@PostMapping
+public ResponseEntity<UsuarioResponse> criar(@RequestBody @Valid CriarUsuarioRequest request) {
+    return ResponseEntity.status(CREATED).body(useCase.executar(request));
+}
+```
+
+### 13.4 Prevenção de SQL Injection
+
+```java
+// ✅ SEMPRE usar JPA/Hibernate com parâmetros nomeados
+@Repository
+public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
+    
+    // ✅ JPQL com parâmetro - SEGURO
+    @Query("SELECT p FROM Pedido p WHERE p.clienteId = :clienteId AND p.status = :status")
+    List<Pedido> findByClienteAndStatus(
+        @Param("clienteId") UUID clienteId,
+        @Param("status") StatusPedido status
+    );
+    
+    // ✅ Native query com parâmetro - SEGURO
+    @Query(value = "SELECT * FROM pedidos WHERE valor > :valor", nativeQuery = true)
+    List<Pedido> findByValorMaiorQue(@Param("valor") BigDecimal valor);
+}
+
+// ❌ NUNCA - Concatenação de strings em queries
+String sql = "SELECT * FROM users WHERE id = " + userId; // VULNERÁVEL!
+```
+
+### 13.5 Password Storage (BCrypt)
+
+```java
+@Configuration
+public class PasswordConfig {
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // ✅ BCrypt com strength 12 (padrão é 10)
+        return new BCryptPasswordEncoder(12);
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class UsuarioService {
+    
+    private final PasswordEncoder passwordEncoder;
+    private final UsuarioRepository repository;
+    
+    public void criarUsuario(CriarUsuarioRequest request) {
+        var usuario = new Usuario();
+        // ✅ NUNCA armazenar senha em texto plano
+        usuario.setSenhaHash(passwordEncoder.encode(request.senha()));
+        repository.save(usuario);
+    }
+    
+    public boolean validarSenha(String senhaInformada, String senhaHash) {
+        return passwordEncoder.matches(senhaInformada, senhaHash);
+    }
+}
+```
+
+### 13.6 JWT Security
+
+```java
+@Configuration
+public class JwtConfig {
+    
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    
+    @Value("${jwt.expiration:3600}") // 1 hora
+    private long jwtExpiration;
+    
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        // ✅ Usar chave assimétrica em produção (RS256)
+        return NimbusJwtDecoder.withSecretKey(getSecretKey()).build();
+    }
+    
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+}
+
+// ✅ Validações obrigatórias de JWT
+// - iss (issuer): verificar emissor confiável
+// - aud (audience): verificar audiência esperada
+// - exp (expiration): verificar expiração
+// - nbf (not before): verificar validade inicial
+// - iat (issued at): verificar data de emissão
+// - jti (JWT ID): para revogação/blacklist
+```
+
+### 13.7 Audit Logging
+
+```java
+@Aspect
+@Component
+@Slf4j
+public class AuditAspect {
+    
+    @Around("@annotation(audited)")
+    public Object audit(ProceedingJoinPoint joinPoint, Audited audited) throws Throwable {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var username = auth != null ? auth.getName() : "anonymous";
+        var action = audited.action();
+        var resourceType = audited.resourceType();
+        
+        // ✅ Log ANTES da operação
+        log.info("AUDIT: User={} Action={} Resource={} Args={}",
+            username, action, resourceType, sanitizeArgs(joinPoint.getArgs()));
+        
+        try {
+            var result = joinPoint.proceed();
+            
+            // ✅ Log de SUCESSO
+            log.info("AUDIT: User={} Action={} Resource={} Status=SUCCESS",
+                username, action, resourceType);
+            
+            return result;
+        } catch (Exception e) {
+            // ✅ Log de FALHA
+            log.warn("AUDIT: User={} Action={} Resource={} Status=FAILED Error={}",
+                username, action, resourceType, e.getMessage());
+            throw e;
+        }
+    }
+    
+    // ✅ NUNCA logar dados sensíveis
+    private Object[] sanitizeArgs(Object[] args) {
+        return Arrays.stream(args)
+            .map(this::sanitize)
+            .toArray();
+    }
+    
+    private Object sanitize(Object arg) {
+        if (arg == null) return null;
+        // ✅ Mascarar campos sensíveis
+        if (arg.toString().toLowerCase().contains("senha") ||
+            arg.toString().toLowerCase().contains("password")) {
+            return "[REDACTED]";
+        }
+        return arg;
+    }
+}
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Audited {
+    String action();
+    String resourceType();
+}
+
+// Uso
+@Audited(action = "DELETE", resourceType = "PEDIDO")
+@PreAuthorize("hasRole('ADMIN')")
+public void deletarPedido(UUID id) { ... }
+```
+
+### 13.8 Rate Limiting
+
+```java
+// ✅ Bucket4j para rate limiting
+@Configuration
+public class RateLimitConfig {
+    
+    @Bean
+    public Bucket createBucket() {
+        return Bucket.builder()
+            .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
+            .build();
+    }
+}
+
+@Component
+@RequiredArgsConstructor
+public class RateLimitFilter extends OncePerRequestFilter {
+    
+    private final Bucket bucket;
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain chain) throws ServletException, IOException {
+        if (bucket.tryConsume(1)) {
+            chain.doFilter(request, response);
+        } else {
+            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+            response.setHeader("Retry-After", "60");
+            response.getWriter().write("{\"error\": \"Rate limit exceeded\"}");
+        }
+    }
+}
+```
+
+### 13.9 Secrets Management
+
+```yaml
+# ✅ NUNCA commitar secrets no código
+# application.yml - usar variáveis de ambiente ou vault
+
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    
+  # ✅ Spring Cloud Vault (produção)
+  cloud:
+    vault:
+      enabled: true
+      uri: https://vault.empresa.com.br
+      authentication: KUBERNETES
+      kubernetes:
+        role: minha-aplicacao
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# ✅ Azure Key Vault (alternativa)
+azure:
+  keyvault:
+    uri: https://meu-keyvault.vault.azure.net/
+```
+
+### 13.10 Checklist de Segurança Backend
+
+#### Antes do Deploy
+
+- [ ] **HTTPS** obrigatório (TLS 1.3)
+- [ ] **CORS** configurado com whitelist específica
+- [ ] **CSRF** habilitado para sessões, desabilitado para JWT stateless
+- [ ] **Rate Limiting** configurado
+- [ ] **Security Headers** (CSP, HSTS, X-Frame-Options, etc.)
+- [ ] **Secrets** em vault ou variáveis de ambiente
+- [ ] **Dependency check** (OWASP, Snyk, Dependabot)
+- [ ] **Logs** não contêm PII/senhas/tokens
+- [ ] **Method Security** (@PreAuthorize) em todos endpoints sensíveis
+- [ ] **Input Validation** (@Valid) em todas entradas
+- [ ] **Output Encoding** para prevenir XSS
+- [ ] **SQL Injection** prevenido (JPA + parâmetros)
+- [ ] **Actuator** protegido ou desabilitado em produção
+- [ ] **Debug** desabilitado em produção
+- [ ] **Stack traces** não expostas em respostas de erro
+
+---
+
+## 14. REFERÊNCIA RÁPIDA
+
+### Novo Use Case
+
+```java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CriarExemploUseCase {
+    
+    private final ExemploRepositoryPort repository;
+    private final ValidadorService validador;
+    private final ExemploMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
+    
+    @Transactional
+    public ExemploResponse executar(CriarExemploRequest request) {
+        log.info("Criando exemplo: {}", request);
+        
+        validador.validar(request);
+        
+        var exemplo = Exemplo.criar(
+            request.nome(),
+            new Email(request.email())
+        );
+        
+        var salvo = repository.salvar(exemplo);
+        
+        eventPublisher.publishEvent(new ExemploCriadoEvent(salvo.getId()));
+        
+        return mapper.toResponse(salvo);
+    }
+}
+```
+
+### Nova Entidade Rica
+
+```java
+@Entity
+@Table(name = "exemplos")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Exemplo {
+    
+    @EmbeddedId
+    private ExemploId id;
+    
+    @Column(nullable = false)
+    private String nome;
+    
+    @Embedded
+    private Email email;
+    
+    @Enumerated(EnumType.STRING)
+    private StatusExemplo status = StatusExemplo.ATIVO;
+    
+    private LocalDateTime dataCriacao;
+    
+    public static Exemplo criar(String nome, Email email) {
+        var exemplo = new Exemplo();
+        exemplo.id = ExemploId.gerar();
+        exemplo.nome = Objects.requireNonNull(nome, "Nome é obrigatório");
+        exemplo.email = Objects.requireNonNull(email, "Email é obrigatório");
+        exemplo.dataCriacao = LocalDateTime.now();
+        return exemplo;
+    }
+    
+    public void desativar() {
+        if (this.status == StatusExemplo.INATIVO) {
+            throw new EstadoInvalidoException("Exemplo já está inativo");
+        }
+        this.status = StatusExemplo.INATIVO;
+    }
+}
 ```
 
 ---
 
-**🚨 LEMBRE-SE: Código Java limpo é tipado, imutável quando possível, e segue Clean Architecture rigorosamente!**
+**🚨 Siga TODAS as regras antes de implementar qualquer funcionalidade.**
+
+Em caso de dúvida, consulte `.cursorrules` ou peça revisão de arquitetura.

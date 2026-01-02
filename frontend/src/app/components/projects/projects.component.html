@@ -8,11 +8,7 @@
     <!-- Filters -->
     <div class="filters">
       @for (lang of availableLanguages(); track lang) {
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter() === lang"
-        (click)="filterProjects(lang)"
-      >
+      <button class="filter-btn" [class.active]="selectedFilter() === lang" (click)="filterProjects(lang)">
         {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
       </button>
       }
@@ -32,38 +28,33 @@
       @for (project of paginatedProjects(); track project.id) {
       <div class="project-card">
         <div class="project-image">
-          <img
-            [src]="getProjectImage(project.name)"
-            [alt]="project.name"
-            (error)="onImageError($event, project.name)"
-          />
+          <img [src]="getProjectImage(project.name)" [alt]="project.name"
+            (error)="onImageError($event, project.name)" />
           <div class="project-overlay">
-            <div class="project-links">
-              <a
-                [href]="project.html_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="project-link"
-              >
-                <img src="assets/icons/github-octocat.svg" alt="GitHub" width="14" height="14" />
-                {{ 'projects.github' | translate }}
+            <div class="project-links-grid" [class.no-demo]="!project.homepage">
+              <!-- Row 1: GitHub | README -->
+              <a [href]="project.html_url" target="_blank" rel="noopener noreferrer" class="project-link github-btn">
+                <img src="assets/icons/github-octocat.svg" alt="GitHub" width="16" height="16" />
+                <span>{{ 'projects.github' | translate }}</span>
               </a>
+              <button (click)="openReadmeModal(project.name)" class="project-link readme-btn">
+                <img src="assets/icons/readme.svg" alt="README" width="16" height="16" />
+                <span>{{ 'projects.readme' | translate }}</span>
+              </button>
+
+              <!-- Row 2: Demo (if exists) | Code Preview -->
               @if (project.homepage) {
-              <a
-                [href]="project.homepage"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="project-link"
-              >
-                🚀 {{ 'projects.demo' | translate }}
+              <a [href]="project.homepage" target="_blank" rel="noopener noreferrer" class="project-link demo-btn">
+                <span class="demo-icon">🚀</span>
+                <span>{{ 'projects.demo' | translate }}</span>
               </a>
               }
-              <button
-                (click)="openReadmeModal(project.name)"
-                class="project-link readme-btn"
-              >
-                <img src="assets/icons/readme.svg" alt="README" width="14" height="14" />
-                {{ 'projects.readme' | translate }}
+              <button (click)="openCodePreviewModal(project)" class="project-link code-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                </svg>
+                <span>{{ 'projects.codePreview' | translate }}</span>
               </button>
             </div>
           </div>
@@ -90,12 +81,8 @@
           <div class="languages-section">
             <div class="languages-bar">
               @for (lang of project.languages; track lang.name) {
-              <div
-                class="language-segment"
-                [style.background-color]="lang.color"
-                [style.width.%]="lang.percentage"
-                [title]="lang.name + ': ' + lang.percentage + '%'"
-              ></div>
+              <div class="language-segment" [style.background-color]="lang.color" [style.width.%]="lang.percentage"
+                [title]="lang.name + ': ' + lang.percentage + '%'"></div>
               }
             </div>
             <div class="languages-legend">
@@ -123,35 +110,23 @@
     <!-- Pagination -->
     @if (totalPages() > 1) {
     <div class="pagination">
-      <button
-        class="pagination-btn"
-        [class.disabled]="currentPage() === 1"
-        (click)="previousPage()"
-        aria-label="{{ 'projects.pagination.previous' | translate }}"
-      >
+      <button class="pagination-btn" [class.disabled]="currentPage() === 1" (click)="previousPage()"
+        aria-label="{{ 'projects.pagination.previous' | translate }}">
         ‹
       </button>
 
       @for (page of pageNumbers(); track page) {
-        @if (page === -1) {
-        <span class="pagination-ellipsis">...</span>
-        } @else {
-        <button
-          class="pagination-btn"
-          [class.active]="currentPage() === page"
-          (click)="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-        }
+      @if (page === -1) {
+      <span class="pagination-ellipsis">...</span>
+      } @else {
+      <button class="pagination-btn" [class.active]="currentPage() === page" (click)="goToPage(page)">
+        {{ page }}
+      </button>
+      }
       }
 
-      <button
-        class="pagination-btn"
-        [class.disabled]="currentPage() === totalPages()"
-        (click)="nextPage()"
-        aria-label="{{ 'projects.pagination.next' | translate }}"
-      >
+      <button class="pagination-btn" [class.disabled]="currentPage() === totalPages()" (click)="nextPage()"
+        aria-label="{{ 'projects.pagination.next' | translate }}">
         ›
       </button>
     </div>
@@ -166,10 +141,11 @@
   </div>
 
   <!-- README Modal -->
-  <app-readme-modal
-    [isOpen]="showReadmeModal()"
-    [projectName]="currentProjectName()"
-    (close)="closeReadmeModal()"
-  >
+  <app-readme-modal [isOpen]="showReadmeModal()" [projectName]="currentProjectName()" (close)="closeReadmeModal()">
   </app-readme-modal>
+
+  <!-- Code Preview Modal -->
+  <app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()"
+    (close)="closeCodePreviewModal()">
+  </app-code-preview-modal>
 </section>

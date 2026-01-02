@@ -101,13 +101,28 @@
   opacity: 1;
 }
 
-.project-links {
-  display: flex;
-  gap: 1rem;
+.project-links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  padding: 1rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+/* When only 3 buttons (no demo), center the code preview button */
+.project-links-grid.no-demo {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.project-links-grid.no-demo .code-btn {
+  grid-column: 1 / -1;
+  max-width: 160px;
+  justify-self: center;
 }
 
 .project-link {
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem 0.875rem;
   background: var(--color-accent);
   color: var(--color-dark);
   border-radius: var(--radius-md);
@@ -116,7 +131,12 @@
   text-decoration: none;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
 }
 
 .project-link:hover {
@@ -124,23 +144,55 @@
   box-shadow: var(--shadow-accent);
 }
 
-.project-link img {
-  width: 30px !important;
-  height: 30px !important;
-  max-width: 30px !important;
-  max-height: 30px !important;
+.project-link img,
+.project-link svg {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
-.readme-btn {
-  background: rgba(100, 100, 100, 1) !important;
-  color: white !important;
-  cursor: pointer;
+/* GitHub button */
+.github-btn {
+  background: linear-gradient(135deg, #24292e, #40464e);
+  color: white;
 }
 
-.readme-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.github-btn:hover {
+  background: linear-gradient(135deg, #40464e, #586069);
+}
+
+.github-btn img {
+  filter: brightness(0) invert(1);
+}
+
+/* README button */
+.readme-btn {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+  color: white;
+}
+
+.readme-btn:hover {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+}
+
+/* Demo button */
+.demo-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: var(--color-dark);
+}
+
+.demo-btn .demo-icon {
+  font-size: 1rem;
+}
+
+/* Code Preview button */
+.code-btn {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: white;
+}
+
+.code-btn:hover {
+  background: linear-gradient(135deg, #60a5fa, #93c5fd);
 }
 
 .loading-spinner {
@@ -154,8 +206,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .project-content {
@@ -338,20 +395,20 @@
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
   }
-  
+
   .projects .section-title {
     margin-bottom: 1.5rem;
   }
-  
+
   .filters {
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .projects-grid {
     gap: 1.5rem;
   }
-  
+
   .pagination {
     margin-top: 1.5rem;
   }
@@ -362,21 +419,21 @@
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
   }
-  
+
   .projects .section-title {
     margin-bottom: 1.25rem;
   }
-  
+
   .filters {
     margin-top: 1.25rem;
     margin-bottom: 1.25rem;
   }
-  
+
   .projects-grid {
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }
-  
+
   .pagination {
     margin-top: 1.25rem;
   }
@@ -387,22 +444,21 @@
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
-  
+
   .projects .section-title {
     margin-bottom: 1rem;
   }
-  
+
   .filters {
     margin-top: 1rem;
     margin-bottom: 1rem;
   }
-  
+
   .projects-grid {
     gap: 1rem;
   }
-  
+
   .pagination {
     margin-top: 1rem;
   }
 }
-

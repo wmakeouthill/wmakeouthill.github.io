@@ -25,16 +25,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(
-    ellipse at top,
-    rgba(0, 46, 89, 0.3) 0%,
-    transparent 50%
-  ),
-  radial-gradient(
-    ellipse at bottom right,
-    rgba(219, 194, 125, 0.15) 0%,
-    transparent 50%
-  );
+  background: radial-gradient(ellipse at top,
+      rgba(0, 46, 89, 0.3) 0%,
+      transparent 50%),
+    radial-gradient(ellipse at bottom right,
+      rgba(219, 194, 125, 0.15) 0%,
+      transparent 50%);
 }
 
 .hero-particles {
@@ -51,9 +47,12 @@
 }
 
 @keyframes particle-float {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 0%;
   }
+
   50% {
     background-position: 100% 100%;
   }
@@ -113,31 +112,44 @@
 .hero-stats {
   display: flex;
   gap: 3rem;
-  flex-wrap: nowrap; /* força ficar em uma linha */
+  flex-wrap: nowrap;
+  /* força ficar em uma linha */
   align-items: center;
-  overflow: hidden; /* evita quebra visual em telas menores */
+  overflow: hidden;
+  /* evita quebra visual em telas menores */
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column; /* número acima do rótulo para melhor leitura */
+  flex-direction: column;
+  /* número acima do rótulo para melhor leitura */
   align-items: flex-start;
   gap: 0.25rem;
 }
 
 
 .hero-title {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(0.7rem, 1.8vw, 1rem);
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  margin-top: 0.5rem;
-  min-height: 3rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  min-height: 2rem;
   display: flex;
   align-items: center;
 }
 
 .typing-text {
-  font-weight: 600;
+  font-family: 'Press Start 2P', cursive;
+  font-weight: 400;
+  background: linear-gradient(90deg, #00f0ff, #ff00ff, #00f0ff);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: cyberpunk-gradient 3s ease infinite;
+  text-shadow: none;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 16px rgba(255, 0, 255, 0.3));
+  letter-spacing: 1px;
 }
 
 .cursor {
@@ -147,11 +159,29 @@
 }
 
 @keyframes blink {
-  0%, 50% {
+
+  0%,
+  50% {
     opacity: 1;
   }
-  51%, 100% {
+
+  51%,
+  100% {
     opacity: 0;
+  }
+}
+
+@keyframes cyberpunk-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
   }
 }
 
@@ -202,13 +232,15 @@
 
 .hero-name {
   font-size: clamp(2.0rem, 4.2vw, 3.2rem);
-  margin-bottom: 1.5rem;
-  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25em;
+  line-height: 1.5;
   background: linear-gradient(135deg, var(--color-white), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   user-select: none;
+  overflow: visible;
 }
 
 .hero-name::selection {
@@ -220,10 +252,12 @@
 /* garante que a coluna da imagem fique alinhada ao topo da célula do grid */
 
 .image-wrapper {
-  position: relative; /* necessário para posicionar decorações absolutas dentro */
+  position: relative;
+  /* necessário para posicionar decorações absolutas dentro */
   width: 400px;
   height: 400px;
-  overflow: visible; /* permitir que decorações fiquem parcialmente fora do wrapper */
+  overflow: visible;
+  /* permitir que decorações fiquem parcialmente fora do wrapper */
 }
 
 .image-glow {
@@ -233,11 +267,9 @@
   transform: translate(-50%, -50%);
   width: 120%;
   height: 120%;
-  background: radial-gradient(
-    circle,
-    rgba(219, 194, 125, 0.3) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle,
+      rgba(219, 194, 125, 0.3) 0%,
+      transparent 70%);
   filter: blur(40px);
   animation: pulse 4s ease-in-out infinite;
 }
@@ -263,7 +295,8 @@
   height: 160px;
   border: 3px solid var(--color-primary);
   border-radius: 50%;
-  z-index: 0; /* fica atrás da imagem e do lottie */
+  z-index: 0;
+  /* fica atrás da imagem e do lottie */
   pointer-events: none;
   box-shadow: 0 0 20px rgba(219, 194, 125, 0.4);
   animation: subtle-pulse 3s ease-in-out infinite;
@@ -276,19 +309,24 @@
   width: 154px;
   height: 154px;
   border-radius: 50%;
-  z-index: 1; /* fica na frente do círculo ornamental mas atrás da foto */
+  z-index: 1;
+  /* fica na frente do círculo ornamental mas atrás da foto */
   pointer-events: none;
   background: transparent;
-  overflow: hidden; /* Esconde qualquer conteúdo que saia do círculo */
-  box-shadow: none; /* Remove qualquer sombra */
+  overflow: hidden;
+  /* Esconde qualquer conteúdo que saia do círculo */
+  box-shadow: none;
+  /* Remove qualquer sombra */
 }
 
 /* Garante que o SVG interno também seja circular */
 .octocat-lottie svg {
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: none; /* Remove sombra do SVG */
-  filter: none; /* Remove qualquer filtro que possa causar sombra */
+  box-shadow: none;
+  /* Remove sombra do SVG */
+  filter: none;
+  /* Remove qualquer filtro que possa causar sombra */
 }
 
 .octocat-lottie:hover {
@@ -296,9 +334,12 @@
 }
 
 @keyframes subtle-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(219, 194, 125, 0.4);
   }
+
   50% {
     box-shadow: 0 0 30px rgba(219, 194, 125, 0.6);
   }
@@ -307,7 +348,8 @@
 /* Mobile adjustments: centralizar imagem na coluna e ajustar posicionamento da foto e decoração */
 @media (max-width: 768px) {
   .hero-image {
-    align-self: center; /* centraliza a imagem quando o grid vira coluna */
+    align-self: center;
+    /* centraliza a imagem quando o grid vira coluna */
   }
 
   .image-wrapper {
@@ -316,7 +358,8 @@
   }
 
   .profile-image {
-    object-position: 50% 5%; /* mostrar mais do topo no mobile */
+    object-position: 50% 5%;
+    /* mostrar mais do topo no mobile */
   }
 
   .image-decoration {
@@ -388,10 +431,13 @@
 
 /* linha do container que hospeda o indicador e o centraliza */
 .hero-scroll-row {
-  grid-column: 1 / -1; /* ocupa as duas colunas do grid */
+  grid-column: 1 / -1;
+  /* ocupa as duas colunas do grid */
   display: flex;
-  justify-content: center; /* centraliza horizontalmente dentro do container */
-  margin-top: 0.75rem; /* afasta das estatísticas */
+  justify-content: center;
+  /* centraliza horizontalmente dentro do container */
+  margin-top: 0.75rem;
+  /* afasta das estatísticas */
   padding-bottom: 0.5rem;
 }
 
@@ -409,9 +455,17 @@
 }
 
 @keyframes arrow-bounce {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(6px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .scroll-text {
@@ -427,12 +481,19 @@
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
+
   40% {
     transform: translateX(-50%) translateY(-10px);
   }
+
   60% {
     transform: translateX(-50%) translateY(-5px);
   }
@@ -510,8 +571,10 @@
 
 @media (max-width: 768px) {
   .hero {
-    min-height: calc(100vh - 60px); /* Ajusta para mostrar tudo na tela */
-    min-height: calc(100dvh - 60px); /* Dynamic viewport height para mobile */
+    min-height: calc(100vh - 60px);
+    /* Ajusta para mostrar tudo na tela */
+    min-height: calc(100dvh - 60px);
+    /* Dynamic viewport height para mobile */
     padding: 20px 0 24px;
     display: flex;
     align-items: center;
@@ -525,7 +588,8 @@
       "greeting"
       "image"
       "mobile-content";
-    padding: 0 1.75rem; /* Espaçamento lateral aumentado */
+    padding: 0 1.75rem;
+    /* Espaçamento lateral aumentado */
   }
 
   /* Mostrar layout mobile (greeting + conteúdo mobile) */
@@ -573,9 +637,11 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
-    gap: 0.65rem; /* Espaçamento entre botões aumentado */
+    gap: 0.65rem;
+    /* Espaçamento entre botões aumentado */
     margin-bottom: 0.75rem;
-    padding: 0 0.5rem; /* Espaçamento interno nos botões */
+    padding: 0 0.5rem;
+    /* Espaçamento interno nos botões */
   }
 
   .hero-cta .btn {
@@ -634,7 +700,7 @@
 
   .hero-name {
     font-size: 1.4rem !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
   }
 }
 
@@ -661,6 +727,7 @@
   .scroll-indicator {
     display: none;
   }
+
   .scroll-indicator-inline {
     display: flex;
   }
@@ -691,7 +758,8 @@
 @media (max-width: 480px) {
   .hero {
     min-height: calc(100vh - 56px);
-    min-height: calc(100dvh - 56px); /* Dynamic viewport height */
+    min-height: calc(100dvh - 56px);
+    /* Dynamic viewport height */
     padding: 12px 0 16px;
     display: flex;
     align-items: center;
@@ -709,7 +777,8 @@
 
   .hero-content.container {
     gap: 0.5rem !important;
-    padding: 0 1.25rem !important; /* Espaçamento lateral aumentado */
+    padding: 0 1.25rem !important;
+    /* Espaçamento lateral aumentado */
   }
 
   /* Show mobile-specific sections */
@@ -756,7 +825,7 @@
 
   .hero-name {
     padding: 0;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 1rem !important;
     font-size: 1.15rem !important;
     line-height: 1.2;
   }
@@ -770,7 +839,8 @@
   .hero-cta {
     flex-direction: column;
     width: 100%;
-    gap: 0.5rem; /* Espaçamento entre botões */
+    gap: 0.5rem;
+    /* Espaçamento entre botões */
     margin-bottom: 0.5rem;
     padding: 0 0.25rem;
   }
@@ -888,5 +958,75 @@
 
   .hero-stats {
     gap: 0.5rem;
+  }
+}
+
+/* Java Code Line Styling */
+.java-code-line {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(30, 30, 30, 0.6);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-accent);
+  display: inline-block;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.java-class {
+  color: #4EC9B0;
+  /* Teal/cyan for class names */
+  font-weight: 600;
+}
+
+.java-dot {
+  color: #D4D4D4;
+  /* Light gray for dots */
+}
+
+.java-method {
+  color: #DCDCAA;
+  /* Yellow for methods */
+}
+
+.java-paren {
+  color: #FFD700;
+  /* Gold for parentheses */
+}
+
+.java-string {
+  color: #CE9178;
+  /* Orange/salmon for strings */
+}
+
+.java-semicolon {
+  color: #D4D4D4;
+  /* Light gray for semicolon */
+}
+
+/* Mobile adjustments for java code line */
+@media (max-width: 768px) {
+  .java-code-line {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .java-code-line {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .java-code-line {
+    font-size: 0.6rem;
+    padding: 0.3rem 0.5rem;
+    margin-bottom: 0.3rem;
   }
 }

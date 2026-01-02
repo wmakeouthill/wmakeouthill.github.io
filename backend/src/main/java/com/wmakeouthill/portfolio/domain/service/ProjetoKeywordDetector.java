@@ -15,85 +15,22 @@ import java.util.*;
  * mensagem do usuário.
  * Permite carregamento on-demand de markdowns apenas quando mencionados.
  * 
- * Combina keywords estáticas (para projetos conhecidos) com detecção dinâmica
- * (para novos projetos adicionados ao repositório).
+ * ARQUITETURA DINÂMICA: Todos os projetos são descobertos automaticamente
+ * do repositório GitHub, sem necessidade de manutenção de listas hardcoded.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProjetoKeywordDetector {
 
-    private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
-
-    /**
-     * Mapeamento ESTÁTICO de projetos para suas palavras-chave específicas.
-     * Para projetos que precisam de keywords customizadas.
-     */
-    private static final Map<String, List<String>> PROJETO_KEYWORDS_ESTATICAS = Map.ofEntries(
-            Map.entry("lol-matchmaking-fazenda", List.of(
-                    "lol", "league of legends", "matchmaking", "fazenda",
-                    "league", "discord", "discord bot", "match maker", "draft",
-                    "lcu", "league client", "queue", "fila",
-                    "matchmaker", "ranked", "champ select", "summoner", "elo")),
-            Map.entry("aa_space", List.of(
-                    "aa space", "aa", "alcoolicos anonimos", "comunidade",
-                    "chat", "forum", "apoio", "recuperação", "suporte",
-                    "anonimo", "grupos",
-                    "alcoholics anonymous", "anonymous", "support group", "recovery",
-                    "community", "forum", "group chat", "support")),
-            Map.entry("traffic_manager", List.of(
-                    "traffic manager", "traffic", "dashboard", "monitoramento",
-                    "tickets", "servidor", "tempo real", "telemetria", "grafana",
-                    "monitoring", "real time", "server", "telemetry", "ticketing")),
-            Map.entry("investment_calculator", List.of(
-                    "investment calculator", "calculadora", "investimento",
-                    "juros compostos", "simulação", "projecao", "roi", "financeiro",
-                    "compound interest", "investment", "simulator", "projection", "finance", "roi")),
-            Map.entry("mercearia-r-v", List.of(
-                    "mercearia", "r-v", "caixa", "estoque", "vendas",
-                    "relatórios", "gestao", "mercado", "varejo", "balcao",
-                    "grocery", "pos", "cashier", "stock", "inventory", "sales",
-                    "reports", "retail", "store")),
-            Map.entry("first-angular-app", List.of(
-                    "first angular", "primeiro angular", "angular inicial",
-                    "primeira app angular", "hello angular",
-                    "first angular app", "hello world angular", "beginner angular", "getting started angular")),
-            Map.entry("obaid-with-bro", List.of(
-                    "obaid", "diabo chat", "diabo", "chat obaid", "chatbot obaid",
-                    "obaid bot", "devil chat", "funny bot", "chatbot obaid")),
-            Map.entry("experimenta-ai---soneca", List.of(
-                    "experimenta ai", "experimenta", "soneca", "lanchonete",
-                    "pdv", "ponto de venda", "clean architecture", "fullstack",
-                    "self service", "cardapio digital",
-                    "snack bar", "pos", "point of sale", "clean architecture", "full stack",
-                    "menu", "digital menu", "self-service", "ordering", "cashier")),
-            Map.entry("lobby-pedidos", List.of(
-                    "lobby pedidos", "lobby", "pedidos", "comanda",
-                    "restaurante", "delivery", "fila de pedido",
-                    "order lobby", "orders", "order queue", "restaurant", "delivery", "ticket queue")),
-            Map.entry("pinta-como-eu-pinto", List.of(
-                    "pinta como eu pinto", "pinta", "arte", "pintura",
-                    "brush", "canvas digital",
-                    "paint like i paint", "art", "painting", "digital canvas", "brushes")),
-            Map.entry("pintarapp", List.of(
-                    "pintarapp", "pintar app", "canvas", "desenho",
-                    "paint", "aplicativo de desenho",
-                    "paint app", "drawing app", "canvas app", "draw", "painting app")),
-            Map.entry("wmakeouthill.github.io", List.of(
-                    "wmakeouthill.github.io", "portfolio", "site pessoal", "site do wesley",
-                    "este site", "esse portfolio", "este portfolio", "angular spring",
-                    "portfolio site", "personal site", "wesley site", "angular site", "spring boot site")),
-            Map.entry("wmakeouthill", List.of(
-                    "wmakeouthill", "perfil github", "github do wesley", "repositorio principal",
-                    "github profile", "wesley github", "main repository")));
+    private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+    private static final int MAX_DISTANCE = 2;
 
     private final PortfolioContentPort portfolioContentPort;
 
-    /** Cache de projetos dinâmicos (carregados do repositório) */
-    private final Map<String, List<String>> projetosDinamicos = new HashMap<>();
+    /** Cache de projetos (carregados dinamicamente do repositório) */
+    private final Map<String, List<String>> projetosCache = new HashMap<>();
     private volatile long ultimoCarregamento = 0;
-
-    private static final int MAX_DISTANCE = 2;
 
     @PostConstruct
     void carregarProjetosDinamicos() {
@@ -102,30 +39,31 @@ public class ProjetoKeywordDetector {
 
     /**
      * Recarrega a lista de projetos do repositório GitHub.
+     * Todos os projetos são carregados dinamicamente com keywords geradas
+     * automaticamente.
      */
     public synchronized void recarregarProjetosDinamicos() {
-        log.info("Carregando projetos dinâmicos do repositório...");
-        projetosDinamicos.clear();
+        log.info("Carregando TODOS os projetos dinamicamente do repositório GitHub...");
+        projetosCache.clear();
 
         List<PortfolioMarkdownResource> recursos = portfolioContentPort.carregarMarkdownsDetalhados();
         for (PortfolioMarkdownResource recurso : recursos) {
             if (recurso.projeto()) {
                 String nome = recurso.nome().toLowerCase(Locale.ROOT);
-                // Se não tem keywords estáticas, gera keywords do nome
-                if (!PROJETO_KEYWORDS_ESTATICAS.containsKey(nome)) {
-                    List<String> keywordsDinamicas = gerarKeywordsDinamicas(nome, recurso.tags());
-                    projetosDinamicos.put(nome, keywordsDinamicas);
-                    log.debug("Projeto dinâmico registrado: {} -> {}", nome, keywordsDinamicas);
-                }
+                List<String> keywords = gerarKeywordsDinamicas(nome, recurso.tags());
+                projetosCache.put(nome, keywords);
+                log.debug("Projeto registrado: {} -> {}", nome, keywords);
             }
         }
 
         ultimoCarregamento = System.currentTimeMillis();
-        log.info("Projetos dinâmicos carregados: {} novos projetos", projetosDinamicos.size());
+        log.info("Projetos carregados dinamicamente: {} projetos encontrados", projetosCache.size());
     }
 
     /**
-     * Gera keywords dinâmicas baseadas no nome do projeto e suas tags.
+     * Gera keywords automaticamente a partir do nome do projeto e suas tags.
+     * Ex: "lol-matchmaking-fazenda" -> ["lol", "matchmaking", "fazenda", "lol
+     * matchmaking fazenda"]
      */
     private List<String> gerarKeywordsDinamicas(String nome, Set<String> tags) {
         List<String> keywords = new ArrayList<>();
@@ -136,9 +74,21 @@ public class ProjetoKeywordDetector {
         keywords.add(nome.replace("_", " "));
         keywords.add(nome.replace("-", "").replace("_", ""));
 
+        // Extrai cada palavra do nome como keyword individual
+        String[] partes = nome.split("[-_]+");
+        for (String parte : partes) {
+            if (parte.length() > 2 && !keywords.contains(parte)) {
+                keywords.add(parte);
+            }
+        }
+
         // Adiciona tags como keywords
         if (tags != null) {
-            keywords.addAll(tags);
+            for (String tag : tags) {
+                if (!keywords.contains(tag)) {
+                    keywords.add(tag);
+                }
+            }
         }
 
         return keywords;
@@ -151,18 +101,16 @@ public class ProjetoKeywordDetector {
     }
 
     /**
-     * Obtém todas as keywords (estáticas + dinâmicas).
+     * Obtém todas as keywords (100% dinâmicas do GitHub).
      */
     private Map<String, List<String>> obterTodasKeywords() {
         verificarCacheExpirado();
-        Map<String, List<String>> todas = new HashMap<>(PROJETO_KEYWORDS_ESTATICAS);
-        todas.putAll(projetosDinamicos);
-        return todas;
+        return new HashMap<>(projetosCache);
     }
 
     /**
      * Detecta quais projetos são relevantes baseado na mensagem do usuário.
-     * Usa keywords estáticas E dinâmicas (carregadas do repositório).
+     * Usa keywords 100% dinâmicas carregadas do repositório GitHub.
      * 
      * @param mensagemUsuario mensagem do usuário
      * @return conjunto de nomes de projetos relevantes (nomes normalizados dos

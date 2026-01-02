@@ -19,9 +19,22 @@ Este documento explica como fazer o deploy do projeto no Google Cloud Run.
 
 O projeto precisa dos seguintes secrets configurados no Google Cloud Secret Manager:
 
-### 1. `openai-api-key`
+### 1. `gemini-api-key` (Primário - Mais Rápido)
 
-**Descrição:** Chave da API da OpenAI para o chat do portfólio  
+**Descrição:** Chave da API do Google Gemini para o chat do portfólio  
+**Tipo:** String  
+**Valor:** Sua chave do Gemini (formato: `AIzaSy...`)  
+**Onde obter:** <https://aistudio.google.com>
+
+**Comando para criar:**
+
+```bash
+echo -n 'AIzaSy...' | gcloud secrets create gemini-api-key --data-file=- --project=portfolio-wesley-479723
+```
+
+### 2. `openai-api-key` (Fallback)
+
+**Descrição:** Chave da API da OpenAI para fallback do chat  
 **Tipo:** String  
 **Valor:** Sua chave da OpenAI (formato: `sk-...`)  
 **Onde obter:** <https://platform.openai.com/api-keys>
@@ -32,7 +45,7 @@ O projeto precisa dos seguintes secrets configurados no Google Cloud Secret Mana
 echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=- --project=portfolio-wesley-479723
 ```
 
-### 2. `gmail-username`
+### 3. `gmail-username`
 
 **Descrição:** Email Gmail usado para enviar emails do formulário de contato  
 **Tipo:** String  
@@ -44,7 +57,7 @@ echo -n 'sk-sua-chave-aqui' | gcloud secrets create openai-api-key --data-file=-
 echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file=- --project=portfolio-wesley-479723
 ```
 
-### 3. `gmail-app-password`
+### 4. `gmail-app-password`
 
 **Descrição:** Senha de aplicativo do Gmail (NUNCA use sua senha pessoal!)  
 **Tipo:** String  
@@ -62,7 +75,7 @@ echo -n 'seu-email@gmail.com' | gcloud secrets create gmail-username --data-file
 echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-file=- --project=portfolio-wesley-479723
 ```
 
-### 4. `email-recipient`
+### 5. `email-recipient`
 
 **Descrição:** Email que receberá as mensagens enviadas pelo formulário de contato  
 **Tipo:** String  
@@ -74,7 +87,7 @@ echo -n 'xxxx xxxx xxxx xxxx' | gcloud secrets create gmail-app-password --data-
 echo -n 'seu-email@gmail.com' | gcloud secrets create email-recipient --data-file=- --project=portfolio-wesley-479723
 ```
 
-### 5. `github-api-token`
+### 6. `github-api-token`
 
 **Descrição:** Personal Access Token (PAT) do GitHub para buscar informações dos repositórios  
 **Tipo:** String  
@@ -97,7 +110,8 @@ echo -n 'ghp_seu-token-aqui' | gcloud secrets create github-api-token --data-fil
 
 | Nome do Secret | Variável de Ambiente | Obrigatório | Descrição |
 |----------------|---------------------|-------------|-----------|
-| `openai-api-key` | `OPENAI_API_KEY` | ✅ Sim | Chave da API OpenAI |
+| `gemini-api-key` | `GEMINI_API_KEY` | ✅ Sim | Chave da API Gemini (primário) |
+| `openai-api-key` | `OPENAI_API_KEY` | ⚠️ Opcional | Chave da API OpenAI (fallback) |
 | `gmail-username` | `GMAIL_USERNAME` | ✅ Sim | Email Gmail para envio |
 | `gmail-app-password` | `GMAIL_APP_PASSWORD` | ✅ Sim | Senha de app do Gmail |
 | `email-recipient` | `EMAIL_RECIPIENT` | ✅ Sim | Email que recebe mensagens |
@@ -166,7 +180,7 @@ gcloud run deploy projeto-wesley \
   --max-instances 10 \
   --min-instances 0 \
   --port 8080 \
-  --set-secrets="OPENAI_API_KEY=openai-api-key:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,EMAIL_RECIPIENT=email-recipient:latest,GITHUB_API_TOKEN=github-api-token:latest" \
+  --set-secrets="GEMINI_API_KEY=gemini-api-key:latest,OPENAI_API_KEY=openai-api-key:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,EMAIL_RECIPIENT=email-recipient:latest,GITHUB_API_TOKEN=github-api-token:latest" \
   --set-env-vars="SERVER_PORT=8080,SPRING_PROFILES_ACTIVE=prod,LOG_LEVEL=INFO,GITHUB_USERNAME=wmakeouthill" \
   --project=portfolio-wesley-479723
 ```

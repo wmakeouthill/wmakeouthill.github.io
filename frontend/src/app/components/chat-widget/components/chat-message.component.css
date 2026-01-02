@@ -1,5 +1,6 @@
 .chat-message {
-  max-width: 92%;
+  max-width: calc(100% - 0.5rem);
+  /* Espaço igual dos dois lados */
   padding: 0.55rem 0.85rem;
   border-radius: 0.85rem;
   font-size: 0.82rem;
@@ -19,7 +20,8 @@
 /* Ajustes para mobile */
 @media (max-width: 640px) {
   .chat-message {
-    max-width: 95%; /* Mais espaço em mobile */
+    max-width: 95%;
+    /* Mais espaço em mobile */
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
   }
@@ -34,7 +36,7 @@
 }
 
 /* Alinhamento base para texto - usado como referência para bullets */
-.chat-message-assistant > div > *:first-child,
+.chat-message-assistant>div>*:first-child,
 .chat-message-assistant p:first-child {
   padding-left: 0;
 }
@@ -44,6 +46,14 @@
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: var(--color-white);
   border-bottom-right-radius: 0.25rem;
+  white-space: pre-wrap;
+  /* Preserva quebras de linha do textarea */
+}
+
+.chat-message-user p {
+  white-space: pre-wrap;
+  /* Preserva quebras de linha */
+  margin: 0;
 }
 
 .chat-message-assistant {
@@ -54,7 +64,7 @@
 }
 
 /* Garantir que todo conteúdo markdown dentro da mensagem respeite os limites */
-.chat-message-assistant > div {
+.chat-message-assistant>div {
   max-width: 100%;
   width: 100%;
   word-wrap: break-word;
@@ -67,16 +77,17 @@
 }
 
 /* Garantir que listas sejam renderizadas como blocos únicos */
-.chat-message-assistant > div ul,
-.chat-message-assistant > div ol {
+.chat-message-assistant>div ul,
+.chat-message-assistant>div ol {
   display: block;
-  list-style: none !important; /* Remover marker nativo completamente */
+  list-style: none !important;
+  /* Remover marker nativo completamente */
   list-style-type: none !important;
 }
 
 /* Remover marker nativo de todas as listas dentro da div */
-.chat-message-assistant > div ul li::marker,
-.chat-message-assistant > div ol li::marker {
+.chat-message-assistant>div ul li::marker,
+.chat-message-assistant>div ol li::marker {
   content: '' !important;
   display: none !important;
 }
@@ -127,21 +138,21 @@
 }
 
 /* Espaçamento após títulos */
-.chat-message-assistant h1 + .chat-paragraph,
-.chat-message-assistant h2 + .chat-paragraph,
-.chat-message-assistant h3 + .chat-paragraph,
-.chat-message-assistant h4 + .chat-paragraph,
-.chat-message-assistant h5 + .chat-paragraph,
-.chat-message-assistant h6 + .chat-paragraph {
+.chat-message-assistant h1+.chat-paragraph,
+.chat-message-assistant h2+.chat-paragraph,
+.chat-message-assistant h3+.chat-paragraph,
+.chat-message-assistant h4+.chat-paragraph,
+.chat-message-assistant h5+.chat-paragraph,
+.chat-message-assistant h6+.chat-paragraph {
   margin-top: 0.25rem;
 }
 
-.chat-message-assistant h1 + p,
-.chat-message-assistant h2 + p,
-.chat-message-assistant h3 + p,
-.chat-message-assistant h4 + p,
-.chat-message-assistant h5 + p,
-.chat-message-assistant h6 + p {
+.chat-message-assistant h1+p,
+.chat-message-assistant h2+p,
+.chat-message-assistant h3+p,
+.chat-message-assistant h4+p,
+.chat-message-assistant h5+p,
+.chat-message-assistant h6+p {
   margin-top: 0.25rem;
 }
 
@@ -163,7 +174,8 @@
   margin: 0.4rem 0;
   margin-left: 0;
   margin-right: 0;
-  padding-left: 1.5rem; /* Padding na lista agrupa todo o conteúdo incluindo markers */
+  padding-left: 1.5rem;
+  /* Padding na lista agrupa todo o conteúdo incluindo markers */
   padding-right: 0;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -171,32 +183,38 @@
   box-sizing: border-box;
   min-width: 0;
   display: block;
-  list-style: none !important; /* Remover marker nativo completamente */
+  list-style: none !important;
+  /* Remover marker nativo completamente */
   list-style-type: none !important;
 }
 
 .chat-message-assistant ul {
-  list-style-type: none; /* Remover marker nativo - usar apenas ::before */
+  list-style-type: none;
+  /* Remover marker nativo - usar apenas ::before */
 }
 
 .chat-message-assistant ol {
-  list-style-type: none; /* Remover marker nativo - usar apenas ::before */
+  list-style-type: none;
+  /* Remover marker nativo - usar apenas ::before */
   counter-reset: list-counter-general;
 }
 
 .chat-message-assistant ul li,
 .chat-message-assistant ol li {
   margin: 0.2rem 0;
-  padding-left: 0; /* Removido - o marker vem antes do texto */
+  padding-left: 0;
+  /* Removido - o marker vem antes do texto */
   padding-right: 0;
   line-height: 1.35;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
-  display: block !important; /* Forçar block - não list-item */
+  display: block !important;
+  /* Forçar block - não list-item */
   max-width: 100%;
   box-sizing: border-box;
-  list-style: none !important; /* Remover marker nativo completamente */
+  list-style: none !important;
+  /* Remover marker nativo completamente */
   list-style-type: none !important;
 }
 
@@ -240,7 +258,8 @@
   margin: 0.4rem 0;
   margin-left: 0;
   margin-right: 0;
-  padding-left: 1.5rem; /* Padding cria o bloco que agrupa todos os itens */
+  padding-left: 1.5rem;
+  /* Padding cria o bloco que agrupa todos os itens */
   padding-right: 0;
   color: var(--text-primary);
   word-wrap: break-word;
@@ -259,7 +278,8 @@
 }
 
 .chat-message-assistant .chat-list:is(ol) {
-  counter-reset: list-counter; /* Iniciar contador para ol */
+  counter-reset: list-counter;
+  /* Iniciar contador para ol */
 }
 
 .chat-message-assistant .chat-list-item {
@@ -270,7 +290,8 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
-  display: block !important; /* Forçar block - não list-item para evitar ::marker nativo */
+  display: block !important;
+  /* Forçar block - não list-item para evitar ::marker nativo */
   max-width: 100%;
   box-sizing: border-box;
   /* Remover completamente marker nativo */
@@ -282,7 +303,8 @@
 
 /* Remover marker nativo explicitamente - forçar remoção completa */
 .chat-message-assistant .chat-list-item::marker {
-  content: '' !important; /* Remover conteúdo do marker */
+  content: '' !important;
+  /* Remover conteúdo do marker */
   display: none !important;
   visibility: hidden !important;
   width: 0 !important;
@@ -326,7 +348,8 @@
   margin-left: 0;
   padding-left: 1.5rem;
   min-width: 0;
-  list-style: none !important; /* Remover marker nativo */
+  list-style: none !important;
+  /* Remover marker nativo */
 }
 
 .chat-message-assistant ul ul {
@@ -344,7 +367,8 @@
   margin: 0.15rem 0;
   font-size: 0.95em;
   padding-left: 0;
-  list-style: none !important; /* Remover marker nativo */
+  list-style: none !important;
+  /* Remover marker nativo */
   display: block !important;
 }
 
@@ -370,7 +394,8 @@
   margin-left: 0;
   padding-left: 1.5rem;
   min-width: 0;
-  list-style: none !important; /* Remover marker nativo */
+  list-style: none !important;
+  /* Remover marker nativo */
 }
 
 .chat-message-assistant .chat-list ul {
@@ -386,7 +411,8 @@
   margin: 0.15rem 0;
   font-size: 0.95em;
   padding-left: 0;
-  list-style: none !important; /* Remover marker nativo */
+  list-style: none !important;
+  /* Remover marker nativo */
   display: block !important;
 }
 
@@ -397,29 +423,20 @@
   display: none !important;
 }
 
-/* Títulos */
+/* Títulos - tamanho moderado, apenas negrito (override global styles) */
 .chat-message-assistant h1,
 .chat-message-assistant h2,
 .chat-message-assistant h3,
 .chat-message-assistant h4,
 .chat-message-assistant h5,
 .chat-message-assistant h6 {
-  margin: 0.35rem 0 0.25rem;
-  font-weight: 600;
-  color: var(--color-accent);
-  line-height: 1.25;
-}
-
-.chat-message-assistant h1,
-.chat-message-assistant h2 {
-  font-size: 0.8rem;
-}
-
-.chat-message-assistant h3,
-.chat-message-assistant h4,
-.chat-message-assistant h5,
-.chat-message-assistant h6 {
-  font-size: 0.75rem;
+  margin: 0.35rem 0 0.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.35 !important;
+  font-size: 0.85rem !important;
+  /* Todos iguais - tamanho do h4 máximo */
+  margin-bottom: 0.25rem !important;
 }
 
 .chat-message-assistant h1:first-child,
@@ -428,7 +445,7 @@
 .chat-message-assistant h4:first-child,
 .chat-message-assistant h5:first-child,
 .chat-message-assistant h6:first-child {
-  margin-top: 0;
+  margin-top: 0 !important;
 }
 
 .chat-message-assistant code {
@@ -468,7 +485,7 @@
 }
 
 /* Code inline (não em blocos) mantém o estilo original */
-.chat-message-assistant :not(pre) > code {
+.chat-message-assistant :not(pre)>code {
   background: rgba(219, 194, 125, 0.15);
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
@@ -484,4 +501,3 @@
 .chat-message-assistant pre code .token.cdata {
   opacity: 0.7;
 }
-

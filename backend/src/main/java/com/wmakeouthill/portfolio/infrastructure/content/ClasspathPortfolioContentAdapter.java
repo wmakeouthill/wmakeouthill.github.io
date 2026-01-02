@@ -48,14 +48,12 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
       Map.entry("lol-matchmaking-fazenda", metadata(false, Set.of("projeto", "lol", "matchmaking"))),
       Map.entry("mercearia-r-v", metadata(false, Set.of("projeto", "varejo", "estoque"))),
       Map.entry("obaid-with-bro", metadata(false, Set.of("projeto", "chatbot", "obaid"))),
-      Map.entry("pinta-como-eu-pinto", metadata(false, Set.of("projeto", "arte", "pintura"))),
       Map.entry("pintarapp", metadata(false, Set.of("projeto", "pintura", "app"))),
       Map.entry("traffic_manager", metadata(false, Set.of("projeto", "dashboard", "tempo real"))),
       Map.entry("anbima-selic-banco-central", metadata(false, Set.of("experiencia", "anbima", "selic"))),
       Map.entry("gondim-albuquerque-negreiros", metadata(false, Set.of("experiencia", "juridico"))),
       Map.entry("liquigas-petrobras", metadata(false, Set.of("experiencia", "liquigas"))),
-      Map.entry("phillip-morris", metadata(false, Set.of("experiencia", "phillip morris")))
-  );
+      Map.entry("phillip-morris", metadata(false, Set.of("experiencia", "phillip morris"))));
 
   private final PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
@@ -159,8 +157,7 @@ public class ClasspathPortfolioContentAdapter implements PortfolioContentPort {
 
   private List<PortfolioMarkdownResource> unirListas(
       List<PortfolioMarkdownResource> gerais,
-      List<PortfolioMarkdownResource> projetos
-  ) {
+      List<PortfolioMarkdownResource> projetos) {
     List<PortfolioMarkdownResource> todos = new ArrayList<>(gerais);
     todos.addAll(projetos);
     return todos;

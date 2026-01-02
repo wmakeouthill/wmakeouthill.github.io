@@ -3,11 +3,11 @@ package com.wmakeouthill.portfolio.application.usecase;
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.port.in.GerenciarHistoricoChatPort;
-import com.wmakeouthill.portfolio.application.port.out.AIChatPort;
 import com.wmakeouthill.portfolio.domain.entity.MensagemChat;
 import com.wmakeouthill.portfolio.domain.service.PortfolioPromptService;
 import com.wmakeouthill.portfolio.domain.service.TokenBudgetService;
 import com.wmakeouthill.portfolio.domain.service.TokenBudgetService.TokenBudgetResult;
+import com.wmakeouthill.portfolio.infrastructure.ai.AIChatRouter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ChatUseCase {
-    private final AIChatPort aiChatPort;
+    private final AIChatRouter aiChatRouter;
     private final GerenciarHistoricoChatPort gerenciarHistoricoChatPort;
     private final PortfolioPromptService portfolioPromptService;
     private final TokenBudgetService tokenBudgetService;
@@ -45,10 +45,15 @@ public class ChatUseCase {
             log.info("Token budget otimizado: {} tokens estimados", budgetResult.tokensEstimados());
         }
 
-        ChatResponse resposta = aiChatPort.chat(
+        // Usa o router para selecionar o modelo correto (Gemini ou GPT)
+        String modeloSelecionado = request.modeloEfetivo();
+        log.info("Modelo de IA selecionado: {}", modeloSelecionado);
+
+        ChatResponse resposta = aiChatRouter.chat(
                 budgetResult.systemPromptOtimizado(),
                 budgetResult.historicoOtimizado(),
-                mensagemUsuarioTexto);
+                mensagemUsuarioTexto,
+                modeloSelecionado);
         registrarRespostaNoHistorico(sessionId, resposta);
 
         return resposta;

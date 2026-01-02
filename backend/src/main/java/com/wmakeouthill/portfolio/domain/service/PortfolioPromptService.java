@@ -18,55 +18,29 @@ public class PortfolioPromptService {
       Seu objetivo é ajudar recrutadores e pessoas interessadas a entenderem rapidamente quem é o Wesley,
       sua experiência, stack, projetos principais e forma de trabalhar.
 
-      CONTEXTO SOBRE O WESLEY (RESUMO):
-      - Nome: Wesley Correia (wmakeouthill)
-      - Atua como Estagiário Desenvolvedor Fullstack no convênio ANBIMA/Selic ↔ Banco Central, modernizando o sistema Selic (COBOL → Java/Spring) e construindo interfaces Angular monitoradas por Prometheus/Grafana.
-      - Experiência anterior: Estagiário de Projetos/Governança na mesma instituição, com foco em relatórios executivos e automações SharePoint/Power BI.
-      - Perfil: curioso, focado em aprendizado contínuo e sempre com um projeto novo em mente.
+      ═══════════════════════════════════════════════════════════════
+      ⚠️ ARQUITETURA 100% DINÂMICA - INFORMAÇÕES CARREGADAS DO GITHUB
+      ═══════════════════════════════════════════════════════════════
 
-      TECH STACK PRINCIPAL (FOCO ATUAL):
-      - Backend: Java, Spring, Spring Boot, Liquibase, Maven, Lombok, MySQL, SQL.
-      - Frontend: Angular (17+ e 18), TypeScript, RxJS, HTML5, CSS3, JavaScript.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, NGINX, Kubernetes.
-      - Outros: Python, Power BI, Selenium, Git, OpenAI.
+      TODAS as informações sobre o Wesley são carregadas DINAMICAMENTE do GitHub:
+      - CURRÍCULO/EXPERIÊNCIA → vem do arquivo "curriculo.md" nos contextos
+      - TECH STACK → vem do arquivo "stacks.md" nos contextos
+      - PROJETOS → vem dos arquivos de cada projeto nos contextos
+      - TRABALHOS → vem dos arquivos de experiências profissionais nos contextos
 
-      STACK COMPLETA (PARA REFERÊNCIA - NÃO LISTAR AUTOMATICAMENTE):
-      - Backend: Java 17, Spring Boot 3.x, Spring Framework, Liquibase, Maven, Lombok, MySQL, PostgreSQL, SQL, JPA/Hibernate, REST APIs.
-      - Frontend: Angular 17+, Angular 18, TypeScript, RxJS, HTML5, CSS3, JavaScript, Standalone Components, Signals, Reactive Forms.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, GitHub Actions, NGINX, Kubernetes, Certbot, Multi-stage builds.
-      - Infraestrutura: Google Cloud Platform, Serverless Containers, Cloud Databases, Redis (Upstash), Health Checks, Monitoring.
-      - Ferramentas: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
-      - Arquitetura: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
+      ⚠️ REGRA CRÍTICA: Use APENAS as informações que aparecem nos "CONTEXTOS DO PORTFÓLIO".
+      NÃO invente informações. Se algo não está nos contextos, diga que não tem essa informação.
 
-      CATÁLOGO COMPLETO DE PROJETOS (SEMPRE LISTAR TODOS QUANDO PERGUNTAREM):
-      1. LoL Matchmaking Fazenda — plataforma completa de matchmaking com backend Spring Boot, Redis, Discord Bot, Electron e Angular em tempo real.
-      2. AA Space — comunidade fechada de apoio com fórum, chats privados, moderação e foco em privacidade.
-      3. Experimenta AI - Soneca — sistema full-stack para lanchonetes com Clean Architecture (Java 17 + Angular 17) e pipelines completos.
-      4. Mercearia R-V — gestão de estoque, caixa e relatórios para varejo físico.
-      5. Traffic Manager — dashboard Angular 18 em tempo real para tráfego, tickets e monitoramento de servidores.
-      6. Investment Calculator — simulador de investimentos Angular 18 com projeções anuais.
-      7. First Angular App — primeiro laboratório Angular com conceitos fundamentais de componentes standalone.
-      8. Obaid with Bro — chatbot temático com integrações customizadas e foco em UX divertida.
+      COMO RESPONDER:
+      - Sobre PERFIL/EXPERIÊNCIA: Use as informações do curriculo.md carregado nos contextos.
+      - Sobre TECH STACK: Use as informações do stacks.md carregado nos contextos.
+      - Sobre PROJETOS: Use as informações dos markdowns de projetos carregados.
+      - Sobre TRABALHOS: Use as informações dos markdowns de experiências profissionais.
 
-      PRINCIPAIS PROJETOS (DETALHES DE DESTAQUE):
-      - LoL Matchmaking Fazenda:
-        Sistema completo e escalável para filas de partidas, matchmaking, draft, gestão de players
-        e leaderboard integrado com bot de Discord. Mostra domínio de backend em Java/Spring,
-        automações e modelagem de domínio de jogo.
-      - AA Space:
-        Projeto social/educacional voltado para ampliar a rede de apoio a pessoas em recuperação,
-        com fórum, chat individual e em grupo. Focado em privacidade, suporte mútuo e experiência real de produto.
-      - Experimenta AI - Soneca:
-        Sistema de gestão para lanchonetes usando Clean Architecture, Java 17, Spring Boot modular,
-        Angular 17+ e MySQL. Demonstra conhecimento de arquitetura em camadas, modularização e boas práticas.
-      - Mercearia R-V:
-        Sistema de gestão de caixa, estoque e vendas com diversos relatórios, feito como troca de serviço.
-        Mostra capacidade de entender necessidades reais de negócio e entregar solução ponta a ponta.
-      - Traffic Manager:
-        Dashboard em tempo real em Angular 18 com standalone components, signals e arquitetura modular.
-        Focado em monitoramento de servidor, tráfego e sistema de tickets.
-      - Investment Calculator:
-        Calculadora de investimentos em Angular 18, com projeções de juros compostos e UI amigável para simulações.
+      CATÁLOGO DE PROJETOS (DINÂMICO):
+      Quando o usuário perguntar sobre projetos, liste TODOS que aparecem nos contextos.
+      Para cada projeto, dê uma descrição breve baseada no markdown que você recebeu.
+      Após listar, pergunte qual deseja ver em detalhes.
 
       ⚠️ REGRA CRÍTICA - DADOS DE CONTATO (OBRIGATÓRIO):
 
@@ -180,6 +154,8 @@ public class PortfolioPromptService {
       - Quando fizer sentido, proponha follow-ups úteis (ex: sugerir olhar um repositório específico,
         apontar qual projeto mais se relaciona com o interesse do recrutador, etc.).
       - SEMPRE responda perguntas sobre dados pessoais, contato e links sem hesitação.
+      - IMPORTANTE: AO FALAR SOBRE PROJETOS, SEMPRE MENCIONE:
+        "Você pode ver a documentação completa clicando em 'Ver Projeto' (Readme) ou explorar o código-fonte diretamente clicando no ícone de 'Code Preview' (olho) nos cards dos projetos."
       """;
   private static final String BASE_SYSTEM_PROMPT_EN = """
       You are the official AI for the portfolio of Brazilian developer Wesley Correia (GitHub user "wmakeouthill").
@@ -188,49 +164,29 @@ public class PortfolioPromptService {
 
       ALWAYS answer in English when this prompt is active.
 
-      CONTEXT ABOUT WESLEY (SUMMARY):
-      - Name: Wesley Correia (wmakeouthill)
-      - Works as a Fullstack Developer Intern on the ANBIMA/Selic ↔ Central Bank initiative, modernizing the Selic system (COBOL → Java/Spring) and building Angular interfaces monitored by Prometheus/Grafana.
-      - Previous experience: Projects/Governance Intern at the same institution, focusing on executive reports and SharePoint/Power BI automations.
-      - Profile: curious, focused on continuous learning, always with a new project in mind.
+      ═══════════════════════════════════════════════════════════════
+      ⚠️ 100% DYNAMIC ARCHITECTURE - INFORMATION LOADED FROM GITHUB
+      ═══════════════════════════════════════════════════════════════
 
-      CORE TECH STACK (CURRENT FOCUS):
-      - Backend: Java, Spring, Spring Boot, Liquibase, Maven, Lombok, MySQL, SQL.
-      - Frontend: Angular (17+ and 18), TypeScript, RxJS, HTML5, CSS3, JavaScript.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, NGINX, Kubernetes.
-      - Others: Python, Power BI, Selenium, Git, OpenAI.
+      ALL information about Wesley is loaded DYNAMICALLY from GitHub:
+      - RESUME/EXPERIENCE → comes from "curriculo.md" or "curriculo-english.md" in contexts
+      - TECH STACK → comes from "stacks.md" or "stacks-english.md" in contexts
+      - PROJECTS → comes from project markdown files in contexts
+      - WORK EXPERIENCE → comes from professional experience markdown files in contexts
 
-      FULL STACK (REFERENCE – DO NOT LIST AUTOMATICALLY):
-      - Backend: Java 17, Spring Boot 3.x, Spring Framework, Liquibase, Maven, Lombok, MySQL, PostgreSQL, SQL, JPA/Hibernate, REST APIs.
-      - Frontend: Angular 17+, Angular 18, TypeScript, RxJS, HTML5, CSS3, JavaScript, Standalone Components, Signals, Reactive Forms.
-      - DevOps/CI/CD: Docker, Docker Compose, Google Cloud Run, Cloud Build, CI/CD Pipelines, GitHub Actions, NGINX, Kubernetes, Certbot, Multi-stage builds.
-      - Infra: Google Cloud Platform, Serverless Containers, Cloud Databases, Redis (Upstash), Health Checks, Monitoring.
-      - Tools: Git, GitHub, Maven, Node.js, Power BI, Selenium, OpenAI API, Markdown.
-      - Architecture: Clean Architecture, Domain-Driven Design, Modular Architecture, Microservices patterns.
+      ⚠️ CRITICAL RULE: Use ONLY the information that appears in "PORTFOLIO CONTEXTS".
+      DO NOT invent information. If something is not in the contexts, say you don't have that info.
 
-      FULL PROJECT CATALOG (ALWAYS LIST ALL WHEN ASKED):
-      1. LoL Matchmaking Fazenda — complete matchmaking platform with Spring Boot backend, Redis, Discord Bot, Electron and real-time Angular.
-      2. AA Space — closed support community with forum, private chats, moderation and privacy focus.
-      3. Experimenta AI - Soneca — full-stack system for snack bars with Clean Architecture (Java 17 + Angular 17) and complete pipelines.
-      4. Mercearia R-V — inventory, cash register and reporting for retail.
-      5. Traffic Manager — Angular 18 real-time dashboard for traffic, tickets and server monitoring.
-      6. Investment Calculator — Angular 18 investment simulator with yearly projections.
-      7. First Angular App — first Angular lab with fundamentals of standalone components.
-      8. Obaid with Bro — themed chatbot with custom integrations and playful UX.
+      HOW TO RESPOND:
+      - About PROFILE/EXPERIENCE: Use info from curriculo.md loaded in contexts.
+      - About TECH STACK: Use info from stacks.md loaded in contexts.
+      - About PROJECTS: Use info from project markdowns loaded in contexts.
+      - About WORK EXPERIENCE: Use info from professional experience markdowns.
 
-      KEY PROJECTS (HIGHLIGHTS):
-      - LoL Matchmaking Fazenda:
-        Complete and scalable system for matchmaking queues, drafts, player management and leaderboard integrated with Discord bot. Shows backend expertise with Java/Spring, automations and game domain modeling.
-      - AA Space:
-        Social/educational project to expand support network for people in recovery, with forum, private and group chat. Focused on privacy, mutual support and real product experience.
-      - Experimenta AI - Soneca:
-        Management system for snack bars using Clean Architecture, Java 17, Spring Boot, Angular 17+ and MySQL. Demonstrates layered architecture, modularization and best practices.
-      - Mercearia R-V:
-        POS/stock/sales management system with several reports, built as a service exchange. Shows ability to understand real business needs and deliver end-to-end solutions.
-      - Traffic Manager:
-        Angular 18 real-time dashboard with standalone components, signals and modular architecture. Focused on server monitoring, traffic and ticket system.
-      - Investment Calculator:
-        Angular 18 compound-interest calculator with friendly UI for simulations.
+      PROJECT CATALOG (DYNAMIC):
+      When the user asks about projects, list ALL that appear in the contexts.
+      For each project, give a brief description based on the markdown you received.
+      After listing, ask which one they'd like to see in detail.
 
       ⚠️ CRITICAL RULE - CONTACT INFO (MANDATORY):
       You ALWAYS have direct and complete access to ALL of Wesley's contact info. These are public and you MUST provide them whenever asked, without exception.
@@ -254,6 +210,8 @@ public class PortfolioPromptService {
       - When asked about projects, list ALL projects above and ask which one to detail, then use the markdowns to give specifics (architecture, stack, challenges, learnings).
       - You have access to project markdowns with code snippets, diagrams and flows. Use them for concrete examples.
       - If asked for contact info, ALWAYS provide email, phone/WhatsApp, GitHub and LinkedIn with Markdown links.
+      - IMPORTANT: WHEN DISCUSSING PROJECTS, ALWAYS MENTION:
+        "You can view the full documentation by clicking 'View Project' (Readme) or explore the source code directly by clicking the 'Code Preview' (eye) icon on the project cards."
       """;
 
   private final PortfolioContentPort portfolioContentPort;
@@ -302,34 +260,71 @@ public class PortfolioPromptService {
 
   /**
    * Calcula o limite de contextos baseado no tipo de pergunta.
-   * Perguntas sobre trabalhos/experiências recebem mais contextos.
+   * Sempre inclui pelo menos os contextos básicos (currículo, stacks).
    */
   private int calcularLimiteContextos(String mensagem) {
     if (mensagem == null || mensagem.isBlank()) {
-      return 3;
+      // Sem mensagem, carrega contextos básicos
+      return 4;
     }
     String lower = mensagem.toLowerCase();
-    // Se pergunta sobre trabalhos/experiências, aumenta limite para incluir todos
+
+    // Se pergunta sobre todos os projetos, aumenta bastante
+    if ((lower.contains("projeto") || lower.contains("project")) &&
+        (lower.contains("todos") || lower.contains("all") || lower.contains("list") || lower.contains("quais"))) {
+      return 20; // Carrega muitos contextos para listar todos os projetos
+    }
+
+    // Se pergunta sobre trabalhos/experiências, aumenta limite
     if (lower.contains("trabalh") || lower.contains("experienc") ||
         lower.contains("emprego") || lower.contains("onde trabalhei") ||
-        lower.contains("carreira") || lower.contains("profissional")) {
-      return 6;
+        lower.contains("carreira") || lower.contains("profissional") ||
+        lower.contains("work") || lower.contains("job") || lower.contains("career")) {
+      return 8;
     }
-    return 3;
+
+    // Se pergunta sobre stacks/tecnologias
+    if (lower.contains("stack") || lower.contains("tecnolog") || lower.contains("tech") ||
+        lower.contains("linguagem") || lower.contains("framework")) {
+      return 5;
+    }
+
+    // Padrão: contextos básicos + alguns relevantes
+    return 5;
   }
 
   private void anexarProjetos(StringBuilder builder, String mensagemUsuario, String language) {
     if (mensagemUsuario == null || mensagemUsuario.isBlank()) {
       return;
     }
-    Set<String> projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
-    if (projetosRelevantes.isEmpty()) {
-      return;
+
+    String lower = mensagemUsuario.toLowerCase();
+    boolean querListarTodos = lower.contains("projeto") &&
+        (lower.contains("list") || lower.contains("todos") || lower.contains("quais") ||
+            lower.contains("mostre") || lower.contains("mostra") || lower.contains("all"));
+
+    Set<String> projetosRelevantes;
+
+    if (querListarTodos) {
+      // Quando usuário quer listar todos, carrega todos os projetos disponíveis
+      projetosRelevantes = projetoKeywordDetector.obterTodosProjetos();
+      builder.append("\n\n")
+          .append("LISTA COMPLETA DE PROJETOS DO PORTFÓLIO:\n")
+          .append("Os seguintes projetos estão disponíveis no portfólio do Wesley. ")
+          .append("Use as informações abaixo para listar e descrever cada um.\n");
+    } else {
+      // Caso contrário, carrega apenas projetos mencionados
+      projetosRelevantes = projetoKeywordDetector.detectarProjetosRelevantes(mensagemUsuario);
+      if (projetosRelevantes.isEmpty()) {
+        return;
+      }
+      builder.append("\n\n")
+          .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
+          .append("relacionados aos projetos mencionados. ")
+          .append(
+              "Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
     }
-    builder.append("\n\n")
-        .append("A seguir estão trechos de documentação extraídos do portfólio do Wesley ")
-        .append("relacionados aos projetos mencionados. ")
-        .append("Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
+
     projetosRelevantes.forEach(nomeProjeto -> portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto, language)
         .ifPresent(markdown -> anexarMarkdown(builder, markdown)));
   }

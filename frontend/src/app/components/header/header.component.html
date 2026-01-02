@@ -10,7 +10,9 @@
     <ul class="nav-menu desktop-menu">
       @for (item of navItems; track item.section) {
         <li class="nav-item">
-          <a (click)="scrollToSection(item.section)" class="nav-link">
+          <a (click)="scrollToSection(item.section)" 
+             class="nav-link" 
+             [class.active]="activeSection() === item.section">
             {{ item.labelKey | translate }}
           </a>
         </li>
@@ -52,7 +54,9 @@
       <ul class="mobile-nav-list">
         @for (item of navItems; track item.section) {
           <li class="mobile-nav-item">
-            <a (click)="scrollToSection(item.section)" class="mobile-nav-link">
+            <a (click)="scrollToSection(item.section)" 
+               class="mobile-nav-link"
+               [class.active]="activeSection() === item.section">
               {{ item.labelKey | translate }}
             </a>
           </li>

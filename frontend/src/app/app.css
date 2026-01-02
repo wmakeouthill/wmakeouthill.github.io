@@ -22,3 +22,14 @@
     padding-top: 56px;
   }
 }
+
+/* Hide floating elements when modal is open */
+:host-context(body.modal-open) .scroll-to-top,
+:host-context(body.modal-open) app-chat-widget {
+  display: none !important;
+}
+
+/* When chat is open, hide scroll-to-top */
+:host-context(body.chat-open) .scroll-to-top {
+  display: none !important;
+}

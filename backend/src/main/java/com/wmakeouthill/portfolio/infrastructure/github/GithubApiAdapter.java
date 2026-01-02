@@ -2,9 +2,11 @@ package com.wmakeouthill.portfolio.infrastructure.github;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wmakeouthill.portfolio.application.dto.FileContentDto;
 import com.wmakeouthill.portfolio.application.dto.GithubProfileDto;
 import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
+import com.wmakeouthill.portfolio.application.dto.TreeNodeDto;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
   private static final String DEFAULT_API_URL = "https://api.github.com";
   private static final Duration TIMEOUT = Duration.ofSeconds(20);
-  private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+  private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
   private final HttpClient httpClient = HttpClient.newHttpClient();
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -325,8 +327,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
         node.path("followers").asInt(0),
         node.path("following").asInt(0),
         asNullableText(node.get("created_at")),
-        asNullableText(node.get("updated_at"))
-    );
+        asNullableText(node.get("updated_at")));
   }
 
   @Override
@@ -339,5 +340,94 @@ public class GithubApiAdapter implements GithubProjectsPort {
     return listarRepositorios().stream()
         .mapToInt(GithubRepositoryDto::stargazersCount)
         .sum();
+  }
+
+  @Override
+  public List<TreeNodeDto> buscarArvoreRepositorio(String repoName) {
+    String cacheKey = "tree:" + repoName;
+
+    @SuppressWarnings("unchecked")
+    CacheEntry<List<TreeNodeDto>> cached = (CacheEntry<List<TreeNodeDto>>) cache.get(cacheKey);
+    if (cached != null && cached.isValid()) {
+      log.debug("Retornando árvore do cache para: {}", repoName);
+      return cached.data();
+    }
+
+    try {
+      // Usar endpoint git/trees com recursive=1 para obter toda a árvore
+      String url = DEFAULT_API_URL + "/repos/" + username + "/" + repoName + "/git/trees/main?recursive=1";
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .timeout(TIMEOUT)
+          .headers(defaultHeaders())
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        List<TreeNodeDto> tree = mapTree(response.body());
+        cache.put(cacheKey, new CacheEntry<>(tree, System.currentTimeMillis()));
+        log.info("Árvore do repositório {} carregada: {} itens", repoName, tree.size());
+        return tree;
+      }
+      log.error("Erro ao buscar árvore do repositório {}: status={}", repoName, response.statusCode());
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro ao buscar árvore do repositório {}", repoName, e);
+    }
+    return List.of();
+  }
+
+  private List<TreeNodeDto> mapTree(String body) throws IOException {
+    JsonNode root = objectMapper.readTree(body);
+    JsonNode treeNode = root.get("tree");
+    if (treeNode == null || !treeNode.isArray()) {
+      return List.of();
+    }
+
+    List<TreeNodeDto> result = new ArrayList<>();
+    for (JsonNode node : treeNode) {
+      String path = node.path("path").asText();
+      String type = node.path("type").asText(); // "blob" ou "tree"
+      String sha = node.path("sha").asText();
+      result.add(new TreeNodeDto(path, type, sha));
+    }
+    return result;
+  }
+
+  @Override
+  public Optional<FileContentDto> buscarConteudoArquivo(String repoName, String filePath) {
+    String cacheKey = "file:" + repoName + ":" + filePath;
+
+    @SuppressWarnings("unchecked")
+    CacheEntry<FileContentDto> cached = (CacheEntry<FileContentDto>) cache.get(cacheKey);
+    if (cached != null && cached.isValid()) {
+      log.debug("Retornando conteúdo do arquivo do cache: {}/{}", repoName, filePath);
+      return Optional.of(cached.data());
+    }
+
+    try {
+      // Usar raw.githubusercontent.com para obter conteúdo direto
+      String rawUrl = "https://raw.githubusercontent.com/" + username + "/" + repoName + "/main/" + filePath;
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(rawUrl))
+          .timeout(TIMEOUT)
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        String name = filePath.contains("/") ? filePath.substring(filePath.lastIndexOf('/') + 1) : filePath;
+        FileContentDto fileContent = new FileContentDto(name, filePath, response.body());
+        cache.put(cacheKey, new CacheEntry<>(fileContent, System.currentTimeMillis()));
+        log.debug("Conteúdo do arquivo carregado: {}/{}", repoName, filePath);
+        return Optional.of(fileContent);
+      }
+      log.error("Erro ao buscar conteúdo do arquivo {}/{}: status={}", repoName, filePath, response.statusCode());
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro ao buscar conteúdo do arquivo {}/{}", repoName, filePath, e);
+    }
+    return Optional.empty();
   }
 }
