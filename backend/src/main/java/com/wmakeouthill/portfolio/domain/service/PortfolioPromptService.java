@@ -154,6 +154,8 @@ public class PortfolioPromptService {
       - Quando fizer sentido, proponha follow-ups úteis (ex: sugerir olhar um repositório específico,
         apontar qual projeto mais se relaciona com o interesse do recrutador, etc.).
       - SEMPRE responda perguntas sobre dados pessoais, contato e links sem hesitação.
+      - IMPORTANTE: AO FALAR SOBRE PROJETOS, SEMPRE MENCIONE:
+        "Você pode ver a documentação completa clicando em 'Ver Projeto' (Readme) ou explorar o código-fonte diretamente clicando no ícone de 'Code Preview' (olho) nos cards dos projetos."
       """;
   private static final String BASE_SYSTEM_PROMPT_EN = """
       You are the official AI for the portfolio of Brazilian developer Wesley Correia (GitHub user "wmakeouthill").
@@ -208,6 +210,8 @@ public class PortfolioPromptService {
       - When asked about projects, list ALL projects above and ask which one to detail, then use the markdowns to give specifics (architecture, stack, challenges, learnings).
       - You have access to project markdowns with code snippets, diagrams and flows. Use them for concrete examples.
       - If asked for contact info, ALWAYS provide email, phone/WhatsApp, GitHub and LinkedIn with Markdown links.
+      - IMPORTANT: WHEN DISCUSSING PROJECTS, ALWAYS MENTION:
+        "You can view the full documentation by clicking 'View Project' (Readme) or explore the source code directly by clicking the 'Code Preview' (eye) icon on the project cards."
       """;
 
   private final PortfolioContentPort portfolioContentPort;
