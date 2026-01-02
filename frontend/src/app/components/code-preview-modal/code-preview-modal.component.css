@@ -493,87 +493,167 @@
 }
 
 /* ========================================================================
-   Syntax Highlighting - VS Code Dark+ Theme
+   Syntax Highlighting - IntelliJ Darcula Theme
    ======================================================================== */
 
-/* Keywords */
-.hljs-keyword,
-.hljs-selector-tag,
+/* Override highlight.js default colors for IntelliJ look */
+
+/* Keywords: public, private, class, if, for, return, etc. */
+.hljs-keyword {
+    color: #CC7832 !important;
+    font-weight: normal;
+}
+
+/* Built-in types: String, int, boolean */
 .hljs-built_in,
 .hljs-type {
-    color: #569cd6;
+    color: #CC7832 !important;
 }
 
 /* Strings */
-.hljs-string,
-.hljs-attr,
-.hljs-addition {
-    color: #ce9178;
+.hljs-string {
+    color: #6A8759 !important;
 }
 
 /* Numbers */
-.hljs-number,
-.hljs-literal {
-    color: #b5cea8;
+.hljs-number {
+    color: #6897BB !important;
 }
 
 /* Comments */
-.hljs-comment,
-.hljs-quote {
-    color: #6a9955;
+.hljs-comment {
+    color: #808080 !important;
     font-style: italic;
 }
 
-/* Functions */
-.hljs-title,
-.hljs-section {
-    color: #dcdcaa;
+/* JavaDoc comments */
+.hljs-doctag {
+    color: #629755 !important;
+    font-style: italic;
 }
 
-/* Variables */
+/* Functions and method names */
+.hljs-title.function_,
+.hljs-title {
+    color: #FFC66D !important;
+}
+
+/* Class names */
+.hljs-title.class_,
+.hljs-class .hljs-title {
+    color: #A9B7C6 !important;
+}
+
+/* Annotations - @Override, @Autowired, @Service, etc. */
+.hljs-meta,
+.hljs-meta-keyword {
+    color: #BBB529 !important;
+}
+
+/* Variables and parameters */
 .hljs-variable,
-.hljs-template-variable {
-    color: #9cdcfe;
+.hljs-params {
+    color: #A9B7C6 !important;
 }
 
-/* Classes */
-.hljs-class .hljs-title,
-.hljs-type {
-    color: #4ec9b0;
-}
-
-/* Tags (HTML) */
+/* XML/HTML Tags */
 .hljs-tag {
-    color: #808080;
+    color: #E8BF6A !important;
 }
 
 .hljs-name {
-    color: #569cd6;
+    color: #E8BF6A !important;
+}
+
+.hljs-attr {
+    color: #BABABA !important;
 }
 
 .hljs-attribute {
-    color: #9cdcfe;
+    color: #A9B7C6 !important;
 }
 
-/* Deletion */
-.hljs-deletion {
-    color: #ce9178;
-    background-color: rgba(206, 145, 120, 0.1);
+/* Symbols: =, +, -, etc */
+.hljs-operator {
+    color: #A9B7C6 !important;
 }
 
-/* Addition */
-.hljs-addition {
-    color: #b5cea8;
-    background-color: rgba(181, 206, 168, 0.1);
+/* Punctuation */
+.hljs-punctuation {
+    color: #A9B7C6 !important;
 }
 
-/* Emphasis */
+/* Property names in JSON/YAML */
+.hljs-property {
+    color: #9876AA !important;
+}
+
+/* Boolean and null */
+.hljs-literal {
+    color: #CC7832 !important;
+}
+
+/* Regular expressions */
+.hljs-regexp {
+    color: #6A8759 !important;
+}
+
+/* Template literals */
+.hljs-template-variable {
+    color: #6A8759 !important;
+}
+
+/* Subst in template strings */
+.hljs-subst {
+    color: #A9B7C6 !important;
+}
+
+/* Section headers in markdown */
+.hljs-section {
+    color: #FFC66D !important;
+    font-weight: bold;
+}
+
+/* Bullet points */
+.hljs-bullet {
+    color: #6897BB !important;
+}
+
+/* Links */
+.hljs-link {
+    color: #287BDE !important;
+}
+
+/* Code emphasis */
 .hljs-emphasis {
     font-style: italic;
 }
 
 .hljs-strong {
     font-weight: bold;
+}
+
+/* Selector (CSS) */
+.hljs-selector-tag,
+.hljs-selector-class,
+.hljs-selector-id {
+    color: #CC7832 !important;
+}
+
+/* Symbol */
+.hljs-symbol {
+    color: #6897BB !important;
+}
+
+/* Addition/Deletion for diffs */
+.hljs-addition {
+    color: #6A8759 !important;
+    background-color: rgba(106, 135, 89, 0.15);
+}
+
+.hljs-deletion {
+    color: #CC7832 !important;
+    background-color: rgba(204, 120, 50, 0.15);
 }
 
 /* ========================================================================

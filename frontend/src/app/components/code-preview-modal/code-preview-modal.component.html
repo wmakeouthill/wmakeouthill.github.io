@@ -119,7 +119,7 @@
         <div class="tree-node dir" [style.--indent]="(level * 12) + 'px'" (click)="toggleDirectory(node)">
             <span class="node-chevron" [class.expanded]="node.expanded">▶</span>
             <span class="node-icon" [innerHTML]="getFolderIconSvg(node.expanded)"></span>
-            <span class="node-name">{{ node.name }}</span>
+            <span class="node-name">{{ node.displayName || node.name }}</span>
         </div>
         @if (node.expanded && node.children) {
         <div class="tree-children">
