@@ -264,18 +264,16 @@
     background: #252526;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
     min-height: 35px;
 }
 
 .tabs-bar::-webkit-scrollbar {
-    height: 3px;
-}
-
-.tabs-bar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+    display: none;
+    /* Chrome/Safari */
 }
 
 .tab {

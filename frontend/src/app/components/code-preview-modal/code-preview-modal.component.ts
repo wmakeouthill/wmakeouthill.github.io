@@ -710,11 +710,21 @@ export class CodePreviewModalComponent implements OnDestroy {
         }
     }
 
+    private scrollY = 0;
+
     private disableBodyScroll(): void {
-        document.body.style.overflow = 'hidden';
+        this.scrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${this.scrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflowY = 'scroll'; // Avoids layout shift if scrollbar disappears
     }
 
     private enableBodyScroll(): void {
-        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+        window.scrollTo(0, this.scrollY);
     }
 }
