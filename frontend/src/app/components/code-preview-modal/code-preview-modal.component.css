@@ -506,159 +506,159 @@ height: 100%;
 /* Override highlight.js default colors for IntelliJ look */
 
 /* Keywords: public, private, class, if, for, return, etc. */
-.hljs-keyword {
+::ng-deep .hljs-keyword {
     color: #CC7832 !important;
     font-weight: normal;
 }
 
 /* Built-in types: String, int, boolean */
-.hljs-built_in,
-.hljs-type {
+::ng-deep .hljs-built_in,
+::ng-deep .hljs-type {
     color: #CC7832 !important;
 }
 
 /* Strings */
-.hljs-string {
+::ng-deep .hljs-string {
     color: #6A8759 !important;
 }
 
 /* Numbers */
-.hljs-number {
+::ng-deep .hljs-number {
     color: #6897BB !important;
 }
 
 /* Comments */
-.hljs-comment {
+::ng-deep .hljs-comment {
     color: #808080 !important;
     font-style: italic;
 }
 
 /* JavaDoc comments */
-.hljs-doctag {
+::ng-deep .hljs-doctag {
     color: #629755 !important;
     font-style: italic;
 }
 
 /* Functions and method names */
-.hljs-title.function_,
-.hljs-title {
+::ng-deep .hljs-title.function_,
+::ng-deep .hljs-title {
     color: #FFC66D !important;
 }
 
 /* Class names */
-.hljs-title.class_,
-.hljs-class .hljs-title {
+::ng-deep .hljs-title.class_,
+::ng-deep .hljs-class .hljs-title {
     color: #A9B7C6 !important;
 }
 
 /* Annotations - @Override, @Autowired, @Service, etc. */
-.hljs-meta,
-.hljs-meta-keyword {
+::ng-deep .hljs-meta,
+::ng-deep .hljs-meta-keyword {
     color: #BBB529 !important;
 }
 
 /* Variables and parameters */
-.hljs-variable,
-.hljs-params {
+::ng-deep .hljs-variable,
+::ng-deep .hljs-params {
     color: #A9B7C6 !important;
 }
 
 /* XML/HTML Tags */
-.hljs-tag {
+::ng-deep .hljs-tag {
     color: #E8BF6A !important;
 }
 
-.hljs-name {
+::ng-deep .hljs-name {
     color: #E8BF6A !important;
 }
 
-.hljs-attr {
+::ng-deep .hljs-attr {
     color: #BABABA !important;
 }
 
-.hljs-attribute {
+::ng-deep .hljs-attribute {
     color: #A9B7C6 !important;
 }
 
 /* Symbols: =, +, -, etc */
-.hljs-operator {
+::ng-deep .hljs-operator {
     color: #A9B7C6 !important;
 }
 
 /* Punctuation */
-.hljs-punctuation {
+::ng-deep .hljs-punctuation {
     color: #A9B7C6 !important;
 }
 
 /* Property names in JSON/YAML */
-.hljs-property {
+::ng-deep .hljs-property {
     color: #9876AA !important;
 }
 
 /* Boolean and null */
-.hljs-literal {
+::ng-deep .hljs-literal {
     color: #CC7832 !important;
 }
 
 /* Regular expressions */
-.hljs-regexp {
+::ng-deep .hljs-regexp {
     color: #6A8759 !important;
 }
 
 /* Template literals */
-.hljs-template-variable {
+::ng-deep .hljs-template-variable {
     color: #6A8759 !important;
 }
 
 /* Subst in template strings */
-.hljs-subst {
+::ng-deep .hljs-subst {
     color: #A9B7C6 !important;
 }
 
 /* Section headers in markdown */
-.hljs-section {
+::ng-deep .hljs-section {
     color: #FFC66D !important;
     font-weight: bold;
 }
 
 /* Bullet points */
-.hljs-bullet {
+::ng-deep .hljs-bullet {
     color: #6897BB !important;
 }
 
 /* Links */
-.hljs-link {
+::ng-deep .hljs-link {
     color: #287BDE !important;
 }
 
 /* Code emphasis */
-.hljs-emphasis {
+::ng-deep .hljs-emphasis {
     font-style: italic;
 }
 
-.hljs-strong {
+::ng-deep .hljs-strong {
     font-weight: bold;
 }
 
 /* Selector (CSS) */
-.hljs-selector-tag,
-.hljs-selector-class,
-.hljs-selector-id {
+::ng-deep .hljs-selector-tag,
+::ng-deep .hljs-selector-class,
+::ng-deep .hljs-selector-id {
     color: #CC7832 !important;
 }
 
 /* Symbol */
-.hljs-symbol {
+::ng-deep .hljs-symbol {
     color: #6897BB !important;
 }
 
 /* Addition/Deletion for diffs */
-.hljs-addition {
+::ng-deep .hljs-addition {
     color: #6A8759 !important;
     background-color: rgba(106, 135, 89, 0.15);
 }
 
-.hljs-deletion {
+::ng-deep .hljs-deletion {
     color: #CC7832 !important;
     background-color: rgba(204, 120, 50, 0.15);
 }
