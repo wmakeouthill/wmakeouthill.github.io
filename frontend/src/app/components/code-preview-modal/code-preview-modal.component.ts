@@ -140,33 +140,39 @@ export class CodePreviewModalComponent implements OnDestroy {
     }
 
     /**
-     * Carrega highlight.js com tema Darcula (IntelliJ).
+     * Carrega highlight.js com tema Dracula (similar ao IntelliJ Darcula).
      */
     private loadHighlightJs(): void {
         if ((window as any).hljs) return;
 
-        // Tema Darcula (IntelliJ)
+        // Tema Dracula (mais próximo do IntelliJ Darcula)
         const linkEl = document.createElement('link');
         linkEl.rel = 'stylesheet';
-        linkEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/intellij-light.min.css';
-        // Para tema escuro, usar: atom-one-dark ou darcula
-        linkEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+        linkEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
         document.head.appendChild(linkEl);
 
         const scriptEl = document.createElement('script');
         scriptEl.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
         scriptEl.onload = () => {
-            const languages = ['typescript', 'java', 'python', 'bash', 'yaml', 'properties', 'dockerfile', 'kotlin', 'groovy', 'xml'];
+            const languages = [
+                'typescript', 'java', 'javascript', 'python', 'bash',
+                'yaml', 'properties', 'dockerfile', 'kotlin', 'groovy',
+                'xml', 'json', 'css', 'scss', 'sql', 'markdown'
+            ];
             let loaded = 0;
             languages.forEach(lang => {
                 const langScript = document.createElement('script');
                 langScript.src = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/${lang}.min.js`;
                 langScript.onload = () => {
                     loaded++;
-                    // Reprocessar abas abertas após carregar linguagens
                     if (loaded === languages.length) {
+                        console.log('✅ Highlight.js loaded with all languages');
                         this.rehighlightOpenTabs();
                     }
+                };
+                langScript.onerror = () => {
+                    loaded++;
+                    console.warn(`⚠️ Could not load language: ${lang}`);
                 };
                 document.head.appendChild(langScript);
             });
@@ -508,123 +514,154 @@ export class CodePreviewModalComponent implements OnDestroy {
     }
 
     /**
-     * Retorna SVG do ícone da pasta (cor dourada como IntelliJ).
+     * Base path para ícones IntelliJ.
+     */
+    private readonly ICON_BASE_PATH = 'assets/icons-intellij';
+
+    /**
+     * Retorna img tag para ícone da pasta (oficial IntelliJ).
      */
     getFolderIconSvg(expanded: boolean): SafeHtml {
-        const svg = expanded
-            ? `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h3.379a1.5 1.5 0 0 1 1.06.44L8.561 3.06a.5.5 0 0 0 .354.147H13a1.5 1.5 0 0 1 1.5 1.5v7.793a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5V3z" fill="#AE8C3E"/>
-          <path d="M1.5 5h13v7.5a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5V5z" fill="#D4A84B"/>
-        </svg>`
-            : `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h3.379a1.5 1.5 0 0 1 1.06.44L8.561 3.06a.5.5 0 0 0 .354.147H13a1.5 1.5 0 0 1 1.5 1.5v7.793a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5V3z" fill="#AE8C3E"/>
-        </svg>`;
-        return this.sanitizer.bypassSecurityTrustHtml(svg);
+        const iconName = 'webFolder_dark';
+        const imgTag = `<img src="${this.ICON_BASE_PATH}/${iconName}.svg" width="16" height="16" alt="folder" style="vertical-align: middle;">`;
+        return this.sanitizer.bypassSecurityTrustHtml(imgTag);
     }
 
     /**
-     * Retorna SVG do ícone do arquivo.
+     * Retorna img tag para ícone do arquivo baseado no tipo.
      */
     getFileIconSvg(filename: string): SafeHtml {
-        const ext = filename.split('.').pop()?.toLowerCase() || '';
-        const svg = this.getIconForExtension(ext, filename.toLowerCase());
-        return this.sanitizer.bypassSecurityTrustHtml(svg);
+        const iconName = this.getIconNameForFile(filename);
+        const imgTag = `<img src="${this.ICON_BASE_PATH}/${iconName}.svg" width="16" height="16" alt="file" style="vertical-align: middle;" onerror="this.style.display='none'">`;
+        return this.sanitizer.bypassSecurityTrustHtml(imgTag);
     }
 
-    private getIconForExtension(ext: string, filename: string): string {
-        // Java - ícone café
+    /**
+     * Determina o nome do ícone baseado no filename.
+     * Detecta tipos Java (class, interface, enum, record, exception).
+     */
+    private getIconNameForFile(filename: string): string {
+        const lowerName = filename.toLowerCase();
+        const ext = lowerName.split('.').pop() || '';
+        const baseName = filename.replace(/\.[^.]+$/, '');
+
+        // === JAVA - Detectar tipo pelo nome do arquivo ===
         if (ext === 'java') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#B07219"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">J</text></svg>`;
+            // Interface: nomes que começam com 'I' maiúsculo seguido de maiúscula, ou terminam com Interface
+            if (/^I[A-Z]/.test(baseName) || baseName.endsWith('Interface')) {
+                return 'interface_dark';
+            }
+            // Enum: termina com Enum ou usa padrão de enum
+            if (baseName.endsWith('Enum') || baseName.endsWith('Type') || baseName.endsWith('Status')) {
+                return 'enum_dark';
+            }
+            // Record: termina com Record ou DTO, Request, Response (records modernos)
+            if (baseName.endsWith('Record') || baseName.endsWith('Dto') ||
+                baseName.endsWith('DTO') || baseName.endsWith('Request') ||
+                baseName.endsWith('Response')) {
+                return 'record_dark';
+            }
+            // Exception: termina com Exception ou Error
+            if (baseName.endsWith('Exception') || baseName.endsWith('Error')) {
+                return 'exception_dark';
+            }
+            // Abstract class: começa com Abstract ou termina com Base
+            if (baseName.startsWith('Abstract') || baseName.endsWith('Base')) {
+                return 'classAbstract_dark';
+            }
+            // Test: termina com Test
+            if (baseName.endsWith('Test') || baseName.endsWith('Tests') || baseName.endsWith('Spec')) {
+                return 'test_dark';
+            }
+            // Classe padrão
+            return 'class_dark';
         }
-        // TypeScript
+
+        // === TYPESCRIPT - Detectar tipo ===
         if (ext === 'ts' || ext === 'tsx') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#3178C6"/><text x="8" y="11.5" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">TS</text></svg>`;
+            // Interface
+            if (/^I[A-Z]/.test(baseName) || lowerName.includes('.interface.')) {
+                return 'typeScriptInterface_dark';
+            }
+            // Enum
+            if (lowerName.includes('.enum.')) {
+                return 'typeScriptEnum_dark';
+            }
+            // Class
+            if (lowerName.includes('.class.')) {
+                return 'typeScriptClass_dark';
+            }
+            // Module
+            if (lowerName.includes('.module.')) {
+                return 'typeScriptModule_dark';
+            }
+            // Test
+            if (lowerName.includes('.spec.') || lowerName.includes('.test.')) {
+                return ext === 'tsx' ? 'tsxTest_dark' : 'tsTest_dark';
+            }
+            // TypeScript padrão
+            return 'typeScript_dark';
         }
-        // JavaScript
+
+        // === JAVASCRIPT ===
         if (ext === 'js' || ext === 'jsx' || ext === 'mjs') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#F7DF1E"/><text x="8" y="11.5" text-anchor="middle" fill="#323330" font-size="8" font-weight="bold" font-family="sans-serif">JS</text></svg>`;
+            if (lowerName.includes('.spec.') || lowerName.includes('.test.')) {
+                return 'jsTest_dark';
+            }
+            return 'javaScript_dark';
         }
-        // Kotlin
-        if (ext === 'kt' || ext === 'kts') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><defs><linearGradient id="kg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7F52FF"/><stop offset="100%" style="stop-color:#C811E2"/></linearGradient></defs><rect width="16" height="16" rx="2" fill="url(#kg)"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">K</text></svg>`;
+
+        // === MAPEAMENTO POR EXTENSÃO ===
+        const iconMap: Record<string, string> = {
+            // Web
+            'html': 'html_dark',
+            'htm': 'html_dark',
+            'css': 'css_dark',
+            'scss': 'css_dark',
+            'sass': 'css_dark',
+
+            // Data
+            'json': 'json_dark',
+            'yaml': 'yaml_dark',
+            'yml': 'yaml_dark',
+            'csv': 'csv_dark',
+            'xml': 'mavenProject_dark',
+
+            // Config
+            'properties': 'properties_dark',
+
+            // Docs
+            'md': 'markdown_dark',
+            'mdx': 'markdown_dark',
+
+            // Images
+            'png': 'image_dark',
+            'jpg': 'image_dark',
+            'jpeg': 'image_dark',
+            'gif': 'image_dark',
+            'svg': 'image_dark',
+            'webp': 'image_dark',
+            'ico': 'image_dark',
+        };
+
+        // Arquivos especiais por nome
+        if (lowerName === '.gitignore') {
+            return 'gitignore';
         }
-        // Python
-        if (ext === 'py') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#3776AB"/><text x="8" y="12" text-anchor="middle" fill="#FFD43B" font-size="10" font-weight="bold" font-family="sans-serif">Py</text></svg>`;
+        if (lowerName === 'dockerfile' || lowerName.startsWith('dockerfile')) {
+            return 'welcomeDockerFallback';
         }
-        // HTML
-        if (ext === 'html' || ext === 'htm') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#E44D26"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="7" font-weight="bold" font-family="sans-serif">‹›</text></svg>`;
+        if (lowerName === 'pom.xml') {
+            return 'mavenProject_dark';
         }
-        // CSS
-        if (ext === 'css') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#264DE4"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="7" font-weight="bold" font-family="sans-serif">#</text></svg>`;
+        if (lowerName.endsWith('.gradle') || lowerName.endsWith('.gradle.kts')) {
+            return 'mavenProject_dark';
         }
-        // SCSS/SASS
-        if (ext === 'scss' || ext === 'sass') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#CF649A"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">S</text></svg>`;
+        if (lowerName === 'manifest.json') {
+            return 'manifest_dark';
         }
-        // JSON
-        if (ext === 'json') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#CBCB41"/><text x="8" y="12" text-anchor="middle" fill="#333" font-size="7" font-weight="bold" font-family="sans-serif">{}</text></svg>`;
-        }
-        // XML / POM
-        if (ext === 'xml') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#E37933"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="6" font-weight="bold" font-family="sans-serif">‹/›</text></svg>`;
-        }
-        // Markdown
-        if (ext === 'md' || ext === 'mdx') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#519ABA"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">M↓</text></svg>`;
-        }
-        // YAML
-        if (ext === 'yml' || ext === 'yaml') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#CB171E"/><text x="8" y="11" text-anchor="middle" fill="white" font-size="6" font-weight="bold" font-family="sans-serif">YML</text></svg>`;
-        }
-        // Properties
-        if (ext === 'properties') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#746F53"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">⚙</text></svg>`;
-        }
-        // Shell
-        if (ext === 'sh' || ext === 'bash' || ext === 'zsh') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#4EAA25"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="7" font-weight="bold" font-family="sans-serif">$_</text></svg>`;
-        }
-        // Docker
-        if (ext === 'dockerfile' || filename === 'dockerfile') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#2496ED"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">🐳</text></svg>`;
-        }
-        // Gradle
-        if (ext === 'gradle') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#02303A"/><text x="8" y="12" text-anchor="middle" fill="#69B3A2" font-size="9" font-weight="bold" font-family="sans-serif">G</text></svg>`;
-        }
-        // Groovy
-        if (ext === 'groovy') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#4298B8"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="sans-serif">Gr</text></svg>`;
-        }
-        // SQL
-        if (ext === 'sql') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#F29111"/><text x="8" y="11" text-anchor="middle" fill="white" font-size="6" font-weight="bold" font-family="sans-serif">SQL</text></svg>`;
-        }
-        // Git files
-        if (filename === '.gitignore' || ext === 'gitignore') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#F05032"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="sans-serif">G</text></svg>`;
-        }
-        // SVG
-        if (ext === 'svg') {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#FFB13B"/><text x="8" y="11" text-anchor="middle" fill="#333" font-size="6" font-weight="bold" font-family="sans-serif">SVG</text></svg>`;
-        }
-        // Images
-        if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico'].includes(ext)) {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#8B5CF6"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">🖼</text></svg>`;
-        }
-        // Lock files
-        if (filename.includes('lock')) {
-            return `<svg width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#6B7280"/><text x="8" y="12" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif">🔒</text></svg>`;
-        }
-        // Default
-        return `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M3 1.5h6.086l3.414 3.414V14a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5z" fill="#6B7B8C" stroke="#5A6A7A" stroke-width=".5"/>
-      <path d="M9 1.5v3.5h3.5" fill="#5A6A7A"/>
-    </svg>`;
+
+        return iconMap[ext] || 'test_dark';
     }
 
     getFileIcon(node: TreeNode): string {

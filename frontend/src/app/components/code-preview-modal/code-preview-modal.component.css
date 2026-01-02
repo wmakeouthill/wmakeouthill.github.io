@@ -311,7 +311,8 @@
     justify-content: center;
 }
 
-.tab-icon svg {
+.tab-icon svg,
+.tab-icon img {
     width: 16px;
     height: 16px;
 }
