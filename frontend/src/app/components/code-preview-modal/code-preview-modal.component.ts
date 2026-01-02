@@ -521,8 +521,22 @@ export class CodePreviewModalComponent implements OnDestroy {
     /**
      * Retorna img tag para ícone da pasta (oficial IntelliJ).
      */
-    getFolderIconSvg(expanded: boolean): SafeHtml {
-        const iconName = 'webFolder_dark';
+    getFolderIconSvg(node: TreeNode): SafeHtml {
+        let iconName = 'webFolder_dark';
+        const lowerName = node.name.toLowerCase();
+
+        // Pasta .github
+        if (lowerName === '.github') {
+            iconName = 'folderGithub_dark';
+        }
+        // Pasta de testes
+        else if (lowerName === 'test' || lowerName === 'tests') {
+            // Verificar se é raiz de teste (ex: src/test)
+            if (node.path.includes('src/test') || node.path === 'test') {
+                iconName = 'testRoot_dark';
+            }
+        }
+
         const imgTag = `<img src="${this.ICON_BASE_PATH}/${iconName}.svg" width="16" height="16" alt="folder" style="vertical-align: middle;">`;
         return this.sanitizer.bypassSecurityTrustHtml(imgTag);
     }
@@ -544,6 +558,16 @@ export class CodePreviewModalComponent implements OnDestroy {
         const lowerName = filename.toLowerCase();
         const ext = lowerName.split('.').pop() || '';
         const baseName = filename.replace(/\.[^.]+$/, '');
+
+        // === ARQUIVOS ESPECÍFICOS ===
+        // Manifest
+        if (lowerName.includes('manifest')) {
+            return 'manifest_dark';
+        }
+        // Spring Boot Properties
+        if (lowerName === 'application.properties' || lowerName === 'application.yml' || lowerName === 'application.yaml') {
+            return 'springBoot@14x14_dark';
+        }
 
         // === JAVA - Detectar tipo pelo nome do arquivo ===
         if (ext === 'java') {
@@ -661,7 +685,7 @@ export class CodePreviewModalComponent implements OnDestroy {
             return 'manifest_dark';
         }
 
-        return iconMap[ext] || 'test_dark';
+        return iconMap[ext] || 'inlayRenameInNoCodeFiles_dark';
     }
 
     getFileIcon(node: TreeNode): string {
