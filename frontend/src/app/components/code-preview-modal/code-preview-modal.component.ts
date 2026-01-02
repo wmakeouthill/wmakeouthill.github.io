@@ -103,17 +103,22 @@ export class CodePreviewModalComponent implements OnDestroy {
             const open = this.isOpen();
             const project = this.projectName();
 
-            if (open && project) {
-                this.loadRepositoryTree(project);
-                this.loadHighlightJs();
+            if (open) {
+                document.body.classList.add('modal-open');
+                if (project) {
+                    this.loadRepositoryTree(project);
+                    this.loadHighlightJs();
+                }
                 this.disableBodyScroll();
             } else {
+                document.body.classList.remove('modal-open');
                 this.enableBodyScroll();
             }
         });
     }
 
     ngOnDestroy(): void {
+        document.body.classList.remove('modal-open');
         this.enableBodyScroll();
     }
 

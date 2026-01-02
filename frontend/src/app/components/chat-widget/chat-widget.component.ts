@@ -108,6 +108,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.configureLanguageEffect();
     this.configureUnreadTracking();
     this.configurarPersistenciaMensagens();
+
+    // Toggle body class for global styling (hiding scroll-to-top)
+    effect(() => {
+      if (this.isOpen()) {
+        document.body.classList.add('chat-open');
+      } else {
+        document.body.classList.remove('chat-open');
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -117,6 +126,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
+    document.body.classList.remove('chat-open');
   }
 
   toggleOpen(): void {
