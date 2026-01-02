@@ -1,6 +1,6 @@
 <form class="chat-input-area" (ngSubmit)="handleSubmit()" autocomplete="off">
   <textarea #chatInput class="chat-input" [disabled]="isLoading()" [ngModel]="inputText()"
-    (ngModelChange)="handleInputChange($event)" (keydown)="handleKeydown($event)" name="chatInput"
+    (ngModelChange)="handleInputChange($event)" (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
     [placeholder]="'chat.placeholder' | translate" rows="1"></textarea>
 
   <!-- Model Selector Dropdown - GitHub Copilot Style -->
