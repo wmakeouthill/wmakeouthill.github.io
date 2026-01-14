@@ -9,7 +9,6 @@ import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -30,9 +29,9 @@ import java.util.stream.Collectors;
  * Adapter para integração com a API do Google Gemini.
  * 
  * <p>
- * Gemini 1.5 Flash é significativamente mais rápido que GPT-4, mantendo boa
- * qualidade.
- * Este adapter é configurado como primário quando ai.provider=gemini.
+ * Gemini é significativamente mais rápido que GPT-4, mantendo boa qualidade.
+ * Este adapter é sempre carregado e pode ser usado pelo AIChatRouter
+ * para rotear requisições dinamicamente entre Gemini e OpenAI.
  * </p>
  * 
  * <p>
@@ -44,16 +43,14 @@ import java.util.stream.Collectors;
  * Exemplo de configuração:
  * 
  * <pre>
- * ai.provider=gemini
  * gemini.api.key=${GEMINI_API_KEY:}
- * gemini.model=gemini-1.5-flash
- * gemini.models.fallback=gemini-1.5-pro
+ * gemini.model=gemini-2.5-flash
+ * gemini.models.fallback=gemini-2.0-flash,gemini-2.0-flash-lite
  * </pre>
  * </p>
  */
 @Component
 @Primary
-@ConditionalOnProperty(name = "ai.provider", havingValue = "gemini", matchIfMissing = false)
 public class GeminiAdapter implements AIChatPort {
     private static final Logger log = LoggerFactory.getLogger(GeminiAdapter.class);
     private static final String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
@@ -240,12 +237,12 @@ public class GeminiAdapter implements AIChatPort {
                     }
 
                     logarUsoTokens(root, modeloUsado);
-                    return new ChatResponse(reply.trim());
+                    return new ChatResponse(reply.trim(), modeloUsado);
                 }
             }
 
             log.warn("Resposta Gemini não contém candidates válidos: {}", resp.body());
-            return new ChatResponse("(resposta inválida do Gemini)");
+            return new ChatResponse("(resposta inválida do Gemini)", modeloUsado);
         } else {
             String body = resp.body();
             log.error("Erro na API Gemini (modelo {}): status={}, body={}", modeloUsado, resp.statusCode(), body);

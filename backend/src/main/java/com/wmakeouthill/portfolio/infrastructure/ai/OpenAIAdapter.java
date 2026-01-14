@@ -9,7 +9,6 @@ import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
  * 
  * <p>
  * A chave deve ser fornecida via variável de ambiente `OPENAI_API_KEY`
- * ou via propriedade `-Dopenai.api.key=...`.
+ * ou via propriedade `openai.api.key`.
  * </p>
  * 
  * <p>
@@ -44,22 +43,21 @@ import java.util.stream.Collectors;
  * </p>
  * 
  * <p>
- * Este adapter é usado quando ai.provider=openai ou como fallback quando Gemini
- * não está configurado.
+ * Este adapter é sempre carregado e pode ser usado pelo AIChatRouter
+ * para rotear requisições dinamicamente entre OpenAI e Gemini.
  * </p>
  * 
  * <p>
  * Exemplo de configuração:
  * 
  * <pre>
- * ai.provider=openai
+ * openai.api.key=${OPENAI_API_KEY:}
  * openai.model=gpt-4o-mini
  * openai.models.fallback=gpt-3.5-turbo
  * </pre>
  * </p>
  */
 @Component
-@ConditionalOnProperty(name = "ai.provider", havingValue = "openai", matchIfMissing = true)
 public class OpenAIAdapter implements AIChatPort {
     private static final Logger log = LoggerFactory.getLogger(OpenAIAdapter.class);
     private static final String DEFAULT_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -247,7 +245,7 @@ public class OpenAIAdapter implements AIChatPort {
             // Tenta extrair informações de uso de tokens da resposta (se disponível)
             logarUsoTokens(root, modeloUsado);
 
-            return new ChatResponse(reply.trim());
+            return new ChatResponse(reply.trim(), modeloUsado);
         } else {
             String body = resp.body();
             log.error("Erro na API OpenAI (modelo {}): status={}, body={}", modeloUsado, resp.statusCode(), body);
