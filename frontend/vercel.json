@@ -5,7 +5,7 @@
     "outputDirectory": "dist/portfolio/browser",
     "framework": "angular",
     "functions": {
-        "api/*.js": {
+        "api/**/*.js": {
             "memory": 256,
             "maxDuration": 30
         }
@@ -13,7 +13,7 @@
     "rewrites": [
         {
             "source": "/api/health",
-            "destination": "/api/health"
+            "destination": "/api/cache/status"
         },
         {
             "source": "/api/projects",
@@ -49,6 +49,23 @@
         }
     ],
     "headers": [
+        {
+            "source": "/api/health",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "https://wmakeouthill.github.io"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "Content-Type, Accept"
+                }
+            ]
+        },
         {
             "source": "/assets/(.*)",
             "headers": [
