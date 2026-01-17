@@ -12,6 +12,7 @@ export interface ChatRequest {
 
 export interface ChatResponse {
   reply: string;
+  modelo?: string; // Modelo de IA que gerou a resposta (ex: "gemini-2.5-flash", "gpt-4o-mini")
 }
 
 @Injectable({
@@ -24,12 +25,12 @@ export class ChatService {
 
   /**
    * Envia uma mensagem para o chat.
-   * 
+   *
    * @param mensagem texto da mensagem
    * @param sessionId identificador da sessão (enviado no header X-Session-ID)
-   * @param model modelo de IA a usar: 'gemini' (padrão) ou 'gpt'
+   * @param model modelo de IA a usar: 'gpt' (padrão) ou 'gemini'
    */
-  enviarMensagem(mensagem: string, sessionId?: string, model: AIModel = 'gemini'): Observable<ChatResponse> {
+  enviarMensagem(mensagem: string, sessionId?: string, model: AIModel = 'gpt'): Observable<ChatResponse> {
     const body: ChatRequest = { message: mensagem, model };
 
     let headers = new HttpHeaders();
@@ -42,7 +43,7 @@ export class ChatService {
 
   /**
    * Limpa o histórico de mensagens no backend para a sessão especificada.
-   * 
+   *
    * @param sessionId identificador da sessão
    */
   limparHistorico(sessionId?: string): Observable<void> {

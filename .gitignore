@@ -142,6 +142,13 @@ docs/build/
 # Material para markdowns (se não for código fonte)
 /material para os markdowns/
 
+# ============================================
+# Service Account Keys (NUNCA COMMIT!)
+# ============================================
+*-key.json
+vercel-service-account-key.json
+*service-account*.json
+
 # Arquivos grandes de mídia que não são essenciais (ajuste conforme necessário)
 # *.mp4
 # *.mov

@@ -1,0 +1,110 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "version": 2,
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist/portfolio/browser",
+    "framework": "angular",
+    "functions": {
+        "api/*.js": {
+            "memory": 256,
+            "maxDuration": 30
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/api/health",
+            "destination": "/api/health"
+        },
+        {
+            "source": "/api/projects",
+            "destination": "/api/projects"
+        },
+        {
+            "source": "/api/projects/:path*",
+            "destination": "/api/projects"
+        },
+        {
+            "source": "/api/certifications",
+            "destination": "/api/certifications"
+        },
+        {
+            "source": "/api/certifications/:path*",
+            "destination": "/api/certifications"
+        },
+        {
+            "source": "/api/chat",
+            "destination": "/api/chat"
+        },
+        {
+            "source": "/api/chat/:path*",
+            "destination": "/api/chat"
+        },
+        {
+            "source": "/api/content",
+            "destination": "/api/content"
+        },
+        {
+            "source": "/api/content/:path*",
+            "destination": "/api/content"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/assets/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)\\.js",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)\\.css",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)\\.(ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "ALLOWALL"
+                },
+                {
+                    "key": "X-XSS-Protection",
+                    "value": "1; mode=block"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "local-fonts=(), display-capture=()"
+                }
+            ]
+        }
+    ]
+}

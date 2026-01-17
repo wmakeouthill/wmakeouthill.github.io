@@ -380,11 +380,12 @@
                 <div class="spinner-dot"></div>
                 <div class="spinner-dot"></div>
             </div>
+            <p id="loading-status" style="text-align: center; margin-top: 1.5rem; color: #888; font-size: 0.9rem;">Verificando backend...</p>
         </div>
     </div>
     <iframe 
         id="portfolioFrame"
-        src="https://projeto-wesley-263590688560.southamerica-east1.run.app"
+        src="https://wmakeouthill.vercel.app"
         title="Portfolio Wesley"
         allow="fullscreen"
         loading="eager"
@@ -392,7 +393,69 @@
         onload="handleIframeLoad()"
     ></iframe>
     <script>
+        const VERCEL_URL = 'https://wmakeouthill.vercel.app';
+        const HEALTH_CHECK_URL = VERCEL_URL + '/api/health';
+        const MAX_RETRIES = 30;  // 30 tentativas
+        const RETRY_INTERVAL = 2000;  // 2 segundos entre tentativas
+        
+        let retryCount = 0;
+        let backendReady = false;
+        let iframeLoaded = false;
+        
+        // Verifica se o backend está pronto (via proxy da Vercel)
+        async function checkBackendHealth() {
+            const statusEl = document.getElementById('loading-status');
+            
+            try {
+                const response = await fetch(HEALTH_CHECK_URL, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Verifica se os caches estão sincronizados
+                    if (data.synced) {
+                        backendReady = true;
+                        statusEl.textContent = 'Backend pronto!';
+                        checkReadyToShow();
+                        return;
+                    } else {
+                        statusEl.textContent = 'Sincronizando dados...';
+                    }
+                } else if (response.status === 403) {
+                    // Backend privado - aguardando autenticação
+                    statusEl.textContent = 'Aguardando backend...';
+                } else {
+                    statusEl.textContent = 'Iniciando backend...';
+                }
+            } catch (error) {
+                statusEl.textContent = 'Aguardando backend (cold start)...';
+            }
+            
+            retryCount++;
+            if (retryCount < MAX_RETRIES) {
+                setTimeout(checkBackendHealth, RETRY_INTERVAL);
+            } else {
+                // Após MAX_RETRIES, mostra o iframe de qualquer forma
+                statusEl.textContent = 'Carregando...';
+                backendReady = true;
+                checkReadyToShow();
+            }
+        }
+        
         function handleIframeLoad() {
+            iframeLoaded = true;
+            checkReadyToShow();
+        }
+        
+        function checkReadyToShow() {
+            if (backendReady && iframeLoaded) {
+                showApp();
+            }
+        }
+        
+        function showApp() {
             const loading = document.getElementById('loading');
             const iframe = document.getElementById('portfolioFrame');
             
@@ -405,17 +468,20 @@
             }, 300);
         }
         
-        // Fallback: se o iframe não carregar em 15 segundos, exibe aviso mas mantém o domínio atual
+        // Inicia verificação do backend
+        checkBackendHealth();
+        
+        // Fallback: se tudo não carregar em 60 segundos, exibe aviso
         setTimeout(function() {
             const loading = document.getElementById('loading');
             if (loading && !loading.classList.contains('hidden')) {
                 loading.innerHTML = '<div class="loading-content" style="text-align:center; color:#fff;">' +
                     '<p style="margin-bottom:1rem;">Ainda carregando o app…</p>' +
                     '<p style="margin-bottom:1rem;">Se demorar, tente recarregar a página.</p>' +
+                    '<button onclick="location.reload()" style="padding: 0.5rem 1rem; background: #DBC27D; color: #000; border: none; border-radius: 4px; cursor: pointer;">Recarregar</button>' +
                     '</div>';
             }
-        }, 15000);
+        }, 60000);
     </script>
 </body>
 </html>
-

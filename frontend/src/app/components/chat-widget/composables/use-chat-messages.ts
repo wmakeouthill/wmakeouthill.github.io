@@ -27,6 +27,11 @@ export function useChatMessages(
       return;
     }
 
+    // Log do modelo usado no DevTools (para debug)
+    if (response.modelo) {
+      console.log(`🤖 Resposta gerada pelo modelo: ${response.modelo}`);
+    }
+
     const html = await markdownChatService.renderMarkdownToHtml(reply);
     const assistantMessage = createAssistantMessage(reply, html, sanitizer);
     messages.update((arr) => [...arr, assistantMessage]);
