@@ -8,6 +8,15 @@ const { GoogleAuth } = require('google-auth-library');
 // URL do backend no Cloud Run
 const CLOUD_RUN_URL = process.env.CLOUD_RUN_URL || 'https://projeto-wesley-hqb7iuff7a-rj.a.run.app';
 
+// Origens permitidas para CORS (health check externo)
+const ALLOWED_ORIGINS = [
+    'https://wmakeouthill.github.io',
+    'https://wmakeouthill.dev',
+    'https://www.wmakeouthill.dev',
+    'http://localhost:4200',
+    'http://localhost:8080'
+];
+
 // Cache do token
 let tokenCache = { token: null, expiry: 0 };
 
@@ -38,11 +47,25 @@ async function getIdToken() {
     return token;
 }
 
-module.exports = async (req, res) => {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+function setCorsHeaders(req, res) {
+    const origin = req.headers.origin;
+
+    // Se a origem está na lista permitida, usa ela
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        // Para outras origens (mesmo domínio), usa *
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+}
+
+module.exports = async (req, res) => {
+    // CORS com suporte a origens específicas
+    setCorsHeaders(req, res);
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
