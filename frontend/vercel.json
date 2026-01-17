@@ -13,7 +13,7 @@
     "rewrites": [
         {
             "source": "/api/health",
-            "destination": "/api/cache/status"
+            "destination": "/api/health"
         },
         {
             "source": "/api/projects",
