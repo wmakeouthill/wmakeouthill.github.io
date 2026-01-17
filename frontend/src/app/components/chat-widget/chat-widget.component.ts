@@ -68,7 +68,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   inputText = signal('');
   messages = signal<ChatMessage[]>([]);
   unreadCount = signal(0);
-  selectedModel = signal<AIModel>('gemini');
+  selectedModel = signal<AIModel>('gpt');
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
