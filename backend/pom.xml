@@ -53,98 +53,109 @@
             <version>3.0.1</version>
         </dependency>
     </dependencies>
+    
+    <profiles>
+        <!-- Profile padrão: build completo com frontend -->
+        <profile>
+            <id>with-frontend</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Plugin para construir o frontend Angular -->
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.12.1</version>
+                        <configuration>
+                            <workingDirectory>${project.basedir}/../frontend</workingDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install node and npm</id>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>v20.19.0</nodeVersion>
+                                    <npmVersion>9.8.1</npmVersion>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm install</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm run build</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <arguments>run build -- --configuration=production</arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Plugin para copiar arquivos do frontend/dist para resources/static -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-frontend-resources-to-classes</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/../frontend/dist/portfolio/browser</directory>
+                                            <includes>
+                                                <include>**/*</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy-frontend-resources-to-src</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}/src/main/resources/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/../frontend/dist/portfolio/browser</directory>
+                                            <includes>
+                                                <include>**/*</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
     <build>
         <plugins>
-            <!-- Plugin para construir o frontend Angular durante o lifecycle do Maven -->
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.12.1</version>
-                <configuration>
-                    <!-- diretório do frontend relativo ao backend -->
-                    <workingDirectory>${project.basedir}/../frontend</workingDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install node and npm</id>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Angular 20 exige Node >= 20.19.0 -->
-                            <nodeVersion>v20.19.0</nodeVersion>
-                            <npmVersion>9.8.1</npmVersion>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm run build</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <arguments>run build -- --configuration=production</arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Plugin para copiar arquivos do frontend/dist para resources/static -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
-                <executions>
-                    <execution>
-                        <id>copy-frontend-resources-to-classes</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <!-- Copia o build Angular (browser) direto para a raiz de static -->
-                                    <directory>${project.basedir}/../frontend/dist/portfolio/browser</directory>
-                                    <includes>
-                                        <include>**/*</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-frontend-resources-to-src</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/src/main/resources/static</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <!-- Copia o build Angular (browser) direto para a raiz de static -->
-                                    <directory>${project.basedir}/../frontend/dist/portfolio/browser</directory>
-                                    <includes>
-                                        <include>**/*</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -159,7 +170,6 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>

@@ -21,6 +21,8 @@ import java.util.Objects;
 /**
  * Controller para servir arquivos estáticos do frontend e index.html para rotas
  * do SPA.
+ * 
+ * Pode ser desativado via configuração: frontend.enabled=false
  */
 @Controller
 @RequestMapping
@@ -30,8 +32,16 @@ public class SpaController {
     @Value("${frontend.path:}")
     private String frontendPath;
 
+    @Value("${frontend.enabled:true}")
+    private boolean frontendEnabled;
+
     @GetMapping("/**")
     public ResponseEntity<Resource> servirRecurso(HttpServletRequest request) {
+        // Se frontend está desativado, retorna 404 para todas as requisições não-API
+        if (!frontendEnabled) {
+            return ResponseEntity.notFound().build();
+        }
+
         String uri = request.getRequestURI();
 
         if (deveIgnorar(uri)) {
