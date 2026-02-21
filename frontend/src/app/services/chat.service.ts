@@ -28,9 +28,9 @@ export class ChatService {
    *
    * @param mensagem texto da mensagem
    * @param sessionId identificador da sessão (enviado no header X-Session-ID)
-   * @param model modelo de IA a usar: 'gpt' (padrão) ou 'gemini'
+   * @param model modelo de IA a usar: 'gemini' (padrão) ou 'gpt'
    */
-  enviarMensagem(mensagem: string, sessionId?: string, model: AIModel = 'gpt'): Observable<ChatResponse> {
+  enviarMensagem(mensagem: string, sessionId?: string, model: AIModel = 'gemini'): Observable<ChatResponse> {
     const body: ChatRequest = { message: mensagem, model };
 
     let headers = new HttpHeaders();

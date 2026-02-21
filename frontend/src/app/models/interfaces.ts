@@ -40,6 +40,8 @@ export interface Skill {
   icon?: string;
   // opcional: em quantos projetos essa skill foi utilizada (para evidência)
   projectsCount?: number;
+  /** quando true, exibe "N+" (ex.: 6+) indicando que há mais projetos */
+  projectsCountPlus?: boolean;
 }
 
 // Interface para experiência profissional

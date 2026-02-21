@@ -105,6 +105,31 @@
     "years": "years",
     "items": {
       "exp1": {
+        "position": "Full Stack Developer (Full Cycle)",
+        "highlights": [
+          {
+            "title": "AI monitoring platforms",
+            "text": "architected and implemented the full cycle of AI monitoring platforms: scalable React frontends and backends integrated with LLMs via RAG and LangGraph for image analysis and insight generation."
+          },
+          {
+            "title": "Machine Learning and forecasting",
+            "text": "designed ML algorithms with the Prophet library for demand forecasting and inventory management in agribusiness, improving strategic data accuracy."
+          },
+          {
+            "title": "ERP integrations",
+            "text": "enabled complex integrations with Sankhya ERP to optimize sales operational flows."
+          },
+          {
+            "title": "Infrastructure and methodologies",
+            "text": "Python and Docker in high-performance infrastructure under Agile methodologies."
+          },
+          {
+            "title": "CI/CD and deploy",
+            "text": "GitHub Actions pipelines for secure deploy to AWS (EC2 instances), Cloud Run, and cloud environments."
+          }
+        ]
+      },
+      "exp2": {
         "position": "Intern - Backend / FullStack / ScrumTeam",
         "highlights": [
           {
@@ -129,7 +154,7 @@
           }
         ]
       },
-      "exp2": {
+      "exp3": {
         "position": "Intern - Projects / Governance",
         "highlights": [
           {
@@ -158,7 +183,7 @@
           }
         ]
       },
-      "exp3": {
+      "exp4": {
         "position": "Intern & Legal Assistant",
         "highlights": [
           {
@@ -179,7 +204,7 @@
           }
         ]
       },
-      "exp4": {
+      "exp5": {
         "position": "Apprentice - Analytics / Salesforce",
         "highlights": [
           {
@@ -196,7 +221,7 @@
           }
         ]
       },
-      "exp5": {
+      "exp6": {
         "position": "Apprentice - Administrative / Production Assistant",
         "highlights": [
           {

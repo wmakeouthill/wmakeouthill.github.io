@@ -22,7 +22,7 @@ export class ChatInputComponent {
   readonly inputText = input<string>('');
   readonly canSend = input<boolean>(false);
   readonly shouldFocus = input<boolean>(false);
-  readonly selectedModel = input<AIModel>('gpt');
+  readonly selectedModel = input<AIModel>('gemini');
 
   readonly onInputChange = output<string>();
   readonly onSend = output<void>();
@@ -32,8 +32,8 @@ export class ChatInputComponent {
   isDropdownOpen = signal(false);
 
   readonly models: { id: AIModel; name: string }[] = [
-    { id: 'gpt', name: 'GPT-5' },
-    { id: 'gemini', name: 'Gemini Flash' }
+    { id: 'gemini', name: 'Gemini Flash' },
+    { id: 'gpt', name: 'GPT-5' }
   ];
 
   constructor() {
@@ -90,7 +90,7 @@ export class ChatInputComponent {
   }
 
   getModelName(): string {
-    return this.models.find(m => m.id === this.selectedModel())?.name || 'GPT-5';
+    return this.models.find(m => m.id === this.selectedModel())?.name || 'Gemini Flash';
   }
 
   closeDropdown(): void {
