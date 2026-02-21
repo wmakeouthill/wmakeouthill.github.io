@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- .NET logo: purple square with dot and bars -->
+  <rect width="32" height="32" rx="6" fill="#512BD4"/>
+  <circle cx="16" cy="12" r="3" fill="#fff"/>
+  <rect x="8" y="18" width="4" height="6" rx="1" fill="#fff"/>
+  <rect x="14" y="18" width="4" height="6" rx="1" fill="#fff"/>
+  <rect x="20" y="18" width="4" height="6" rx="1" fill="#fff"/>
+</svg>

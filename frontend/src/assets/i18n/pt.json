@@ -105,6 +105,31 @@
     "years": "anos",
     "items": {
       "exp1": {
+        "position": "Desenvolvedor FullStack (Full Cycle)",
+        "highlights": [
+          {
+            "title": "Plataformas de monitoramento de IA",
+            "text": "arquitetura e implementação do ciclo completo: frontends escaláveis em React e backends integrados a LLMs via RAG e LangGraph para análise de imagens e geração de insights."
+          },
+          {
+            "title": "Machine Learning e predição",
+            "text": "algoritmos com a biblioteca Prophet para predição de demanda e gestão de estoques no agronegócio, elevando a precisão estratégica dos dados."
+          },
+          {
+            "title": "Integrações ERP",
+            "text": "integrações complexas com o ERP Sankhya para otimização de fluxos operacionais de vendas."
+          },
+          {
+            "title": "Infraestrutura e metodologias",
+            "text": "Python e Docker em infraestruturas de alta performance, sob metodologias ágeis."
+          },
+          {
+            "title": "CI/CD e deploy",
+            "text": "pipelines no GitHub Actions para deploy seguro na AWS (instâncias EC2), Cloud Run e ambientes cloud."
+          }
+        ]
+      },
+      "exp2": {
         "position": "Estagiário - Backend / FullStack / ScrumTeam",
         "highlights": [
           {
@@ -129,7 +154,7 @@
           }
         ]
       },
-      "exp2": {
+      "exp3": {
         "position": "Estagiário - Projetos / Governança",
         "highlights": [
           {
@@ -158,7 +183,7 @@
           }
         ]
       },
-      "exp3": {
+      "exp4": {
         "position": "Estagiário & Assistente Jurídico",
         "highlights": [
           {
@@ -179,7 +204,7 @@
           }
         ]
       },
-      "exp4": {
+      "exp5": {
         "position": "Aprendiz - Analytics / SalesForce",
         "highlights": [
           {
@@ -196,7 +221,7 @@
           }
         ]
       },
-      "exp5": {
+      "exp6": {
         "position": "Aprendiz - Auxiliar Administrativo / Produção",
         "highlights": [
           {

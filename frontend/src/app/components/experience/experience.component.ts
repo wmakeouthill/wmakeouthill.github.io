@@ -19,11 +19,30 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
     {
       key: 'experience.items.exp1',
       id: 1,
+      company: 'AutoU',
+      position: '',
+      startDate: '2026-02',
+      endDate: null,
+      current: true,
+      location: '',
+      description: '',
+      highlights: [
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' }
+      ],
+      technologies: ['React', 'Python', 'RAG', 'LangGraph', 'Prophet', 'Docker', 'GitHub Actions', 'AWS EC2', 'Google Cloud Run', 'Sankhya ERP']
+    },
+    {
+      key: 'experience.items.exp2',
+      id: 2,
       company: 'Anbima / Selic (Banco Central)',
       position: '',
       startDate: '2025-04',
-      endDate: null,
-      current: true,
+      endDate: '2026-01',
+      current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
@@ -36,8 +55,8 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       technologies: ['Java', 'Spring', 'Spring Boot', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'Prometheus', 'Grafana']
     },
     {
-      key: 'experience.items.exp2',
-      id: 2,
+      key: 'experience.items.exp3',
+      id: 3,
       company: 'Anbima / Selic (Banco Central)',
       position: '',
       startDate: '2024-04',
@@ -56,8 +75,8 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       technologies: ['Power BI', 'DAX', 'JavaScript', 'SharePoint', 'Notion']
     },
     {
-      key: 'experience.items.exp3',
-      id: 3,
+      key: 'experience.items.exp4',
+      id: 4,
       company: 'Gondim, Albuquerque e Negreiros ADV',
       position: '',
       startDate: '2019-11',
@@ -74,8 +93,8 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       technologies: ['Python', 'VBA', 'Selenium', 'RPA']
     },
     {
-      key: 'experience.items.exp4',
-      id: 4,
+      key: 'experience.items.exp5',
+      id: 5,
       company: 'Phillip Morris Internacional',
       position: '',
       startDate: '2018-10',
@@ -91,8 +110,8 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       technologies: ['VBA', 'Excel', 'Salesforce']
     },
     {
-      key: 'experience.items.exp5',
-      id: 5,
+      key: 'experience.items.exp6',
+      id: 6,
       company: 'Liquigás / Petrobras Distribuidora S.A',
       position: '',
       startDate: '2017-04',

@@ -29,7 +29,7 @@
                     <div class="skill-meta">
                       @if (skill.projectsCount) {
                         <small class="projects-count">
-                          {{ skill.projectsCount }} {{ 'skills.projectsCount' | translate }}
+                          {{ skill.projectsCount }}{{ skill.projectsCountPlus ? '+' : '' }} {{ 'skills.projectsCount' | translate }}
                         </small>
                       }
                     </div>
