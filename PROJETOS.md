@@ -72,6 +72,8 @@ Documentação dos repositórios e demos (GitHub Pages e outros deploys) do perf
 | **Lobby-pedidos** | React → Angular | Lobby de pedidos (migrado para Angular, integrado à lanchonete). | [GitHub](https://github.com/wmakeouthill/Lobby-pedidos) |
 | **certificados-wesley** | — | Repositório de certificados. | [GitHub](https://github.com/wmakeouthill/certificados-wesley) |
 | **glm-4.7-down-config-pc-fraco** | PowerShell | Scripts para GLM-4.7 em PCs com poucos recursos. | [GitHub](https://github.com/wmakeouthill/glm-4.7-down-config-pc-fraco) |
+| **github_stats_wmakeouthill** | React 19, Vite 7, TypeScript, TanStack React Query | Dashboard/visualização de estatísticas do perfil GitHub (wmakeouthill). Frontend moderno com React 19 e Vite 7. | [GitHub](https://github.com/wmakeouthill/github_stats_wmakeouthill) |
+| **wesley-bot-whatsapp-assistant** | Python 3.11, FastAPI, Evolution API, Google Gemini, FAISS, gTTS, Docker | Bot de WhatsApp com assistente de IA (Gemini), RAG para documentos (FAISS + embeddings), respostas em áudio (gTTS) e export para Excel (openpyxl). Fluxo agêntico com detecção de formato (áudio/planilha/texto). | [GitHub](https://github.com/wmakeouthill/wesley-bot-whatsapp-assistant) |
 
 ---
 
