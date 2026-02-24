@@ -16,17 +16,22 @@ param(
   [string]$ProjectId,
 
   [Parameter(Mandatory = $false)]
-  [string]$Region = "southamerica-east1",
+  [string]$Region,
 
   [Parameter(Mandatory = $false)]
-  [string]$ServiceName = "projeto-wesley-backend",
+  [string]$ServiceName,
 
   [Parameter(Mandatory = $false)]
-  [string]$ArtifactRepo = "cloud-run",
+  [string]$ArtifactRepo,
 
   [Parameter(Mandatory = $false)]
-  [string]$DockerfilePath = "Dockerfile.cloud-run.projeto-wesley"
+  [string]$DockerfilePath
 )
+
+if (-not $Region) { $Region = "southamerica-east1" }
+if (-not $ServiceName) { $ServiceName = "projeto-wesley-backend" }
+if (-not $ArtifactRepo) { $ArtifactRepo = "cloud-run" }
+if (-not $DockerfilePath) { $DockerfilePath = "Dockerfile.cloud-run.projeto-wesley" }
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Cloud Run Deploy (Backend-only)" -ForegroundColor Cyan
