@@ -1,50 +1,25 @@
 /**
- * Módulo compartilhado de autenticação para Cloud Run
+ * Módulo compartilhado de autenticação e proxy para a API no Vercel.
+ * Anteriormente apontava para Cloud Run, agora aponta para Oracle Cloud.
  */
 
-const { GoogleAuth } = require('google-auth-library');
-
-const CLOUD_RUN_URL = process.env.CLOUD_RUN_URL || 'https://projeto-wesley-hqb7iuff7a-rj.a.run.app';
-
-let tokenCache = { token: null, expiry: 0 };
-
-async function getIdToken() {
-    const now = Date.now();
-
-    if (tokenCache.token && tokenCache.expiry > now + 300000) {
-        return tokenCache.token;
-    }
-
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
-
-    if (!credentials.client_email) {
-        throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY não configurada ou inválida');
-    }
-
-    const auth = new GoogleAuth({ credentials });
-    const client = await auth.getIdTokenClient(CLOUD_RUN_URL);
-    const headers = await client.getRequestHeaders();
-
-    const token = headers.Authorization?.replace('Bearer ', '');
-
-    tokenCache = { token, expiry: now + 3600000 };
-    return token;
-}
+const TARGET_API_URL = process.env.API_BASE_URL || 'http://137.131.158.76:8080';
+const API_KEY = process.env.API_KEY || '';
 
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language, X-API-Key');
 }
 
 async function proxyRequest(req, res, targetPath) {
     try {
-        const idToken = await getIdToken();
-        const fullTargetUrl = `${CLOUD_RUN_URL}${targetPath}`;
+        const fullTargetUrl = `${TARGET_API_URL}${targetPath}`;
 
         console.log(`[Proxy] ${req.method} ${fullTargetUrl}`);
 
-        const headers = { 'Authorization': `Bearer ${idToken}` };
+        // O backend Oracle exige este header assinado para permitir entrada
+        const headers = { 'X-API-Key': API_KEY };
 
         if (req.headers['content-type']) {
             headers['Content-Type'] = req.headers['content-type'];
@@ -90,11 +65,11 @@ async function proxyRequest(req, res, targetPath) {
     } catch (error) {
         console.error('[Proxy Error]', error);
         return res.status(500).json({
-            error: 'Erro no proxy',
+            error: 'Erro no proxy para o backend',
             message: error.message,
             timestamp: new Date().toISOString()
         });
     }
 }
 
-module.exports = { getIdToken, setCorsHeaders, proxyRequest, CLOUD_RUN_URL };
+module.exports = { setCorsHeaders, proxyRequest, TARGET_API_URL };

@@ -20,7 +20,7 @@
             "destination": "/api/projects"
         },
         {
-            "source": "/api/projects/:path*",
+            "source": "/api/projects/:rest*",
             "destination": "/api/projects"
         },
         {
@@ -28,7 +28,7 @@
             "destination": "/api/certifications"
         },
         {
-            "source": "/api/certifications/:path*",
+            "source": "/api/certifications/:rest*",
             "destination": "/api/certifications"
         },
         {
@@ -36,7 +36,7 @@
             "destination": "/api/chat"
         },
         {
-            "source": "/api/chat/:path*",
+            "source": "/api/chat/:rest*",
             "destination": "/api/chat"
         },
         {
@@ -44,7 +44,7 @@
             "destination": "/api/content"
         },
         {
-            "source": "/api/content/:path*",
+            "source": "/api/content/:rest*",
             "destination": "/api/content"
         }
     ],

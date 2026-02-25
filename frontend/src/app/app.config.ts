@@ -4,12 +4,13 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { languageInterceptor } from './i18n/language.interceptor';
+import { apiKeyInterceptor } from './interceptors/api-key.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([languageInterceptor]))
+    provideHttpClient(withInterceptors([apiKeyInterceptor, languageInterceptor]))
   ]
 };

@@ -1,0 +1,69 @@
+# Multi-stage build otimizado para Oracle Cloud VM - Projeto Wesley Portfolio
+# Estrutura: backend Spring Boot APENAS (API-only mode)
+# O frontend é servido pela Vercel separadamente
+#
+# Otimizações para 1GB RAM (Always Free Tier):
+# - JRE Alpine (imagem menor ~200MB vs ~500MB)
+# - Serial GC (menor overhead de memória)
+# - MaxRAMPercentage=65 (~650MB para heap)
+# - Sem frontend embutido
+
+# Stage 1: Build do Maven (sem frontend)
+FROM maven:3.9-eclipse-temurin-17 AS maven-build
+
+WORKDIR /app
+
+# Copiar arquivo de configuração Maven primeiro (cache layer)
+COPY backend/pom.xml ./backend/
+
+# Baixar dependências (cache layer)
+RUN cd backend && mvn dependency:go-offline -B
+
+# Copiar código fonte do backend
+COPY backend ./backend
+
+# Build sem frontend (profile padrão agora não inclui frontend)
+RUN cd backend && mvn clean package -DskipTests -B
+
+# Stage 2: Imagem final otimizada para Oracle Cloud VM
+FROM eclipse-temurin:17-jre-alpine
+
+# Instalar apenas dependências necessárias
+RUN apk add --no-cache \
+    bash \
+    tini \
+    wget \
+    && rm -rf /var/cache/apk/*
+
+# Criar diretório da aplicação
+RUN mkdir -p /app
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 appuser && \
+    adduser -D -u 1001 -G appuser appuser
+
+# Copiar JAR do backend (sem frontend - API-only)
+COPY --from=maven-build /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
+
+# Ajustar permissões
+RUN chown -R appuser:appuser /app
+
+# Variáveis de ambiente padrão
+# Secrets serão fornecidos via .env e docker-compose
+# Otimizado para 1GB RAM: SerialGC + MaxRAMPercentage=65
+ENV SERVER_PORT=8080
+ENV LOG_LEVEL=INFO
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+# Expor porta
+EXPOSE 8080
+
+# Mudar para usuário não-root
+USER appuser
+
+# Usar tini como init system
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Comando para iniciar a aplicação
+CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar"]

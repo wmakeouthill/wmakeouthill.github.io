@@ -107,3 +107,49 @@ export function getApiUrl(): string {
   return '';
 }
 
+/**
+ * Retorna a API Key configurada para autenticação.
+ */
+export function getApiKey(): string | null {
+  const keyFromSession = readApiKeyFromSessionStorage();
+  if (keyFromSession) {
+    return keyFromSession;
+  }
+
+  const envKey = readApiKeyFromImportMetaEnv();
+  if (envKey) {
+    return envKey;
+  }
+
+  return null;
+}
+
+function readApiKeyFromSessionStorage(): string | null {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) {
+      return null;
+    }
+    const stored = window.sessionStorage.getItem('api_key');
+    if (!stored) {
+      return null;
+    }
+    const trimmed = stored.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+function readApiKeyFromImportMetaEnv(): string | null {
+  const env = (import.meta as ImportMeta & { env?: Record<string, string> }).env;
+  if (!env) {
+    return null;
+  }
+
+  const envKey = env['NG_APP_API_KEY'] ?? env['API_KEY'];
+  if (!envKey) {
+    return null;
+  }
+  const trimmed = envKey.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
