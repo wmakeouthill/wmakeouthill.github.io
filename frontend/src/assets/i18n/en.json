@@ -29,7 +29,7 @@
     "tagline": "Transforming ideas into code. Creating amazing digital experiences with modern technologies and elegant design.",
     "viewProjects": "View Projects",
     "myResume": "My Resume",
-    "contactMe": "Contact Me",
+    "githubStats": "Github Stats",
     "yearsExperience": "Years of Experience",
     "completedProjects": "Completed Projects",
     "technologies": "Technologies I've worked with",
@@ -56,7 +56,7 @@
       },
       "education": {
         "title": "Education",
-        "value": "Graduated in Law. Pursuing a Postgraduate degree in FullStack Java Development, MBA in Project Management (paused) and studying Computer Science (in progress)"
+        "value": "Graduated in Law. Postgraduate degree in FullStack Java Development (completed in Feb/2026), MBA in Project Management (paused) and studying Computer Science (in progress)"
       },
       "projects": {
         "title": "Projects",
@@ -101,6 +101,7 @@
   "experience": {
     "title": "Professional Experience",
     "present": "Present",
+    "freela": "Freela",
     "months": "months",
     "years": "years",
     "items": {

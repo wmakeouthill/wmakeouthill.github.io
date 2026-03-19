@@ -23,8 +23,8 @@ export class EducationComponent implements OnInit, AfterViewInit {
       degree: '',
       field: '',
       startDate: '2025-08',
-      endDate: '2026-05',
-      current: true,
+      endDate: '2026-02',
+      current: false,
       description: ''
     },
     {

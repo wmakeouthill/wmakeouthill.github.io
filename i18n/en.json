@@ -29,7 +29,7 @@
     "tagline": "Transforming ideas into code. Creating amazing digital experiences with modern technologies and elegant design.",
     "viewProjects": "View Projects",
     "myResume": "My Resume",
-    "contactMe": "Contact Me",
+    "githubStats": "Github Stats",
     "yearsExperience": "Years of Experience",
     "completedProjects": "Completed Projects",
     "technologies": "Technologies I've worked with",
@@ -100,6 +100,7 @@
   "experience": {
     "title": "Professional Experience",
     "present": "Present",
+    "freela": "Freela",
     "months": "months",
     "years": "years",
     "items": {

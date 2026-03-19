@@ -29,7 +29,7 @@
     "tagline": "Transformando ideias em código. Criando experiências digitais incríveis com tecnologias modernas e design elegante.",
     "viewProjects": "Ver Projetos",
     "myResume": "Meu Currículo",
-    "contactMe": "Entre em Contato",
+    "githubStats": "Github Stats",
     "yearsExperience": "Anos de Experiência",
     "completedProjects": "Projetos Completos",
     "technologies": "Tecnologias que tive contato e experiência",
@@ -56,7 +56,7 @@
       },
       "education": {
         "title": "Formação",
-        "value": "Graduado em Direito. Cursando Pós-graduação em Desenvolvimento FullStack Java, MBA em Gestão de Projetos (trancada) e cursando Ciências da Computação (em andamento)"
+        "value": "Graduado em Direito. Pós-graduação em Desenvolvimento FullStack Java (concluída em fev/2026), MBA em Gestão de Projetos (trancada) e cursando Ciências da Computação (em andamento)"
       },
       "projects": {
         "title": "Projetos",
@@ -100,6 +100,7 @@
   "experience": {
     "title": "Experiência Profissional",
     "present": "Presente",
+    "freela": "Freela",
     "months": "meses",
     "years": "anos",
     "items": {

@@ -19,12 +19,19 @@
           <div class="experience-card">
             <div class="card-header">
               <div>
+                @if (exp.position) {
                 <h3 class="position">{{ exp.position }}</h3>
+                }
                 <p class="company">{{ exp.company }}</p>
               </div>
-              @if (exp.current) {
-              <span class="current-badge">{{ 'experience.present' | translate }}</span>
-              }
+              <div class="status-badges">
+                @if (exp.current) {
+                <span class="current-badge">{{ 'experience.present' | translate }}</span>
+                }
+                @if (exp.badgeLabel) {
+                <span class="experience-badge">{{ exp.badgeLabel }}</span>
+                }
+              </div>
             </div>
 
             <div class="card-meta">
