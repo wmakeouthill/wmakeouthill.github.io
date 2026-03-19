@@ -235,6 +235,14 @@
     box-shadow var(--transition-fast),
     border-color var(--transition-fast),
     color var(--transition-fast);
+  transform-style: preserve-3d; /* Habilita 3D real para o filho atravessar o botão */
+}
+
+/* Elevando o texto e estrelinhas do botão para não serem engolidos pela órbita frontal */
+.btn-github-stats span:not(.orbital-ring) {
+  transform: translateZ(30px);
+  position: relative;
+  display: inline-block;
 }
 
 /* shimmer interno */
@@ -266,7 +274,7 @@
   /* Invertendo a inclinação: rotateX(72deg) deita, rotateY(-22deg) inclina na diagonal invertida */
   transform: translate(-50%, -50%) rotateX(72deg) rotateY(-22deg);
   pointer-events: none;
-  z-index: -1;
+  /* z-index removido para permitir que o 3D natural corte o botão no eixo Z=0 */
   border: none;
   box-shadow: none;
   transform-style: preserve-3d;
@@ -276,22 +284,23 @@
 .orbital-ring::before {
   content: '';
   position: absolute;
-  inset: -20px;
+  inset: -30px; /* Mais fumaça vazando pra fora */
   border-radius: 50%;
   /* O mask usando fade transparente->preto->transparente cria bordas macias para o gás */
-  -webkit-mask: radial-gradient(circle, transparent 48%, black 58%, black 65%, transparent 75%);
-  mask: radial-gradient(circle, transparent 48%, black 58%, black 65%, transparent 75%);
+  -webkit-mask: radial-gradient(circle, transparent 40%, black 50%, black 65%, transparent 80%);
+  mask: radial-gradient(circle, transparent 40%, black 50%, black 65%, transparent 80%);
   background: conic-gradient(
     from 0deg,
     rgba(59, 130, 246, 0.4) 0%,   /* azul */
-    rgba(168, 85, 247, 0.6) 20%,  /* roxo */
-    rgba(236, 72, 153, 0.5) 40%,  /* magenta */
-    rgba(59, 130, 246, 0.6) 60%,  /* azul profundo */
-    rgba(219, 194, 125, 0.4) 80%, /* toque estelar / centro galático */
+    rgba(168, 85, 247, 0.7) 15%,  /* roxo intenso */
+    rgba(236, 72, 153, 0.5) 35%,  /* magenta */
+    rgba(59, 130, 246, 0.6) 50%,  /* azul profundo */
+    rgba(168, 85, 247, 0.7) 65%,  /* roxo intenso */
+    rgba(219, 194, 125, 0.5) 85%, /* centro galático */
     rgba(59, 130, 246, 0.4) 100%
   );
-  filter: blur(10px);
-  animation: orbit-spin-real 14s linear infinite;
+  filter: blur(14px); /* Ainda mais esfumaçado */
+  animation: orbit-spin-real 25s linear infinite; /* Bem mais devagar */
 }
 
 /* Camada 2: Cinturão de Estrelas denso (O anel brilhante definido da galáxia) */
@@ -300,10 +309,10 @@
   position: absolute;
   inset: -10px;
   border-radius: 50%;
-  -webkit-mask: radial-gradient(circle, transparent 54%, black 58%, black 62%, transparent 68%);
-  mask: radial-gradient(circle, transparent 54%, black 58%, black 62%, transparent 68%);
+  -webkit-mask: radial-gradient(circle, transparent 50%, black 58%, black 62%, transparent 70%);
+  mask: radial-gradient(circle, transparent 50%, black 58%, black 62%, transparent 70%);
   background:
-    /* Aglomerados de estrelas intensas - pontinhos espalhados por todo o aro */
+    /* MUITAS mais estrelas intensas */
     radial-gradient(1.5px 1.5px at 15% 25%, #ffffff, transparent),
     radial-gradient(2px 2px at 25% 15%, #ec4899, transparent),
     radial-gradient(2.5px 2.5px at 30% 90%, #ffffff, transparent),
@@ -311,12 +320,20 @@
     radial-gradient(2px 2px at 75% 85%, #3b82f6, transparent),
     radial-gradient(1.5px 1.5px at 90% 70%, #ffffff, transparent),
     radial-gradient(2px 2px at 50% 98%, #a855f7, transparent),
-    radial-gradient(1px 1px at 95% 50%, #ffffff, transparent),
+    radial-gradient(1.5px 1.5px at 95% 50%, #ffffff, transparent),
     radial-gradient(1.5px 1.5px at 5% 45%, #ffffff, transparent),
-    radial-gradient(2px 2px at 50% 5%, #ec4899, transparent),
+    radial-gradient(2.5px 2.5px at 50% 5%, #ec4899, transparent),
     radial-gradient(1.5px 1.5px at 60% 10%, #ffffff, transparent),
     radial-gradient(2px 2px at 10% 60%, #3b82f6, transparent),
     radial-gradient(1.5px 1.5px at 80% 20%, #ffffff, transparent),
+    radial-gradient(2px 2px at 40% 10%, #dbc27d, transparent),
+    radial-gradient(1.8px 1.8px at 20% 70%, #ffffff, transparent),
+    radial-gradient(1px 1px at 75% 15%, #ffffff, transparent),
+    radial-gradient(2.5px 2.5px at 85% 80%, #ec4899, transparent),
+    radial-gradient(1.5px 1.5px at 35% 85%, #ffffff, transparent),
+    radial-gradient(1.5px 1.5px at 10% 30%, #3b82f6, transparent),
+    radial-gradient(2px 2px at 65% 95%, #ffffff, transparent),
+    radial-gradient(1px 1px at 95% 25%, #ffffff, transparent),
     /* Disco de luz concentrado no centro da máscara */
     conic-gradient(
       from 0deg,
@@ -326,8 +343,8 @@
       rgba(59, 130, 246, 0.7) 75%,
       rgba(168, 85, 247, 0.4) 100%
     );
-  filter: blur(1.2px); /* Mantém o brilho das estrelas visível sem embaçar muito */
-  animation: orbit-spin-real 14s linear infinite;
+  filter: blur(1.5px); /* Mantém o brilho das estrelas visível */
+  animation: orbit-spin-real 20s linear infinite; /* Devagar */
 }
 
 @keyframes orbit-spin-real {
@@ -351,9 +368,11 @@
     0 16px 34px rgba(0, 0, 0, 0.45);
 }
 
-.btn-github-stats:hover .orbital-ring::before,
+.btn-github-stats:hover .orbital-ring::before {
+  animation-duration: 12s;
+}
 .btn-github-stats:hover .orbital-ring::after {
-  animation-duration: 4s; /* Acelera levemente no hover, sem ser abrupto demais */
+  animation-duration: 12s;
 }
 
 .btn-github-stats:hover .orbital-ring::before {
