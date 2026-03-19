@@ -259,72 +259,75 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 140%;
+  width: 150%;
   min-width: 260px;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  /* Inclinação para a direita (+15deg) como pedido, formando o anel de Saturno deitado */
-  transform: translate(-50%, -50%) rotateX(75deg) rotateY(15deg);
+  /* Invertendo a inclinação: rotateX(72deg) deita, rotateY(-22deg) inclina na diagonal invertida */
+  transform: translate(-50%, -50%) rotateX(72deg) rotateY(-22deg);
   pointer-events: none;
   z-index: -1;
-  /* Sem borda estática feia, apenas o espaço para a fumaça rodar */
   border: none;
   box-shadow: none;
   transform-style: preserve-3d;
 }
 
-/* Camada 1: Fumaça da nebulosa, difusa e volumétrica */
+/* Camada 1: Fumaça cósmica base - inspirada na Ring Galaxy (anel difuso completo) */
 .orbital-ring::before {
   content: '';
   position: absolute;
-  inset: -15px; /* Vaza a fumaça para fora da linha da órbita */
+  inset: -20px;
   border-radius: 50%;
-  /* Furo no meio para ser um anel e não um disco preenchido */
-  -webkit-mask: radial-gradient(circle, transparent 55%, black 60%);
-  mask: radial-gradient(circle, transparent 55%, black 60%);
+  /* O mask usando fade transparente->preto->transparente cria bordas macias para o gás */
+  -webkit-mask: radial-gradient(circle, transparent 48%, black 58%, black 65%, transparent 75%);
+  mask: radial-gradient(circle, transparent 48%, black 58%, black 65%, transparent 75%);
   background: conic-gradient(
     from 0deg,
-    transparent 0%,
-    transparent 30%,
-    rgba(80, 20, 120, 0.4) 50%,
-    rgba(124, 58, 237, 0.6) 65%,
-    rgba(168, 85, 247, 0.9) 80%,
-    rgba(219, 194, 125, 0.8) 88%,
-    #ffffff 92%,
-    rgba(219, 194, 125, 0.4) 96%,
-    transparent 100%
+    rgba(59, 130, 246, 0.4) 0%,   /* azul */
+    rgba(168, 85, 247, 0.6) 20%,  /* roxo */
+    rgba(236, 72, 153, 0.5) 40%,  /* magenta */
+    rgba(59, 130, 246, 0.6) 60%,  /* azul profundo */
+    rgba(219, 194, 125, 0.4) 80%, /* toque estelar / centro galático */
+    rgba(59, 130, 246, 0.4) 100%
   );
-  filter: blur(8px);
-  /* A animação agora roda o próprio gradiente no eixo Z, dentro do anel já deitado em X e Y */
-  animation: orbit-spin-real 4s linear infinite;
+  filter: blur(10px);
+  animation: orbit-spin-real 14s linear infinite;
 }
 
-/* Camada 2: Núcleo afiado (cometa brilhante) com cauda e estrelas */
+/* Camada 2: Cinturão de Estrelas denso (O anel brilhante definido da galáxia) */
 .orbital-ring::after {
   content: '';
   position: absolute;
-  inset: -15px; /* Mesmo tamanho para alinhar as estrelas */
+  inset: -10px;
   border-radius: 50%;
-  -webkit-mask: radial-gradient(circle, transparent 58%, black 62%);
-  mask: radial-gradient(circle, transparent 58%, black 62%);
+  -webkit-mask: radial-gradient(circle, transparent 54%, black 58%, black 62%, transparent 68%);
+  mask: radial-gradient(circle, transparent 54%, black 58%, black 62%, transparent 68%);
   background:
-    /* Estrelas pintadas na cauda do cometa */
-    radial-gradient(1.5px 1.5px at 85% 85%, #ffffff, transparent),
-    radial-gradient(2px 2px at 90% 75%, rgba(219, 194, 125, 1), transparent),
-    radial-gradient(1.5px 1.5px at 75% 90%, #ffffff, transparent),
-    radial-gradient(1px 1px at 60% 95%, rgba(168, 85, 247, 1), transparent),
+    /* Aglomerados de estrelas intensas - pontinhos espalhados por todo o aro */
+    radial-gradient(1.5px 1.5px at 15% 25%, #ffffff, transparent),
+    radial-gradient(2px 2px at 25% 15%, #ec4899, transparent),
+    radial-gradient(2.5px 2.5px at 30% 90%, #ffffff, transparent),
+    radial-gradient(1.5px 1.5px at 85% 35%, #ffffff, transparent),
+    radial-gradient(2px 2px at 75% 85%, #3b82f6, transparent),
+    radial-gradient(1.5px 1.5px at 90% 70%, #ffffff, transparent),
+    radial-gradient(2px 2px at 50% 98%, #a855f7, transparent),
+    radial-gradient(1px 1px at 95% 50%, #ffffff, transparent),
+    radial-gradient(1.5px 1.5px at 5% 45%, #ffffff, transparent),
+    radial-gradient(2px 2px at 50% 5%, #ec4899, transparent),
+    radial-gradient(1.5px 1.5px at 60% 10%, #ffffff, transparent),
+    radial-gradient(2px 2px at 10% 60%, #3b82f6, transparent),
+    radial-gradient(1.5px 1.5px at 80% 20%, #ffffff, transparent),
+    /* Disco de luz concentrado no centro da máscara */
     conic-gradient(
       from 0deg,
-      transparent 0%,
-      transparent 65%,
-      rgba(168, 85, 247, 0.5) 78%,
-      rgba(219, 194, 125, 0.9) 85%,
-      #ffffff 92%,
-      rgba(219, 194, 125, 0.6) 96%,
-      transparent 100%
+      rgba(168, 85, 247, 0.4) 0%,
+      rgba(59, 130, 246, 0.7) 25%,
+      rgba(236, 72, 153, 0.5) 50%,
+      rgba(59, 130, 246, 0.7) 75%,
+      rgba(168, 85, 247, 0.4) 100%
     );
-  filter: blur(1.5px);
-  animation: orbit-spin-real 4s linear infinite;
+  filter: blur(1.2px); /* Mantém o brilho das estrelas visível sem embaçar muito */
+  animation: orbit-spin-real 14s linear infinite;
 }
 
 @keyframes orbit-spin-real {
@@ -350,11 +353,11 @@
 
 .btn-github-stats:hover .orbital-ring::before,
 .btn-github-stats:hover .orbital-ring::after {
-  animation-duration: 2s; /* Acelera a órbita no hover */
+  animation-duration: 4s; /* Acelera levemente no hover, sem ser abrupto demais */
 }
 
 .btn-github-stats:hover .orbital-ring::before {
-  filter: blur(12px); /* Expandir o volume da fumaça no hover */
+  filter: blur(14px); /* Expande levemente a nebulosa no hover de forma segura */
 }
 
 .btn-github-stats:hover .btn-github-stats-star {
