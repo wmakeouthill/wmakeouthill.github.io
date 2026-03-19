@@ -253,26 +253,44 @@
   z-index: 0;
 }
 
-/* nébula externa — fica atrás, não afeta layout nem vizinhos */
+/* nébula rotatória com estrelas orbitando */
 .btn-github-stats::after {
   content: '';
   position: absolute;
-  inset: -22px -28px;
+  inset: -18px -24px;
   border-radius: 50%;
+  /* estrelas pontuais (tiny radial dots) + névoa nebulosa de fundo */
   background:
-    radial-gradient(ellipse at 35% 50%, rgba(168, 85, 247, 0.28) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 40%, rgba(219, 194, 125, 0.18) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 70%, rgba(124, 58, 237, 0.22) 0%, transparent 48%);
-  filter: blur(18px);
-  opacity: 0.75;
+    radial-gradient(circle 1.5px at  8%  18%, rgba(219, 194, 125, 1.0),   transparent 100%),
+    radial-gradient(circle 1px  at 25%   5%, rgba(255, 255, 255, 0.85),   transparent 100%),
+    radial-gradient(circle 1px  at 50%   4%, rgba(219, 194, 125, 0.7),    transparent 100%),
+    radial-gradient(circle 2px  at 78%   8%, rgba(168,  85, 247, 0.95),   transparent 100%),
+    radial-gradient(circle 1px  at 96%  22%, rgba(255, 255, 255, 0.75),   transparent 100%),
+    radial-gradient(circle 1.5px at 98%  50%, rgba(219, 194, 125, 0.9),   transparent 100%),
+    radial-gradient(circle 1px  at 94%  75%, rgba(168,  85, 247, 0.8),    transparent 100%),
+    radial-gradient(circle 2px  at 72%  97%, rgba(255, 255, 255, 0.7),    transparent 100%),
+    radial-gradient(circle 1px  at 50%  98%, rgba(219, 194, 125, 0.65),   transparent 100%),
+    radial-gradient(circle 1px  at 22%  95%, rgba(168,  85, 247, 0.75),   transparent 100%),
+    radial-gradient(circle 1.5px at  4%  72%, rgba(255, 255, 255, 0.8),   transparent 100%),
+    radial-gradient(circle 1px  at  2%  42%, rgba(219, 194, 125, 0.7),    transparent 100%),
+    radial-gradient(circle 1px  at 60%  12%, rgba(255, 255, 255, 0.5),    transparent 100%),
+    radial-gradient(circle 1px  at 88%  38%, rgba(219, 194, 125, 0.6),    transparent 100%),
+    radial-gradient(circle 1px  at 14%  40%, rgba(168,  85, 247, 0.65),   transparent 100%),
+    /* névoa nebulosa de fundo */
+    radial-gradient(ellipse at 30% 50%, rgba(168,  85, 247, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 35%, rgba(219, 194, 125, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 55% 75%, rgba(124,  58, 237, 0.18) 0%, transparent 48%);
+  filter: blur(1px);
+  opacity: 0.9;
   pointer-events: none;
-  z-index: -1;
-  animation: nebula-pulse 4s ease-in-out infinite;
+  z-index: 0;
+  animation: nebula-rotate 10s linear infinite;
 }
 
-@keyframes nebula-pulse {
-  0%, 100% { opacity: 0.75; transform: scale(1); }
-  50%       { opacity: 0.55; transform: scale(0.92); }
+@keyframes nebula-rotate {
+  from { transform: rotate(0deg);   opacity: 0.9;  }
+  50%  {                            opacity: 0.65; }
+  to   { transform: rotate(360deg); opacity: 0.9;  }
 }
 
 .btn-github-stats > * {
@@ -298,11 +316,8 @@
 
 .btn-github-stats:hover::after {
   opacity: 1;
-  filter: blur(22px);
-  background:
-    radial-gradient(ellipse at 35% 50%, rgba(168, 85, 247, 0.42) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 40%, rgba(219, 194, 125, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 70%, rgba(124, 58, 237, 0.36) 0%, transparent 48%);
+  filter: blur(1.5px);
+  animation: nebula-rotate 6s linear infinite; /* acelera no hover */
 }
 
 .btn-github-stats:hover .btn-github-stats-star {
