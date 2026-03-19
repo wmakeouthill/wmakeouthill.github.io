@@ -1,3 +1,10 @@
+/* @property para animação do ângulo da nébula orbital do botão GitHub Stats */
+@property --nebula-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 /* ===========================
    Variáveis CSS Globais
    =========================== */

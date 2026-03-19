@@ -216,6 +216,7 @@
 
 .btn-github-stats {
   position: relative;
+  z-index: 0;
   border: 1px solid rgba(219, 194, 125, 0.6);
   color: #dbc27d;
   background:
@@ -236,7 +237,7 @@
     color var(--transition-fast);
 }
 
-/* shimmer interno — clip-path confina ao shape do botão */
+/* shimmer interno */
 .btn-github-stats::before {
   content: '';
   position: absolute;
@@ -250,53 +251,85 @@
   opacity: 0.9;
   pointer-events: none;
   mix-blend-mode: screen;
-  z-index: 0;
+  z-index: -1;
 }
 
-/* nébula orbital — aspect ratio do botão, estrelas na periferia, roda em volta */
-.btn-github-stats::after {
+/* Container base da nebulosa — exclui o miolo, mantendo apenas um aro externo */
+.orbital-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  min-width: 260px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  /* Inclinação para a direita (+15deg) como pedido, formando o anel de Saturno deitado */
+  transform: translate(-50%, -50%) rotateX(75deg) rotateY(15deg);
+  pointer-events: none;
+  z-index: -1;
+  /* Sem borda estática feia, apenas o espaço para a fumaça rodar */
+  border: none;
+  box-shadow: none;
+  transform-style: preserve-3d;
+}
+
+/* Camada 1: Fumaça da nebulosa, difusa e volumétrica */
+.orbital-ring::before {
   content: '';
   position: absolute;
-  inset: -18px -22px;
-  border-radius: 14px; /* proporcional ao botão, não círculo */
+  inset: -15px; /* Vaza a fumaça para fora da linha da órbita */
+  border-radius: 50%;
+  /* Furo no meio para ser um anel e não um disco preenchido */
+  -webkit-mask: radial-gradient(circle, transparent 55%, black 60%);
+  mask: radial-gradient(circle, transparent 55%, black 60%);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(80, 20, 120, 0.4) 50%,
+    rgba(124, 58, 237, 0.6) 65%,
+    rgba(168, 85, 247, 0.9) 80%,
+    rgba(219, 194, 125, 0.8) 88%,
+    #ffffff 92%,
+    rgba(219, 194, 125, 0.4) 96%,
+    transparent 100%
+  );
+  filter: blur(8px);
+  /* A animação agora roda o próprio gradiente no eixo Z, dentro do anel já deitado em X e Y */
+  animation: orbit-spin-real 4s linear infinite;
+}
+
+/* Camada 2: Núcleo afiado (cometa brilhante) com cauda e estrelas */
+.orbital-ring::after {
+  content: '';
+  position: absolute;
+  inset: -15px; /* Mesmo tamanho para alinhar as estrelas */
+  border-radius: 50%;
+  -webkit-mask: radial-gradient(circle, transparent 58%, black 62%);
+  mask: radial-gradient(circle, transparent 58%, black 62%);
   background:
-    /* borda superior */
-    radial-gradient(circle 1.5px at 10%  7%, rgba(219, 194, 125, 1.0),  transparent 100%),
-    radial-gradient(circle 1px  at 28%  5%, rgba(255, 255, 255, 0.85), transparent 100%),
-    radial-gradient(circle 2px  at 50%  4%, rgba(168,  85, 247, 0.95), transparent 100%),
-    radial-gradient(circle 1px  at 70%  5%, rgba(219, 194, 125, 0.8),  transparent 100%),
-    radial-gradient(circle 1.5px at 88%  7%, rgba(255, 255, 255, 0.9),  transparent 100%),
-    /* borda direita */
-    radial-gradient(circle 1px  at 97% 25%, rgba(168,  85, 247, 0.8),  transparent 100%),
-    radial-gradient(circle 1.5px at 98% 50%, rgba(219, 194, 125, 0.95), transparent 100%),
-    radial-gradient(circle 1px  at 96% 75%, rgba(255, 255, 255, 0.75), transparent 100%),
-    /* borda inferior */
-    radial-gradient(circle 2px  at 85% 93%, rgba(168,  85, 247, 0.9),  transparent 100%),
-    radial-gradient(circle 1px  at 62% 96%, rgba(219, 194, 125, 0.8),  transparent 100%),
-    radial-gradient(circle 1.5px at 42% 95%, rgba(255, 255, 255, 0.85), transparent 100%),
-    radial-gradient(circle 1px  at 22% 93%, rgba(168,  85, 247, 0.75), transparent 100%),
-    radial-gradient(circle 1.5px at  9% 91%, rgba(219, 194, 125, 0.9),  transparent 100%),
-    /* borda esquerda */
-    radial-gradient(circle 1px  at  3% 70%, rgba(255, 255, 255, 0.8),  transparent 100%),
-    radial-gradient(circle 2px  at  2% 48%, rgba(168,  85, 247, 0.9),  transparent 100%),
-    radial-gradient(circle 1px  at  4% 24%, rgba(219, 194, 125, 0.75), transparent 100%),
-    /* névoa suave no centro (fade para não cobrir o botão) */
-    radial-gradient(ellipse 80% 60% at 50% 50%, transparent 60%, rgba(168, 85, 247, 0.12) 80%, transparent 100%);
-  filter: blur(0.7px);
-  opacity: 0.88;
-  pointer-events: none;
-  z-index: 0;
-  animation: nebula-orbit 9s linear infinite;
+    /* Estrelas pintadas na cauda do cometa */
+    radial-gradient(1.5px 1.5px at 85% 85%, #ffffff, transparent),
+    radial-gradient(2px 2px at 90% 75%, rgba(219, 194, 125, 1), transparent),
+    radial-gradient(1.5px 1.5px at 75% 90%, #ffffff, transparent),
+    radial-gradient(1px 1px at 60% 95%, rgba(168, 85, 247, 1), transparent),
+    conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 65%,
+      rgba(168, 85, 247, 0.5) 78%,
+      rgba(219, 194, 125, 0.9) 85%,
+      #ffffff 92%,
+      rgba(219, 194, 125, 0.6) 96%,
+      transparent 100%
+    );
+  filter: blur(1.5px);
+  animation: orbit-spin-real 4s linear infinite;
 }
 
-@keyframes nebula-orbit {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.btn-github-stats > * {
-  position: relative;
-  z-index: 1;
+@keyframes orbit-spin-real {
+  0%   { transform: rotateZ(0deg); }
+  100% { transform: rotateZ(360deg); }
 }
 
 .btn-github-stats-star {
@@ -315,10 +348,13 @@
     0 16px 34px rgba(0, 0, 0, 0.45);
 }
 
-.btn-github-stats:hover::after {
-  opacity: 1;
-  filter: blur(0.5px);
-  animation: nebula-orbit 5s linear infinite;
+.btn-github-stats:hover .orbital-ring::before,
+.btn-github-stats:hover .orbital-ring::after {
+  animation-duration: 2s; /* Acelera a órbita no hover */
+}
+
+.btn-github-stats:hover .orbital-ring::before {
+  filter: blur(12px); /* Expandir o volume da fumaça no hover */
 }
 
 .btn-github-stats:hover .btn-github-stats-star {
