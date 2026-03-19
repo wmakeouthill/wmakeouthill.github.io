@@ -253,44 +253,45 @@
   z-index: 0;
 }
 
-/* nébula rotatória com estrelas orbitando */
+/* nébula orbital — aspect ratio do botão, estrelas na periferia, roda em volta */
 .btn-github-stats::after {
   content: '';
   position: absolute;
-  inset: -18px -24px;
-  border-radius: 50%;
-  /* estrelas pontuais (tiny radial dots) + névoa nebulosa de fundo */
+  inset: -18px -22px;
+  border-radius: 14px; /* proporcional ao botão, não círculo */
   background:
-    radial-gradient(circle 1.5px at  8%  18%, rgba(219, 194, 125, 1.0),   transparent 100%),
-    radial-gradient(circle 1px  at 25%   5%, rgba(255, 255, 255, 0.85),   transparent 100%),
-    radial-gradient(circle 1px  at 50%   4%, rgba(219, 194, 125, 0.7),    transparent 100%),
-    radial-gradient(circle 2px  at 78%   8%, rgba(168,  85, 247, 0.95),   transparent 100%),
-    radial-gradient(circle 1px  at 96%  22%, rgba(255, 255, 255, 0.75),   transparent 100%),
-    radial-gradient(circle 1.5px at 98%  50%, rgba(219, 194, 125, 0.9),   transparent 100%),
-    radial-gradient(circle 1px  at 94%  75%, rgba(168,  85, 247, 0.8),    transparent 100%),
-    radial-gradient(circle 2px  at 72%  97%, rgba(255, 255, 255, 0.7),    transparent 100%),
-    radial-gradient(circle 1px  at 50%  98%, rgba(219, 194, 125, 0.65),   transparent 100%),
-    radial-gradient(circle 1px  at 22%  95%, rgba(168,  85, 247, 0.75),   transparent 100%),
-    radial-gradient(circle 1.5px at  4%  72%, rgba(255, 255, 255, 0.8),   transparent 100%),
-    radial-gradient(circle 1px  at  2%  42%, rgba(219, 194, 125, 0.7),    transparent 100%),
-    radial-gradient(circle 1px  at 60%  12%, rgba(255, 255, 255, 0.5),    transparent 100%),
-    radial-gradient(circle 1px  at 88%  38%, rgba(219, 194, 125, 0.6),    transparent 100%),
-    radial-gradient(circle 1px  at 14%  40%, rgba(168,  85, 247, 0.65),   transparent 100%),
-    /* névoa nebulosa de fundo */
-    radial-gradient(ellipse at 30% 50%, rgba(168,  85, 247, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 35%, rgba(219, 194, 125, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 55% 75%, rgba(124,  58, 237, 0.18) 0%, transparent 48%);
-  filter: blur(1px);
-  opacity: 0.9;
+    /* borda superior */
+    radial-gradient(circle 1.5px at 10%  7%, rgba(219, 194, 125, 1.0),  transparent 100%),
+    radial-gradient(circle 1px  at 28%  5%, rgba(255, 255, 255, 0.85), transparent 100%),
+    radial-gradient(circle 2px  at 50%  4%, rgba(168,  85, 247, 0.95), transparent 100%),
+    radial-gradient(circle 1px  at 70%  5%, rgba(219, 194, 125, 0.8),  transparent 100%),
+    radial-gradient(circle 1.5px at 88%  7%, rgba(255, 255, 255, 0.9),  transparent 100%),
+    /* borda direita */
+    radial-gradient(circle 1px  at 97% 25%, rgba(168,  85, 247, 0.8),  transparent 100%),
+    radial-gradient(circle 1.5px at 98% 50%, rgba(219, 194, 125, 0.95), transparent 100%),
+    radial-gradient(circle 1px  at 96% 75%, rgba(255, 255, 255, 0.75), transparent 100%),
+    /* borda inferior */
+    radial-gradient(circle 2px  at 85% 93%, rgba(168,  85, 247, 0.9),  transparent 100%),
+    radial-gradient(circle 1px  at 62% 96%, rgba(219, 194, 125, 0.8),  transparent 100%),
+    radial-gradient(circle 1.5px at 42% 95%, rgba(255, 255, 255, 0.85), transparent 100%),
+    radial-gradient(circle 1px  at 22% 93%, rgba(168,  85, 247, 0.75), transparent 100%),
+    radial-gradient(circle 1.5px at  9% 91%, rgba(219, 194, 125, 0.9),  transparent 100%),
+    /* borda esquerda */
+    radial-gradient(circle 1px  at  3% 70%, rgba(255, 255, 255, 0.8),  transparent 100%),
+    radial-gradient(circle 2px  at  2% 48%, rgba(168,  85, 247, 0.9),  transparent 100%),
+    radial-gradient(circle 1px  at  4% 24%, rgba(219, 194, 125, 0.75), transparent 100%),
+    /* névoa suave no centro (fade para não cobrir o botão) */
+    radial-gradient(ellipse 80% 60% at 50% 50%, transparent 60%, rgba(168, 85, 247, 0.12) 80%, transparent 100%);
+  filter: blur(0.7px);
+  opacity: 0.88;
   pointer-events: none;
   z-index: 0;
-  animation: nebula-rotate 10s linear infinite;
+  animation: nebula-orbit 9s linear infinite;
 }
 
-@keyframes nebula-rotate {
-  from { transform: rotate(0deg);   opacity: 0.9;  }
-  50%  {                            opacity: 0.65; }
-  to   { transform: rotate(360deg); opacity: 0.9;  }
+@keyframes nebula-orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .btn-github-stats > * {
@@ -316,8 +317,8 @@
 
 .btn-github-stats:hover::after {
   opacity: 1;
-  filter: blur(1.5px);
-  animation: nebula-rotate 6s linear infinite; /* acelera no hover */
+  filter: blur(0.5px);
+  animation: nebula-orbit 5s linear infinite;
 }
 
 .btn-github-stats:hover .btn-github-stats-star {
