@@ -32,9 +32,11 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['React', 'Python', 'RAG', 'LangGraph', 'Prophet', 'Docker', 'GitHub Actions', 'AWS EC2', 'Google Cloud Run', 'Sankhya ERP']
+      technologies: ['React', 'Python', 'RAG', 'LangGraph', 'Prophet', 'Docker', 'GitHub Actions', 'AWS EC2', 'Google Cloud Run', 'GCP', 'Sankhya ERP', 'IaaC', 'SSH', 'Computer Vision', 'Selenium', 'Gemini Embeddings', 'pgvector', 'FAISS']
     },
     {
       key: 'experience.items.exp2',

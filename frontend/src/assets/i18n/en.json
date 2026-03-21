@@ -109,24 +109,32 @@
         "position": "Full Stack Developer (Full Cycle)",
         "highlights": [
           {
-            "title": "AI monitoring platforms",
-            "text": "architected and implemented the full cycle of AI monitoring platforms: scalable React frontends and backends integrated with LLMs via RAG and LangGraph for image analysis and insight generation."
+            "title": "Computer Vision and AI monitoring",
+            "text": "built computer vision pipelines using Vision + LLM for real-time intelligent monitoring, image analysis, and automated insight generation via RAG and LangGraph."
           },
           {
-            "title": "Machine Learning and forecasting",
-            "text": "designed ML algorithms with the Prophet library for demand forecasting and inventory management in agribusiness, improving strategic data accuracy."
+            "title": "PDF ingestion, embeddings and data scraping",
+            "text": "implemented AI-powered PDF catalog ingestion for product data extraction and indexing; generated embeddings with Gemini and stored them in vector databases (pgvector, FAISS) for semantic search; automated web scraping to feed internal pipelines and systems."
           },
           {
-            "title": "ERP integrations",
-            "text": "enabled complex integrations with Sankhya ERP to optimize sales operational flows."
+            "title": "Machine Learning and inventory optimization",
+            "text": "designed ML algorithms with the Prophet library for demand forecasting and inventory optimization in agribusiness, improving strategic data accuracy."
           },
           {
-            "title": "Infrastructure and methodologies",
-            "text": "Python and Docker in high-performance infrastructure under Agile methodologies."
+            "title": "Sankhya ERP integrations",
+            "text": "integrated Sankhya ERP (Microwork) for automated report generation, budgeting, and sales operational flow optimization."
           },
           {
-            "title": "CI/CD and deploy",
-            "text": "GitHub Actions pipelines for secure deploy to AWS (EC2 instances), Cloud Run, and cloud environments."
+            "title": "Cloud infrastructure and IaaC",
+            "text": "provisioned infrastructure as code (IaaC) on AWS (EC2) and GCP (Cloud Run); automated SSH-based deploy scripts, Docker, and high-performance environments."
+          },
+          {
+            "title": "CI/CD and production deploy",
+            "text": "built end-to-end GitHub Actions pipelines for build, testing, and secure production deployment on AWS and GCP cloud environments."
+          },
+          {
+            "title": "Scalable React frontends",
+            "text": "developed modern, scalable React interfaces integrated with AI backends, following Agile methodologies."
           }
         ]
       },

@@ -109,24 +109,32 @@
         "position": "Desenvolvedor FullStack (Full Cycle)",
         "highlights": [
           {
-            "title": "Plataformas de monitoramento de IA",
-            "text": "arquitetura e implementação do ciclo completo: frontends escaláveis em React e backends integrados a LLMs via RAG e LangGraph para análise de imagens e geração de insights."
+            "title": "Visão computacional e monitoramento com IA",
+            "text": "implementação de pipelines de visão computacional com Vision + LLM para monitoramento inteligente em tempo real, análise de imagens e geração de insights automatizados via RAG e LangGraph."
           },
           {
-            "title": "Machine Learning e predição",
-            "text": "algoritmos com a biblioteca Prophet para predição de demanda e gestão de estoques no agronegócio, elevando a precisão estratégica dos dados."
+            "title": "Ingestão de PDF, embeddings e raspagem de dados",
+            "text": "ingestão de catálogos em PDF com IA para extração e indexação de dados de produtos; geração de embeddings com Gemini e armazenamento em bancos vetoriais (pgvector, FAISS) para busca semântica; scraping automatizado para alimentar pipelines e sistemas internos."
           },
           {
-            "title": "Integrações ERP",
-            "text": "integrações complexas com o ERP Sankhya para otimização de fluxos operacionais de vendas."
+            "title": "Machine Learning e otimização de estoque",
+            "text": "algoritmos com a biblioteca Prophet para predição de demanda e otimização de estoques no agronegócio, elevando a precisão estratégica dos dados."
           },
           {
-            "title": "Infraestrutura e metodologias",
-            "text": "Python e Docker em infraestruturas de alta performance, sob metodologias ágeis."
+            "title": "Integrações ERP Sankhya",
+            "text": "integrações com o ERP Sankhya (Microwork) para geração de relatórios, orçamentos e otimização de fluxos operacionais de vendas."
           },
           {
-            "title": "CI/CD e deploy",
-            "text": "pipelines no GitHub Actions para deploy seguro na AWS (instâncias EC2), Cloud Run e ambientes cloud."
+            "title": "Infraestrutura cloud e IaaC",
+            "text": "provisionamento de infraestrutura como código (IaaC) em AWS (EC2) e GCP (Cloud Run); deploy via SSH com scripts automatizados, Docker e ambientes de alta performance."
+          },
+          {
+            "title": "CI/CD e deploy em produção",
+            "text": "pipelines completos no GitHub Actions para build, testes e deploy seguro em produção em ambientes cloud (AWS e GCP)."
+          },
+          {
+            "title": "Frontends escaláveis em React",
+            "text": "desenvolvimento de interfaces modernas e escaláveis em React integradas a backends de IA, sob metodologias ágeis."
           }
         ]
       },
