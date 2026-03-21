@@ -118,7 +118,7 @@
           },
           {
             "title": "Machine Learning and inventory optimization",
-            "text": "designed ML algorithms with the Prophet library for demand forecasting and inventory optimization in agribusiness, improving strategic data accuracy."
+            "text": "designed ML algorithms with the Prophet library for demand forecasting, sales inventory optimization, inter-branch stock transfers, and substitute product suggestions via predictive algorithm."
           },
           {
             "title": "Sankhya ERP integrations",

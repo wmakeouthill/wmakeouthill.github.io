@@ -56,7 +56,7 @@
       },
       "education": {
         "title": "Education",
-        "value": "Graduated in Law. Pursuing a Postgraduate degree in FullStack Java Development, MBA in Project Management (paused) and studying Computer Science (in progress)"
+        "value": "Graduated in Law. Postgraduate degree in FullStack Java Development (completed in Feb/2026), MBA in Project Management (paused) and studying Computer Science (in progress)"
       },
       "projects": {
         "title": "Projects",
@@ -84,6 +84,7 @@
   },
   "skills": {
     "title": "Technical Skills",
+    "architecture": "Architecture & Principles",
     "frontend": "Frontend",
     "backend": "Backend",
     "database": "Database",
@@ -105,6 +106,39 @@
     "years": "years",
     "items": {
       "exp1": {
+        "position": "Full Stack Developer (Full Cycle)",
+        "highlights": [
+          {
+            "title": "Computer Vision and AI monitoring",
+            "text": "built computer vision pipelines using Vision + LLM for real-time intelligent monitoring, image analysis, and automated insight generation via RAG and LangGraph."
+          },
+          {
+            "title": "PDF ingestion, embeddings and data scraping",
+            "text": "implemented AI-powered PDF catalog ingestion for product data extraction and indexing; generated embeddings with Gemini and stored them in vector databases (pgvector, FAISS) for semantic search; automated web scraping to feed internal pipelines and systems."
+          },
+          {
+            "title": "Machine Learning and inventory optimization",
+            "text": "designed ML algorithms with the Prophet library for demand forecasting, sales inventory optimization, inter-branch stock transfers, and substitute product suggestions via predictive algorithm."
+          },
+          {
+            "title": "Sankhya ERP integrations",
+            "text": "integrated Sankhya ERP (Microwork) for automated report generation, budgeting, and sales operational flow optimization."
+          },
+          {
+            "title": "Cloud infrastructure and IaaC",
+            "text": "provisioned infrastructure as code (IaaC) on AWS (EC2) and GCP (Cloud Run); automated SSH-based deploy scripts, Docker, and high-performance environments."
+          },
+          {
+            "title": "CI/CD and production deploy",
+            "text": "built end-to-end GitHub Actions pipelines for build, testing, and secure production deployment on AWS and GCP cloud environments."
+          },
+          {
+            "title": "Scalable React frontends",
+            "text": "developed modern, scalable React interfaces integrated with AI backends, following Agile methodologies."
+          }
+        ]
+      },
+      "exp2": {
         "position": "Intern - Backend / FullStack / ScrumTeam",
         "highlights": [
           {
@@ -129,7 +163,7 @@
           }
         ]
       },
-      "exp2": {
+      "exp3": {
         "position": "Intern - Projects / Governance",
         "highlights": [
           {
@@ -158,7 +192,7 @@
           }
         ]
       },
-      "exp3": {
+      "exp4": {
         "position": "Intern & Legal Assistant",
         "highlights": [
           {
@@ -179,7 +213,7 @@
           }
         ]
       },
-      "exp4": {
+      "exp5": {
         "position": "Apprentice - Analytics / Salesforce",
         "highlights": [
           {
@@ -196,7 +230,7 @@
           }
         ]
       },
-      "exp5": {
+      "exp6": {
         "position": "Apprentice - Administrative / Production Assistant",
         "highlights": [
           {
@@ -258,6 +292,11 @@
     "github": "GitHub",
     "demo": "Demo",
     "readme": "README",
+    "codePreview": "Code",
+    "codePreviewTitle": "Code Preview",
+    "codePreviewSelectFile": "Select a file to view",
+    "codePreviewLoading": "Loading structure...",
+    "codePreviewEmpty": "No files found",
     "noDescription": "No description available",
     "empty": "No projects found for this filter.",
     "pagination": {

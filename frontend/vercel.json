@@ -76,6 +76,15 @@
             ]
         },
         {
+            "source": "/assets/i18n/(.*)\\.json",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache, must-revalidate"
+                }
+            ]
+        },
+        {
             "source": "/(.*)\\.js",
             "headers": [
                 {

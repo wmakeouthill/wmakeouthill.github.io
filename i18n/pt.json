@@ -84,6 +84,7 @@
   },
   "skills": {
     "title": "Habilidades Técnicas",
+    "architecture": "Arquitetura & Princípios",
     "frontend": "Frontend",
     "backend": "Backend",
     "database": "Banco de Dados",
@@ -105,6 +106,39 @@
     "years": "anos",
     "items": {
       "exp1": {
+        "position": "Desenvolvedor FullStack (Full Cycle)",
+        "highlights": [
+          {
+            "title": "Visão computacional e monitoramento com IA",
+            "text": "implementação de pipelines de visão computacional com Vision + LLM para monitoramento inteligente em tempo real, análise de imagens e geração de insights automatizados via RAG e LangGraph."
+          },
+          {
+            "title": "Ingestão de PDF, embeddings e raspagem de dados",
+            "text": "ingestão de catálogos em PDF com IA para extração e indexação de dados de produtos; geração de embeddings com Gemini e armazenamento em bancos vetoriais (pgvector, FAISS) para busca semântica; scraping automatizado para alimentar pipelines e sistemas internos."
+          },
+          {
+            "title": "Machine Learning e otimização de estoque",
+            "text": "algoritmos com a biblioteca Prophet para predição de demanda, otimização de estoque de vendas, transferências entre filiais e sugestão de produtos substitutos via algoritmo preditivo."
+          },
+          {
+            "title": "Integrações ERP Sankhya",
+            "text": "integrações com o ERP Sankhya (Microwork) para geração de relatórios, orçamentos e otimização de fluxos operacionais de vendas."
+          },
+          {
+            "title": "Infraestrutura cloud e IaaC",
+            "text": "provisionamento de infraestrutura como código (IaaC) em AWS (EC2) e GCP (Cloud Run); deploy via SSH com scripts automatizados, Docker e ambientes de alta performance."
+          },
+          {
+            "title": "CI/CD e deploy em produção",
+            "text": "pipelines completos no GitHub Actions para build, testes e deploy seguro em produção em ambientes cloud (AWS e GCP)."
+          },
+          {
+            "title": "Frontends escaláveis em React",
+            "text": "desenvolvimento de interfaces modernas e escaláveis em React integradas a backends de IA, sob metodologias ágeis."
+          }
+        ]
+      },
+      "exp2": {
         "position": "Estagiário - Backend / FullStack / ScrumTeam",
         "highlights": [
           {
@@ -129,7 +163,7 @@
           }
         ]
       },
-      "exp2": {
+      "exp3": {
         "position": "Estagiário - Projetos / Governança",
         "highlights": [
           {
@@ -158,7 +192,7 @@
           }
         ]
       },
-      "exp3": {
+      "exp4": {
         "position": "Estagiário & Assistente Jurídico",
         "highlights": [
           {
@@ -179,7 +213,7 @@
           }
         ]
       },
-      "exp4": {
+      "exp5": {
         "position": "Aprendiz - Analytics / SalesForce",
         "highlights": [
           {
@@ -196,7 +230,7 @@
           }
         ]
       },
-      "exp5": {
+      "exp6": {
         "position": "Aprendiz - Auxiliar Administrativo / Produção",
         "highlights": [
           {
@@ -258,6 +292,11 @@
     "github": "GitHub",
     "demo": "Demo",
     "readme": "README",
+    "codePreview": "Código",
+    "codePreviewTitle": "Visualizar Código",
+    "codePreviewSelectFile": "Selecione um arquivo para visualizar",
+    "codePreviewLoading": "Carregando estrutura...",
+    "codePreviewEmpty": "Nenhum arquivo encontrado",
     "noDescription": "Sem descrição disponível",
     "empty": "Nenhum projeto encontrado para este filtro.",
     "pagination": {

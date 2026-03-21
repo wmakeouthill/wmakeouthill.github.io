@@ -99,8 +99,10 @@ export class I18nService {
     });
   }
 
+  private readonly buildVersion = Math.floor(Date.now() / 86400000);
+
   private loadAndSetTranslations(lang: Language): Observable<Translations> {
-    return this.http.get<Translations>(`assets/i18n/${lang}.json`).pipe(
+    return this.http.get<Translations>(`assets/i18n/${lang}.json?v=${this.buildVersion}`).pipe(
       map((translations) => {
         this.translationsCache[lang] = translations;
         if (this.currentLanguage() === lang) {
