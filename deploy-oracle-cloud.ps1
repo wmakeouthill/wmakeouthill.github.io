@@ -20,12 +20,17 @@ $ServerUser = "ubuntu"
 $ImageName = "portfolio-wesley-backend"
 $RemoteDir = "/home/ubuntu/portfolio-backend"
 
+# Corrige permissões da chave SSH (Windows OpenSSH exige que apenas o dono tenha acesso)
+icacls $SshKeyPath /inheritance:r | Out-Null
+icacls $SshKeyPath /remove "NT AUTHORITY\Authenticated Users" | Out-Null
+icacls $SshKeyPath /remove "BUILTIN\Users" | Out-Null
+icacls $SshKeyPath /remove "Everyone" | Out-Null
+icacls $SshKeyPath /grant:r "${env:USERNAME}:(F)" | Out-Null
+
 $SSH_ARGS = @("-o", "StrictHostKeyChecking=accept-new", "-i", $SshKeyPath, "${ServerUser}@${ServerIp}")
 
 function Invoke-Ssh($Cmd) {
   $finalArgs = $SSH_ARGS + $Cmd
-  $p = Start-Process -FilePath scp -ArgumentList $finalArgs -NoNewWindow -PassThru -Wait
-  # Usamos ssh em vez de scp
   $p = Start-Process -FilePath ssh -ArgumentList $finalArgs -NoNewWindow -PassThru -Wait
   if ($p.ExitCode -ne 0) { throw "Falha no comando SSH." }
 }

@@ -26,15 +26,16 @@ public class ContextSearchService {
   private static final double MIN_SCORE = 0.4;
 
   private static final Set<String> STOPWORDS = Set.of(
-      "de", "da", "do", "dos", "das", "em", "no", "na", "nos", "nas",
-      "um", "uma", "uns", "umas", "o", "a", "os", "as", "e", "ou",
-      "que", "se", "por", "para", "com", "sem", "ate", "sob", "me",
-      "te", "lhe", "nos", "vos", "lhes", "seu", "sua", "meu", "minha",
-      "como", "mais", "mas", "nem", "quando", "onde", "quem", "qual",
-      "the", "a", "an", "and", "or", "in", "on", "at", "to", "for",
-      "of", "with", "by", "from", "is", "are", "was", "were", "be",
-      "been", "have", "has", "had", "do", "does", "did", "will", "can",
-      "me", "my", "your", "his", "her", "its", "our", "their"
+      // PT - preposições, artigos, pronomes, conjunções (só as com >2 chars que passam no filtro)
+      "dos", "das", "nos", "nas", "uns", "uma", "umas", "que", "por",
+      "para", "com", "sem", "ate", "sob", "lhe", "vos", "lhes", "seu",
+      "sua", "meu", "minha", "como", "mais", "mas", "nem", "quando",
+      "onde", "quem", "qual",
+      // EN - stopwords comuns com >2 chars
+      "the", "and", "for", "are", "was", "were", "been", "have", "has",
+      "had", "does", "did", "will", "can", "your", "his", "her", "its",
+      "our", "their", "from", "with", "this", "that", "they", "them",
+      "not", "but", "what", "who", "how", "about"
   );
 
   private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
