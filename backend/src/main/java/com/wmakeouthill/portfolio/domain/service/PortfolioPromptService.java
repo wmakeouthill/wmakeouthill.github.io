@@ -290,7 +290,7 @@ public class PortfolioPromptService {
     }
 
     // Padrão: contextos básicos + alguns relevantes
-    return 5;
+    return 8;
   }
 
   private void anexarProjetos(StringBuilder builder, String mensagemUsuario, String language) {

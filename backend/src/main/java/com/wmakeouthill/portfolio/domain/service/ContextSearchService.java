@@ -22,8 +22,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ContextSearchService {
 
-  private static final int MAX_FALLBACK = 2;
+  private static final int MAX_FALLBACK = 5;
   private static final double MIN_SCORE = 0.4;
+
+  private static final Set<String> STOPWORDS = Set.of(
+      "de", "da", "do", "dos", "das", "em", "no", "na", "nos", "nas",
+      "um", "uma", "uns", "umas", "o", "a", "os", "as", "e", "ou",
+      "que", "se", "por", "para", "com", "sem", "ate", "sob", "me",
+      "te", "lhe", "nos", "vos", "lhes", "seu", "sua", "meu", "minha",
+      "como", "mais", "mas", "nem", "quando", "onde", "quem", "qual",
+      "the", "a", "an", "and", "or", "in", "on", "at", "to", "for",
+      "of", "with", "by", "from", "is", "are", "was", "were", "be",
+      "been", "have", "has", "had", "do", "does", "did", "will", "can",
+      "me", "my", "your", "his", "her", "its", "our", "their"
+  );
 
   private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
@@ -169,7 +181,12 @@ public class ContextSearchService {
     if (mensagem == null || mensagem.isBlank()) {
       return List.of();
     }
-    return new ArrayList<>(extrairStems(mensagem));
+    return Arrays.stream(mensagem.split("\\W+"))
+        .map(this::stemming)
+        .filter(token -> token.length() > 2)
+        .filter(token -> !STOPWORDS.contains(token))
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   private Set<String> extrairStems(String texto) {
