@@ -102,6 +102,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
+  position: relative;
+  z-index: 10;
 }
 
 /* garantir que o wrapper centralize quando o texto estiver centralizado */
