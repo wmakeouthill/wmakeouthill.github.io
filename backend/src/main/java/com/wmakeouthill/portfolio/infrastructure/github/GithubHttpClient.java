@@ -40,8 +40,59 @@ public class GithubHttpClient {
   @Value("${github.api.token:}")
   private String tokenFromConfig;
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Métodos condicionais (ETag / If-None-Match)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   /**
-   * Lista conteúdo de uma pasta do repositório.
+   * Lista repositórios do usuário com suporte a ETag.
+   * 304 = nada mudou, não conta como chamada de API para rate limit.
+   */
+  public ConditionalResponse<JsonNode> buscarReposPaginaCondicional(int page, int perPage, String etag) {
+    String url = API_URL + "/users/" + username + "/repos?per_page=" + perPage
+        + "&page=" + page + "&sort=updated";
+    return fazerGetCondicional(url, etag);
+  }
+
+  /**
+   * Busca perfil do usuário com suporte a ETag.
+   */
+  public ConditionalResponse<JsonNode> buscarPerfilCondicional(String etag) {
+    String url = API_URL + "/users/" + username;
+    return fazerGetCondicional(url, etag);
+  }
+
+  /**
+   * Busca linguagens de um repositório com suporte a ETag.
+   */
+  public ConditionalResponse<JsonNode> buscarLinguagensCondicional(String repoName, String etag) {
+    String url = API_URL + "/repos/" + username + "/" + repoName + "/languages";
+    return fazerGetCondicional(url, etag);
+  }
+
+  /**
+   * Busca árvore de arquivos de um repositório com suporte a ETag.
+   */
+  public ConditionalResponse<JsonNode> buscarArvoreCondicional(String repoName, String etag) {
+    String url = API_URL + "/repos/" + username + "/" + repoName + "/git/trees/main?recursive=1";
+    return fazerGetCondicional(url, etag);
+  }
+
+  /**
+   * Lista conteúdo de uma pasta do repositório com suporte a ETag (conditional request).
+   * Se o ETag não mudou, retorna NOT_MODIFIED economizando bandwidth.
+   */
+  public ConditionalResponse<JsonNode> listarConteudoPastaCondicional(String repoName, String path, String etag) {
+    String url = API_URL + "/repos/" + username + "/" + repoName + "/contents/" + path;
+    return fazerGetCondicional(url, etag);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Métodos simples (sem ETag)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Lista conteúdo de uma pasta do repositório (sem ETag).
    */
   public Optional<JsonNode> listarConteudoPasta(String repoName, String path) {
     String url = API_URL + "/repos/" + username + "/" + repoName + "/contents/" + path;
@@ -66,52 +117,6 @@ public class GithubHttpClient {
       log.error("Erro HTTP ao buscar: {}", path, e);
     }
     return Optional.empty();
-  }
-
-  /**
-   * Lista conteúdo com suporte a ETag (conditional request).
-   * Se o ETag não mudou, retorna NOT_MODIFIED economizando bandwidth.
-   */
-  public ConditionalResponse<JsonNode> listarConteudoPastaCondicional(String repoName, String path, String etag) {
-    String url = API_URL + "/repos/" + username + "/" + repoName + "/contents/" + path;
-    log.debug("Buscando conteúdo (ETag conditional): {}", url);
-
-    try {
-      HttpRequest.Builder builder = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(TIMEOUT)
-          .headers(buildApiHeaders())
-          .GET();
-
-      // Adiciona header If-None-Match se temos ETag
-      if (etag != null && !etag.isBlank()) {
-        builder.header("If-None-Match", etag);
-      }
-
-      HttpRequest request = builder.build();
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-      // 304 Not Modified - dados não mudaram
-      if (response.statusCode() == 304) {
-        log.debug("ETag válido, dados não modificados: {}", path);
-        return ConditionalResponse.notModified();
-      }
-
-      // 200 OK - dados novos
-      if (response.statusCode() >= 200 && response.statusCode() < 300) {
-        String newEtag = response.headers().firstValue("ETag").orElse(null);
-        JsonNode data = objectMapper.readTree(response.body());
-        log.debug("Dados atualizados, novo ETag: {}",
-            newEtag != null ? newEtag.substring(0, Math.min(15, newEtag.length())) + "..." : "null");
-        return ConditionalResponse.ok(data, newEtag);
-      }
-
-      log.error("Erro ao buscar {}: status={}", path, response.statusCode());
-    } catch (IOException | InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Erro HTTP ao buscar: {}", path, e);
-    }
-    return ConditionalResponse.error();
   }
 
   /**
@@ -143,9 +148,51 @@ public class GithubHttpClient {
     return Optional.empty();
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Utilitários internos
+  // ─────────────────────────────────────────────────────────────────────────────
+
   /**
-   * Constrói URL raw com encoding correto para caracteres especiais.
+   * Faz um GET condicional com If-None-Match.
+   * 304 não consome quota de rate limit do GitHub.
    */
+  private ConditionalResponse<JsonNode> fazerGetCondicional(String url, String etag) {
+    log.debug("GET condicional: {}", url);
+
+    try {
+      HttpRequest.Builder builder = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .timeout(TIMEOUT)
+          .headers(buildApiHeaders())
+          .GET();
+
+      if (etag != null && !etag.isBlank()) {
+        builder.header("If-None-Match", etag);
+      }
+
+      HttpRequest request = builder.build();
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() == 304) {
+        log.debug("304 Not Modified: {}", url);
+        return ConditionalResponse.notModified();
+      }
+
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        String newEtag = response.headers().firstValue("ETag").orElse(null);
+        JsonNode data = objectMapper.readTree(response.body());
+        log.debug("200 OK (nova ETag: {}): {}", newEtag != null ? "sim" : "null", url);
+        return ConditionalResponse.ok(data, newEtag);
+      }
+
+      log.error("Erro {}: status={}", url, response.statusCode());
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro HTTP: {}", url, e);
+    }
+    return ConditionalResponse.error();
+  }
+
   private String buildRawUrl(String repoName, String path) {
     String[] segments = path.split("/");
     StringBuilder encodedPath = new StringBuilder();

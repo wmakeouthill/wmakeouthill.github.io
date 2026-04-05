@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap, catchError, retry, timer, throwError } from 'rxjs';
+import { Observable, of, tap, catchError, retry, timer } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { resolveApiUrl } from '../utils/api-url.util';
 
 /**
@@ -17,9 +18,8 @@ export interface RepositoryFile {
   type: string;
 }
 
-/** Chave para persistir cache no localStorage */
+/** Chave para cache de fallback no localStorage */
 const CACHE_KEY = 'portfolio_images_cache';
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
 interface CachedImages {
   images: RepositoryFile[];
@@ -30,8 +30,12 @@ interface CachedImages {
  * Service para acessar conteúdo do portfólio (imagens e documentações)
  * servido pelo backend a partir do repositório GitHub.
  *
- * Usa localStorage para persistir cache entre recarregamentos de página.
- * Inclui retry automático em caso de falha de rede.
+ * Estratégia de cache:
+ * - Sempre consulta o backend ao carregar (backend usa ETag com GitHub → barato)
+ * - Compara SHA dos arquivos para detectar mudanças
+ * - Só atualiza localStorage quando há mudança real
+ * - localStorage é fallback para erro de rede, não para skip de chamada
+ * - TTL em memória de 5 minutos para evitar chamadas repetidas na mesma sessão
  */
 @Injectable({
   providedIn: 'root'
@@ -39,7 +43,7 @@ interface CachedImages {
 export class PortfolioContentService {
   private readonly http = inject(HttpClient);
 
-  /** Cache de imagens disponíveis */
+  /** Signal com os arquivos carregados */
   readonly imagens = signal<RepositoryFile[]>([]);
 
   /** Loading state */
@@ -63,45 +67,45 @@ export class PortfolioContentService {
   /** Flag para indicar se carregamento está em andamento */
   private loadingInProgress = false;
 
+  /** Timestamp da última consulta ao backend (em memória) */
+  private lastBackendCheck = 0;
+
+  /** TTL em memória — dentro deste intervalo não chama o backend novamente */
+  private readonly MEMORY_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
   constructor() {
-    // Carrega do localStorage na inicialização
-    this.loadFromLocalStorage();
+    // Carrega do localStorage como snapshot inicial (exibição imediata)
+    // mas NÃO usa para pular a chamada ao backend
+    this.loadFromLocalStorageAsSnapshot();
   }
 
   /**
-   * Tenta carregar cache do localStorage.
+   * Carrega snapshot do localStorage para exibição imediata.
+   * Não impede a consulta ao backend.
    */
-  private loadFromLocalStorage(): void {
+  private loadFromLocalStorageAsSnapshot(): void {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const data: CachedImages = JSON.parse(cached);
-        const age = Date.now() - data.timestamp;
-
-        if (age < CACHE_TTL_MS && data.images?.length > 0) {
-          console.log(`📦 Carregando ${data.images.length} imagens do localStorage (age: ${Math.round(age / 1000)}s)`);
+        if (data.images?.length > 0) {
+          console.log(`📦 Snapshot localStorage: ${data.images.length} imagens (age: ${Math.round((Date.now() - data.timestamp) / 1000)}s)`);
           this.imagens.set(data.images);
           this.buildImageCache(data.images);
-        } else {
-          console.log('🗑️ Cache do localStorage expirado ou vazio, limpando...');
-          localStorage.removeItem(CACHE_KEY);
         }
       }
     } catch (e) {
-      console.warn('Erro ao carregar cache do localStorage:', e);
+      console.warn('Erro ao carregar snapshot do localStorage:', e);
       localStorage.removeItem(CACHE_KEY);
     }
   }
 
   /**
-   * Persiste cache no localStorage.
+   * Persiste cache no localStorage (apenas quando há mudanças).
    */
   private saveToLocalStorage(images: RepositoryFile[]): void {
     try {
-      const data: CachedImages = {
-        images,
-        timestamp: Date.now()
-      };
+      const data: CachedImages = { images, timestamp: Date.now() };
       localStorage.setItem(CACHE_KEY, JSON.stringify(data));
       console.log(`💾 Cache de ${images.length} imagens salvo no localStorage`);
     } catch (e) {
@@ -110,62 +114,79 @@ export class PortfolioContentService {
   }
 
   /**
-   * Carrega lista de imagens disponíveis do backend.
-   * Com retry automático e persistência em localStorage.
+   * Carrega imagens do backend.
+   *
+   * - Sempre consulta o backend (backend usa ETag com GitHub — barato)
+   * - TTL de 5min em memória evita chamadas repetidas na mesma sessão
+   * - Compara SHAs para detectar mudanças reais
+   * - Só atualiza sinal e localStorage se houver mudança
+   * - Em caso de erro, usa o que já está no sinal (snapshot do localStorage)
    */
   loadImagens(): Observable<RepositoryFile[]> {
-    // Se já tem imagens em memória e não está carregando, retorna
-    if (this.imagens().length > 0 && !this.loadingInProgress) {
+    // Previne chamadas duplicadas simultâneas
+    if (this.loadingInProgress) {
       return of(this.imagens());
     }
 
-    // Evita múltiplas requisições simultâneas
-    if (this.loadingInProgress) {
+    // TTL em memória: evita chamar o backend a cada re-render dentro da sessão
+    const msSinceLastCheck = Date.now() - this.lastBackendCheck;
+    if (this.imagens().length > 0 && msSinceLastCheck < this.MEMORY_TTL_MS) {
       return of(this.imagens());
     }
 
     this.loadingInProgress = true;
     this.loading.set(true);
     this.error.set(null);
+
     const url = resolveApiUrl('/api/content/images');
 
     return this.http.get<RepositoryFile[]>(url).pipe(
-      // Retry com backoff exponencial: 1s, 2s, 4s
       retry({
         count: 3,
         delay: (error, retryCount) => {
-          console.warn(`⚠️ Tentativa ${retryCount}/3 de carregar imagens falhou:`, error.message);
+          console.warn(`⚠️ Tentativa ${retryCount}/3 falhou:`, error.message);
           return timer(Math.pow(2, retryCount - 1) * 1000);
         }
       }),
       tap(imagens => {
-        this.imagens.set(imagens);
-        this.buildImageCache(imagens);
-        this.saveToLocalStorage(imagens);
+        this.lastBackendCheck = Date.now();
         this.loading.set(false);
         this.loadingInProgress = false;
-        console.log(`✅ ${imagens.length} imagens de projetos carregadas do GitHub`);
+
+        if (this.hasChanges(imagens)) {
+          this.imagens.set(imagens);
+          this.buildImageCache(imagens);
+          this.saveToLocalStorage(imagens);
+          console.log(`✅ ${imagens.length} imagens atualizadas (mudanças detectadas)`);
+        } else {
+          console.log(`📦 Imagens sem mudanças (${imagens.length} itens, backend confirmou)`);
+        }
       }),
+      map(() => this.imagens()),
       catchError(error => {
-        console.error('❌ Erro ao carregar imagens após 3 tentativas:', error);
+        console.error('❌ Erro ao carregar imagens após retries:', error);
         this.error.set('Falha ao carregar imagens. Usando cache.');
         this.loading.set(false);
         this.loadingInProgress = false;
-
-        // Se temos cache em memória, usa ele
-        if (this.imagens().length > 0) {
-          return of(this.imagens());
-        }
-
-        // Tenta localStorage como último recurso
-        this.loadFromLocalStorage();
+        // Retorna o que tiver em memória (snapshot do localStorage)
         return of(this.imagens());
       })
     );
   }
 
   /**
-   * Força recarregamento das imagens (ignora cache).
+   * Detecta se há mudanças comparando SHAs dos arquivos.
+   * SHA é o hash do conteúdo — se não mudou, o arquivo é idêntico.
+   */
+  private hasChanges(newImages: RepositoryFile[]): boolean {
+    const current = this.imagens();
+    if (current.length !== newImages.length) return true;
+    const currentShas = new Set(current.map(i => i.sha));
+    return newImages.some(i => !currentShas.has(i.sha));
+  }
+
+  /**
+   * Força recarregamento completo (ignora TTL em memória e localStorage).
    */
   forceReload(): Observable<RepositoryFile[]> {
     localStorage.removeItem(CACHE_KEY);
@@ -173,21 +194,18 @@ export class PortfolioContentService {
     this.imageUrlCache.clear();
     this.cacheReady = false;
     this.loadingInProgress = false;
+    this.lastBackendCheck = 0;
     return this.loadImagens();
   }
 
   /**
    * Retorna a URL da imagem para um projeto específico.
-   * Busca por nome exato ou similar (case-insensitive).
    */
   getProjectImageUrl(projectName: string): string {
-    // Verifica cache primeiro
     const cached = this.imageUrlCache.get(projectName.toLowerCase());
     if (cached) {
       return cached;
     }
-
-    // Se não tem cache, retorna URL direta (o backend faz o match)
     return resolveApiUrl(`/api/content/images/${encodeURIComponent(projectName)}.png`);
   }
 
@@ -200,7 +218,6 @@ export class PortfolioContentService {
 
   /**
    * Constrói cache de URLs de imagens por nome de projeto.
-   * Mapeia múltiplas variações do nome para a mesma URL.
    */
   private buildImageCache(imagens: RepositoryFile[]): void {
     this.imageUrlCache.clear();
@@ -213,7 +230,6 @@ export class PortfolioContentService {
       const baseName = img.displayName.toLowerCase();
       this.availableImageNames.push(img.displayName);
 
-      // Mapeia várias variações do nome
       const variations = this.generateNameVariations(baseName);
       for (const variation of variations) {
         if (!this.imageUrlCache.has(variation)) {
@@ -226,32 +242,23 @@ export class PortfolioContentService {
     this.cacheReady = true;
   }
 
-  /**
-   * Gera variações de um nome para matching flexível.
-   * Inclui normalizações comuns para nomes de projetos GitHub.
-   */
   private generateNameVariations(name: string): string[] {
     const lower = name.toLowerCase().trim();
     const variations = new Set<string>();
 
-    // Variação original
     variations.add(lower);
+    variations.add(lower.replace(/-/g, '_'));
+    variations.add(lower.replace(/_/g, '-'));
+    variations.add(lower.replace(/[-_]/g, ''));
+    variations.add(lower.replace(/[-_]/g, ' '));
+    variations.add(lower.replace(/\s+/g, '-'));
+    variations.add(lower.replace(/\s+/g, '_'));
+    variations.add(lower.replace(/\s+/g, ''));
 
-    // Substitui separadores
-    variations.add(lower.replace(/-/g, '_'));           // kebab -> snake
-    variations.add(lower.replace(/_/g, '-'));           // snake -> kebab
-    variations.add(lower.replace(/[-_]/g, ''));         // sem separadores
-    variations.add(lower.replace(/[-_]/g, ' '));        // com espaços
-    variations.add(lower.replace(/\s+/g, '-'));         // espaços -> kebab
-    variations.add(lower.replace(/\s+/g, '_'));         // espaços -> snake
-    variations.add(lower.replace(/\s+/g, ''));          // sem espaços
-
-    // Remove caracteres especiais comuns
     const normalized = lower.replace(/[^a-z0-9\-_\s]/g, '');
     variations.add(normalized);
     variations.add(normalized.replace(/[-_\s]/g, ''));
 
-    // Tenta extrair palavras-chave principais (primeiras 2-3 palavras)
     const words = lower.split(/[-_\s]+/).filter(w => w.length > 0);
     if (words.length > 1) {
       variations.add(words.slice(0, 2).join('-'));
@@ -268,12 +275,9 @@ export class PortfolioContentService {
   }
 
   /**
-   * Busca a melhor URL de imagem para um projeto.
-   * Usa matching fuzzy para encontrar correspondências.
-   * Agora tenta carregar imagens se cache não estiver pronto.
+   * Busca a melhor URL de imagem para um projeto com matching fuzzy.
    */
   findBestImageUrl(projectName: string): string | null {
-    // Se cache não está pronto, tenta carregar em background
     if (!this.cacheReady && !this.loadingInProgress) {
       console.log('🔄 Cache não pronto, iniciando carregamento em background...');
       this.loadImagens().subscribe();
@@ -283,7 +287,7 @@ export class PortfolioContentService {
       return null;
     }
 
-    // 1. Tenta match exato com variações
+    // 1. Match exato com variações
     const variations = this.generateNameVariations(projectName);
     for (const variation of variations) {
       const url = this.imageUrlCache.get(variation);
@@ -292,31 +296,29 @@ export class PortfolioContentService {
       }
     }
 
-    // 2. Tenta match parcial (substring)
+    // 2. Match parcial (substring)
     const projectLower = projectName.toLowerCase();
     for (const [key, url] of this.imageUrlCache.entries()) {
-      // Se o nome do projeto contém o nome da imagem ou vice-versa
       if (key.includes(projectLower) || projectLower.includes(key)) {
-        console.log(`🔍 Match parcial encontrado: "${projectName}" -> "${key}"`);
+        console.log(`🔍 Match parcial: "${projectName}" → "${key}"`);
         return url;
       }
     }
 
-    // 3. Tenta match por palavras-chave principais
+    // 3. Match por palavras-chave principais
     const projectWords = projectLower.split(/[-_\s.]+/).filter(w => w.length > 2);
     for (const [key, url] of this.imageUrlCache.entries()) {
       const keyWords = key.split(/[-_\s.]+/).filter(w => w.length > 2);
       const commonWords = projectWords.filter(w => keyWords.includes(w));
       if (commonWords.length >= 2 || (commonWords.length === 1 && commonWords[0].length > 5)) {
-        console.log(`🔍 Match por palavras-chave: "${projectName}" -> "${key}" (comum: ${commonWords.join(', ')})`);
+        console.log(`🔍 Match por palavras-chave: "${projectName}" → "${key}" (comum: ${commonWords.join(', ')})`);
         return url;
       }
     }
 
-    // Debug: mostra projetos sem imagem
     if (!this.loggedMissing.has(projectLower)) {
       this.loggedMissing.add(projectLower);
-      console.debug(`⚠️ Sem imagem para projeto: "${projectName}". Imagens disponíveis: ${this.availableImageNames.join(', ')}`);
+      console.debug(`⚠️ Sem imagem para: "${projectName}". Disponíveis: ${this.availableImageNames.join(', ')}`);
     }
     return null;
   }
@@ -345,15 +347,14 @@ export class PortfolioContentService {
   /**
    * Retorna estatísticas do cache.
    */
-  getCacheStats(): { entries: number; ready: boolean; source: string } {
-    const source = this.imagens().length > 0
-      ? (localStorage.getItem(CACHE_KEY) ? 'memory+localStorage' : 'memory')
-      : 'empty';
+  getCacheStats(): { entries: number; ready: boolean; lastCheck: string } {
+    const age = this.lastBackendCheck
+      ? Math.round((Date.now() - this.lastBackendCheck) / 1000) + 's atrás'
+      : 'nunca';
     return {
       entries: this.imageUrlCache.size,
       ready: this.cacheReady,
-      source
+      lastCheck: age
     };
   }
 }
-
