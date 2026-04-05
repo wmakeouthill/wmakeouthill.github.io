@@ -71,13 +71,14 @@
   padding: 2rem;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(219, 194, 125, 0.1);
-  transition: all var(--transition-normal);
 }
 
-.experience-card:hover {
-  transform: translateX(3px);
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-lg);
+@media (hover: hover) {
+  .experience-card:hover {
+    transform: translateX(3px);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 .card-header {
@@ -270,18 +271,22 @@
 .experience-card {
   opacity: 0;
   transform: translateX(-12px);
-  transition: all 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  will-change: transform, opacity;
 }
 
 .experience-card.animate-in {
   opacity: 1;
   transform: translateX(0);
+  will-change: auto;
 }
 
-.experience-card:hover,
-.experience-card.auto-hover {
-  transform: translateY(-2px) translateX(3px);
-  box-shadow: var(--shadow-lg);
-  background: var(--bg-primary);
-  border-color: var(--color-accent);
+@media (hover: hover) {
+  .experience-card:hover,
+  .experience-card.auto-hover {
+    transform: translateY(-2px) translateX(3px);
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-primary);
+    border-color: var(--color-accent);
+  }
 }

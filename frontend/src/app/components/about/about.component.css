@@ -100,12 +100,14 @@
   /* Scroll Animation - Estado inicial */
   opacity: 0;
   transform: translateY(30px);
-  transition: all 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  will-change: transform, opacity;
 }
 
 .highlight-card.animate-in {
   opacity: 1;
   transform: translateY(0);
+  will-change: auto;
 }
 
 .highlight-icon {
@@ -114,27 +116,29 @@
   transition: filter var(--transition-fast);
 }
 
-.highlight-card:hover .highlight-icon,
-.highlight-card.auto-hover .highlight-icon {
-  filter: grayscale(0);
-}
+@media (hover: hover) {
+  .highlight-card:hover .highlight-icon,
+  .highlight-card.auto-hover .highlight-icon {
+    filter: grayscale(0);
+  }
 
-.highlight-card:hover {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-md);
-}
+  .highlight-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
 
-.highlight-card:hover,
-.highlight-card.auto-hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-  background: var(--bg-primary);
-  border-color: var(--color-accent);
-}
+  .highlight-card:hover,
+  .highlight-card.auto-hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-primary);
+    border-color: var(--color-accent);
+  }
 
-.highlight-card.animate-in:hover,
-.highlight-card.animate-in.auto-hover {
-  transform: translateY(-5px);
+  .highlight-card.animate-in:hover,
+  .highlight-card.animate-in.auto-hover {
+    transform: translateY(-5px);
+  }
 }
 
 /* Stagger animation for multiple cards */

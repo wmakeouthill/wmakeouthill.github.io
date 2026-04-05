@@ -74,15 +74,18 @@ export class AboutComponent implements OnInit, AfterViewInit {
 
   private setupScrollAnimations() {
     const observerOptions = {
-      threshold: [0.3, 0.6],
-      rootMargin: '0px 0px -20px 0px'
+      threshold: [0.1, 0.3],
+      rootMargin: '0px 0px -30px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+          entry.target.classList.add('animate-in');
+        }
         if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
-          entry.target.classList.add('animate-in', 'auto-hover');
-        } else if (!entry.isIntersecting || entry.intersectionRatio < 0.3) {
+          entry.target.classList.add('auto-hover');
+        } else {
           entry.target.classList.remove('auto-hover');
         }
       });
