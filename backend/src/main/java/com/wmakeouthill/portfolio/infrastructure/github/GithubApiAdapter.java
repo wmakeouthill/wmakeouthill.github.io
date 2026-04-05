@@ -377,8 +377,13 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
   @Override
   public void clearCache() {
-    cache.clear();
-    log.info("Cache de projetos limpo — próxima requisição vai ao GitHub (com ETag se disponível)");
+    // Expira as entradas SEM apagar as ETags.
+    // A próxima requisição envia If-None-Match ao GitHub:
+    //   304 → nada mudou, zero quota consumida, TTL renovado
+    //   200 → mudou, só rebusca o que realmente alterou (granular por pushedAt)
+    cache.replaceAll((key, entry) ->
+        new CacheEntryWithETag<>(entry.getValue(), 0L, entry.getEtag().orElse(null)));
+    log.info("Cache de projetos expirado (ETags preservados) — próxima requisição será condicional");
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
