@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, NgZone, signal, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
@@ -17,8 +17,18 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly showLanguageHint = signal(true);
   readonly activeSection = signal<string>('hero');
 
+  private readonly ngZone = inject(NgZone);
   private hintTimeoutId: number | undefined;
   private sectionObserver: IntersectionObserver | null = null;
+
+  private readonly handleScroll = () => {
+    const scrollY = window.scrollY;
+    this.isScrolled.set(scrollY > 50);
+    if (scrollY <= 12 && !this.showLanguageHint()) {
+      this.showLanguageHint.set(true);
+      this.scheduleHintAutoHide();
+    }
+  };
 
   readonly navItems = [
     { labelKey: 'header.home', section: 'hero' },
@@ -42,6 +52,9 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.initSectionObserver();
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.handleScroll, { passive: true });
+    });
   }
 
   ngAfterViewInit(): void {
@@ -49,6 +62,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.handleScroll);
     this.sectionObserver?.disconnect();
     if (this.hintTimeoutId) {
       clearTimeout(this.hintTimeoutId);
@@ -106,15 +120,6 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(this.hintTimeoutId);
     }
     this.hintTimeoutId = window.setTimeout(() => this.dismissLanguageHint(), 7000);
-  }
-
-  @HostListener('window:scroll')
-  onWindowScroll() {
-    this.isScrolled.set(window.scrollY > 50);
-    if (window.scrollY <= 12 && !this.showLanguageHint()) {
-      this.showLanguageHint.set(true);
-      this.scheduleHintAutoHide();
-    }
   }
 
   dismissLanguageHint(): void {

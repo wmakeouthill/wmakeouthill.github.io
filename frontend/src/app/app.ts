@@ -1,6 +1,5 @@
-import { Component, HostListener, OnInit, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
 
 import { HeaderComponent } from './components/header/header.component';
 import { HeroComponent } from './components/hero/hero.component';
@@ -17,9 +16,9 @@ import { ChatWidgetComponent } from './components/chat-widget/chat-widget.compon
 @Component({
   selector: 'app-root',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterOutlet,
-    CommonModule,
     HeaderComponent,
     HeroComponent,
     AboutComponent,
@@ -35,24 +34,28 @@ import { ChatWidgetComponent } from './components/chat-widget/chat-widget.compon
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   readonly showScrollToTop = signal(false);
 
+  private readonly ngZone = inject(NgZone);
+  private readonly handleScroll = () => {
+    const shouldShow = window.scrollY > 300;
+    if (shouldShow !== this.showScrollToTop()) {
+      this.showScrollToTop.set(shouldShow);
+    }
+  };
+
   ngOnInit(): void {
-    console.log('🚀 App inicializado');
-    // Pré-carregamento de READMEs é feito no ProjectsComponent
-    // após carregar a lista de projetos do GitHub
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.handleScroll, { passive: true });
+    });
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    this.showScrollToTop.set(window.scrollY > 300);
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.handleScroll);
   }
 
   scrollToTop(): void {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

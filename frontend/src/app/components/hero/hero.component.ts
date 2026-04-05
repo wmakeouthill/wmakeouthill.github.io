@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectorRef, effect, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CvModalComponent } from '../cv-modal/cv-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
@@ -17,9 +17,8 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('octocatLottie', { static: false }) octocatLottie!: ElementRef<HTMLDivElement>;
 
   private readonly i18n = inject(I18nService);
-  private readonly cdr = inject(ChangeDetectorRef);
 
-  displayedText = '';
+  readonly displayedText = signal('');
   fullText = 'Desenvolvedor Full Stack';
   typingSpeed = 100;
   private typingInterval: any;
@@ -99,13 +98,11 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     // reinicia texto e começa a digitar do início
-    this.displayedText = '';
-    this.cdr.markForCheck();
+    this.displayedText.set('');
     let index = 0;
     this.typingInterval = setInterval(() => {
       if (index < this.fullText.length) {
-        this.displayedText += this.fullText.charAt(index);
-        this.cdr.markForCheck();
+        this.displayedText.update(t => t + this.fullText.charAt(index));
         index++;
       } else {
         // terminou de digitar: limpa o intervalo de digitação
@@ -125,7 +122,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       clearInterval(this.typingInterval);
       this.typingInterval = null;
     }
-    this.displayedText = '';
+    this.displayedText.set('');
     this.startTypingAnimation();
   }
 
