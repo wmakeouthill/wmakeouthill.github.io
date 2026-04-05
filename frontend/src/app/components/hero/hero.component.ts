@@ -13,6 +13,7 @@ import { I18nService } from '../../i18n/i18n.service';
 })
 export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('octocatLottie', { static: false }) octocatLottie!: ElementRef<HTMLDivElement>;
+  @ViewChild('nebulaLottie', { static: false }) nebulaLottie!: ElementRef<HTMLDivElement>;
 
   private readonly i18n = inject(I18nService);
 
@@ -22,6 +23,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private typingInterval: any;
   private loopInterval: any;
   private lottieAnimation: any;
+  private nebulaAnimation: any;
   private hasPlayedInitial = false;
   private isInitialPlayComplete = false;
   private readonly langEffect = effect(() => {
@@ -45,27 +47,33 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    // Inicializa a animação Lottie (lazy loaded)
+    const lottie = (await import('lottie-web')).default;
+
+    // Octocat
     if (this.octocatLottie?.nativeElement) {
-      const lottie = (await import('lottie-web')).default;
       this.lottieAnimation = lottie.loadAnimation({
         container: this.octocatLottie.nativeElement,
         renderer: 'svg',
-        loop: false, // Não loop infinito
-        autoplay: false, // Não reproduz automaticamente
+        loop: false,
+        autoplay: false,
         path: '/octocat.json',
-        rendererSettings: {
-          preserveAspectRatio: 'xMidYMid slice'
-        }
+        rendererSettings: { preserveAspectRatio: 'xMidYMid slice' }
       });
-
-      // Reproduz uma vez na inicialização
       this.playLottieOnce();
       this.hasPlayedInitial = true;
-
-      // Aguarda a primeira reprodução terminar para marcar como completa
       this.lottieAnimation.addEventListener('complete', () => {
         this.isInitialPlayComplete = true;
+      });
+    }
+
+    // Nebula
+    if (this.nebulaLottie?.nativeElement) {
+      this.nebulaAnimation = lottie.loadAnimation({
+        container: this.nebulaLottie.nativeElement,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: '/nebula.json'
       });
     }
   }
@@ -87,6 +95,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.lottieAnimation) {
       this.lottieAnimation.destroy();
+    }
+    if (this.nebulaAnimation) {
+      this.nebulaAnimation.destroy();
     }
   }
 

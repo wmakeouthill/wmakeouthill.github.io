@@ -216,9 +216,32 @@
   white-space: nowrap;
 }
 
+/* Wrapper que posiciona a nebulosa relativa ao botão */
+.nebula-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Lottie nebulosa — centralizado, atrás do botão */
+.nebula-lottie {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  height: 420px;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: screen;
+  background: transparent;
+}
+
 .btn-github-stats {
   position: relative;
-  z-index: 0;
+  z-index: 1;
+  overflow: visible;
   border: 1px solid rgba(219, 194, 125, 0.6);
   color: #dbc27d;
   background:
