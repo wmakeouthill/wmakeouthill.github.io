@@ -167,7 +167,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
   private setupScrollAnimations() {
     const observerOptions = {
       threshold: [0.1, 0.3],
-      rootMargin: '0px 0px -30px 0px'
+      rootMargin: '0px 0px 100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -186,7 +186,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
     // Observe experience cards
     const experienceCards = this.experienceContainer?.nativeElement?.querySelectorAll('.experience-card');
     experienceCards?.forEach((card: Element, index: number) => {
-      (card as HTMLElement).style.transitionDelay = `${index * 0.2}s`;
+      (card as HTMLElement).style.transitionDelay = `${index * 0.1}s`;
       observer.observe(card);
     });
   }

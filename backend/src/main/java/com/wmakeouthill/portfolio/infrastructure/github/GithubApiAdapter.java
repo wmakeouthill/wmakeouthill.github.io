@@ -19,7 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +39,9 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
   private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
   private static final int PER_PAGE = 100;
+
+  /** Thread pool para buscar linguagens de múltiplos repos em paralelo. */
+  private static final ExecutorService LANG_EXECUTOR = Executors.newFixedThreadPool(10);
 
   private final GithubHttpClient githubHttpClient;
 
@@ -251,7 +257,8 @@ public class GithubApiAdapter implements GithubProjectsPort {
       return List.of();
     }
 
-    List<GithubRepositoryDto> result = new ArrayList<>();
+    List<CompletableFuture<GithubRepositoryDto>> futures = new ArrayList<>();
+
     for (JsonNode node : root) {
       if (node.path("fork").asBoolean(false)) {
         continue;
@@ -259,32 +266,33 @@ public class GithubApiAdapter implements GithubProjectsPort {
 
       String name = node.path("name").asText();
       String pushedAt = asNullableText(node.get("pushed_at"));
-
-      // Granular: só rebusca linguagens se o repo teve push desde o último cache
       String prevPushed = prevPushedAt.getOrDefault(name, "");
       boolean pushedAtChanged = !prevPushed.equals(pushedAt != null ? pushedAt : "");
 
-      LinguagensResult linguagensResult = buscarLinguagensPorRepo(name, pushedAtChanged);
+      // Captura dados do nó antes de entrar na lambda (JsonNode é thread-safe para leitura)
+      long id = node.path("id").asLong();
+      String fullName = node.path("full_name").asText(name);
+      String description = asNullableText(node.get("description"));
+      String htmlUrl = node.path("html_url").asText();
+      String homepage = asNullableText(node.get("homepage"));
+      int stars = node.path("stargazers_count").asInt(0);
+      int forks = node.path("forks_count").asInt(0);
+      String language = asNullableText(node.get("language"));
+      List<String> topics = extractTopics(node);
+      String createdAt = asNullableText(node.get("created_at"));
+      String updatedAt = asNullableText(node.get("updated_at"));
 
-      result.add(new GithubRepositoryDto(
-          node.path("id").asLong(),
-          name,
-          node.path("full_name").asText(name),
-          asNullableText(node.get("description")),
-          node.path("html_url").asText(),
-          asNullableText(node.get("homepage")),
-          node.path("stargazers_count").asInt(0),
-          node.path("forks_count").asInt(0),
-          asNullableText(node.get("language")),
-          extractTopics(node),
-          asNullableText(node.get("created_at")),
-          asNullableText(node.get("updated_at")),
-          pushedAt,
-          node.path("fork").asBoolean(false),
-          linguagensResult.languages(),
-          linguagensResult.totalBytes()));
+      futures.add(CompletableFuture.supplyAsync(() -> {
+        LinguagensResult langs = buscarLinguagensPorRepo(name, pushedAtChanged);
+        return new GithubRepositoryDto(id, name, fullName, description, htmlUrl, homepage,
+            stars, forks, language, topics, createdAt, updatedAt, pushedAt, false,
+            langs.languages(), langs.totalBytes());
+      }, LANG_EXECUTOR));
     }
-    return result;
+
+    return futures.stream()
+        .map(CompletableFuture::join)
+        .collect(Collectors.toList());
   }
 
   private GithubProfileDto mapProfile(JsonNode node) {

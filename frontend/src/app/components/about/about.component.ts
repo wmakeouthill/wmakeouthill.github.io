@@ -75,7 +75,7 @@ export class AboutComponent implements OnInit, AfterViewInit {
   private setupScrollAnimations() {
     const observerOptions = {
       threshold: [0.1, 0.3],
-      rootMargin: '0px 0px -30px 0px'
+      rootMargin: '0px 0px 100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
