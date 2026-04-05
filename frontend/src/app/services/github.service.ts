@@ -207,13 +207,29 @@ export class GithubService {
   }
 
   /**
-   * Limpa todo o cache.
+   * Limpa todo o cache do frontend (sessionStorage).
    */
   clearCache(): void {
     this.removeCache(this.repositoriesCacheKey());
     this.removeCache(this.STORAGE_KEY_PROFILE);
     this.removeAllLanguageCaches();
-    console.log('🧹 Todo o cache foi limpo');
+    console.log('🧹 Cache frontend limpo');
+  }
+
+  /**
+   * Invalida o cache de projetos no backend, forçando busca fresca no GitHub.
+   * Retorna Observable que completa quando o backend confirmou a invalidação.
+   */
+  invalidateBackendCache(): Observable<void> {
+    const url = `${this.BACKEND_API}/refresh`;
+    return this.http.post<{ status: string }>(url, null).pipe(
+      tap(() => console.log('🔄 Cache do backend invalidado — próxima busca vai ao GitHub')),
+      map(() => void 0),
+      catchError(err => {
+        console.warn('⚠️ Falha ao invalidar cache do backend:', err.message);
+        return of(void 0);
+      })
+    );
   }
 
   /**

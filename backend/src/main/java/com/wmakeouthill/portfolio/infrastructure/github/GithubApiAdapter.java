@@ -375,6 +375,12 @@ public class GithubApiAdapter implements GithubProjectsPort {
     return topics;
   }
 
+  @Override
+  public void clearCache() {
+    cache.clear();
+    log.info("Cache de projetos limpo — próxima requisição vai ao GitHub (com ETag se disponível)");
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Cache helpers
   // ─────────────────────────────────────────────────────────────────────────────

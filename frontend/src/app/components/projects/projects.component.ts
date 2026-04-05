@@ -271,30 +271,36 @@ export class ProjectsComponent implements OnInit {
   }
 
   /**
-   * Força atualização dos dados de projetos, limpando o cache do frontend.
-   * O backend usará ETag para verificar mudanças no GitHub sem gastar quota.
+   * Força atualização dos dados de projetos:
+   * 1. Invalida cache do backend (para que ele vá ao GitHub)
+   * 2. Limpa cache do frontend (sessionStorage)
+   * 3. Re-busca os dados frescos
    */
   refresh(): void {
     if (this.refreshing() || this.loading()) return;
     this.refreshing.set(true);
 
-    // Limpa cache do frontend (sessionStorage) para forçar nova requisição ao backend
-    this.githubService.clearCache();
+    // Passo 1: invalida cache do backend → ele vai buscar do GitHub na próxima chamada
+    this.githubService.invalidateBackendCache().subscribe(() => {
+      // Passo 2: limpa cache do frontend (sessionStorage)
+      this.githubService.clearCache();
 
-    this.loading.set(true);
-    this.githubService.getRepositories().subscribe({
-      next: (repos: GitHubRepository[]) => {
-        this.projects.set(repos);
-        this.loadLanguagesForProjects();
-        this.loading.set(false);
-        this.refreshing.set(false);
-        this.preloadAllReadmesInBackground(repos);
-      },
-      error: (error: any) => {
-        console.error('Erro ao atualizar projetos:', error);
-        this.loading.set(false);
-        this.refreshing.set(false);
-      }
+      // Passo 3: re-busca dados frescos
+      this.loading.set(true);
+      this.githubService.getRepositories().subscribe({
+        next: (repos: GitHubRepository[]) => {
+          this.projects.set(repos);
+          this.loadLanguagesForProjects();
+          this.loading.set(false);
+          this.refreshing.set(false);
+          this.preloadAllReadmesInBackground(repos);
+        },
+        error: (error: any) => {
+          console.error('Erro ao atualizar projetos:', error);
+          this.loading.set(false);
+          this.refreshing.set(false);
+        }
+      });
     });
   }
 

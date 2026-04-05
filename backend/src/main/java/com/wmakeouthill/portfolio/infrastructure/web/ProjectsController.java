@@ -15,6 +15,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +36,19 @@ public class ProjectsController {
   private final ObterMarkdownProjetoUseCase obterMarkdownProjetoUseCase;
   private final GithubProjectsPort githubProjectsPort;
   private final PortfolioTranslationOverrides translationOverrides;
+
+  /**
+   * Força invalidação do cache de projetos no backend.
+   * A próxima chamada a GET /api/projects vai ao GitHub (via ETag).
+   */
+  @PostMapping("/refresh")
+  public ResponseEntity<Map<String, String>> refresh() {
+    log.info("Refresh manual de projetos solicitado");
+    githubProjectsPort.clearCache();
+    return ResponseEntity.ok(Map.of(
+        "status", "ok",
+        "message", "Cache de projetos limpo. Próxima requisição buscará dados frescos do GitHub."));
+  }
 
   /**
    * Lista todos os repositórios do usuário.
