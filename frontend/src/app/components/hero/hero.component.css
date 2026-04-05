@@ -278,30 +278,34 @@
   transform-style: preserve-3d;
 }
 
-/* Camada 1: Poeira cósmica — blobs irregulares tipo nebulosa (não disco sólido) */
+/* Camada 1: Poeira cósmica — blobs irregulares tipo nebulosa esfumaçada */
 .orbital-ring::before {
   content: '';
   position: absolute;
   inset: -60px;
   border-radius: 50%;
-  -webkit-mask: radial-gradient(circle, transparent 18%, black 28%, black 72%, transparent 88%);
-  mask: radial-gradient(circle, transparent 18%, black 28%, black 72%, transparent 88%);
-  /* múltiplos blobs irregulares em vez de conic gradient suave → aparência de gás */
+  -webkit-mask: radial-gradient(circle, transparent 16%, black 26%, black 74%, transparent 90%);
+  mask: radial-gradient(circle, transparent 16%, black 26%, black 74%, transparent 90%);
   background:
-    radial-gradient(ellipse 55% 20% at 15% 50%, rgba(168,85,247,0.55), transparent),
-    radial-gradient(ellipse 40% 18% at 80% 25%, rgba(59,130,246,0.5),  transparent),
-    radial-gradient(ellipse 50% 22% at 85% 72%, rgba(236,72,153,0.5),  transparent),
-    radial-gradient(ellipse 38% 18% at 20% 82%, rgba(109,40,217,0.45), transparent),
-    radial-gradient(ellipse 45% 16% at 55% 8%,  rgba(59,130,246,0.45), transparent),
-    radial-gradient(ellipse 35% 20% at 50% 92%, rgba(168,85,247,0.5),  transparent),
-    radial-gradient(ellipse 30% 18% at 5%  30%, rgba(219,194,125,0.3), transparent),
-    radial-gradient(ellipse 42% 16% at 92% 50%, rgba(236,72,153,0.4),  transparent),
-    radial-gradient(ellipse 36% 18% at 40% 5%,  rgba(168,85,247,0.4),  transparent);
-  filter: blur(32px);
+    radial-gradient(ellipse 60% 22% at 12% 48%, rgba(168,85,247,0.65),  transparent),
+    radial-gradient(ellipse 45% 20% at 78% 22%, rgba(59,130,246,0.6),   transparent),
+    radial-gradient(ellipse 55% 25% at 88% 74%, rgba(236,72,153,0.55),  transparent),
+    radial-gradient(ellipse 42% 20% at 18% 80%, rgba(109,40,217,0.5),   transparent),
+    radial-gradient(ellipse 50% 18% at 52% 6%,  rgba(59,130,246,0.5),   transparent),
+    radial-gradient(ellipse 38% 22% at 48% 94%, rgba(168,85,247,0.55),  transparent),
+    radial-gradient(ellipse 35% 20% at 4%  28%, rgba(219,194,125,0.35), transparent),
+    radial-gradient(ellipse 48% 18% at 94% 52%, rgba(236,72,153,0.45),  transparent),
+    radial-gradient(ellipse 40% 20% at 38% 4%,  rgba(168,85,247,0.45),  transparent),
+    radial-gradient(ellipse 32% 18% at 68% 6%,  rgba(59,130,246,0.4),   transparent),
+    radial-gradient(ellipse 28% 16% at 96% 38%, rgba(168,85,247,0.35),  transparent),
+    radial-gradient(ellipse 34% 18% at 4%  62%, rgba(236,72,153,0.35),  transparent),
+    radial-gradient(ellipse 30% 14% at 62% 96%, rgba(219,194,125,0.3),  transparent),
+    radial-gradient(ellipse 26% 16% at 22% 2%,  rgba(109,40,217,0.4),   transparent);
+  filter: blur(28px);
   animation: orbit-spin-real 42s linear infinite;
 }
 
-/* Camada 2: Estrelas — todas posicionadas no anel visível da máscara (dist 28-70% do centro) */
+/* Camada 2: Estrelas em formato de cruz + pontos para nebulosa estrelada */
 .orbital-ring::after {
   content: '';
   position: absolute;
@@ -310,61 +314,90 @@
   -webkit-mask: radial-gradient(circle, transparent 20%, black 30%, black 70%, transparent 85%);
   mask: radial-gradient(circle, transparent 20%, black 30%, black 70%, transparent 85%);
   background:
-    /* Brancas — bordas do elemento, longe do centro */
-    radial-gradient(2px   2px   at 5%  50%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 95% 50%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 50% 5%,  rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 50% 95%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(1.5px 1.5px at 15% 15%, rgba(255,255,255,0.95), transparent),
-    radial-gradient(2px   2px   at 85% 15%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 85% 85%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 15% 85%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 10% 35%, rgba(255,255,255,0.85), transparent),
-    radial-gradient(2px   2px   at 90% 35%, rgba(255,255,255,0.95), transparent),
-    radial-gradient(1.5px 1.5px at 10% 65%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 90% 65%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 25% 5%,  rgba(255,255,255,0.85), transparent),
-    radial-gradient(2px   2px   at 75% 5%,  rgba(255,255,255,0.95), transparent),
-    radial-gradient(1.5px 1.5px at 25% 95%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 75% 95%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 5%  25%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 5%  75%, rgba(255,255,255,0.85), transparent),
-    radial-gradient(1.5px 1.5px at 95% 25%, rgba(255,255,255,0.95), transparent),
-    radial-gradient(2px   2px   at 95% 75%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 8%  20%, rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 92% 80%, rgba(255,255,255,0.85), transparent),
-    radial-gradient(1.5px 1.5px at 20% 8%,  rgba(255,255,255,0.95), transparent),
-    radial-gradient(2px   2px   at 80% 92%, rgba(255,255,255,1),    transparent),
-    radial-gradient(1.5px 1.5px at 35% 5%,  rgba(255,255,255,0.9),  transparent),
-    radial-gradient(2px   2px   at 65% 95%, rgba(255,255,255,0.85), transparent),
-    /* Roxas (#a855f7) */
-    radial-gradient(2.5px 2.5px at 5%  40%, rgba(168,85,247,1),    transparent),
-    radial-gradient(2px   2px   at 20% 90%, rgba(168,85,247,0.9),   transparent),
-    radial-gradient(2.5px 2.5px at 80% 10%, rgba(168,85,247,1),    transparent),
-    radial-gradient(2px   2px   at 95% 60%, rgba(168,85,247,0.9),   transparent),
-    radial-gradient(2.5px 2.5px at 40% 97%, rgba(168,85,247,1),    transparent),
-    radial-gradient(2px   2px   at 12% 78%, rgba(168,85,247,0.85),  transparent),
-    /* Pink (#ec4899) */
-    radial-gradient(2.5px 2.5px at 88% 22%, rgba(236,72,153,1),    transparent),
-    radial-gradient(2px   2px   at 12% 22%, rgba(236,72,153,0.9),   transparent),
-    radial-gradient(2.5px 2.5px at 60% 3%,  rgba(236,72,153,1),    transparent),
-    radial-gradient(2px   2px   at 78% 88%, rgba(236,72,153,0.85),  transparent),
-    radial-gradient(2.5px 2.5px at 3%  60%, rgba(236,72,153,1),    transparent),
-    /* Azuis (#3b82f6) */
-    radial-gradient(2.5px 2.5px at 97% 42%, rgba(59,130,246,1),    transparent),
-    radial-gradient(2px   2px   at 30% 3%,  rgba(59,130,246,0.9),   transparent),
-    radial-gradient(2.5px 2.5px at 68% 97%, rgba(59,130,246,1),    transparent),
-    radial-gradient(2px   2px   at 8%  55%, rgba(59,130,246,0.85),  transparent),
-    radial-gradient(2.5px 2.5px at 92% 18%, rgba(59,130,246,1),    transparent),
-    radial-gradient(2px   2px   at 18% 92%, rgba(59,130,246,0.9),   transparent),
-    /* Douradas (#dbc27d) */
-    radial-gradient(3px   3px   at 45% 3%,  rgba(219,194,125,1),   transparent),
-    radial-gradient(2.5px 2.5px at 3%  45%, rgba(219,194,125,0.9),  transparent),
-    radial-gradient(3px   3px   at 82% 82%, rgba(219,194,125,1),   transparent),
-    radial-gradient(2.5px 2.5px at 55% 97%, rgba(219,194,125,0.85), transparent),
-    radial-gradient(3px   3px   at 97% 55%, rgba(219,194,125,1),   transparent),
-    radial-gradient(2px   2px   at 22% 3%,  rgba(219,194,125,0.9),  transparent);
-  filter: blur(0px);
+    /* ── Estrelas brancas em cruz (spike vertical + horizontal) ── */
+    radial-gradient(0.8px 8px  at 5%  50%, rgba(255,255,255,1),    transparent),
+    radial-gradient(8px   0.8px at 5%  50%, rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 8px  at 95% 50%, rgba(255,255,255,1),    transparent),
+    radial-gradient(8px   0.8px at 95% 50%, rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 8px  at 50% 5%,  rgba(255,255,255,1),    transparent),
+    radial-gradient(8px   0.8px at 50% 5%,  rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 8px  at 50% 95%, rgba(255,255,255,1),    transparent),
+    radial-gradient(8px   0.8px at 50% 95%, rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 7px  at 15% 15%, rgba(255,255,255,0.95), transparent),
+    radial-gradient(7px   0.8px at 15% 15%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(0.8px 7px  at 85% 15%, rgba(255,255,255,1),    transparent),
+    radial-gradient(7px   0.8px at 85% 15%, rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 7px  at 85% 85%, rgba(255,255,255,0.95), transparent),
+    radial-gradient(7px   0.8px at 85% 85%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(0.8px 7px  at 15% 85%, rgba(255,255,255,1),    transparent),
+    radial-gradient(7px   0.8px at 15% 85%, rgba(255,255,255,0.8),  transparent),
+    radial-gradient(0.8px 6px  at 8%  35%, rgba(255,255,255,0.9),  transparent),
+    radial-gradient(6px   0.8px at 8%  35%, rgba(255,255,255,0.7),  transparent),
+    radial-gradient(0.8px 6px  at 92% 65%, rgba(255,255,255,0.9),  transparent),
+    radial-gradient(6px   0.8px at 92% 65%, rgba(255,255,255,0.7),  transparent),
+    radial-gradient(0.8px 6px  at 35% 4%,  rgba(255,255,255,0.85), transparent),
+    radial-gradient(6px   0.8px at 35% 4%,  rgba(255,255,255,0.65), transparent),
+    radial-gradient(0.8px 6px  at 65% 96%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(6px   0.8px at 65% 96%, rgba(255,255,255,0.65), transparent),
+    /* ── Estrelas roxas em cruz ── */
+    radial-gradient(0.8px 7px  at 5%  40%, rgba(168,85,247,1),    transparent),
+    radial-gradient(7px   0.8px at 5%  40%, rgba(168,85,247,0.7),   transparent),
+    radial-gradient(0.8px 7px  at 80% 10%, rgba(168,85,247,1),    transparent),
+    radial-gradient(7px   0.8px at 80% 10%, rgba(168,85,247,0.7),   transparent),
+    radial-gradient(0.8px 6px  at 40% 97%, rgba(168,85,247,0.95), transparent),
+    radial-gradient(6px   0.8px at 40% 97%, rgba(168,85,247,0.65), transparent),
+    radial-gradient(0.8px 6px  at 12% 78%, rgba(168,85,247,0.9),  transparent),
+    radial-gradient(6px   0.8px at 12% 78%, rgba(168,85,247,0.6),  transparent),
+    radial-gradient(0.8px 5px  at 95% 62%, rgba(168,85,247,0.85), transparent),
+    radial-gradient(5px   0.8px at 95% 62%, rgba(168,85,247,0.55), transparent),
+    /* ── Estrelas pink em cruz ── */
+    radial-gradient(0.8px 7px  at 88% 22%, rgba(236,72,153,1),    transparent),
+    radial-gradient(7px   0.8px at 88% 22%, rgba(236,72,153,0.7),   transparent),
+    radial-gradient(0.8px 7px  at 12% 22%, rgba(236,72,153,0.95), transparent),
+    radial-gradient(7px   0.8px at 12% 22%, rgba(236,72,153,0.65), transparent),
+    radial-gradient(0.8px 6px  at 60% 3%,  rgba(236,72,153,1),    transparent),
+    radial-gradient(6px   0.8px at 60% 3%,  rgba(236,72,153,0.7),   transparent),
+    radial-gradient(0.8px 6px  at 3%  60%, rgba(236,72,153,0.9),  transparent),
+    radial-gradient(6px   0.8px at 3%  60%, rgba(236,72,153,0.6),  transparent),
+    /* ── Estrelas azuis em cruz ── */
+    radial-gradient(0.8px 7px  at 97% 42%, rgba(59,130,246,1),    transparent),
+    radial-gradient(7px   0.8px at 97% 42%, rgba(59,130,246,0.7),   transparent),
+    radial-gradient(0.8px 7px  at 30% 3%,  rgba(59,130,246,0.95), transparent),
+    radial-gradient(7px   0.8px at 30% 3%,  rgba(59,130,246,0.65), transparent),
+    radial-gradient(0.8px 6px  at 68% 97%, rgba(59,130,246,0.9),  transparent),
+    radial-gradient(6px   0.8px at 68% 97%, rgba(59,130,246,0.6),  transparent),
+    radial-gradient(0.8px 6px  at 8%  55%, rgba(59,130,246,0.85), transparent),
+    radial-gradient(6px   0.8px at 8%  55%, rgba(59,130,246,0.55), transparent),
+    radial-gradient(0.8px 5px  at 92% 18%, rgba(59,130,246,0.9),  transparent),
+    radial-gradient(5px   0.8px at 92% 18%, rgba(59,130,246,0.6),  transparent),
+    /* ── Estrelas douradas em cruz (maiores) ── */
+    radial-gradient(0.8px 9px  at 45% 3%,  rgba(219,194,125,1),   transparent),
+    radial-gradient(9px   0.8px at 45% 3%,  rgba(219,194,125,0.75), transparent),
+    radial-gradient(0.8px 9px  at 3%  45%, rgba(219,194,125,0.95), transparent),
+    radial-gradient(9px   0.8px at 3%  45%, rgba(219,194,125,0.7),  transparent),
+    radial-gradient(0.8px 9px  at 97% 55%, rgba(219,194,125,1),   transparent),
+    radial-gradient(9px   0.8px at 97% 55%, rgba(219,194,125,0.75), transparent),
+    radial-gradient(0.8px 7px  at 82% 82%, rgba(219,194,125,0.95), transparent),
+    radial-gradient(7px   0.8px at 82% 82%, rgba(219,194,125,0.65), transparent),
+    radial-gradient(0.8px 6px  at 55% 97%, rgba(219,194,125,0.9),  transparent),
+    radial-gradient(6px   0.8px at 55% 97%, rgba(219,194,125,0.6),  transparent),
+    /* ── Pontos pequenos para densidade de nebulosa ── */
+    radial-gradient(1.5px 1.5px at 22% 5%,   rgba(255,255,255,0.7),  transparent),
+    radial-gradient(1px   1px   at 78% 5%,   rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.5px 1.5px at 5%  22%,  rgba(255,255,255,0.65), transparent),
+    radial-gradient(1px   1px   at 95% 78%,  rgba(255,255,255,0.6),  transparent),
+    radial-gradient(1.5px 1.5px at 22% 95%,  rgba(255,255,255,0.65), transparent),
+    radial-gradient(1px   1px   at 10% 10%,  rgba(255,255,255,0.6),  transparent),
+    radial-gradient(1px   1px   at 90% 90%,  rgba(255,255,255,0.55), transparent),
+    radial-gradient(1px   1px   at 50% 3%,   rgba(168,85,247,0.7),   transparent),
+    radial-gradient(1px   1px   at 3%  50%,  rgba(59,130,246,0.7),   transparent),
+    radial-gradient(1px   1px   at 97% 50%,  rgba(59,130,246,0.65),  transparent),
+    radial-gradient(1px   1px   at 75% 4%,   rgba(236,72,153,0.6),   transparent),
+    radial-gradient(1px   1px   at 96% 25%,  rgba(219,194,125,0.55), transparent),
+    radial-gradient(1px   1px   at 42% 2%,   rgba(255,255,255,0.55), transparent),
+    radial-gradient(1px   1px   at 98% 58%,  rgba(255,255,255,0.5),  transparent),
+    radial-gradient(1px   1px   at 72% 3%,   rgba(168,85,247,0.55),  transparent);
+  filter: blur(0.4px);
   animation: orbit-spin-real 42s linear infinite;
 }
 
@@ -509,7 +542,7 @@
   z-index: 1;
   /* fica na frente do círculo ornamental mas atrás da foto */
   pointer-events: none;
-  background: transparent;
+  background: #727879;
   overflow: hidden;
   /* Esconde qualquer conteúdo que saia do círculo */
   box-shadow: none;

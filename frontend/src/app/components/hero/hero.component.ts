@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { CvModalComponent } from '../cv-modal/cv-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
-import lottie from 'lottie-web';
-
 @Component({
   selector: 'app-hero',
   standalone: true,
@@ -46,9 +44,10 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 10000);
   }
 
-  ngAfterViewInit() {
-    // Inicializa a animação Lottie
+  async ngAfterViewInit() {
+    // Inicializa a animação Lottie (lazy loaded)
     if (this.octocatLottie?.nativeElement) {
+      const lottie = (await import('lottie-web')).default;
       this.lottieAnimation = lottie.loadAnimation({
         container: this.octocatLottie.nativeElement,
         renderer: 'svg',
