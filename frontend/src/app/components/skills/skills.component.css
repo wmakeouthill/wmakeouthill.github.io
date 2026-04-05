@@ -47,6 +47,8 @@
   border-radius: var(--radius-md);
   transition: all var(--transition-normal);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .skill-card:hover {
@@ -156,5 +158,18 @@
   .skills-categories {
     margin-top: 1rem;
     gap: 1rem;
+  }
+
+  .category-section {
+    padding: 1rem;
+  }
+
+  .skill-chip {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .skill-name {
+    white-space: normal;
   }
 }
