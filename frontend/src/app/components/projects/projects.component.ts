@@ -28,6 +28,7 @@ export class ProjectsComponent implements OnInit {
   // Estado com signals
   readonly projects = signal<GitHubRepository[]>([]);
   readonly loading = signal<boolean>(true);
+  readonly refreshing = signal<boolean>(false);
   readonly selectedFilter = signal<string>('all');
   readonly currentPage = signal<number>(1);
   readonly itemsPerPage = 6;
@@ -130,14 +131,18 @@ export class ProjectsComponent implements OnInit {
     });
   }
 
+  // Contagem de projetos com demo
+  readonly demoCount = computed(() =>
+    this.projects().filter(p => !!p.homepage).length
+  );
+
   // Computed para projetos filtrados
   readonly filteredProjects = computed(() => {
     const filter = this.selectedFilter();
     const allProjects = this.projects();
 
-    if (filter === 'all') {
-      return allProjects;
-    }
+    if (filter === 'all') return allProjects;
+    if (filter === 'demo') return allProjects.filter(p => !!p.homepage);
 
     return allProjects.filter(p =>
       p.language?.toLowerCase() === filter.toLowerCase()
@@ -263,6 +268,34 @@ export class ProjectsComponent implements OnInit {
     this.showCodePreviewModal.set(false);
     this.currentProjectForPreview.set('');
     console.log('💻 Code Preview fechado');
+  }
+
+  /**
+   * Força atualização dos dados de projetos, limpando o cache do frontend.
+   * O backend usará ETag para verificar mudanças no GitHub sem gastar quota.
+   */
+  refresh(): void {
+    if (this.refreshing() || this.loading()) return;
+    this.refreshing.set(true);
+
+    // Limpa cache do frontend (sessionStorage) para forçar nova requisição ao backend
+    this.githubService.clearCache();
+
+    this.loading.set(true);
+    this.githubService.getRepositories().subscribe({
+      next: (repos: GitHubRepository[]) => {
+        this.projects.set(repos);
+        this.loadLanguagesForProjects();
+        this.loading.set(false);
+        this.refreshing.set(false);
+        this.preloadAllReadmesInBackground(repos);
+      },
+      error: (error: any) => {
+        console.error('Erro ao atualizar projetos:', error);
+        this.loading.set(false);
+        this.refreshing.set(false);
+      }
+    });
   }
 
   /**

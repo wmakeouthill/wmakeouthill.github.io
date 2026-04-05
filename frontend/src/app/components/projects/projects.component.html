@@ -6,12 +6,26 @@
     </div>
 
     <!-- Filters -->
-    <div class="filters">
-      @for (lang of availableLanguages(); track lang) {
-      <button class="filter-btn" [class.active]="selectedFilter() === lang" (click)="filterProjects(lang)">
-        {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
+    <div class="filters-wrapper">
+      <div class="filters">
+        @for (lang of availableLanguages(); track lang) {
+        <button class="filter-btn" [class.active]="selectedFilter() === lang" (click)="filterProjects(lang)">
+          {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
+        </button>
+        }
+        @if (demoCount() > 0) {
+        <button class="filter-btn demo-filter-btn" [class.active]="selectedFilter() === 'demo'"
+          (click)="filterProjects('demo')">
+          🚀 {{ 'projects.filters.demo' | translate }}
+          <span class="filter-count-badge">{{ demoCount() }}</span>
+        </button>
+        }
+      </div>
+
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading() || refreshing()"
+        [title]="refreshing() ? ('projects.refreshing' | translate) : ('projects.refresh' | translate)">
+        <span class="refresh-icon" [class.spinning]="refreshing()">↻</span>
       </button>
-      }
     </div>
 
     <!-- Loading State -->

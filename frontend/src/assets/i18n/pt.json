@@ -286,8 +286,11 @@
     "technologies": "Tecnologias",
     "description": "Descrição",
     "filters": {
-      "all": "Todos"
+      "all": "Todos",
+      "demo": "Com Demo"
     },
+    "refresh": "Atualizar",
+    "refreshing": "Atualizando...",
     "loading": "Carregando projetos...",
     "github": "GitHub",
     "demo": "Demo",

@@ -8,12 +8,19 @@
   margin-bottom: 2rem;
 }
 
+.filters-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  margin-top: 2rem;
+}
+
 .filters {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
   flex-wrap: wrap;
 }
 
@@ -38,6 +45,66 @@
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: white;
   border-color: transparent;
+}
+
+/* Badge de contador dentro do botão Demo */
+.filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 4px;
+  margin-left: 4px;
+  line-height: 1;
+}
+
+.filter-btn:not(.active) .filter-count-badge {
+  background: rgba(219, 194, 125, 0.2);
+  color: var(--color-accent);
+}
+
+/* Botão de atualizar */
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border: 1px solid rgba(219, 194, 125, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  font-size: 1.25rem;
+  display: inline-block;
+  line-height: 1;
+}
+
+.refresh-icon.spinning {
+  animation: spin 0.7s linear infinite;
 }
 
 .projects-grid {
@@ -400,7 +467,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .filters {
+  .filters-wrapper {
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
   }
@@ -424,7 +491,8 @@
     margin-bottom: 1.25rem;
   }
 
-  .filters {
+  .filters-wrapper {
+    flex-wrap: wrap;
     margin-top: 1.25rem;
     margin-bottom: 1.25rem;
   }
@@ -449,7 +517,7 @@
     margin-bottom: 1rem;
   }
 
-  .filters {
+  .filters-wrapper {
     margin-top: 1rem;
     margin-bottom: 1rem;
   }
