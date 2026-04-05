@@ -236,6 +236,12 @@
   z-index: 0;
   mix-blend-mode: screen;
   background: transparent;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nebula-lottie.ready {
+  opacity: 1;
 }
 
 .btn-github-stats {

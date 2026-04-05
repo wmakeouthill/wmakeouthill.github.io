@@ -68,13 +68,28 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Nebula
     if (this.nebulaLottie?.nativeElement) {
+      const el = this.nebulaLottie.nativeElement;
+      // Esconde ANTES de qualquer renderização
+      el.style.opacity = '0';
       this.nebulaAnimation = lottie.loadAnimation({
-        container: this.nebulaLottie.nativeElement,
+        container: el,
         renderer: 'svg',
         loop: true,
         autoplay: true,
         path: '/nebula.json'
       });
+      let shown = false;
+      const onFrame = () => {
+        if (shown) return;
+        shown = true;
+        // Aguarda 2 frames pintados antes de mostrar
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          el.style.transition = 'opacity 0.4s ease';
+          el.style.opacity = '1';
+        }));
+        this.nebulaAnimation.removeEventListener('enterFrame', onFrame);
+      };
+      this.nebulaAnimation.addEventListener('enterFrame', onFrame);
     }
   }
 
