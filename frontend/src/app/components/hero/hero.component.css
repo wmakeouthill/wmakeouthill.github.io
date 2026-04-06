@@ -241,10 +241,10 @@
 
 @keyframes nebula-spin {
   from {
-    transform: translate(-50%, -50%) rotate(0deg);
+    transform: translate(-50%, -50%) perspective(300px) rotateX(54deg) rotateZ(0deg);
   }
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: translate(-50%, -50%) perspective(300px) rotateX(50deg) rotateZ(360deg);
   }
 }
 
