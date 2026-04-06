@@ -35,6 +35,16 @@
         </button>
         <div class="nebula-btn-wrapper">
           <img src="/nebula.gif" class="nebula-lottie" alt="" aria-hidden="true" />
+          <div class="nebula-stars-container">
+            @for (star of starData; track $index) {
+              <div class="nebula-star {{ star.size }}"
+                   [style.left]="'calc(50% + ' + star.x + 'px)'"
+                   [style.top]="'calc(50% + ' + star.y + 'px)'"
+                   [style.background]="star.color"
+                   [style.box-shadow]="star.glow">
+              </div>
+            }
+          </div>
           <a class="btn btn-outline btn-github-stats" href="https://github-stats-wmakeouthill.vercel.app/" target="_blank" rel="noopener noreferrer">
             <span class="btn-github-stats-star">✦</span>
             <span>Github Stats</span>
@@ -106,6 +116,16 @@
         </button>
         <div class="nebula-btn-wrapper">
           <img src="/nebula.gif" class="nebula-lottie" alt="" aria-hidden="true" />
+          <div class="nebula-stars-container">
+            @for (star of starData; track $index) {
+              <div class="nebula-star {{ star.size }}"
+                   [style.left]="'calc(50% + ' + star.x + 'px)'"
+                   [style.top]="'calc(50% + ' + star.y + 'px)'"
+                   [style.background]="star.color"
+                   [style.box-shadow]="star.glow">
+              </div>
+            }
+          </div>
           <a class="btn btn-outline btn-github-stats" href="https://github-stats-wmakeouthill.vercel.app/" target="_blank" rel="noopener noreferrer">
             <span class="btn-github-stats-star">✦</span>
             <span>Github Stats</span>

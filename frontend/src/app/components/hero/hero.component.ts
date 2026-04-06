@@ -17,6 +17,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly i18n = inject(I18nService);
 
   readonly displayedText = signal('');
+  readonly starData: Array<{ x: number; y: number; size: string; color: string; glow: string }> = [];
   fullText = 'Desenvolvedor Full Stack';
   typingSpeed = 100;
   private typingInterval: any;
@@ -34,6 +35,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   showCvModal = false;
 
   ngOnInit() {
+    this.generateStars();
     // define o texto inicial conforme idioma
     this.fullText = this.i18n.translate('hero.title');
     // inicia a primeira execução imediatamente
@@ -64,6 +66,32 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
 
+  }
+
+  private generateStars() {
+    const colorBases = [
+      [255, 255, 255],
+      [219, 194, 125],
+      [180, 145, 255],
+      [150, 205, 255],
+      [255, 210, 110],
+      [210, 170, 255],
+    ];
+    const sizes = ['sm', 'sm', 'sm', 'sm', 'md', 'md', 'lg'];
+
+    for (let i = 0; i < 28; i++) {
+      const angle    = Math.random() * 360;
+      const radius   = 15 + Math.random() * 85;
+      const x        = Math.cos(angle * Math.PI / 180) * radius;
+      const y        = Math.sin(angle * Math.PI / 180) * radius;
+      const opacity  = 0.5 + Math.random() * 0.5;
+      const [r, g, b] = colorBases[Math.floor(Math.random() * colorBases.length)];
+      const color    = `rgba(${r},${g},${b},${opacity.toFixed(2)})`;
+      const size     = sizes[Math.floor(Math.random() * sizes.length)];
+      const glowSize = size === 'lg' ? '7px 2px' : '5px 1px';
+
+      this.starData.push({ x, y, size, color, glow: `0 0 ${glowSize} ${color}` });
+    }
   }
 
   private playLottieOnce() {
