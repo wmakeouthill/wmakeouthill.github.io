@@ -7,7 +7,8 @@ import {
   computed,
   effect,
   OnDestroy,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -124,12 +125,16 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   onLightboxOverlayClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('lightbox-overlay')) {
+    const target = event.target as HTMLElement;
+    // Fecha ao clicar no fundo ou no lightbox-content (área vazia ao redor da mídia)
+    if (target.classList.contains('lightbox-overlay') || target.classList.contains('lightbox-content')) {
       this.closeLightbox();
     }
   }
 
+  @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
+    if (!this.isOpen()) return;
     if (this.lightboxItem()) {
       if (event.key === 'ArrowLeft') { event.preventDefault(); this.prevItem(); }
       else if (event.key === 'ArrowRight') { event.preventDefault(); this.nextItem(); }
