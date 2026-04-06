@@ -229,19 +229,23 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 420px;
-  height: 420px;
+  width: 220px;
+  height: 220px;
   pointer-events: none;
   z-index: 0;
   mix-blend-mode: screen;
   background: transparent;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  opacity: 0.85;
+  animation: nebula-spin 18s linear infinite;
 }
 
-.nebula-lottie.ready {
-  opacity: 1;
+@keyframes nebula-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 .btn-github-stats {

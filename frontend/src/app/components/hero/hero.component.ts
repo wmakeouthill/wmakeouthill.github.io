@@ -13,7 +13,6 @@ import { I18nService } from '../../i18n/i18n.service';
 })
 export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('octocatLottie', { static: false }) octocatLottie!: ElementRef<HTMLDivElement>;
-  @ViewChild('nebulaLottie', { static: false }) nebulaLottie!: ElementRef<HTMLDivElement>;
 
   private readonly i18n = inject(I18nService);
 
@@ -23,7 +22,6 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private typingInterval: any;
   private loopInterval: any;
   private lottieAnimation: any;
-  private nebulaAnimation: any;
   private hasPlayedInitial = false;
   private isInitialPlayComplete = false;
   private readonly langEffect = effect(() => {
@@ -66,31 +64,6 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
 
-    // Nebula
-    if (this.nebulaLottie?.nativeElement) {
-      const el = this.nebulaLottie.nativeElement;
-      // Esconde ANTES de qualquer renderização
-      el.style.opacity = '0';
-      this.nebulaAnimation = lottie.loadAnimation({
-        container: el,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: '/nebula.json'
-      });
-      let shown = false;
-      const onFrame = () => {
-        if (shown) return;
-        shown = true;
-        // Aguarda 2 frames pintados antes de mostrar
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          el.style.transition = 'opacity 0.4s ease';
-          el.style.opacity = '1';
-        }));
-        this.nebulaAnimation.removeEventListener('enterFrame', onFrame);
-      };
-      this.nebulaAnimation.addEventListener('enterFrame', onFrame);
-    }
   }
 
   private playLottieOnce() {
@@ -110,9 +83,6 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.lottieAnimation) {
       this.lottieAnimation.destroy();
-    }
-    if (this.nebulaAnimation) {
-      this.nebulaAnimation.destroy();
     }
   }
 
