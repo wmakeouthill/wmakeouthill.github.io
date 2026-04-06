@@ -6,6 +6,7 @@ import { PortfolioContentService } from '../../services/portfolio-content.servic
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 import { CodePreviewModalComponent } from '../code-preview-modal/code-preview-modal.component';
+import { DemoModalComponent } from '../demo-modal/demo-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -13,7 +14,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-projects',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, TranslatePipe],
+  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, DemoModalComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -40,6 +41,11 @@ export class ProjectsComponent implements OnInit {
   // Code Preview Modal state
   readonly showCodePreviewModal = signal<boolean>(false);
   readonly currentProjectForPreview = signal<string>('');
+
+  // Demo Modal state
+  readonly showDemoModal = signal<boolean>(false);
+  readonly currentProjectForDemo = signal<string>('');
+  readonly currentDemoUrl = signal<string>('');
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
@@ -268,6 +274,18 @@ export class ProjectsComponent implements OnInit {
     this.showCodePreviewModal.set(false);
     this.currentProjectForPreview.set('');
     console.log('💻 Code Preview fechado');
+  }
+
+  openDemoModal(project: GitHubRepository): void {
+    this.currentProjectForDemo.set(project.name);
+    this.currentDemoUrl.set(project.homepage ?? '');
+    this.showDemoModal.set(true);
+  }
+
+  closeDemoModal(): void {
+    this.showDemoModal.set(false);
+    this.currentProjectForDemo.set('');
+    this.currentDemoUrl.set('');
   }
 
   /**

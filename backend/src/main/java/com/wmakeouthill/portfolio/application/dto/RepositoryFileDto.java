@@ -40,5 +40,20 @@ public record RepositoryFileDto(
   public boolean isMarkdown() {
     return getExtension().equals("md");
   }
+
+  /**
+   * Verifica se é um vídeo.
+   */
+  public boolean isVideo() {
+    String ext = getExtension();
+    return ext.equals("mp4") || ext.equals("webm") || ext.equals("mov") || ext.equals("avi");
+  }
+
+  /**
+   * Verifica se é uma mídia (imagem ou vídeo) para galeria.
+   */
+  public boolean isMedia() {
+    return isImage() || isVideo();
+  }
 }
 

@@ -135,6 +135,24 @@ public class PortfolioContentController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // GALERIA DE PROJETOS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Lista as mídias (imagens e vídeos) da galeria de um projeto.
+   * Busca no repositório em portfolio-gallery/{projectName}/
+   */
+  @GetMapping("/gallery/{projectName}")
+  public ResponseEntity<List<RepositoryFileDto>> listarGaleria(@PathVariable String projectName) {
+    String decodedName = URLDecoder.decode(projectName, StandardCharsets.UTF_8);
+    log.info("Listando galeria do projeto: {}", decodedName);
+    List<RepositoryFileDto> midia = contentPort.listarGaleriaProjeto(decodedName);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+        .body(midia);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // UTILITÁRIOS
   // ─────────────────────────────────────────────────────────────────────────────
 

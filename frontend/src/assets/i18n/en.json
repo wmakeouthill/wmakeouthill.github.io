@@ -287,13 +287,25 @@
     "description": "Description",
     "filters": {
       "all": "All",
-      "demo": "With Demo"
+      "demo": "With Site/Demo"
     },
     "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "loading": "Loading projects...",
     "github": "GitHub",
     "demo": "Demo",
+    "demoModal": {
+      "title": "Project Demo",
+      "visitSite": "Go to Demo Site",
+      "visitSiteDesc": "Open the live project in a new tab",
+      "viewGallery": "View Gallery",
+      "viewGalleryDesc": "Browse screenshots and videos of the project",
+      "galleryTitle": "Gallery",
+      "galleryEmpty": "No media found for this project.",
+      "galleryLoading": "Loading gallery...",
+      "back": "Back",
+      "close": "Close"
+    },
     "readme": "README",
     "codePreview": "Code",
     "codePreviewTitle": "Code Preview",

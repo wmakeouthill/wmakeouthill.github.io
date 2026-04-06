@@ -29,6 +29,7 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
   private static final String CONTENT_PATH = "portfolio-content";
   private static final String PROJECTS_PATH = CONTENT_PATH + "/projects";
   private static final String TRABALHOS_PATH = CONTENT_PATH + "/trabalhos";
+  private static final String GALLERY_PATH = "portfolio-gallery";
 
   private final GithubHttpClient httpClient;
   private final GithubContentCache cache;
@@ -87,6 +88,15 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
       });
     }
     return sb.toString();
+  }
+
+  @Override
+  public List<RepositoryFileDto> listarGaleriaProjeto(String projectName) {
+    String galleryProjectPath = GALLERY_PATH + "/" + projectName.toLowerCase();
+    return listarArquivosDaPasta(galleryProjectPath).stream()
+        .filter(RepositoryFileDto::isMedia)
+        .sorted(Comparator.comparing(RepositoryFileDto::fileName))
+        .toList();
   }
 
   private List<RepositoryFileDto> listarMarkdownsDaPasta(String path) {

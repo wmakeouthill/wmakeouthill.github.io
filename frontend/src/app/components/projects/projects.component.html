@@ -58,10 +58,10 @@
 
               <!-- Row 2: Demo (if exists) | Code Preview -->
               @if (project.homepage) {
-              <a [href]="project.homepage" target="_blank" rel="noopener noreferrer" class="project-link demo-btn">
+              <button (click)="openDemoModal(project)" class="project-link demo-btn">
                 <span class="demo-icon">🚀</span>
                 <span>{{ 'projects.demo' | translate }}</span>
-              </a>
+              </button>
               }
               <button (click)="openCodePreviewModal(project)" class="project-link code-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -162,4 +162,9 @@
   <app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()"
     (close)="closeCodePreviewModal()">
   </app-code-preview-modal>
+
+  <!-- Demo Modal -->
+  <app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()"
+    [demoUrl]="currentDemoUrl()" (close)="closeDemoModal()">
+  </app-demo-modal>
 </section>
