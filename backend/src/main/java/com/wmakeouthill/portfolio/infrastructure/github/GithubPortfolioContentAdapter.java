@@ -140,8 +140,21 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
     }
 
     // Dados novos - atualiza cache
-    if (response.isOk() && response.data() != null && response.data().isArray()) {
-      List<RepositoryFileDto> result = mapearArquivos(response.data());
+    if (response.isOk() && response.data() != null) {
+      JsonNode data = response.data();
+      List<RepositoryFileDto> result;
+
+      if (data.isArray()) {
+        // Pasta com múltiplos arquivos → GitHub retorna array
+        result = mapearArquivos(data);
+      } else if (data.isObject() && data.has("name")) {
+        // Pasta com apenas 1 arquivo → GitHub retorna objeto único
+        result = List.of(criarDto(data));
+        log.debug("GitHub retornou objeto único para {}, tratado como lista de 1 item", path);
+      } else {
+        result = List.of();
+      }
+
       cache.putFileListWithETag(cacheKey, result, response.etag());
       log.debug("Cache atualizado para {}: {} arquivos", path, result.size());
       return result;

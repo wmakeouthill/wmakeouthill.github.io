@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class GithubContentCache {
 
-  private static final long DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+  private static final long DEFAULT_TTL_MS = 10 * 60 * 1000; // 10 minutos
 
   private final ConcurrentHashMap<String, CacheEntry<?>> cache = new ConcurrentHashMap<>();
 
@@ -102,7 +102,7 @@ public class GithubContentCache {
    * Retorna o TTL padrão em minutos.
    */
   public long getTtlMinutes() {
-    return DEFAULT_TTL_MS / 60 / 1000;
+    return DEFAULT_TTL_MS / 1000 / 60;
   }
 
   /**
