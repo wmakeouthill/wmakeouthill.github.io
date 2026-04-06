@@ -227,7 +227,7 @@
 /* Container de estrelas girando no mesmo plano da nebulosa */
 .nebula-stars-container {
   position: absolute;
-  top: 50%;
+  top: calc(50% - 12px);
   left: 50%;
   width: 0;
   height: 0;
@@ -278,8 +278,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 220px;
-  height: 220px;
+  width: 245px;
+  height: 245px;
   pointer-events: none;
   z-index: 0;
   mix-blend-mode: screen;
@@ -290,10 +290,10 @@
 
 @keyframes nebula-spin {
   from {
-    transform: translate(-50%, -50%) perspective(300px) rotateX(54deg) rotateZ(0deg);
+    transform: translate(-50%, calc(-50% - 12px)) perspective(300px) rotateX(50deg) rotateZ(0deg);
   }
   to {
-    transform: translate(-50%, -50%) perspective(300px) rotateX(50deg) rotateZ(360deg);
+    transform: translate(-50%, calc(-50% - 12px)) perspective(300px) rotateX(50deg) rotateZ(360deg);
   }
 }
 
