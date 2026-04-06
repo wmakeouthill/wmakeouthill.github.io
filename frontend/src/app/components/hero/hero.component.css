@@ -224,6 +224,77 @@
   justify-content: center;
 }
 
+/* Estrelinhas CSS orbitando a nebulosa */
+.nebula-btn-wrapper::before,
+.nebula-btn-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nebula-btn-wrapper::before {
+  box-shadow:
+    /* núcleo brilhante + halo suave */
+    80px -10px  0px 1.5px rgba(255, 255, 255, 1.0),
+    80px -10px  5px 2px   rgba(255, 255, 255, 0.25),
+
+    -70px 15px  0px 0.5px rgba(255, 210, 100, 0.5),
+    -70px 15px  3px 1px   rgba(255, 200, 80,  0.15),
+
+    30px  75px  0px 2px   rgba(150, 200, 255, 0.95),
+    30px  75px  6px 3px   rgba(100, 180, 255, 0.2),
+
+    -80px -20px 0px 0.5px rgba(255, 255, 255, 0.3),
+
+    55px -70px  0px 1.5px rgba(219, 194, 125, 1.0),
+    55px -70px  5px 3px   rgba(219, 194, 125, 0.2),
+
+    -25px -78px 0px 1px   rgba(210, 160, 255, 0.85),
+    -25px -78px 4px 2px   rgba(180, 120, 255, 0.2),
+
+    -50px  65px 0px 0.5px rgba(255, 255, 255, 0.4);
+  animation: nebula-stars-orbit-fwd 22s linear infinite;
+}
+
+.nebula-btn-wrapper::after {
+  box-shadow:
+    -65px -50px 0px 2px   rgba(210, 140, 255, 0.95),
+    -65px -50px 6px 3px   rgba(180, 100, 255, 0.2),
+
+     60px  58px 0px 1.5px rgba(255, 255, 255, 0.9),
+     60px  58px 4px 2px   rgba(255, 255, 255, 0.2),
+
+    -88px   8px 0px 0.5px rgba(219, 194, 125, 0.45),
+
+     38px -85px 0px 2px   rgba(160, 215, 255, 1.0),
+     38px -85px 6px 4px   rgba(120, 190, 255, 0.2),
+
+     88px -35px 0px 1.5px rgba(255, 225, 110, 0.95),
+     88px -35px 5px 3px   rgba(255, 200, 80,  0.2),
+
+    -42px -62px 0px 0.5px rgba(255, 255, 255, 0.3),
+
+     68px  30px 0px 1px   rgba(200, 175, 255, 0.8),
+     68px  30px 3px 2px   rgba(180, 140, 255, 0.15);
+  animation: nebula-stars-orbit-rev 15s linear infinite;
+}
+
+@keyframes nebula-stars-orbit-fwd {
+  from { transform: perspective(300px) rotateX(50deg) rotateZ(0deg); }
+  to   { transform: perspective(300px) rotateX(50deg) rotateZ(360deg); }
+}
+
+@keyframes nebula-stars-orbit-rev {
+  from { transform: perspective(300px) rotateX(50deg) rotateZ(0deg); }
+  to   { transform: perspective(300px) rotateX(50deg) rotateZ(360deg); }
+}
+
 /* Lottie nebulosa — centralizado, atrás do botão */
 .nebula-lottie {
   position: absolute;
