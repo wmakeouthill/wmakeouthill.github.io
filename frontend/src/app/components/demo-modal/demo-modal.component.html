@@ -90,25 +90,33 @@
         @if (!loading() && galleryItems().length > 0) {
         <div class="gallery-grid">
           @for (item of galleryItems(); track item.sha) {
-          <div class="gallery-item" [class.video-item]="item.isVideo" (click)="openLightbox(item)">
+          <div class="gallery-item" (click)="openLightbox(item)">
             @if (item.isVideo) {
-            <video [src]="item.downloadUrl" controls preload="metadata" class="gallery-video">
-              Seu navegador não suporta vídeos HTML5.
-            </video>
+            <div class="video-thumb">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
             <div class="video-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z" />
               </svg>
               Vídeo
             </div>
             } @else {
             <img [src]="item.downloadUrl" [alt]="item.displayName" class="gallery-image" loading="lazy" />
+            }
             <div class="gallery-item-overlay">
+              @if (item.isVideo) {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              } @else {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
               </svg>
+              }
             </div>
-            }
             <p class="gallery-item-name">{{ item.displayName }}</p>
           </div>
           }
@@ -132,21 +140,27 @@
     </svg>
   </button>
 
-  <button class="lightbox-nav lightbox-prev" (click)="prevImage()" [disabled]="!lightboxHasPrev()">
+  <button class="lightbox-nav lightbox-prev" (click)="prevItem()" [disabled]="!lightboxHasPrev()">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
       <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
     </svg>
   </button>
 
   <div class="lightbox-content">
+    @if (lightboxItem()!.isVideo) {
+    <video [src]="lightboxItem()!.downloadUrl" controls autoplay class="lightbox-video">
+      Seu navegador não suporta vídeos HTML5.
+    </video>
+    } @else {
     <img [src]="lightboxItem()!.downloadUrl" [alt]="lightboxItem()!.displayName" class="lightbox-image" />
+    }
     <div class="lightbox-footer">
       <p class="lightbox-caption">{{ lightboxItem()!.displayName }}</p>
       <span class="lightbox-counter">{{ lightboxCounter() }}</span>
     </div>
   </div>
 
-  <button class="lightbox-nav lightbox-next" (click)="nextImage()" [disabled]="!lightboxHasNext()">
+  <button class="lightbox-nav lightbox-next" (click)="nextItem()" [disabled]="!lightboxHasNext()">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
       <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
     </svg>

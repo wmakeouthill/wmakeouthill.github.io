@@ -46,25 +46,20 @@ export class DemoModalComponent implements OnDestroy {
   readonly loading = signal<boolean>(false);
   readonly lightboxIndex = signal<number>(-1);
 
-  /** Apenas imagens (vídeos ficam só no grid, não no lightbox) */
-  readonly lightboxImages = computed(() =>
-    this.galleryItems().filter(i => !i.isVideo)
-  );
-
   readonly lightboxItem = computed(() => {
     const idx = this.lightboxIndex();
-    const images = this.lightboxImages();
-    return idx >= 0 && idx < images.length ? images[idx] : null;
+    const items = this.galleryItems();
+    return idx >= 0 && idx < items.length ? items[idx] : null;
   });
 
   readonly lightboxHasPrev = computed(() => this.lightboxIndex() > 0);
   readonly lightboxHasNext = computed(() =>
-    this.lightboxIndex() < this.lightboxImages().length - 1
+    this.lightboxIndex() < this.galleryItems().length - 1
   );
 
   readonly lightboxCounter = computed(() => {
     const idx = this.lightboxIndex();
-    const total = this.lightboxImages().length;
+    const total = this.galleryItems().length;
     return idx >= 0 ? `${idx + 1} / ${total}` : '';
   });
 
@@ -102,8 +97,7 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   openLightbox(item: GalleryMedia): void {
-    if (item.isVideo) return;
-    const idx = this.lightboxImages().findIndex(i => i.sha === item.sha);
+    const idx = this.galleryItems().findIndex(i => i.sha === item.sha);
     if (idx >= 0) this.lightboxIndex.set(idx);
   }
 
@@ -111,11 +105,11 @@ export class DemoModalComponent implements OnDestroy {
     this.lightboxIndex.set(-1);
   }
 
-  prevImage(): void {
+  prevItem(): void {
     if (this.lightboxHasPrev()) this.lightboxIndex.update(i => i - 1);
   }
 
-  nextImage(): void {
+  nextItem(): void {
     if (this.lightboxHasNext()) this.lightboxIndex.update(i => i + 1);
   }
 
@@ -137,8 +131,8 @@ export class DemoModalComponent implements OnDestroy {
 
   onKeyDown(event: KeyboardEvent): void {
     if (this.lightboxItem()) {
-      if (event.key === 'ArrowLeft') { event.preventDefault(); this.prevImage(); }
-      else if (event.key === 'ArrowRight') { event.preventDefault(); this.nextImage(); }
+      if (event.key === 'ArrowLeft') { event.preventDefault(); this.prevItem(); }
+      else if (event.key === 'ArrowRight') { event.preventDefault(); this.nextItem(); }
       else if (event.key === 'Escape') this.closeLightbox();
     } else if (event.key === 'Escape') {
       this.closeModal();
