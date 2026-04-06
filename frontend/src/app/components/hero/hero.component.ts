@@ -76,21 +76,33 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       [150, 205, 255],
       [255, 210, 110],
       [210, 170, 255],
+      [255, 255, 220],
+      [200, 230, 255],
     ];
-    const sizes = ['sm', 'sm', 'sm', 'sm', 'md', 'md', 'lg'];
+    // 3 níveis de brilho: dim / normal / bright
+    const tiers: Array<{ size: string; opacityMin: number; opacityMax: number; glow: string }> = [
+      { size: 'sm', opacityMin: 0.25, opacityMax: 0.5,  glow: '3px 1px'  }, // fracas — 20
+      { size: 'sm', opacityMin: 0.6,  opacityMax: 0.85, glow: '5px 1px'  }, // normais — 12
+      { size: 'md', opacityMin: 0.7,  opacityMax: 0.9,  glow: '6px 2px'  }, // médias — 7
+      { size: 'lg', opacityMin: 0.85, opacityMax: 1.0,  glow: '9px 3px'  }, // brilhantes — 3
+    ];
+    const distribution = [
+      ...Array(20).fill(tiers[0]),
+      ...Array(12).fill(tiers[1]),
+      ...Array(7).fill(tiers[2]),
+      ...Array(3).fill(tiers[3]),
+    ];
 
-    for (let i = 0; i < 28; i++) {
-      const angle    = Math.random() * 360;
-      const radius   = 15 + Math.random() * 85;
-      const x        = Math.cos(angle * Math.PI / 180) * radius;
-      const y        = Math.sin(angle * Math.PI / 180) * radius;
-      const opacity  = 0.5 + Math.random() * 0.5;
+    for (const tier of distribution) {
+      const angle   = Math.random() * 360;
+      const radius  = 10 + Math.random() * 90;
+      const x       = Math.cos(angle * Math.PI / 180) * radius;
+      const y       = Math.sin(angle * Math.PI / 180) * radius;
+      const opacity = tier.opacityMin + Math.random() * (tier.opacityMax - tier.opacityMin);
       const [r, g, b] = colorBases[Math.floor(Math.random() * colorBases.length)];
-      const color    = `rgba(${r},${g},${b},${opacity.toFixed(2)})`;
-      const size     = sizes[Math.floor(Math.random() * sizes.length)];
-      const glowSize = size === 'lg' ? '7px 2px' : '5px 1px';
+      const color   = `rgba(${r},${g},${b},${opacity.toFixed(2)})`;
 
-      this.starData.push({ x, y, size, color, glow: `0 0 ${glowSize} ${color}` });
+      this.starData.push({ x, y, size: tier.size, color, glow: `0 0 ${tier.glow} ${color}` });
     }
   }
 
