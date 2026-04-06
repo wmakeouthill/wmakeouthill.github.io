@@ -4,6 +4,7 @@ import {
   input,
   output,
   signal,
+  computed,
   effect,
   OnDestroy,
   ChangeDetectionStrategy
@@ -43,7 +44,29 @@ export class DemoModalComponent implements OnDestroy {
   readonly view = signal<ModalView>('choice');
   readonly galleryItems = signal<GalleryMedia[]>([]);
   readonly loading = signal<boolean>(false);
-  readonly lightboxItem = signal<GalleryMedia | null>(null);
+  readonly lightboxIndex = signal<number>(-1);
+
+  /** Apenas imagens (vídeos ficam só no grid, não no lightbox) */
+  readonly lightboxImages = computed(() =>
+    this.galleryItems().filter(i => !i.isVideo)
+  );
+
+  readonly lightboxItem = computed(() => {
+    const idx = this.lightboxIndex();
+    const images = this.lightboxImages();
+    return idx >= 0 && idx < images.length ? images[idx] : null;
+  });
+
+  readonly lightboxHasPrev = computed(() => this.lightboxIndex() > 0);
+  readonly lightboxHasNext = computed(() =>
+    this.lightboxIndex() < this.lightboxImages().length - 1
+  );
+
+  readonly lightboxCounter = computed(() => {
+    const idx = this.lightboxIndex();
+    const total = this.lightboxImages().length;
+    return idx >= 0 ? `${idx + 1} / ${total}` : '';
+  });
 
   constructor() {
     effect(() => {
@@ -51,7 +74,7 @@ export class DemoModalComponent implements OnDestroy {
       if (open) {
         this.view.set('choice');
         this.galleryItems.set([]);
-        this.lightboxItem.set(null);
+        this.lightboxIndex.set(-1);
         this.disableBodyScroll();
       } else {
         this.enableBodyScroll();
@@ -65,9 +88,7 @@ export class DemoModalComponent implements OnDestroy {
 
   visitSite(): void {
     const url = this.demoUrl();
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   openGallery(): void {
@@ -77,17 +98,25 @@ export class DemoModalComponent implements OnDestroy {
 
   backToChoice(): void {
     this.view.set('choice');
-    this.lightboxItem.set(null);
+    this.lightboxIndex.set(-1);
   }
 
   openLightbox(item: GalleryMedia): void {
-    if (!item.isVideo) {
-      this.lightboxItem.set(item);
-    }
+    if (item.isVideo) return;
+    const idx = this.lightboxImages().findIndex(i => i.sha === item.sha);
+    if (idx >= 0) this.lightboxIndex.set(idx);
   }
 
   closeLightbox(): void {
-    this.lightboxItem.set(null);
+    this.lightboxIndex.set(-1);
+  }
+
+  prevImage(): void {
+    if (this.lightboxHasPrev()) this.lightboxIndex.update(i => i - 1);
+  }
+
+  nextImage(): void {
+    if (this.lightboxHasNext()) this.lightboxIndex.update(i => i + 1);
   }
 
   closeModal(): void {
@@ -107,12 +136,12 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   onKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      if (this.lightboxItem()) {
-        this.closeLightbox();
-      } else {
-        this.closeModal();
-      }
+    if (this.lightboxItem()) {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); this.prevImage(); }
+      else if (event.key === 'ArrowRight') { event.preventDefault(); this.nextImage(); }
+      else if (event.key === 'Escape') this.closeLightbox();
+    } else if (event.key === 'Escape') {
+      this.closeModal();
     }
   }
 

@@ -125,14 +125,33 @@
 <!-- Lightbox -->
 @if (lightboxItem()) {
 <div class="lightbox-overlay" (click)="onLightboxOverlayClick($event)" (keydown)="onKeyDown($event)" tabindex="0">
+
   <button class="lightbox-close" (click)="closeLightbox()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path
-        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
     </svg>
   </button>
-  <img [src]="lightboxItem()!.downloadUrl" [alt]="lightboxItem()!.displayName" class="lightbox-image" />
-  <p class="lightbox-caption">{{ lightboxItem()!.displayName }}</p>
+
+  <button class="lightbox-nav lightbox-prev" (click)="prevImage()" [disabled]="!lightboxHasPrev()">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+    </svg>
+  </button>
+
+  <div class="lightbox-content">
+    <img [src]="lightboxItem()!.downloadUrl" [alt]="lightboxItem()!.displayName" class="lightbox-image" />
+    <div class="lightbox-footer">
+      <p class="lightbox-caption">{{ lightboxItem()!.displayName }}</p>
+      <span class="lightbox-counter">{{ lightboxCounter() }}</span>
+    </div>
+  </div>
+
+  <button class="lightbox-nav lightbox-next" (click)="nextImage()" [disabled]="!lightboxHasNext()">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+    </svg>
+  </button>
+
 </div>
 }
 }
