@@ -46,12 +46,25 @@ export class ChatInputComponent {
             });
           }
         });
+
+        effect(() => {
+          this.inputText();
+          queueMicrotask(() => this.adjustHeight());
+        });
       });
     });
   }
 
+  private adjustHeight(): void {
+    const textarea = this.chatInput?.nativeElement;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }
+
   handleInputChange(value: string): void {
     this.onInputChange.emit(value);
+    queueMicrotask(() => this.adjustHeight());
   }
 
   handleKeydown(event: KeyboardEvent): void {

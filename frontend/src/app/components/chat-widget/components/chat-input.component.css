@@ -1,6 +1,6 @@
 .chat-input-area {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.04rem;
   padding: 0.7rem 0.85rem 0.8rem;
   border-top: 1px solid rgba(219, 194, 125, 0.25);
@@ -242,17 +242,11 @@
   /* Tamanho mínimo para evitar zoom no iOS */
   /* Estilos específicos para textarea */
   resize: none;
-  /* Impede redimensionamento manual */
   overflow-y: auto;
-  /* Scroll quando preciso */
   min-height: 2.2rem;
-  /* Altura mínima (1 linha) */
-  max-height: 6rem;
-  /* Altura máxima (~4-5 linhas) */
+  max-height: 8rem;
   line-height: 1.4;
   font-family: inherit;
-  /* Auto height with field-sizing (suporte moderno) */
-  field-sizing: content;
 }
 
 @media (max-width: 640px) {
