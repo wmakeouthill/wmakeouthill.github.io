@@ -27,8 +27,6 @@
 </button>
 
 <!-- Widget de chat com IA sobre o Wesley -->
-@defer (on idle) {
-  <app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
-}
+<app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
 
 <router-outlet />

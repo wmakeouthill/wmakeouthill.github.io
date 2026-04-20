@@ -59,7 +59,15 @@ export class ChatInputComponent {
     const textarea = this.chatInput?.nativeElement;
     if (!textarea) return;
     textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
+    const maxHeight = parseFloat(getComputedStyle(textarea).maxHeight);
+    const scrollH = textarea.scrollHeight;
+    if (scrollH >= maxHeight) {
+      textarea.style.height = `${maxHeight}px`;
+      textarea.style.overflowY = 'auto';
+    } else {
+      textarea.style.height = `${scrollH}px`;
+      textarea.style.overflowY = 'hidden';
+    }
   }
 
   handleInputChange(value: string): void {

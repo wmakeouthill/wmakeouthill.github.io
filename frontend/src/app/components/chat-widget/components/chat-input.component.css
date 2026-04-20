@@ -242,7 +242,7 @@
   /* Tamanho mínimo para evitar zoom no iOS */
   /* Estilos específicos para textarea */
   resize: none;
-  overflow-y: auto;
+  overflow-y: hidden;
   min-height: 2.2rem;
   max-height: 8rem;
   line-height: 1.4;
