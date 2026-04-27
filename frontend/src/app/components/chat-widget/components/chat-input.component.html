@@ -1,5 +1,5 @@
 <form class="chat-input-area" (ngSubmit)="handleSubmit()" autocomplete="off">
-  <textarea #chatInput class="chat-input" [disabled]="isLoading()" [ngModel]="inputText()"
+  <textarea #chatInput class="chat-input" [ngModel]="inputText()"
     (ngModelChange)="handleInputChange($event)" (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
     [placeholder]="'chat.placeholder' | translate" rows="1"></textarea>
 
@@ -34,7 +34,16 @@
     [aria-label]="'chat.newChat' | translate" [attr.data-tooltip]="'chat.newChat' | translate">
     <img src="/new_conversation.png" [alt]="'chat.newChat' | translate" class="new-conversation-icon" />
   </button>
-  <button type="submit" class="chat-send-button" [disabled]="!canSend()">
-    {{ 'chat.send' | translate }}
-  </button>
+  @if (isLoading()) {
+    <button type="button" class="chat-send-button chat-stop-button" (click)="handleCancel()"
+      [attr.aria-label]="'chat.stop' | translate" [title]="'chat.stop' | translate">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <rect x="6" y="6" width="12" height="12" rx="2" />
+      </svg>
+    </button>
+  } @else {
+    <button type="submit" class="chat-send-button" [disabled]="!canSend()">
+      {{ 'chat.send' | translate }}
+    </button>
+  }
 </form>

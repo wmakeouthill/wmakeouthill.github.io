@@ -106,144 +106,100 @@
     "years": "anos",
     "items": {
       "exp1": {
-        "position": "Desenvolvedor FullStack (Full Cycle)",
+        "position": "Desenvolvedor Full Stack — full cycle",
         "highlights": [
           {
-            "title": "Visão computacional e monitoramento com IA",
-            "text": "implementação de pipelines de visão computacional com Vision + LLM para monitoramento inteligente em tempo real, análise de imagens e geração de insights automatizados via RAG e LangGraph."
+            "title": "Visão computacional + LLM em tempo real",
+            "text": "arquitetei pipeline de monitoramento combinando Visão Computacional (Vision + YOLO) e LLM via LangGraph e RAG, automatizando análise de imagens e geração de insights e reduzindo o esforço manual de inspeção operacional."
           },
           {
-            "title": "Ingestão de PDF, embeddings e raspagem de dados",
-            "text": "ingestão de catálogos em PDF com IA para extração e indexação de dados de produtos; geração de embeddings com Gemini e armazenamento em bancos vetoriais (pgvector, FAISS) para busca semântica; scraping automatizado para alimentar pipelines e sistemas internos."
+            "title": "Ingestão de PDF, embeddings e busca semântica",
+            "text": "ingestão de catálogos PDF com extração assistida por IA, geração de embeddings (Gemini) e indexação em pgvector/FAISS para busca semântica de produtos, enriquecendo pipelines internos e agentes de IA."
           },
           {
-            "title": "Machine Learning e otimização de estoque",
-            "text": "algoritmos com a biblioteca Prophet para predição de demanda, otimização de estoque de vendas, transferências entre filiais e sugestão de produtos substitutos via algoritmo preditivo."
+            "title": "Predição de demanda e otimização de estoque",
+            "text": "evoluí algoritmos preditivos com Prophet (séries temporais) para predição de demanda, otimização de estoque, transferências entre filiais e sugestão de produtos substitutos, com impacto direto em decisão comercial e redução de ruptura."
           },
           {
-            "title": "Integrações ERP Sankhya",
-            "text": "integrações com o ERP Sankhya (Microwork) para geração de relatórios, orçamentos e otimização de fluxos operacionais de vendas."
+            "title": "Integrações ERP Sankhya/Microwork",
+            "text": "integrei o ERP Sankhya (Microwork) via API para automação de relatórios, orçamentos e fluxos operacionais de vendas, eliminando tarefas manuais recorrentes."
           },
           {
-            "title": "Infraestrutura cloud e IaaC",
-            "text": "provisionamento de infraestrutura como código (IaaC) em AWS (EC2) e GCP (Cloud Run); deploy via SSH com scripts automatizados, Docker e ambientes de alta performance."
+            "title": "Plataforma B2B de gestão de pessoas e metas",
+            "text": "atuei full cycle em plataforma B2B usada por clientes corporativos — backend FastAPI + frontend React 19 + Vite — entregando ciclos de avaliação, gestão de OKRs/metas e administração do quadro de colaboradores."
           },
           {
-            "title": "CI/CD e deploy em produção",
-            "text": "pipelines completos no GitHub Actions para build, testes e deploy seguro em produção em ambientes cloud (AWS e GCP)."
+            "title": "Integrações corporativas Slack e Microsoft 365",
+            "text": "implementei integrações com Slack e Outlook (M365) para notificações em tempo real e e-mails transacionais, conectando os sistemas aos canais de comunicação que as empresas já operam no dia a dia."
           },
           {
-            "title": "Frontends escaláveis em React",
-            "text": "desenvolvimento de interfaces modernas e escaláveis em React integradas a backends de IA, sob metodologias ágeis."
+            "title": "Infraestrutura multi-cloud e CI/CD",
+            "text": "provisionei infraestrutura como código em AWS (EC2) e GCP (Cloud Run), com deploy via SSH automatizado, Docker Compose e GitHub Actions, garantindo entrega contínua em multi-cloud."
           }
         ]
       },
       "exp2": {
-        "position": "Estagiário - Backend / FullStack / ScrumTeam",
+        "position": "Desenvolvedor Full Stack — scrum team",
         "highlights": [
           {
-            "title": "Modernização de infraestrutura financeira / sistema crítico",
-            "text": "migração Selic mainframe (COBOL) para arquitetura Java (Novo-Selic)."
+            "title": "Modernização do Novo-Selic (mainframe → Java)",
+            "text": "atuei na migração de sistema crítico da infraestrutura financeira nacional de mainframe COBOL para arquitetura Java 17 + Spring Boot 3.x + Angular, com persistência em Oracle Database."
           },
           {
-            "title": "Observabilidade e monitoramento",
-            "text": "implementação de stack completa (Prometheus, Grafana, Actuator, Micrometer, Blackbox Exporter, Alertmanager), para análise de métricas de performance e healthcheck."
+            "title": "Observabilidade ponta a ponta",
+            "text": "implementei stack completa de observabilidade (Prometheus, Grafana, Spring Actuator, Micrometer, Blackbox Exporter, AlertManager), habilitando monitoramento de métricas, healthchecks e SLAs em ambiente de missão crítica."
           },
           {
-            "title": "Desenvolvimento full stack",
-            "text": "Java (Spring) Backend + Angular Frontend."
+            "title": "Containerização e CI/CD no GitLab",
+            "text": "containerizei aplicações com Docker e estruturei pipelines de CI/CD no GitLab, automatizando build, testes e deploy com versionamento rigoroso de branches."
           },
           {
-            "title": "DevOps e containerização",
-            "text": "Docker, CI/CD, versionamento de branches com GitLab para colaboração e práticas de deployment automatizado."
-          },
-          {
-            "title": "Gestão de dados",
-            "text": "Oracle (Containerizado) Database (SQL), versionamento de schemas com Liquibase / Scripts SQL."
+            "title": "Versionamento de schemas Oracle",
+            "text": "versionei schemas Oracle com Liquibase e scripts SQL, garantindo rastreabilidade e rollback controlado em base transacional sensível."
           }
         ]
       },
       "exp3": {
-        "position": "Estagiário - Projetos / Governança",
+        "position": "Projetos / Governança de TI",
         "highlights": [
           {
-            "title": "Gestão de Projetos",
-            "text": "ciclo de desenvolvimento de artefatos, relatórios executivos e controle de iniciativas estratégicas alinhadas ao PDTIC."
+            "title": "SharePoint e Power BI para C-level",
+            "text": "desenvolvi webparts SharePoint (JavaScript, HTML, CSS) integrados via SharePoint API e dashboards Power BI (DAX) para indicadores executivos, atendendo demandas de C-level (Banco Central e ANBIMA)."
           },
           {
-            "title": "Business Intelligence",
-            "text": "criação de dashboards Power BI (DAX) interativos para visualização de KPIs e suporte à tomada de decisão executiva."
-          },
-          {
-            "title": "Desenvolvimento web",
-            "text": "webparts customizados SharePoint (JavaScript, HTML, CSS) integrados via SharePoint API para governança corporativa."
-          },
-          {
-            "title": "Soluções para C-level",
-            "text": "expositores de documentos e notícias institucionais para chefia do Banco Central e ANBIMA."
-          },
-          {
-            "title": "Frameworks de gestão",
-            "text": "aplicação prática de PMI, Agile, MPS.BR e CMMI para padronização e melhoria contínua de procedimentos e processos."
-          },
-          {
-            "title": "Gestão do conhecimento",
-            "text": "elaboração de conteúdos estratégicos e soluções low-code/no-code (Notion), para continuidade do negócio."
+            "title": "Frameworks de gestão alinhados ao PDTIC",
+            "text": "apliquei frameworks PMI, Agile, MPS.BR e CMMI em iniciativas alinhadas ao PDTIC, padronizando processos e sustentando entregas de governança de TI."
           }
         ]
       },
       "exp4": {
-        "position": "Estagiário & Assistente Jurídico",
+        "position": "Automações & Assistente Jurídico",
         "highlights": [
           {
-            "title": "Diligências processuais e financeiras",
-            "text": "protocolos, questionamentos forenses, pagamentos de custas e depósitos judiciais, controle de pagamentos entre cliente-escritório e obrigações processuais."
+            "title": "Arquitetura RPA para tribunais brasileiros",
+            "text": "construí arquitetura de RPA com Python, VBA e Selenium para extração em larga escala de dados de tribunais brasileiros, integrando sistemas internos a plataformas judiciais e reduzindo significativamente o tempo de cadastro processual."
           },
           {
-            "title": "Automação de processos",
-            "text": "desenvolvimento em Python, VBA e Selenium para web scraping de dados de diversos tribunais do Brasil + RPA: integração automatizada entre sistema interno e plataformas judiciais."
-          },
-          {
-            "title": "Otimização operacional",
-            "text": "reduziu tempo de cadastro processual via scripts, melhorando fluxo de dados e produtividade."
-          },
-          {
-            "title": "Análise de dados jurídicos",
-            "text": "resumos de petições e gestão de informações processuais em sistemas internos."
+            "title": "Gestão de diligências e financeiro processual",
+            "text": "estruturei a gestão de diligências, depósitos judiciais e custas com automações, elevando a integridade da base de dados e a precisão dos indicadores operacionais do escritório."
           }
         ]
       },
       "exp5": {
-        "position": "Aprendiz - Analytics / SalesForce",
+        "position": "Analytics / Salesforce",
         "highlights": [
           {
-            "title": "Automação VBA/Excel",
-            "text": "automações VBA/Excel para coleta automatizada de dados, geração de relatórios e envio email gerencial."
-          },
-          {
-            "title": "Controle de estoque",
-            "text": "gerenciei controle de estoque e distribuição de materiais promocionais (trade marketing) e de escritório."
-          },
-          {
-            "title": "Análise de vendas",
-            "text": "realizei análises de volume de vendas, KPIs comerciais e otimização de rotinas administrativas via macros."
+            "title": "Automação de KPIs comerciais",
+            "text": "automatizei coleta de dados, geração de relatórios e análise de KPIs comerciais com VBA/Excel e Salesforce, reduzindo o tempo de rotinas administrativas."
           }
         ]
       },
       "exp6": {
-        "position": "Aprendiz - Auxiliar Administrativo / Produção",
+        "position": "Aux. Administrativo — Produção",
         "highlights": [
           {
-            "title": "Gestão operacional",
-            "text": "atuei com Excel na gestão operacional. Input e leitura de dados no SAP."
-          },
-          {
-            "title": "Atendimento e apoio",
-            "text": "atendimento a clientes, ao centro de destrocas de botijões e fornecedor de GLP. Apoio na gestão de filas e suporte aos vendedores."
-          },
-          {
-            "title": "Controle de qualidade",
-            "text": "controle de qualidade e fiscalização na produção de botijões."
+            "title": "Operação em SAP e gestão operacional",
+            "text": "operação em SAP e Excel para gestão operacional, controle de qualidade e suporte ao atendimento — primeira exposição a ERP corporativo."
           }
         ]
       }
@@ -369,6 +325,7 @@
     "title": "Chat com IA",
     "placeholder": "Digite sua mensagem...",
     "send": "Enviar",
+    "stop": "Parar",
     "clear": "Limpar",
     "newChat": "Nova Conversa",
     "thinking": "Pensando...",

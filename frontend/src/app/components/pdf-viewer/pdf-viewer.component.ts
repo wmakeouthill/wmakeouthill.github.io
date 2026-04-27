@@ -101,20 +101,20 @@ export class PdfViewerComponent implements OnChanges, AfterViewInit, OnDestroy {
       const containerWidth = container.clientWidth - 32; // padding
       const containerHeight = container.clientHeight - 32;
 
-      // Calcular escala para caber na largura
       const scaleToFitWidth = containerWidth / pdfWidth;
-      // Calcular escala para caber na altura
       const scaleToFitHeight = containerHeight / pdfHeight;
 
-      // Usar a MAIOR escala que ainda caiba (prioriza ocupar mais espaço)
-      // mas garantindo que não ultrapasse nenhuma dimensão
-      const baseScale = Math.min(scaleToFitWidth, scaleToFitHeight);
+      // Para PDFs altos (mais altos que largos em proporção ao container),
+      // ajusta pela largura e permite scroll vertical. Para PDFs que cabem
+      // inteiros sem cortar nada, usa min para mostrar tudo.
+      const pdfAspect = pdfHeight / pdfWidth;
+      const containerAspect = containerHeight / containerWidth;
+      const baseScale = pdfAspect > containerAspect
+        ? scaleToFitWidth
+        : Math.min(scaleToFitWidth, scaleToFitHeight);
 
-      // Aplicar zoom do usuário sobre a escala base
       targetScale = baseScale * this.zoom;
-
-      // Garantir limites razoáveis (0.5 a 4.0 para permitir zoom até 200%)
-      targetScale = Math.max(0.5, Math.min(4.0, targetScale));
+      targetScale = Math.max(0.3, Math.min(4.0, targetScale));
     } else {
       // Fallback baseado no tamanho da tela
       const screenWidth = window.innerWidth;

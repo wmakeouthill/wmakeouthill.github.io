@@ -301,6 +301,27 @@
   transform: translateY(0) scale(0.95);
 }
 
+.chat-stop-button {
+  background: linear-gradient(135deg, #dc3545, #b02a37);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.4);
+  padding: 0.5rem 0.95rem;
+  animation: stopPulse 1.4s ease-in-out infinite;
+}
+
+.chat-stop-button:hover {
+  background: linear-gradient(135deg, #b02a37, #dc3545);
+  transform: translateY(-1px);
+}
+
+@keyframes stopPulse {
+  0%, 100% { box-shadow: 0 2px 10px rgba(220, 53, 69, 0.4); }
+  50% { box-shadow: 0 2px 18px rgba(220, 53, 69, 0.7); }
+}
+
 @media (max-width: 640px) {
   .chat-input {
     font-size: 0.75rem;

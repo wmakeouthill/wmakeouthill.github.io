@@ -106,144 +106,100 @@
     "years": "years",
     "items": {
       "exp1": {
-        "position": "Full Stack Developer (Full Cycle)",
+        "position": "Full Stack Developer — full cycle",
         "highlights": [
           {
-            "title": "Computer Vision and AI monitoring",
-            "text": "built computer vision pipelines using Vision + LLM for real-time intelligent monitoring, image analysis, and automated insight generation via RAG and LangGraph."
+            "title": "Real-time computer vision + LLM pipeline",
+            "text": "architected a monitoring pipeline combining Computer Vision (Vision + YOLO) and LLMs via LangGraph and RAG, automating image analysis and insight generation while reducing manual operational inspection effort."
           },
           {
-            "title": "PDF ingestion, embeddings and data scraping",
-            "text": "implemented AI-powered PDF catalog ingestion for product data extraction and indexing; generated embeddings with Gemini and stored them in vector databases (pgvector, FAISS) for semantic search; automated web scraping to feed internal pipelines and systems."
+            "title": "PDF ingestion, embeddings and semantic search",
+            "text": "AI-assisted PDF catalog ingestion, embedding generation (Gemini) and indexing in pgvector/FAISS for semantic product search, enriching internal pipelines and AI agents."
           },
           {
-            "title": "Machine Learning and inventory optimization",
-            "text": "designed ML algorithms with the Prophet library for demand forecasting, sales inventory optimization, inter-branch stock transfers, and substitute product suggestions via predictive algorithm."
+            "title": "Demand forecasting and inventory optimization",
+            "text": "evolved predictive algorithms with Prophet (time series) for demand forecasting, inventory optimization, inter-branch transfers and substitute product suggestions, directly impacting commercial decisions and reducing stockouts."
           },
           {
-            "title": "Sankhya ERP integrations",
-            "text": "integrated Sankhya ERP (Microwork) for automated report generation, budgeting, and sales operational flow optimization."
+            "title": "Sankhya/Microwork ERP integrations",
+            "text": "integrated the Sankhya (Microwork) ERP via API to automate reports, quotes and sales operational flows, eliminating recurring manual tasks."
           },
           {
-            "title": "Cloud infrastructure and IaaC",
-            "text": "provisioned infrastructure as code (IaaC) on AWS (EC2) and GCP (Cloud Run); automated SSH-based deploy scripts, Docker, and high-performance environments."
+            "title": "B2B people & goals management platform",
+            "text": "delivered full cycle on a B2B platform used by corporate clients — FastAPI backend + React 19 + Vite frontend — shipping evaluation cycles, OKR/goal management and workforce administration."
           },
           {
-            "title": "CI/CD and production deploy",
-            "text": "built end-to-end GitHub Actions pipelines for build, testing, and secure production deployment on AWS and GCP cloud environments."
+            "title": "Slack and Microsoft 365 corporate integrations",
+            "text": "implemented integrations with Slack and Outlook (M365) for real-time notifications and transactional emails, connecting the systems to the channels companies already operate daily."
           },
           {
-            "title": "Scalable React frontends",
-            "text": "developed modern, scalable React interfaces integrated with AI backends, following Agile methodologies."
+            "title": "Multi-cloud infrastructure and CI/CD",
+            "text": "provisioned infrastructure as code on AWS (EC2) and GCP (Cloud Run), with automated SSH deployments, Docker Compose and GitHub Actions for continuous multi-cloud delivery."
           }
         ]
       },
       "exp2": {
-        "position": "Intern - Backend / FullStack / ScrumTeam",
+        "position": "Full Stack Developer — scrum team",
         "highlights": [
           {
-            "title": "Critical financial infrastructure modernization",
-            "text": "Selic mainframe migration (COBOL) to a Java architecture (Novo-Selic)."
+            "title": "Novo-Selic modernization (mainframe → Java)",
+            "text": "worked on migrating a critical national financial-infrastructure system from mainframe COBOL to a Java 17 + Spring Boot 3.x + Angular architecture, with Oracle Database persistence."
           },
           {
-            "title": "Observability and monitoring",
-            "text": "Full stack implementation (Prometheus, Grafana, Actuator, Micrometer, Blackbox Exporter, Alertmanager) for performance metrics and health checks."
+            "title": "End-to-end observability",
+            "text": "implemented a full observability stack (Prometheus, Grafana, Spring Actuator, Micrometer, Blackbox Exporter, AlertManager), enabling metrics, healthchecks and SLA monitoring in a mission-critical environment."
           },
           {
-            "title": "Full stack development",
-            "text": "Java (Spring) Backend + Angular Frontend."
+            "title": "Containerization and CI/CD on GitLab",
+            "text": "containerized applications with Docker and structured CI/CD pipelines on GitLab, automating build, tests and deploy with strict branch versioning."
           },
           {
-            "title": "DevOps and containerization",
-            "text": "Docker, CI/CD, branch versioning with GitLab for collaboration and automated deployment practices."
-          },
-          {
-            "title": "Data management",
-            "text": "Oracle (containerized) Database (SQL), schema versioning with Liquibase / SQL scripts."
+            "title": "Oracle schema versioning",
+            "text": "versioned Oracle schemas with Liquibase and SQL scripts, ensuring traceability and controlled rollback on a sensitive transactional database."
           }
         ]
       },
       "exp3": {
-        "position": "Intern - Projects / Governance",
+        "position": "Projects / IT Governance",
         "highlights": [
           {
-            "title": "Project Management",
-            "text": "development cycle of artifacts, executive reports, and control of strategic initiatives aligned with the PDTIC."
+            "title": "SharePoint and Power BI for C-level",
+            "text": "built SharePoint webparts (JavaScript, HTML, CSS) integrated via SharePoint API and Power BI (DAX) dashboards for executive indicators, serving C-level demands (Central Bank and ANBIMA)."
           },
           {
-            "title": "Business Intelligence",
-            "text": "Power BI (DAX) interactive dashboards to visualize KPIs and support executive decision-making."
-          },
-          {
-            "title": "Web development",
-            "text": "custom SharePoint webparts (JavaScript, HTML, CSS) integrated via SharePoint API for corporate governance."
-          },
-          {
-            "title": "C-level solutions",
-            "text": "document and news displays for the Central Bank and ANBIMA leadership."
-          },
-          {
-            "title": "Management frameworks",
-            "text": "practical application of PMI, Agile, MPS.BR, and CMMI for standardization and continuous improvement of processes."
-          },
-          {
-            "title": "Knowledge management",
-            "text": "creation of strategic content and low-code/no-code solutions (Notion) for business continuity."
+            "title": "Management frameworks aligned with PDTIC",
+            "text": "applied PMI, Agile, MPS.BR and CMMI frameworks on initiatives aligned with the PDTIC, standardizing processes and sustaining IT governance deliveries."
           }
         ]
       },
       "exp4": {
-        "position": "Intern & Legal Assistant",
+        "position": "Automations & Legal Assistant",
         "highlights": [
           {
-            "title": "Procedural and financial diligence",
-            "text": "protocols, court inquiries, payments of fees and judicial deposits, control of payments between client and firm, and procedural obligations."
+            "title": "RPA architecture for Brazilian courts",
+            "text": "built an RPA architecture with Python, VBA and Selenium for large-scale data extraction from Brazilian courts, integrating internal systems with judicial platforms and significantly reducing case-registration time."
           },
           {
-            "title": "Process automation",
-            "text": "Python, VBA, and Selenium for web scraping from various Brazilian courts + RPA: automated integration between internal system and judicial platforms."
-          },
-          {
-            "title": "Operational optimization",
-            "text": "reduced time of procedural data entry via scripts, improving data flow and productivity."
-          },
-          {
-            "title": "Legal data analysis",
-            "text": "summaries of petitions and management of procedural information in internal systems."
+            "title": "Procedural diligence and judicial financials",
+            "text": "structured the management of diligences, judicial deposits and court fees through automation, raising data integrity and the accuracy of the firm's operational indicators."
           }
         ]
       },
       "exp5": {
-        "position": "Apprentice - Analytics / Salesforce",
+        "position": "Analytics / Salesforce",
         "highlights": [
           {
-            "title": "VBA/Excel automation",
-            "text": "automation for data collection, report generation, and managerial email delivery."
-          },
-          {
-            "title": "Inventory control",
-            "text": "managed stock and distribution of promotional materials (trade marketing) and office supplies."
-          },
-          {
-            "title": "Sales analysis",
-            "text": "analyzed sales volumes, commercial KPIs, and optimized administrative routines via macros."
+            "title": "Commercial KPI automation",
+            "text": "automated data collection, report generation and commercial KPI analysis with VBA/Excel and Salesforce, reducing the time spent on administrative routines."
           }
         ]
       },
       "exp6": {
-        "position": "Apprentice - Administrative / Production Assistant",
+        "position": "Administrative Assistant — Production",
         "highlights": [
           {
-            "title": "Operational management",
-            "text": "worked with Excel in operational management. Data entry and reading in SAP."
-          },
-          {
-            "title": "Customer and support",
-            "text": "customer service, bottle returns center, and LPG supplier support. Assisted queue management and supported vendors."
-          },
-          {
-            "title": "Quality control",
-            "text": "quality control and inspection in cylinder production."
+            "title": "SAP operation and operational management",
+            "text": "worked with SAP and Excel for operational management, quality control and customer-service support — first exposure to a corporate ERP."
           }
         ]
       }
@@ -369,6 +325,7 @@
     "title": "AI Chat",
     "placeholder": "Type your message...",
     "send": "Send",
+    "stop": "Stop",
     "clear": "Clear",
     "newChat": "New Chat",
     "thinking": "Thinking...",

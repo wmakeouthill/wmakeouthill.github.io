@@ -38,11 +38,10 @@
     "mermaid": "^11.12.0",
     "pdfjs-dist": "^4.0.0",
     "prismjs": "^1.30.0",
+    "raw-body": "^3.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0",
-    "google-auth-library": "^9.15.1",
-    "raw-body": "^3.0.0"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular/build": "^20.3.5",

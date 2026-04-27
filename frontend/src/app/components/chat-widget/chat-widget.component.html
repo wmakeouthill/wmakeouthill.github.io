@@ -17,6 +17,7 @@
 
     <app-chat-input [isLoading]="isLoading()" [inputText]="inputText()" [canSend]="canSend()" [shouldFocus]="isOpen()"
       [selectedModel]="selectedModel()" (onInputChange)="handleInputChange($event)" (onSend)="sendMessage()"
+      (onCancel)="cancelarMensagem()"
       (onNewConversation)="iniciarNovaConversa()" (onModelChange)="selectedModel.set($event)" />
   </section>
   }

@@ -36,7 +36,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['React', 'Python', 'RAG', 'LangGraph', 'Prophet', 'Docker', 'GitHub Actions', 'AWS EC2', 'Google Cloud Run', 'GCP', 'Sankhya ERP', 'IaaC', 'SSH', 'Computer Vision', 'Selenium', 'Gemini Embeddings', 'pgvector', 'FAISS']
+      technologies: ['Python', 'FastAPI', 'LangGraph', 'RAG', 'Vision', 'YOLO', 'Prophet', 'Gemini Embeddings', 'pgvector', 'FAISS', 'React 19', 'Vite', 'Sankhya ERP', 'Slack', 'Microsoft 365', 'Docker Compose', 'GitHub Actions', 'AWS EC2', 'GCP Cloud Run', 'IaC', 'SSH']
     },
     {
       key: 'experience.items.exp2',
@@ -53,10 +53,9 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Java', 'Spring', 'Spring Boot', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'Prometheus', 'Grafana']
+      technologies: ['Java 17', 'Spring Boot 3.x', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'GitLab CI/CD', 'Prometheus', 'Grafana', 'Micrometer', 'Spring Actuator', 'Blackbox Exporter', 'AlertManager']
     },
     {
       key: 'experience.items.exp3',
@@ -71,13 +70,9 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       description: '',
       highlights: [
         { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Power BI', 'DAX', 'JavaScript', 'SharePoint', 'Notion']
+      technologies: ['SharePoint', 'JavaScript', 'HTML', 'CSS', 'Power BI', 'DAX', 'PMI', 'Agile', 'MPS.BR', 'CMMI']
     },
     {
       key: 'experience.items.exp4',
@@ -91,8 +86,6 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' }
       ],
@@ -110,8 +103,6 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
       technologies: ['VBA', 'Excel', 'Salesforce']
@@ -128,11 +119,9 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       location: 'Duque de Caxias, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Excel', 'SAP']
+      technologies: ['SAP', 'Excel']
     }
   ];
 

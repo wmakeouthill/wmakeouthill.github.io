@@ -26,6 +26,7 @@ export class ChatInputComponent {
 
   readonly onInputChange = output<string>();
   readonly onSend = output<void>();
+  readonly onCancel = output<void>();
   readonly onNewConversation = output<void>();
   readonly onModelChange = output<AIModel>();
 
@@ -86,7 +87,14 @@ export class ChatInputComponent {
   handleSubmit(): void {
     if (this.canSend()) {
       this.onSend.emit();
+      // O parent limpa o inputText após emit; aguarda o ngModel propagar ao DOM
+      // antes de recalcular a altura, senão o scrollHeight ainda reflete o texto antigo.
+      setTimeout(() => this.adjustHeight(), 0);
     }
+  }
+
+  handleCancel(): void {
+    this.onCancel.emit();
   }
 
   iniciarNovaConversa(): void {

@@ -354,6 +354,7 @@
     "title": "Chat com IA",
     "placeholder": "Digite sua mensagem...",
     "send": "Enviar",
+    "stop": "Parar",
     "clear": "Limpar",
     "newChat": "Nova Conversa",
     "thinking": "Pensando...",

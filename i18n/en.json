@@ -354,6 +354,7 @@
     "title": "AI Chat",
     "placeholder": "Type your message...",
     "send": "Send",
+    "stop": "Stop",
     "clear": "Clear",
     "newChat": "New Chat",
     "thinking": "Thinking...",

@@ -305,11 +305,11 @@
 /* PDF Rotation Wrapper */
 .pdf-rotation-wrapper {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center center;
-  margin: auto;
+  margin: 0 auto;
 }
 
 /* Removed problematic ::before pseudo-element */

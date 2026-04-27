@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 import { ChatService, ChatResponse, AIModel } from '../../services/chat.service';
 import { MarkdownChatService } from '../../services/markdown-chat.service';
 import { ChatFloatingButtonComponent } from './components/chat-floating-button.component';
@@ -72,6 +73,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
+  private currentRequest?: Subscription;
 
   readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
@@ -124,6 +126,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.currentRequest?.unsubscribe();
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
     document.body.classList.remove('chat-open');
@@ -170,8 +173,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
-    this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel()).subscribe({
+    this.currentRequest = this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel()).subscribe({
       next: (response: ChatResponse) => {
+        this.currentRequest = undefined;
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
         });
@@ -181,6 +185,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         }, 100);
       },
       error: () => {
+        this.currentRequest = undefined;
         this.chatMessagesHandlers.handleAssistantError();
         // Mantém foco mesmo em caso de erro
         setTimeout(() => {
@@ -188,6 +193,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         }, 100);
       }
     });
+  }
+
+  cancelarMensagem(): void {
+    if (this.currentRequest) {
+      this.currentRequest.unsubscribe();
+      this.currentRequest = undefined;
+    }
+    this.isLoading.set(false);
+    this.focarInput();
   }
 
   private canSendMessage(text: string): boolean {
