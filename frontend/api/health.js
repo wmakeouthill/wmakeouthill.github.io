@@ -36,5 +36,5 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
-    return proxyRequest(req, res, '/api/health');
+    return proxyRequest(req, res, '/api/cache/status');
 };
