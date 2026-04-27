@@ -16,6 +16,9 @@ async function proxyRequest(req, res, targetPath) {
     try {
         const fullTargetUrl = `${TARGET_API_URL}${targetPath}`;
 
+        if (!API_KEY) {
+            console.error('[Proxy] API_KEY env var não configurada na Vercel — backend retornará 401');
+        }
         console.log(`[Proxy] ${req.method} ${fullTargetUrl}`);
 
         // O backend Oracle exige este header assinado para permitir entrada

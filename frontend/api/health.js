@@ -36,6 +36,5 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
-    // Usa o endpoint de cache/status como health check
-    return proxyRequest(req, res, '/api/cache/status');
+    return proxyRequest(req, res, '/api/health');
 };
