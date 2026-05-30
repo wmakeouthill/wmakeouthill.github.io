@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CurriculoPdfService {
@@ -23,7 +25,7 @@ public class CurriculoPdfService {
     public byte[] gerar(CurriculoPersonalizado curriculo) {
         String html = carregarTemplate();
         html = html.replace("foto-wesley.png", fotoUri());
-        html = inserirBlocoPersonalizado(html, curriculo);
+        html = aplicarDadosEstruturados(html, curriculo);
         return renderizarPdf(html);
     }
 
@@ -47,6 +49,30 @@ public class CurriculoPdfService {
         }
     }
 
+    private String aplicarDadosEstruturados(String html, CurriculoPersonalizado curriculo) {
+        String result = substituirRole(html, curriculo);
+        result = substituirResumo(result, curriculo);
+        return inserirBlocoPersonalizado(result, curriculo);
+    }
+
+    private String substituirRole(String html, CurriculoPersonalizado curriculo) {
+        return Pattern.compile("<div class=\"role\">.*?</div>", Pattern.DOTALL)
+                .matcher(html)
+                .replaceFirst(Matcher.quoteReplacement(
+                        "<div class=\"role\">" + escape(curriculo.tituloProfissional()) + "</div>"));
+    }
+
+    private String substituirResumo(String html, CurriculoPersonalizado curriculo) {
+        String resumo = """
+            <p class="summary">
+              %s
+            </p>
+            """.formatted(escape(curriculo.resumoAdaptado()));
+        return Pattern.compile("<p class=\"summary\">.*?</p>", Pattern.DOTALL)
+                .matcher(html)
+                .replaceFirst(Matcher.quoteReplacement(resumo));
+    }
+
     private String inserirBlocoPersonalizado(String html, CurriculoPersonalizado curriculo) {
         String style = """
                 <style>
@@ -59,9 +85,13 @@ public class CurriculoPdfService {
                   <section class="ai-fit">
                     <h2>Alinhamento com a vaga</h2>
                     <p><b>Cargo alvo:</b> %s</p>
+                    <p><b>Palavras-chave:</b> %s</p>
                     <p>%s</p>
                   </section>
-                """.formatted(escape(curriculo.cargoAlvo()), escape(curriculo.resumoAdaptado()));
+                """.formatted(
+                escape(curriculo.cargoAlvo()),
+                escape(curriculo.palavrasChave()),
+                escape(curriculo.destaquesAlinhamento()));
 
         String withStyle = html.replace("</style>", style + "\n</style>");
         return withStyle.replace("<main class=\"main\">", "<main class=\"main\">\n" + bloco);

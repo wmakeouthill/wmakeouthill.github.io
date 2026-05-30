@@ -117,6 +117,16 @@ public class GeminiAdapter implements AIChatPort {
 
     private ChatResponse chatInterno(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
             List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        return chatInterno(systemPrompt, historico, mensagemAtual, media, 0.9);
+    }
+
+    public ChatResponse chatComTemperatura(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            double temperature) {
+        return chatInterno(systemPrompt, historico, mensagemAtual, java.util.Collections.emptyList(), temperature);
+    }
+
+    private ChatResponse chatInterno(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
         if (apiKey == null || apiKey.isBlank()) {
             return new ChatResponse("Serviço de IA não configurado. Defina a variável GEMINI_API_KEY.");
         }
@@ -141,7 +151,7 @@ public class GeminiAdapter implements AIChatPort {
                 log.info("Tentando modelo Gemini {} ({}/{})",
                         modeloAtual, i + 1, modelosFallback.size());
 
-                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media);
+                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media, temperature);
                 String body = mapper.writeValueAsString(payload);
                 HttpRequest req = criarRequisicao(modeloAtual, body);
                 HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
@@ -186,6 +196,11 @@ public class GeminiAdapter implements AIChatPort {
 
     private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
             List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        return criarPayload(systemPrompt, historico, mensagemAtual, media, 0.9);
+    }
+
+    private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
         Map<String, Object> payload = new HashMap<>();
 
         // System instruction (Gemini usa formato diferente do OpenAI)
@@ -240,7 +255,7 @@ public class GeminiAdapter implements AIChatPort {
         // Configuração de geração
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("maxOutputTokens", maxTokens);
-        generationConfig.put("temperature", 0.9);
+        generationConfig.put("temperature", temperature);
         payload.put("generationConfig", generationConfig);
 
         return payload;
