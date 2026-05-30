@@ -25,7 +25,14 @@
   color: #ff8a8a;
 }
 
-.retry-btn,
+.retry-btn.btn-outline:hover,
+.retry-btn.btn-outline:focus-visible {
+  background: rgba(219, 194, 125, 0.08);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
 .cert-btn,
 .download-btn-modal {
   border: none;
@@ -34,7 +41,6 @@
   cursor: pointer;
 }
 
-.retry-btn,
 .view-btn,
 .download-btn-modal {
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
@@ -57,7 +63,7 @@
 }
 
 .cert-preview::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   opacity: 0.35;

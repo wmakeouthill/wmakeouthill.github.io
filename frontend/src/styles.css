@@ -10,8 +10,8 @@
    =========================== */
 :root {
   /* Cores Principais */
-  --color-primary: #002E59;
-  --color-accent: #DBC27D;
+  --color-primary: #002e59;
+  --color-accent: #dbc27d;
   --color-dark: #1a1a1a;
   --color-medium: #4a4a4a;
   --color-light: #e5e5e5;
@@ -53,6 +53,7 @@
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
   --shadow-accent: 0 4px 20px rgba(219, 194, 125, 0.3);
+  --shadow-gold: 0 10px 34px rgba(219, 194, 125, 0.22);
 
   /* Transitions */
   --transition-fast: 0.2s ease;
@@ -255,9 +256,8 @@ a:hover {
 }
 
 .btn-accent:hover {
-  background: var(--color-accent-light);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-accent);
+  box-shadow: var(--shadow-gold);
 }
 
 .btn-outline {
@@ -462,7 +462,6 @@ a:hover {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -519,7 +518,10 @@ a:hover {
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px) scale(0.8);
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease,
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -777,17 +779,24 @@ a:hover {
 }
 
 .code-language {
-  color: #DBC27D;
+  color: #dbc27d;
   font-weight: 700;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: -0.02em;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   flex: 1;
 }
 
 .copy-btn {
-  background: linear-gradient(135deg, #DBC27D, #C9A96E);
+  background: linear-gradient(135deg, #dbc27d, #c9a96e);
   border: none;
   color: #000000;
   padding: 0.5rem 1rem;
@@ -799,7 +808,14 @@ a:hover {
   align-items: center;
   gap: 0.4rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -822,7 +838,7 @@ a:hover {
 }
 
 .copy-btn:hover {
-  background: linear-gradient(135deg, #C9A96E, #B8965F);
+  background: linear-gradient(135deg, #c9a96e, #b8965f);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(219, 194, 125, 0.4);
 }
@@ -852,12 +868,12 @@ a:hover {
 }
 
 .code-block-enhanced pre::-webkit-scrollbar-thumb {
-  background: #DBC27D;
+  background: #dbc27d;
   border-radius: 4px;
 }
 
 .code-block-enhanced pre::-webkit-scrollbar-thumb:hover {
-  background: #C9A96E;
+  background: #c9a96e;
 }
 
 .code-block-enhanced code {
@@ -894,11 +910,18 @@ a:hover {
 }
 
 .mermaid-title {
-  color: #DBC27D;
+  color: #dbc27d;
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: -0.02em;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   flex: 1;
   text-align: left;
 }
@@ -912,7 +935,7 @@ a:hover {
 
 .mermaid-download-btn,
 .mermaid-fullscreen-btn {
-  background: linear-gradient(135deg, #DBC27D, #C9A96E);
+  background: linear-gradient(135deg, #dbc27d, #c9a96e);
   color: #000000;
   border: none;
   padding: 0.5rem;
@@ -931,7 +954,7 @@ a:hover {
 
 .mermaid-download-btn:hover,
 .mermaid-fullscreen-btn:hover {
-  background: linear-gradient(135deg, #C9A96E, #B8965F);
+  background: linear-gradient(135deg, #c9a96e, #b8965f);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(219, 194, 125, 0.4);
 }
@@ -939,7 +962,7 @@ a:hover {
 .mermaid-download-btn:active,
 .mermaid-fullscreen-btn:active {
   transform: translateY(0);
-  background: linear-gradient(135deg, #B8965F, #A68B4F);
+  background: linear-gradient(135deg, #b8965f, #a68b4f);
 }
 
 .mermaid-content {

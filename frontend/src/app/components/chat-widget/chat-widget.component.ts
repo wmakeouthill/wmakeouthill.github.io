@@ -89,15 +89,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (this.i18n.language() === 'en') {
       return [
         'Which technologies does he master?',
-        'Tell me about his Central Bank experience',
-        'Which AI projects has he built?'
+        'Tell me about his latest experience',
+        'Which AI-powered projects has he built?'
       ];
     }
 
     return [
       'Quais tecnologias ele domina?',
-      'Conte sobre a experiência no Banco Central',
-      'Quais projetos de IA ele fez?'
+      'Conte sobre a última experiência',
+      'Quais projetos AI-powered ele fez?'
     ];
   });
 
