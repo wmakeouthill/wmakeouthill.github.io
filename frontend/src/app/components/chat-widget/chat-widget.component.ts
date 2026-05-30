@@ -80,9 +80,30 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
-    text: this.i18n.translate('chat.initialMessage'),
+    text: this.initialMessageText(),
+    html: this.sanitizer.bypassSecurityTrustHtml(this.initialMessageHtml()),
     timestamp: new Date()
   }));
+
+  readonly suggestions = computed(() => {
+    if (this.i18n.language() === 'en') {
+      return [
+        'Which technologies does he master?',
+        'Tell me about his Central Bank experience',
+        'Which AI projects has he built?'
+      ];
+    }
+
+    return [
+      'Quais tecnologias ele domina?',
+      'Conte sobre a experiência no Banco Central',
+      'Quais projetos de IA ele fez?'
+    ];
+  });
+
+  readonly shouldShowSuggestions = computed(
+    () => !this.isLoading() && this.messages().length === 1 && this.messages()[0].from === 'assistant'
+  );
 
   readonly canSend = computed(
     () => (this.inputText().trim().length > 0 || this.pendingAttachments().length > 0) && !this.isLoading()
@@ -167,6 +188,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   handleRemoveAttachment(index: number): void {
     this.pendingAttachments.update((arr) => arr.filter((_, i) => i !== index));
+  }
+
+  sendSuggestedMessage(text: string): void {
+    this.inputText.set(text);
+    queueMicrotask(() => this.sendMessage());
   }
 
   sendMessage(): void {
@@ -331,6 +357,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
             {
               ...current[0],
               text: initial.text,
+              html: initial.html,
               timestamp: new Date()
             }
           ]);
@@ -478,6 +505,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     } catch {
       return false;
     }
+  }
+
+  private initialMessageText(): string {
+    if (this.i18n.language() === 'en') {
+      return "Hi! I'm the AI trained with Wesley's portfolio. Ask about technologies, projects, or experience. You can also attach a file or send audio.";
+    }
+
+    return 'Olá! Sou a IA treinada com o portfólio do Wesley. Pergunte sobre tecnologias, projetos ou experiências — você também pode anexar um arquivo ou mandar um áudio.';
+  }
+
+  private initialMessageHtml(): string {
+    if (this.i18n.language() === 'en') {
+      return "Hi! I'm the AI trained with Wesley's portfolio. Ask about technologies, projects, or experience. You can also <strong>attach a file</strong> or <strong>send audio</strong>.";
+    }
+
+    return 'Olá! Sou a IA treinada com o portfólio do Wesley. Pergunte sobre tecnologias, projetos ou experiências — você também pode <strong>anexar um arquivo</strong> ou <strong>mandar um áudio</strong>.';
   }
 }
 

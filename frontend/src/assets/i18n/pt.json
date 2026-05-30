@@ -18,9 +18,9 @@
     "about": "Sobre",
     "skills": "Skills",
     "experience": "Experiência",
-    "education": "Educação",
+    "education": "Formação",
     "projects": "Projetos",
-    "certifications": "Certificações",
+    "certifications": "Certificados",
     "contact": "Contato"
   },
   "hero": {
@@ -296,11 +296,11 @@
   },
   "contact": {
     "title": "Entre em Contato",
-    "subtitle": "Vamos conversar sobre oportunidades ou projetos!",
+    "subtitle": "Disponível para oportunidades de trabalho, freelance e projetos interessantes.",
     "infoTitle": "Informações de Contato",
     "infoDescription": "Estou disponível para oportunidades de trabalho, freelance e projetos interessantes. Entre em contato através de qualquer um dos canais abaixo!",
     "formTitle": "Envie uma Mensagem",
-    "formDescription": "Preencha o formulário abaixo e entrarei em contato o mais rápido possível!",
+    "formDescription": "Preencha o formulário e entrarei em contato o mais rápido possível.",
     "name": "Nome",
     "namePlaceholder": "Seu nome",
     "email": "Email",
@@ -330,9 +330,9 @@
     "newChat": "Nova Conversa",
     "thinking": "Pensando...",
     "error": "Erro ao enviar mensagem",
-    "initialMessage": "Olá! Eu sou a IA treinada com o portfólio do Wesley. Pode perguntar sobre tecnologias que ele domina, projetos que já fez ou experiências profissionais.",
+    "initialMessage": "Olá! Sou a IA treinada com o portfólio do Wesley. Pergunte sobre tecnologias, projetos ou experiências — você também pode anexar um arquivo ou mandar um áudio.",
     "headerTitle": "Converse sobre o Wesley",
-    "headerSubtitle": "Faça perguntas sobre experiência, projetos e stack.",
+    "headerSubtitle": "Pergunte · anexe · ou fale por áudio",
     "close": "Fechar chat",
     "avatarAlt": "Avatar IA",
     "openAria": "Abrir chat com IA sobre o Wesley"

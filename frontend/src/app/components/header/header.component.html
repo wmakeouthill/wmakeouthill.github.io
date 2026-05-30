@@ -28,16 +28,7 @@
     </div>
 
     <div class="nav-right">
-      <div class="lang-wrapper">
-        <app-language-selector></app-language-selector>
-        @if (showLanguageHint()) {
-          <div class="lang-hint" aria-live="polite">
-            <span class="hint-text">Switch to English to view the resume</span>
-            <span class="hint-finger">↑</span>
-          </div>
-        }
-      </div>
-      <a (click)="scrollToSection('contact')" class="btn btn-accent nav-cta">{{ 'header.contact' | translate }}</a>
+      <a (click)="scrollToSection('contact')" class="btn btn-accent nav-cta">Vamos conversar</a>
       <button class="nav-toggle" (click)="toggleMobileMenu()" aria-label="Menu">☰</button>
     </div>
   </div>
@@ -51,7 +42,6 @@
           </a>
         }
       }
-      <app-language-selector></app-language-selector>
     </div>
   }
 </nav>

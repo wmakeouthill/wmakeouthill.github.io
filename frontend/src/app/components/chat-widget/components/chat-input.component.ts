@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../i18n/i18n.pipe';
 
-export type AIModel = 'gemini' | 'gpt';
-
 @Component({
   selector: 'app-chat-input',
   standalone: true,
@@ -16,34 +14,25 @@ export type AIModel = 'gemini' | 'gpt';
 export class ChatInputComponent {
   private readonly injector = inject(Injector);
 
-  @ViewChild('chatInput') chatInput?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('chatInput') chatInput?: ElementRef<HTMLInputElement>;
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
 
   readonly isLoading = input<boolean>(false);
   readonly inputText = input<string>('');
   readonly canSend = input<boolean>(false);
   readonly shouldFocus = input<boolean>(false);
-  readonly selectedModel = input<AIModel>('gemini');
   readonly attachments = input<File[]>([]);
 
   readonly onInputChange = output<string>();
   readonly onSend = output<void>();
   readonly onCancel = output<void>();
-  readonly onNewConversation = output<void>();
-  readonly onModelChange = output<AIModel>();
   readonly onAttach = output<File[]>();
   readonly onRemoveAttachment = output<number>();
 
-  isDropdownOpen = signal(false);
   isRecording = signal(false);
 
   private mediaRecorder?: MediaRecorder;
   private recordedChunks: Blob[] = [];
-
-  readonly models: { id: AIModel; name: string }[] = [
-    { id: 'gemini', name: 'Gemini Flash' },
-    { id: 'gpt', name: 'GPT-5' }
-  ];
 
   readonly acceptTypes = 'image/*,application/pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,audio/*';
 
@@ -67,18 +56,7 @@ export class ChatInputComponent {
   }
 
   private adjustHeight(): void {
-    const textarea = this.chatInput?.nativeElement;
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    const maxHeight = parseFloat(getComputedStyle(textarea).maxHeight);
-    const scrollH = textarea.scrollHeight;
-    if (scrollH >= maxHeight) {
-      textarea.style.height = `${maxHeight}px`;
-      textarea.style.overflowY = 'auto';
-    } else {
-      textarea.style.height = `${scrollH}px`;
-      textarea.style.overflowY = 'hidden';
-    }
+    return;
   }
 
   handleInputChange(value: string): void {
@@ -91,14 +69,12 @@ export class ChatInputComponent {
       event.preventDefault();
       this.handleSubmit();
     }
-    // Shift+Enter permite pular linha normalmente (comportamento padrão do textarea)
+    // Input de linha unica como no prototipo.
   }
 
   handleSubmit(): void {
     if (this.canSend()) {
       this.onSend.emit();
-      // O parent limpa o inputText após emit; aguarda o ngModel propagar ao DOM
-      // antes de recalcular a altura, senão o scrollHeight ainda reflete o texto antigo.
       setTimeout(() => this.adjustHeight(), 0);
     }
   }
@@ -107,33 +83,12 @@ export class ChatInputComponent {
     this.onCancel.emit();
   }
 
-  iniciarNovaConversa(): void {
-    this.onNewConversation.emit();
-  }
-
   focus(): void {
     if (this.chatInput?.nativeElement) {
       queueMicrotask(() => {
         this.chatInput?.nativeElement?.focus();
       });
     }
-  }
-
-  toggleDropdown(): void {
-    this.isDropdownOpen.update(v => !v);
-  }
-
-  selectModel(model: AIModel): void {
-    this.onModelChange.emit(model);
-    this.isDropdownOpen.set(false);
-  }
-
-  getModelName(): string {
-    return this.models.find(m => m.id === this.selectedModel())?.name || 'Gemini Flash';
-  }
-
-  closeDropdown(): void {
-    this.isDropdownOpen.set(false);
   }
 
   // ====================== Anexos ======================

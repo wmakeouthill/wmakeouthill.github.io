@@ -16,11 +16,18 @@
       }
     </div>
 
+    @if (shouldShowSuggestions()) {
+      <div class="chat-suggest">
+        @for (suggestion of suggestions(); track suggestion) {
+          <button type="button" (click)="sendSuggestedMessage(suggestion)">{{ suggestion }}</button>
+        }
+      </div>
+    }
+
     <app-chat-input [isLoading]="isLoading()" [inputText]="inputText()" [canSend]="canSend()" [shouldFocus]="isOpen()"
-      [selectedModel]="selectedModel()" [attachments]="pendingAttachments()" (onInputChange)="handleInputChange($event)"
+      [attachments]="pendingAttachments()" (onInputChange)="handleInputChange($event)"
       (onSend)="sendMessage()" (onCancel)="cancelarMensagem()" (onAttach)="handleAttach($event)"
-      (onRemoveAttachment)="handleRemoveAttachment($event)"
-      (onNewConversation)="iniciarNovaConversa()" (onModelChange)="selectedModel.set($event)" />
+      (onRemoveAttachment)="handleRemoveAttachment($event)" />
   </section>
   }
 </div>

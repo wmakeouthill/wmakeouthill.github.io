@@ -1,33 +1,26 @@
 import { ChangeDetectionStrategy, Component, NgZone, signal, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
-import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, LanguageSelectorComponent, TranslatePipe],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
 export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly isScrolled = signal(false);
   readonly isMobileMenuOpen = signal(false);
-  readonly showLanguageHint = signal(true);
   readonly activeSection = signal<string>('hero');
 
   private readonly ngZone = inject(NgZone);
-  private hintTimeoutId: number | undefined;
   private sectionObserver: IntersectionObserver | null = null;
 
   private readonly handleScroll = () => {
     const scrollY = window.scrollY;
     this.isScrolled.set(scrollY > 50);
-    if (scrollY <= 12 && !this.showLanguageHint()) {
-      this.showLanguageHint.set(true);
-      this.scheduleHintAutoHide();
-    }
   };
 
   readonly navItems = [
@@ -46,10 +39,6 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/wcacorreia', iconSrc: 'assets/icons/linkedin.svg' }
   ];
 
-  constructor() {
-    this.scheduleHintAutoHide();
-  }
-
   ngOnInit(): void {
     this.initSectionObserver();
     this.ngZone.runOutsideAngular(() => {
@@ -64,9 +53,6 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     window.removeEventListener('scroll', this.handleScroll);
     this.sectionObserver?.disconnect();
-    if (this.hintTimeoutId) {
-      clearTimeout(this.hintTimeoutId);
-    }
   }
 
   private initSectionObserver(): void {
@@ -114,20 +100,4 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private scheduleHintAutoHide(): void {
-    if (!this.showLanguageHint()) return;
-    if (this.hintTimeoutId) {
-      clearTimeout(this.hintTimeoutId);
-    }
-    this.hintTimeoutId = window.setTimeout(() => this.dismissLanguageHint(), 7000);
-  }
-
-  dismissLanguageHint(): void {
-    if (!this.showLanguageHint()) return;
-    this.showLanguageHint.set(false);
-    if (this.hintTimeoutId) {
-      clearTimeout(this.hintTimeoutId);
-      this.hintTimeoutId = undefined;
-    }
-  }
 }

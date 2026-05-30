@@ -1,27 +1,27 @@
-<header class="chat-header">
-  <div class="chat-avatar">
+<div class="chat-head">
+  <div class="av">
     <img src="assets/ai-avatar.png" alt="" />
   </div>
-  <div class="chat-header-info">
-    <h2>{{ 'chat.headerTitle' | translate }}</h2>
-    <p>{{ 'chat.headerSubtitle' | translate }}</p>
+  <div class="chat-head-copy">
+    <div class="ht">{{ 'chat.headerTitle' | translate }}</div>
+    <div class="hs"><span class="on">●</span> {{ 'chat.headerSubtitle' | translate }}</div>
   </div>
 
-  <div class="chat-header-actions">
-    <button type="button" class="chat-audio-toggle" [class.active]="audioResponseEnabled()"
-      (click)="onToggleAudioResponse.emit()" [attr.aria-pressed]="audioResponseEnabled()"
-      [attr.aria-label]="audioResponseEnabled() ? 'Desativar resposta em audio' : 'Ativar resposta em audio'"
-      [title]="audioResponseEnabled() ? 'Desativar resposta em audio' : 'Ativar resposta em audio'">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-      </svg>
-    </button>
+  <button type="button" class="chat-voice-toggle" [class.active]="audioResponseEnabled()"
+    (click)="onToggleAudioResponse.emit()" [attr.aria-pressed]="audioResponseEnabled()"
+    [attr.aria-label]="audioResponseEnabled() ? 'Desativar resposta em audio' : 'Ativar resposta em audio'"
+    [title]="audioResponseEnabled() ? 'Desativar resposta em audio' : 'Ativar resposta em audio'">
+    <svg class="v-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14" />
+    </svg>
+    <svg class="v-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      <path d="m23 9-6 6M17 9l6 6" />
+    </svg>
+  </button>
 
-    <button type="button" class="chat-close-button" (click)="onClose.emit()" [aria-label]="'chat.close' | translate">
-      ×
-    </button>
-  </div>
-</header>
+  <button type="button" class="x" (click)="onClose.emit()" [aria-label]="'chat.close' | translate">×</button>
+</div>
