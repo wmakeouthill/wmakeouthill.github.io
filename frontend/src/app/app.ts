@@ -40,6 +40,7 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   private readonly ngZone = inject(NgZone);
   private revealObserver: IntersectionObserver | null = null;
   private mutationObserver: MutationObserver | null = null;
+  private revealTransitionEnd: ((event: TransitionEvent) => void) | null = null;
   private readonly handleScroll = () => {
     const shouldShow = window.scrollY > 300;
     if (shouldShow !== this.showScrollToTop()) {
@@ -57,6 +58,9 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
     window.removeEventListener('scroll', this.handleScroll);
     this.revealObserver?.disconnect();
     this.mutationObserver?.disconnect();
+    if (this.revealTransitionEnd) {
+      document.removeEventListener('transitionend', this.revealTransitionEnd as EventListener);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -68,53 +72,72 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupRevealAnimations(): void {
-    const observed = new WeakSet<Element>();
+    // Sem IntersectionObserver (navegadores muito antigos): mostra tudo sem
+    // animação para não deixar o conteúdo invisível.
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.reveal').forEach((element) => element.classList.add('in'));
+      return;
+    }
 
-    const prepareElement = (element: HTMLElement): void => {
-      const siblings = element.parentElement
-        ? Array.from(element.parentElement.children).filter((child) => child.classList.contains('reveal'))
-        : [];
-      const index = siblings.indexOf(element);
-      if (index > 0) {
-        element.style.transitionDelay = `${Math.min(index, 6) * 0.07}s`;
-      }
-    };
+    // Toda a observação/manipulação de DOM roda fora da zona do Angular:
+    // alternar classes/estilos não deve agendar change detection.
+    this.ngZone.runOutsideAngular(() => {
+      const observed = new WeakSet<Element>();
 
-    this.revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('in');
-            this.revealObserver?.unobserve(entry.target);
+      const prepareElement = (element: HTMLElement): void => {
+        const siblings = element.parentElement
+          ? Array.from(element.parentElement.children).filter((child) => child.classList.contains('reveal'))
+          : [];
+        const index = siblings.indexOf(element);
+        if (index > 0) {
+          element.style.transitionDelay = `${Math.min(index, 6) * 0.07}s`;
+        }
+      };
+
+      // Reveal bidirecional: aparece ao entrar na viewport e desaparece ao sair.
+      // `will-change` é ativado só durante a animação e removido no transitionend
+      // (listener único e delegado) para não manter camadas de GPU em todos os
+      // elementos — esse é o ponto-chave de performance.
+      this.revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const element = entry.target as HTMLElement;
+            element.style.willChange = 'opacity, transform';
+            element.classList.toggle('in', entry.isIntersecting);
           }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-    );
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -12% 0px' }
+      );
 
-    const observeReveal = (element: Element): void => {
-      if (observed.has(element)) return;
-      observed.add(element);
-      prepareElement(element as HTMLElement);
-      this.revealObserver?.observe(element);
-    };
+      this.revealTransitionEnd = (event: TransitionEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (target && target.classList?.contains('reveal')) {
+          target.style.willChange = 'auto';
+        }
+      };
+      document.addEventListener('transitionend', this.revealTransitionEnd as EventListener, { passive: true });
 
-    document.querySelectorAll('.reveal').forEach(observeReveal);
-    this.mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.classList.contains('reveal')) {
-            observeReveal(node);
-          }
-          node.querySelectorAll('.reveal').forEach(observeReveal);
+      const observeReveal = (element: Element): void => {
+        if (observed.has(element)) return;
+        observed.add(element);
+        prepareElement(element as HTMLElement);
+        this.revealObserver?.observe(element);
+      };
+
+      document.querySelectorAll('.reveal').forEach(observeReveal);
+
+      this.mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            if (node.classList.contains('reveal')) {
+              observeReveal(node);
+            }
+            node.querySelectorAll('.reveal').forEach(observeReveal);
+          });
         });
       });
+      this.mutationObserver.observe(document.body, { childList: true, subtree: true });
     });
-    this.mutationObserver.observe(document.body, { childList: true, subtree: true });
-
-    window.setTimeout(() => {
-      document.querySelectorAll('.reveal:not(.in)').forEach((element) => element.classList.add('in'));
-    }, 1600);
   }
 }

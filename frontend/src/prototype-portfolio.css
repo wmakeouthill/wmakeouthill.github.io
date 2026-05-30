@@ -289,8 +289,14 @@ footer{border-top:1px solid var(--border);padding:54px 0 38px;position:relative;
 .foot-bottom{margin-top:46px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--text-muted);font-family:var(--font-mono);}
 
 /* ===== Reveal ===== */
+/* Bidirecional: aparece ao entrar e desaparece ao sair da viewport.
+   Anima apenas opacity/transform (compositor-friendly); will-change é
+   gerenciado via JS só durante a transição. */
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);}
 .reveal.in{opacity:1;transform:none;}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1;transform:none;transition:none;}
+}
 
 /* ===== Scroll-to-top ===== */
 .to-top{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:var(--r-full);border:none;
