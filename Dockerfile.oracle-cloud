@@ -1,69 +1,68 @@
 # Multi-stage build otimizado para Oracle Cloud VM - Projeto Wesley Portfolio
 # Estrutura: backend Spring Boot APENAS (API-only mode)
-# O frontend é servido pela Vercel separadamente
+# O frontend e servido pela Vercel separadamente.
 #
-# Otimizações para 1GB RAM (Always Free Tier):
-# - JRE Alpine (imagem menor ~200MB vs ~500MB)
-# - Serial GC (menor overhead de memória)
-# - MaxRAMPercentage=65 (~650MB para heap)
-# - Sem frontend embutido
+# Playwright/Chromium e usado para gerar o curriculo em PDF com fidelidade ao HTML.
 
-# Stage 1: Build do Maven (sem frontend)
 FROM maven:3.9-eclipse-temurin-17 AS maven-build
 
 WORKDIR /app
 
-# Copiar arquivo de configuração Maven primeiro (cache layer)
 COPY backend/pom.xml ./backend/
-
-# Baixar dependências (cache layer)
 RUN cd backend && mvn dependency:go-offline -B
+RUN cd backend && mvn exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium" -B
 
-# Copiar código fonte do backend
 COPY backend ./backend
-
-# Build sem frontend (profile padrão agora não inclui frontend)
 RUN cd backend && mvn clean package -DskipTests -B
 
-# Stage 2: Imagem final otimizada para Oracle Cloud VM
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
-# Instalar apenas dependências necessárias
-RUN apk add --no-cache \
-    bash \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnss3 \
+    libpango-1.0-0 \
+    libx11-6 \
+    libxcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
     tini \
     wget \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Criar diretório da aplicação
-RUN mkdir -p /app
+RUN mkdir -p /app /ms-playwright
 
-# Criar usuário não-root para segurança
-RUN addgroup -g 1001 appuser && \
-    adduser -D -u 1001 -G appuser appuser
+RUN groupadd -g 1001 appuser && \
+    useradd -u 1001 -g appuser -m -s /usr/sbin/nologin appuser
 
-# Copiar JAR do backend (sem frontend - API-only)
 COPY --from=maven-build /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
+COPY --from=maven-build /root/.cache/ms-playwright /ms-playwright
 
-# Ajustar permissões
-RUN chown -R appuser:appuser /app
+RUN chown -R appuser:appuser /app /ms-playwright
 
-# Variáveis de ambiente padrão
-# Secrets serão fornecidos via .env e docker-compose
-# Otimizado para 1GB RAM: SerialGC + MaxRAMPercentage=65
 ENV SERVER_PORT=8080
 ENV LOG_LEVEL=INFO
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0 -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
-# Expor porta
 EXPOSE 8080
 
-# Mudar para usuário não-root
 USER appuser
 
-# Usar tini como init system
-ENTRYPOINT ["/sbin/tini", "--"]
-
-# Comando para iniciar a aplicação
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar"]

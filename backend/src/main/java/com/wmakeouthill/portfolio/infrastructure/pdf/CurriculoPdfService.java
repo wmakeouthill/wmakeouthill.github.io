@@ -1,128 +1,97 @@
 package com.wmakeouthill.portfolio.infrastructure.pdf;
 
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.Margin;
+import com.microsoft.playwright.options.Media;
+import com.microsoft.playwright.options.WaitUntilState;
 import com.wmakeouthill.portfolio.application.dto.CurriculoPersonalizado;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Service
 public class CurriculoPdfService {
-    private static final float MARGIN = 48;
-    private static final float LINE_HEIGHT = 14;
+    private static final String TEMPLATE_PATH = "templates/curriculo.html";
+    private static final String FOTO_PATH = "templates/assets/foto-wesley.png";
 
     public byte[] gerar(CurriculoPersonalizado curriculo) {
-        try (PDDocument document = new PDDocument();
-                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
+        String html = carregarTemplate();
+        html = html.replace("foto-wesley.png", fotoUri());
+        html = inserirBlocoPersonalizado(html, curriculo);
+        return renderizarPdf(html);
+    }
 
-            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
-                float y = page.getMediaBox().getHeight() - MARGIN;
-                PDType1Font bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-                PDType1Font regular = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+    private byte[] renderizarPdf(String html) {
+        try (Playwright playwright = Playwright.create();
+                Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                        .setHeadless(true)
+                        .setArgs(java.util.List.of("--no-sandbox", "--disable-dev-shm-usage")))) {
+            Page page = browser.newPage(new Browser.NewPageOptions()
+                    .setViewportSize(794, 1123));
+            page.setContent(html, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
+            page.emulateMedia(new Page.EmulateMediaOptions().setMedia(Media.PRINT));
+            return page.pdf(new Page.PdfOptions()
+                    .setFormat("A4")
+                    .setPrintBackground(true)
+                    .setMargin(new Margin()
+                            .setTop("0")
+                            .setRight("0")
+                            .setBottom("0")
+                            .setLeft("0")));
+        }
+    }
 
-                y = write(content, "Wesley de Carvalho Augusto Correia", bold, 18, MARGIN, y);
-                y = write(content, curriculo.cargoAlvo(), regular, 12, MARGIN, y - 4);
-                y = write(content, "Portfólio: wmakeouthill.dev | GitHub: github.com/wmakeouthill", regular, 9, MARGIN, y - 8);
+    private String inserirBlocoPersonalizado(String html, CurriculoPersonalizado curriculo) {
+        String style = """
+                <style>
+                  .ai-fit{border:1px solid var(--line);background:var(--bg-soft);border-radius:8px;padding:3.5mm 4mm;margin:0 0 5mm 0}
+                  .ai-fit h2{margin-top:0}
+                  .ai-fit p{margin:1.5mm 0 0 0;color:var(--ink-soft);font-size:9pt}
+                </style>
+                """;
+        String bloco = """
+                  <section class="ai-fit">
+                    <h2>Alinhamento com a vaga</h2>
+                    <p><b>Cargo alvo:</b> %s</p>
+                    <p>%s</p>
+                  </section>
+                """.formatted(escape(curriculo.cargoAlvo()), escape(curriculo.resumoAdaptado()));
 
-                y = section(content, "Resumo adaptado", bold, MARGIN, y - 18);
-                y = paragraph(content, curriculo.resumoAdaptado(), regular, 10, MARGIN, y, 92);
+        String withStyle = html.replace("</style>", style + "\n</style>");
+        return withStyle.replace("<main class=\"main\">", "<main class=\"main\">\n" + bloco);
+    }
 
-                y = section(content, "Foco da vaga", bold, MARGIN, y - 12);
-                y = paragraph(content, curriculo.contextoVaga(), regular, 10, MARGIN, y, 92);
-
-                y = section(content, "Competências alinhadas", bold, MARGIN, y - 12);
-                y = bullets(content, regular, MARGIN, y, List.of(
-                        "Java, Spring Boot, APIs REST, arquitetura limpa e integrações.",
-                        "Angular, TypeScript, experiência com interfaces responsivas.",
-                        "Docker, Oracle Cloud, Firebase/Vercel e automação de deploy.",
-                        "Observabilidade, cache, PDFs, integrações externas e IA aplicada."));
-
-                y = section(content, "Experiência destacada", bold, MARGIN, y - 12);
-                paragraph(content,
-                        "Desenvolvimento de sistemas web full stack, integrações com APIs, automações, portfólio técnico com backend Java/Spring Boot e frontend Angular, além de soluções com IA generativa.",
-                        regular, 10, MARGIN, y, 92);
-            }
-
-            document.save(output);
-            return output.toByteArray();
+    private String carregarTemplate() {
+        try {
+            return new ClassPathResource(TEMPLATE_PATH).getContentAsString(StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException("Erro ao gerar currículo PDF", e);
+            throw new IllegalStateException("Template do currículo não encontrado", e);
         }
     }
 
-    private float section(PDPageContentStream content, String text, PDType1Font font, float x, float y)
-            throws IOException {
-        return write(content, text, font, 13, x, y) - 2;
+    private String fotoUri() {
+        try {
+            byte[] bytes = new ClassPathResource(FOTO_PATH).getInputStream().readAllBytes();
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
+        } catch (IOException e) {
+            throw new IllegalStateException("Foto do currículo não encontrada", e);
+        }
     }
 
-    private float bullets(PDPageContentStream content, PDType1Font font, float x, float y, List<String> items)
-            throws IOException {
-        float currentY = y;
-        for (String item : items) {
-            currentY = paragraph(content, "• " + item, font, 10, x, currentY, 92);
+    private String escape(String value) {
+        if (value == null || value.isBlank()) {
+            return "Não informado.";
         }
-        return currentY;
-    }
-
-    private float paragraph(PDPageContentStream content, String text, PDType1Font font, int size, float x, float y,
-            int maxChars) throws IOException {
-        float currentY = y;
-        for (String line : wrap(text, maxChars)) {
-            currentY = write(content, line, font, size, x, currentY);
-        }
-        return currentY;
-    }
-
-    private float write(PDPageContentStream content, String text, PDType1Font font, int size, float x, float y)
-            throws IOException {
-        content.beginText();
-        content.setFont(font, size);
-        content.newLineAtOffset(x, y);
-        content.showText(sanitize(text));
-        content.endText();
-        return y - LINE_HEIGHT;
-    }
-
-    private List<String> wrap(String text, int maxChars) {
-        String normalized = text == null || text.isBlank() ? "Não informado." : text.replaceAll("\\s+", " ").trim();
-        List<String> lines = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        for (String word : normalized.split(" ")) {
-            if (current.length() + word.length() + 1 > maxChars) {
-                lines.add(current.toString());
-                current.setLength(0);
-            }
-            if (!current.isEmpty()) {
-                current.append(' ');
-            }
-            current.append(word);
-        }
-        if (!current.isEmpty()) {
-            lines.add(current.toString());
-        }
-        return lines;
-    }
-
-    private String sanitize(String text) {
-        if (text == null) {
-            return "";
-        }
-        return text
-                .replace("•", "-")
-                .replace("—", "-")
-                .replace("–", "-")
-                .replace("“", "\"")
-                .replace("”", "\"")
-                .replace("’", "'");
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 }
