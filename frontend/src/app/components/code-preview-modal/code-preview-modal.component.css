@@ -680,3 +680,29 @@
    ======================================================================== */
 
 /* File icon colors defined in component */
+.code-modal-overlay {
+  background: rgba(0, 0, 0, 0.72) !important;
+  backdrop-filter: blur(6px) !important;
+  padding: 24px !important;
+}
+
+.code-modal-content {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  max-width: 1080px !important;
+  width: 100% !important;
+  height: 84vh !important;
+  max-height: 84vh !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.code-modal-header {
+  padding: 22px 26px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+}
+
+.code-modal-body {
+  background: var(--bg-card) !important;
+}

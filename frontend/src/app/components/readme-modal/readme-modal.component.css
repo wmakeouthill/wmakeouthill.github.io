@@ -748,3 +748,49 @@
   border-left-color: #eab308 !important; /* amber-500 */
   color: #374151 !important; /* gray-700 */
 }
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.72) !important;
+  backdrop-filter: blur(6px) !important;
+  padding: 24px !important;
+}
+
+.modal-content {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  max-width: 760px !important;
+  max-height: 88vh !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.modal-header {
+  padding: 22px 26px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+}
+
+.modal-header h2 {
+  color: #fff !important;
+  font-size: 1.3rem !important;
+}
+
+.modal-body {
+  padding: 26px !important;
+  background: var(--bg-card) !important;
+}
+
+.close-btn,
+.zoom-btn,
+.github-btn {
+  border-radius: 9px !important;
+  background: var(--bg-card-2) !important;
+  border: 1px solid var(--border) !important;
+  color: #fff !important;
+}
+
+.close-btn:hover,
+.zoom-btn:hover,
+.github-btn:hover {
+  border-color: var(--border-accent) !important;
+  color: var(--color-accent) !important;
+}

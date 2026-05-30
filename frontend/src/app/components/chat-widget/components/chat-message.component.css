@@ -568,3 +568,39 @@
 .chat-msg-pdf-link:hover {
   text-decoration: underline;
 }
+.chat-message {
+  max-width: 84% !important;
+  padding: 11px 15px !important;
+  border-radius: 14px !important;
+  font-size: 0.92rem !important;
+  line-height: 1.55 !important;
+  box-shadow: none !important;
+}
+
+.chat-message-user {
+  align-self: flex-end !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)) !important;
+  border: none !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.chat-message-assistant {
+  align-self: flex-start !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-card-2) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+.chat-message-assistant strong,
+.chat-message-assistant .chat-strong {
+  color: var(--color-accent) !important;
+}
+
+.chat-message p,
+.chat-message-assistant p,
+.chat-message-user p {
+  margin: 0 !important;
+  color: inherit !important;
+}

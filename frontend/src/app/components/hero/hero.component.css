@@ -6,7 +6,7 @@
   min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
-  padding: 120px 32px 70px;
+  padding: 120px 0 70px;
 }
 
 .hero-copy {
@@ -29,6 +29,6 @@
 
 @media (max-width: 980px) {
   .hero {
-    padding-top: 110px;
+    padding-top: 100px;
   }
 }
