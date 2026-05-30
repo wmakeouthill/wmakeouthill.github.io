@@ -1,25 +1,23 @@
-/* Espaço para o header fixo + aviso */
 .portfolio-main {
-  padding-top: 72px;
   min-height: 100vh;
   background: var(--bg-primary);
 }
 
 @media (max-width: 1024px) {
   .portfolio-main {
-    padding-top: 72px;
+    min-height: 100vh;
   }
 }
 
 @media (max-width: 768px) {
   .portfolio-main {
-    padding-top: 60px;
+    min-height: 100vh;
   }
 }
 
 @media (max-width: 480px) {
   .portfolio-main {
-    padding-top: 56px;
+    min-height: 100vh;
   }
 }
 
