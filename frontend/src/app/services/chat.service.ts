@@ -13,6 +13,9 @@ export interface ChatRequest {
 export interface ChatResponse {
   reply: string;
   modelo?: string; // Modelo de IA que gerou a resposta (ex: "gemini-2.5-flash", "gpt-4o-mini")
+  audioBase64?: string; // Áudio TTS da resposta (WAV base64), quando solicitado
+  pdfBase64?: string; // PDF gerado (ex: currículo) em base64
+  pdfFilename?: string; // Nome sugerido do PDF gerado
 }
 
 @Injectable({
@@ -39,6 +42,38 @@ export class ChatService {
     }
 
     return this.http.post<ChatResponse>(this.apiUrl, body, { headers });
+  }
+
+  /**
+   * Envia uma mensagem multimodal (texto + anexos: imagem/PDF/áudio/vídeo/documento).
+   *
+   * @param mensagem texto da mensagem (pode ser vazio se houver anexos)
+   * @param files arquivos anexados
+   * @param sessionId identificador da sessão
+   * @param model modelo de IA a usar
+   * @param audioResponse se true, pede também a resposta em áudio (TTS)
+   */
+  enviarMultimodal(
+    mensagem: string,
+    files: File[],
+    sessionId?: string,
+    model: AIModel = 'gemini',
+    audioResponse = false
+  ): Observable<ChatResponse> {
+    const formData = new FormData();
+    formData.append('message', mensagem ?? '');
+    formData.append('model', model);
+    formData.append('audioResponse', String(audioResponse));
+    for (const file of files) {
+      formData.append('files', file, file.name);
+    }
+
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+
+    return this.http.post<ChatResponse>(`${this.apiUrl}/multimodal`, formData, { headers });
   }
 
   /**

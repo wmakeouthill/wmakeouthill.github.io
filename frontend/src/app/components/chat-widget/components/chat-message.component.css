@@ -501,3 +501,46 @@
 .chat-message-assistant pre code .token.cdata {
   opacity: 0.7;
 }
+/* ===== Anexos na mensagem ===== */
+.chat-msg-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chat-msg-att-image {
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.chat-msg-att-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 200px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+}
+
+.chat-message-user .chat-msg-att-file {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chat-msg-att-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-msg-audio {
+  display: block;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+  height: 36px;
+}

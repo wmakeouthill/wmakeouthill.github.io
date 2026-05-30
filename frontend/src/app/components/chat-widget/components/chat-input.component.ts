@@ -17,25 +17,35 @@ export class ChatInputComponent {
   private readonly injector = inject(Injector);
 
   @ViewChild('chatInput') chatInput?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
 
   readonly isLoading = input<boolean>(false);
   readonly inputText = input<string>('');
   readonly canSend = input<boolean>(false);
   readonly shouldFocus = input<boolean>(false);
   readonly selectedModel = input<AIModel>('gemini');
+  readonly attachments = input<File[]>([]);
 
   readonly onInputChange = output<string>();
   readonly onSend = output<void>();
   readonly onCancel = output<void>();
   readonly onNewConversation = output<void>();
   readonly onModelChange = output<AIModel>();
+  readonly onAttach = output<File[]>();
+  readonly onRemoveAttachment = output<number>();
 
   isDropdownOpen = signal(false);
+  isRecording = signal(false);
+
+  private mediaRecorder?: MediaRecorder;
+  private recordedChunks: Blob[] = [];
 
   readonly models: { id: AIModel; name: string }[] = [
     { id: 'gemini', name: 'Gemini Flash' },
     { id: 'gpt', name: 'GPT-5' }
   ];
+
+  readonly acceptTypes = 'image/*,application/pdf,.txt,.md,.doc,.docx,audio/*,video/*';
 
   constructor() {
     afterNextRender(() => {
@@ -124,5 +134,69 @@ export class ChatInputComponent {
 
   closeDropdown(): void {
     this.isDropdownOpen.set(false);
+  }
+
+  // ====================== Anexos ======================
+
+  openFilePicker(): void {
+    this.fileInput?.nativeElement?.click();
+  }
+
+  handleFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    if (files.length > 0) {
+      this.onAttach.emit(files);
+    }
+    // Permite reanexar o mesmo arquivo limpando o valor
+    input.value = '';
+  }
+
+  removeAttachment(index: number): void {
+    this.onRemoveAttachment.emit(index);
+  }
+
+  // ====================== Gravação de áudio ======================
+
+  async toggleRecording(): Promise<void> {
+    if (this.isRecording()) {
+      this.stopRecording();
+      return;
+    }
+    await this.startRecording();
+  }
+
+  private async startRecording(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.recordedChunks = [];
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          this.recordedChunks.push(e.data);
+        }
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+        stream.getTracks().forEach((t) => t.stop());
+        if (blob.size > 0) {
+          const file = new File([blob], `gravacao-${Date.now()}.webm`, { type: 'audio/webm' });
+          this.onAttach.emit([file]);
+        }
+        this.isRecording.set(false);
+      };
+      this.mediaRecorder = recorder;
+      recorder.start();
+      this.isRecording.set(true);
+    } catch (error) {
+      console.warn('Não foi possível acessar o microfone:', error);
+      this.isRecording.set(false);
+    }
+  }
+
+  private stopRecording(): void {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+    }
   }
 }

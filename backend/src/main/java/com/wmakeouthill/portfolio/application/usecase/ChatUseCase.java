@@ -2,6 +2,7 @@ package com.wmakeouthill.portfolio.application.usecase;
 
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
+import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.port.in.GerenciarHistoricoChatPort;
 import com.wmakeouthill.portfolio.domain.entity.MensagemChat;
 import com.wmakeouthill.portfolio.domain.service.PortfolioPromptService;
@@ -57,6 +58,64 @@ public class ChatUseCase {
         registrarRespostaNoHistorico(sessionId, resposta);
 
         return resposta;
+    }
+
+    /**
+     * Variante multimodal: além do texto, processa anexos de mídia (imagem,
+     * áudio, vídeo, documento) que são enviados inline ao Gemini.
+     *
+     * <p>
+     * No histórico, guarda apenas a mensagem textual acrescida de placeholders
+     * dos anexos, evitando estourar o orçamento de tokens com conteúdo binário.
+     * </p>
+     */
+    public ChatResponse executeMultimodal(ChatRequest request, java.util.List<MediaPart> media,
+            String sessionId, String language) {
+        java.util.List<MediaPart> anexos = media == null ? java.util.Collections.emptyList() : media;
+        String mensagemUsuarioTexto = normalizarMensagem(request);
+
+        if (mensagemUsuarioTexto.isBlank() && anexos.isEmpty()) {
+            return new ChatResponse("");
+        }
+
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = gerarSessionIdFallback();
+        }
+
+        // Texto persistido no histórico = mensagem + placeholders dos anexos
+        String textoHistorico = montarTextoComPlaceholders(mensagemUsuarioTexto, anexos);
+        MensagemChat mensagemUsuario = MensagemChat.criarMensagemUsuario(textoHistorico);
+        gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemUsuario);
+
+        // Texto enviado à IA: se não houver texto, instrui a analisar os anexos
+        String mensagemParaIa = mensagemUsuarioTexto.isBlank()
+                ? "Analise o(s) anexo(s) que enviei e responda de forma útil."
+                : mensagemUsuarioTexto;
+
+        String systemPrompt = portfolioPromptService.obterSystemPromptOtimizado(mensagemParaIa, language);
+        var historico = gerenciarHistoricoChatPort.obterHistorico(sessionId);
+        TokenBudgetResult budgetResult = tokenBudgetService.otimizar(systemPrompt, historico, mensagemParaIa);
+
+        ChatResponse resposta = aiChatRouter.chat(
+                budgetResult.systemPromptOtimizado(),
+                budgetResult.historicoOtimizado(),
+                mensagemParaIa,
+                request.modeloEfetivo(),
+                anexos);
+        registrarRespostaNoHistorico(sessionId, resposta);
+
+        return resposta;
+    }
+
+    private String montarTextoComPlaceholders(String mensagem, java.util.List<MediaPart> anexos) {
+        StringBuilder sb = new StringBuilder(mensagem == null ? "" : mensagem);
+        for (MediaPart mp : anexos) {
+            if (!sb.isEmpty()) {
+                sb.append("\n");
+            }
+            sb.append(mp.descricaoPlaceholder());
+        }
+        return sb.toString();
     }
 
     private String gerarSessionIdFallback() {

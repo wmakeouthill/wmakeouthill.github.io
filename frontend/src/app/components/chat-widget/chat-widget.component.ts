@@ -17,7 +17,7 @@ import { ChatService, ChatResponse, AIModel } from '../../services/chat.service'
 import { MarkdownChatService } from '../../services/markdown-chat.service';
 import { ChatFloatingButtonComponent } from './components/chat-floating-button.component';
 import { ChatHeaderComponent } from './components/chat-header.component';
-import { ChatMessageComponent, ChatMessage } from './components/chat-message.component';
+import { ChatMessageComponent, ChatMessage, AttachmentMeta, classificarAnexo } from './components/chat-message.component';
 import { ChatInputComponent } from './components/chat-input.component';
 import { ChatLoadingComponent } from './components/chat-loading.component';
 import { useChatScroll, scrollToBottom } from './composables/use-chat-scroll';
@@ -29,14 +29,15 @@ import {
   obterOuGerarSessionId,
   salvarMensagens,
   carregarMensagens,
-  limparSessionStorage
-} from '../../utils/session-storage.util';
+  limparChat
+} from '../../utils/chat-storage.util';
 import { I18nService } from '../../i18n/i18n.service';
 
 interface ChatMessageRaw {
   from: 'user' | 'assistant';
   text: string;
   timestamp: string | Date;
+  attachments?: AttachmentMeta[];
 }
 
 @Component({
@@ -70,6 +71,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   messages = signal<ChatMessage[]>([]);
   unreadCount = signal(0);
   selectedModel = signal<AIModel>('gemini');
+  pendingAttachments = signal<File[]>([]);
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
@@ -82,7 +84,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }));
 
   readonly canSend = computed(
-    () => this.inputText().trim().length > 0 && !this.isLoading()
+    () => (this.inputText().trim().length > 0 || this.pendingAttachments().length > 0) && !this.isLoading()
   );
 
   private readonly outsideClickDestroy = useOutsideClick(this.hostElement, this.isOpen);
@@ -155,14 +157,28 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.inputText.set(value);
   }
 
+  handleAttach(files: File[]): void {
+    if (!files || files.length === 0) {
+      return;
+    }
+    this.pendingAttachments.update((arr) => [...arr, ...files]);
+  }
+
+  handleRemoveAttachment(index: number): void {
+    this.pendingAttachments.update((arr) => arr.filter((_, i) => i !== index));
+  }
+
   sendMessage(): void {
     const text = this.inputText().trim();
-    if (!this.canSendMessage(text)) {
+    const files = this.pendingAttachments();
+    if (!this.canSendMessage(text, files)) {
       return;
     }
 
-    this.chatMessagesHandlers.addUserMessage(text);
+    const attachmentMetas = files.map((f) => this.toAttachmentMeta(f));
+    this.chatMessagesHandlers.addUserMessage(text, attachmentMetas);
     this.inputText.set('');
+    this.pendingAttachments.set([]);
     this.isLoading.set(true);
 
     // Scroll após mensagem do usuário
@@ -173,7 +189,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
-    this.currentRequest = this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel()).subscribe({
+    const request$ = files.length > 0
+      ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel())
+      : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
+
+    this.currentRequest = request$.subscribe({
       next: (response: ChatResponse) => {
         this.currentRequest = undefined;
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
@@ -195,6 +215,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
+  private toAttachmentMeta(file: File): AttachmentMeta {
+    const kind = classificarAnexo(file.type, file.name);
+    const meta: AttachmentMeta = { name: file.name, mime: file.type, kind };
+    if (kind === 'image') {
+      meta.previewUrl = URL.createObjectURL(file);
+    }
+    return meta;
+  }
+
   cancelarMensagem(): void {
     if (this.currentRequest) {
       this.currentRequest.unsubscribe();
@@ -204,8 +233,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.focarInput();
   }
 
-  private canSendMessage(text: string): boolean {
-    return text.length > 0 && !this.isLoading();
+  private canSendMessage(text: string, files: File[] = []): boolean {
+    return (text.length > 0 || files.length > 0) && !this.isLoading();
   }
 
   private configureChatOpenEffects(): void {
@@ -311,7 +340,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         mensagens.push({
           from: msg.from,
           text: msg.text,
-          timestamp
+          timestamp,
+          ...(msg.attachments && msg.attachments.length > 0 ? { attachments: msg.attachments } : {})
         });
       }
     }
@@ -323,11 +353,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     effect(() => {
       const currentMessages = this.messages();
       if (currentMessages.length > 0) {
-        // Remove HTML antes de salvar (não é serializável)
+        // Remove HTML (não serializável) e dados pesados (previewUrl/audioUrl/data-url)
         const mensagensParaSalvar = currentMessages.map(msg => ({
           from: msg.from,
           text: msg.text,
-          timestamp: msg.timestamp.toISOString()
+          timestamp: msg.timestamp.toISOString(),
+          ...(msg.attachments && msg.attachments.length > 0
+            ? { attachments: msg.attachments.map(a => ({ name: a.name, mime: a.mime, kind: a.kind })) }
+            : {})
         }));
         salvarMensagens(mensagensParaSalvar);
       }
@@ -343,7 +376,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.marcarComoLidas();
 
     // Limpa sessionStorage (remove sessionId e mensagens)
-    limparSessionStorage();
+    limparChat();
 
     // Gera novo sessionId
     this.sessionId = obterOuGerarSessionId();

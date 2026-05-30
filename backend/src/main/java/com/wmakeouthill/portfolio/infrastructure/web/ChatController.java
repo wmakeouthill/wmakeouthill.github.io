@@ -2,22 +2,32 @@ package com.wmakeouthill.portfolio.infrastructure.web;
 
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
+import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.usecase.ChatUseCase;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.GET, RequestMethod.POST,
         RequestMethod.OPTIONS })
+// Limites de upload multipart configurados em application.properties
+// (spring.servlet.multipart.max-file-size / max-request-size)
 @RequiredArgsConstructor
 public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
@@ -38,6 +48,50 @@ public class ChatController {
             org.slf4j.LoggerFactory.getLogger(ChatController.class)
                     .error("Erro ao processar mensagem de chat", e);
             // Retorna resposta de erro amigável
+            return ResponseEntity
+                    .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ChatResponse("Erro ao processar mensagem. Tente novamente."));
+        }
+    }
+
+    private static final int MAX_ARQUIVOS = 5;
+    private static final long MAX_TAMANHO_BYTES = 20L * 1024 * 1024; // 20MB por arquivo
+
+    @PostMapping(value = "/multimodal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ChatResponse> chatMultimodal(
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "model", required = false) String model,
+            @RequestParam(value = "files", required = false) MultipartFile[] files,
+            HttpServletRequest httpRequest) {
+        try {
+            List<MediaPart> media = new ArrayList<>();
+            if (files != null) {
+                if (files.length > MAX_ARQUIVOS) {
+                    return ResponseEntity.badRequest()
+                            .body(new ChatResponse("Máximo de " + MAX_ARQUIVOS + " arquivos por mensagem."));
+                }
+                for (MultipartFile file : files) {
+                    if (file == null || file.isEmpty()) {
+                        continue;
+                    }
+                    if (file.getSize() > MAX_TAMANHO_BYTES) {
+                        return ResponseEntity.badRequest().body(new ChatResponse(
+                                "O arquivo '" + file.getOriginalFilename() + "' excede o limite de 20MB."));
+                    }
+                    String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+                    media.add(new MediaPart(file.getContentType(), base64, file.getOriginalFilename()));
+                }
+            }
+
+            String sessionId = extrairSessionId(httpRequest);
+            String language = extrairIdioma(httpRequest);
+            ChatRequest request = new ChatRequest(message == null ? "" : message,
+                    model == null || model.isBlank() ? "gemini" : model);
+            ChatResponse response = chatUseCase.executeMultimodal(request, media, sessionId, language);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                    .error("Erro ao processar mensagem multimodal", e);
             return ResponseEntity
                     .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ChatResponse("Erro ao processar mensagem. Tente novamente."));

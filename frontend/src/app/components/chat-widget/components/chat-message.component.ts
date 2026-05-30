@@ -2,11 +2,33 @@ import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtml } from '@angular/platform-browser';
 
+export type AttachmentKind = 'image' | 'pdf' | 'audio' | 'video' | 'doc';
+
+export interface AttachmentMeta {
+  name: string;
+  mime: string;
+  kind: AttachmentKind;
+  /** Preview/dataUrl em memória (não persistido no localStorage). */
+  previewUrl?: string;
+}
+
 export interface ChatMessage {
   from: 'user' | 'assistant';
   text: string;
   html?: SafeHtml;
   timestamp: Date;
+  /** Anexos enviados pelo usuário (metadados para exibição). */
+  attachments?: AttachmentMeta[];
+  /** Áudio TTS da resposta do assistente (object URL ou data URL). */
+  audioUrl?: string;
+}
+
+export function classificarAnexo(mime: string, name: string): AttachmentKind {
+  if (mime.startsWith('image/')) return 'image';
+  if (mime.startsWith('audio/')) return 'audio';
+  if (mime.startsWith('video/')) return 'video';
+  if (mime === 'application/pdf' || name.toLowerCase().endsWith('.pdf')) return 'pdf';
+  return 'doc';
 }
 
 @Component({
