@@ -1,43 +1,32 @@
-<section id="skills" class="section skills">
-  <div class="container">
-    <div class="section-title">
-      <h2>{{ 'skills.title' | translate }}</h2>
-      <p class="section-subtitle">{{ 'hero.tagline' | translate }}</p>
-    </div>
+<section id="skills" class="block wrap">
+  <div class="section-title reveal">
+    <span class="eyebrow">Stack técnica</span>
+    <h2>{{ 'skills.title' | translate }}</h2>
+    <p>{{ 'hero.tagline' | translate }}</p>
+  </div>
 
-    <div class="skills-categories">
-      @for (category of categories; track category.key) {
-        <div class="category-section">
-          <h3 class="category-title">
-            <span class="category-icon">{{ category.icon }}</span>
-            {{ category.labelKey | translate }}
-          </h3>
-          <div class="skills-grid">
-            @for (skill of getSkillsByCategory(category.key); track skill.name) {
-                  <div class="skill-card">
-                    <div class="skill-chip">
-                        <span class="skill-icon">
-                          @if (isSvg(skill.icon)) {
-                            <img src="assets/icons/{{ skill.icon }}" alt="{{ skill.name }}" width="20" height="20" />
-                          } @else {
-                            {{ skill.icon }}
-                          }
-                        </span>
-                        <span class="skill-name">{{ skill.name }}</span>
-                        <span class="skill-badge">{{ ('skills.level.' + skill.levelKey) | translate }}</span>
-                      </div>
-                    <div class="skill-meta">
-                      @if (skill.projectsCount) {
-                        <small class="projects-count">
-                          {{ skill.projectsCount }}{{ skill.projectsCountPlus ? '+' : '' }} {{ 'skills.projectsCount' | translate }}
-                        </small>
-                      }
-                    </div>
-                  </div>
-            }
-          </div>
+  <div class="skill-cats">
+    @for (category of categories; track category.key) {
+      <div class="skill-cat reveal" [class.full]="category.key === 'backend'">
+        <div class="skill-cat-head">
+          <h4><span class="cat-dot"></span>{{ category.labelKey | translate }}</h4>
+          <span class="cnum">{{ getSkillsByCategory(category.key).length }}</span>
         </div>
-      }
-    </div>
+        <div class="skill-list">
+          @for (skill of getSkillsByCategory(category.key); track skill.name) {
+            <span class="skill">
+              <i class="lv {{ skill.levelKey }}"></i>
+              {{ skill.name }}
+            </span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="skill-legend reveal">
+    <span><i class="lv production"></i> {{ 'skills.level.production' | translate }}</span>
+    <span><i class="lv advanced"></i> {{ 'skills.level.advanced' | translate }}</span>
+    <span><i class="lv intermediate"></i> {{ 'skills.level.intermediate' | translate }}</span>
   </div>
 </section>

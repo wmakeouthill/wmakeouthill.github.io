@@ -1,4 +1,7 @@
 <header class="chat-header">
+  <div class="chat-avatar">
+    <img src="assets/ai-avatar.png" alt="" />
+  </div>
   <div class="chat-header-info">
     <h2>{{ 'chat.headerTitle' | translate }}</h2>
     <p>{{ 'chat.headerSubtitle' | translate }}</p>
@@ -18,7 +21,7 @@
     </button>
 
     <button type="button" class="chat-close-button" (click)="onClose.emit()" [aria-label]="'chat.close' | translate">
-      x
+      ×
     </button>
   </div>
 </header>

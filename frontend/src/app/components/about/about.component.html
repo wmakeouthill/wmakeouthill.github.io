@@ -1,71 +1,41 @@
-<section id="about" class="section about">
-  <div class="container">
-    <div class="section-title">
-      <h2>{{ 'about.title' | translate }}</h2>
-      <p class="section-subtitle">{{ 'hero.tagline' | translate }}</p>
-    </div>
+<section id="about" class="block wrap">
+  <div class="section-title reveal">
+    <span class="eyebrow">Quem sou</span>
+    <h2>{{ 'about.title' | translate }}</h2>
+  </div>
 
-    <div class="about-content">
-      <div class="about-image">
-        <div class="image-frame">
-          <img src="/wesley-photo.png" alt="Profile" class="about-photo" />
-        </div>
-      </div>
+  <div class="about-grid">
+    <div class="bio reveal">
+      @for (paragraph of personalInfo.bio(); track $index) {
+        <p>{{ paragraph }}</p>
+      }
 
-      <div class="about-text">
-        <div class="about-intro">
-          <h3>{{ personalInfo.name }}</h3>
-          <p class="title">{{ personalInfo.title() }}</p>
-        </div>
-
-        <div class="about-bio">
-          @for (paragraph of personalInfo.bio(); track $index) {
-          <p>{{ paragraph }}</p>
-          }
-        </div>
-
-        <div class="about-highlights" #highlightsContainer>
-          @for (highlight of highlights(); track highlight.id) {
-          <div class="highlight-card">
-            <span class="highlight-icon">{{ highlight.icon }}</span>
-            <div class="highlight-content">
-              <span class="highlight-title">{{ highlight.title }}</span>
-              <span class="highlight-value">{{ highlight.value }}</span>
-            </div>
-          </div>
-          }
-        </div>
-      </div>
-
-      <div class="about-info">
-        <div class="info-item">
-          <span class="info-label">📍 {{ 'about.location' | translate }}:</span>
-          <span class="info-value">{{ personalInfo.location }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">✉️ {{ 'about.email' | translate }}:</span>
-          <span class="info-value">{{ personalInfo.email }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">🎂 {{ 'about.age' | translate }}:</span>
-          <span class="info-value">{{ personalInfo.age }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">🚗 {{ 'about.driverLicense' | translate }}:</span>
-          <span class="info-value">{{ personalInfo.driverLicense }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">💼 {{ 'about.highlights.status.title' | translate }}:</span>
-          @if (personalInfo.available) {
-          <span class="info-value available">
-            <span class="status-dot"></span>
-            {{ 'about.highlights.status.value' | translate }}
-          </span>
-          } @else {
-          <span class="info-value">{{ 'about.notAvailable' | translate }}</span>
-          }
-        </div>
+      <div class="soft-title">Soft Skills</div>
+      <div class="chips">
+        @for (skill of softSkills(); track skill) {
+          <span class="chip">{{ skill }}</span>
+        }
       </div>
     </div>
+
+    <div class="info-card reveal">
+      <h4>Informações</h4>
+      <div class="info-row"><span class="k">Nome</span><span class="v">Wesley C. A. Correia</span></div>
+      <div class="info-row"><span class="k">{{ 'about.age' | translate }}</span><span class="v">{{ personalInfo.age }} anos</span></div>
+      <div class="info-row"><span class="k">{{ 'about.location' | translate }}</span><span class="v">{{ personalInfo.location }}</span></div>
+      <div class="info-row"><span class="k">Experiência</span><span class="v">{{ personalInfo.yearsOfExperience }} anos</span></div>
+      <div class="info-row"><span class="k">CNH</span><span class="v">{{ personalInfo.driverLicense }}</span></div>
+      <div class="info-row"><span class="k">Status</span><span class="v ok">● {{ 'about.highlights.status.value' | translate }}</span></div>
+    </div>
+  </div>
+
+  <div class="highlights" #highlightsContainer>
+    @for (highlight of highlights(); track highlight.id) {
+      <div class="hl reveal">
+        <div class="em">{{ highlight.icon }}</div>
+        <h5>{{ highlight.title }}</h5>
+        <p>{{ highlight.value }}</p>
+      </div>
+    }
   </div>
 </section>

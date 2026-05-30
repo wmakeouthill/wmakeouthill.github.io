@@ -1,43 +1,27 @@
-<section id="education" class="section education">
-  <div class="container">
-    <div class="section-title">
-      <h2>{{ 'education.title' | translate }}</h2>
-      <p class="section-subtitle">{{ 'hero.tagline' | translate }}</p>
-    </div>
+<section id="education" class="block wrap">
+  <div class="section-title reveal">
+    <span class="eyebrow">Formação</span>
+    <h2>{{ 'education.title' | translate }}</h2>
+  </div>
 
-    <div class="education-grid" #educationContainer>
-      @for (edu of education(); track edu.id) {
-      <div class="education-card">
-        <div class="card-icon">🎓</div>
-        <div class="edu-badge">
-          @if (edu.current) {
-          <span class="badge in-progress">{{ 'education.inProgress' | translate }}</span>
-          } @else {
-          <span class="badge completed">{{ 'education.completed' | translate }}</span>
-          }
+  <div class="edu-grid" #educationContainer>
+    @for (edu of education(); track edu.id) {
+      <div class="edu-card reveal">
+        <div class="edu-top">
+          <span class="edu-deg">{{ edu.degree }}</span>
+          <span class="edu-status" [class.prog]="edu.current">
+            {{ edu.current ? ('education.inProgress' | translate) : ('education.completed' | translate) }}
+          </span>
         </div>
-
-        <div class="card-content">
-          <h3 class="degree">{{ edu.degree }} {{ edu.field ? ('- ' + edu.field) : '' }}</h3>
-          <p class="institution">{{ edu.institution }}</p>
-
-          <div class="period">
-            📅 {{ formatDate(edu.startDate) }} - @if (edu.endDate) {
-            {{ formatDate(edu.endDate) }}
-            } @else { {{ 'experience.present' | translate }} }
-          </div>
-
-          @if (edu.description) {
-          <p class="description">{{ edu.description }}</p>
-          } @if (edu.grade) {
-          <div class="grade">
-            <span class="grade-label">{{ 'education.grade' | translate }}:</span>
-            <span class="grade-value">{{ edu.grade }}</span>
-          </div>
-          }
+        <div class="edu-field">{{ edu.field }}</div>
+        <div class="edu-inst">{{ edu.institution }}</div>
+        @if (edu.description) {
+          <p class="edu-desc">{{ edu.description }}</p>
+        }
+        <div class="edu-date">
+          {{ formatDate(edu.startDate) }} - @if (edu.endDate) { {{ formatDate(edu.endDate) }} } @else { {{ 'experience.present' | translate }} }
         </div>
       </div>
-      }
-    </div>
+    }
   </div>
 </section>

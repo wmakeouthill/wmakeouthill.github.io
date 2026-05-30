@@ -1,106 +1,67 @@
-<section id="contact" class="section contact">
-  <div class="container">
-    <div class="section-title">
-      <h2>{{ 'contact.title' | translate }}</h2>
-      <p class="section-subtitle">{{ 'contact.subtitle' | translate }}</p>
+<section id="contact" class="block wrap">
+  <div class="section-title reveal">
+    <span class="eyebrow">Contato</span>
+    <h2>{{ 'contact.title' | translate }}</h2>
+    <p>{{ 'contact.subtitle' | translate }}</p>
+  </div>
+
+  <div class="contact-grid">
+    <div class="reveal">
+      <h3>{{ 'contact.infoTitle' | translate }}</h3>
+      <p>{{ 'contact.infoDescription' | translate }}</p>
+
+      <div class="contact-list">
+        @for (info of contactInfo; track info.labelKey) {
+          <a [href]="info.link" target="_blank" rel="noopener noreferrer" class="contact-item">
+            <span class="ic">
+              <img [src]="info.iconSrc" [alt]="(info.labelKey | translate) + ' icon'" width="24" height="24" />
+            </span>
+            <span>
+              <span class="k">{{ info.labelKey | translate }}</span>
+              <span class="v">{{ info.value }}</span>
+            </span>
+          </a>
+        }
+      </div>
     </div>
 
-    <div class="contact-content">
-      <!-- Contact Info -->
-      <div class="contact-info">
-        <h3>{{ 'contact.infoTitle' | translate }}</h3>
-        <p class="info-description">
-          {{ 'contact.infoDescription' | translate }}
-        </p>
+    <form class="form reveal" (ngSubmit)="onSubmit()" [class.submitting]="isSubmitting">
+      <h3>{{ 'contact.formTitle' | translate }}</h3>
+      <p class="fsub">{{ 'contact.formDescription' | translate }}</p>
 
-        <div class="contact-methods">
-          @for (info of contactInfo; track info.labelKey) {
-          <a [href]="info.link" target="_blank" rel="noopener noreferrer" class="contact-method">
-            <span class="method-icon">
-              <img [src]="info.iconSrc" [alt]="(info.labelKey | translate) + ' icon'" width="28" height="28" />
-            </span>
-            <div class="method-content">
-              <span class="method-label">{{ info.labelKey | translate }}</span>
-              <span class="method-value">{{ info.value }}</span>
-            </div>
-          </a>
-          }
-        </div>
-
-      </div>
-
-      <!-- Contact Form -->
-      <div class="contact-form-wrapper">
-        <h3>{{ 'contact.formTitle' | translate }}</h3>
-        <p class="form-description">
-          {{ 'contact.formDescription' | translate }}
-        </p>
-
-        <!-- Feedback Message -->
-        <div
-          *ngIf="submitMessage"
-          class="submit-message"
-          [class.success]="submitSuccess"
-          [class.error]="!submitSuccess"
-        >
+      @if (submitMessage) {
+        <div class="submit-message" [class.success]="submitSuccess" [class.error]="!submitSuccess">
           {{ submitMessage }}
         </div>
+      }
 
-        <form class="contact-form" (ngSubmit)="onSubmit()" [class.submitting]="isSubmitting">
-          <div class="form-group">
-            <label for="name">{{ 'contact.name' | translate }}</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              [(ngModel)]="formData.name"
-              [placeholder]="'contact.namePlaceholder' | translate"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="email">{{ 'contact.email' | translate }}</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              [(ngModel)]="formData.email"
-              [placeholder]="'contact.emailPlaceholder' | translate"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="subject">{{ 'contact.subject' | translate }}</label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              [(ngModel)]="formData.subject"
-              [placeholder]="'contact.subjectPlaceholder' | translate"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="message">{{ 'contact.message' | translate }}</label>
-            <textarea
-              id="message"
-              name="message"
-              [(ngModel)]="formData.message"
-              rows="5"
-              [placeholder]="'contact.messagePlaceholder' | translate"
-              required
-            ></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-accent btn-block" [disabled]="isSubmitting">
-            <span *ngIf="!isSubmitting">{{ 'contact.send' | translate }}</span>
-            <span *ngIf="isSubmitting">{{ 'contact.sending' | translate }}</span>
-          </button>
-        </form>
+      <div class="field">
+        <label for="name">{{ 'contact.name' | translate }}</label>
+        <input type="text" id="name" name="name" [(ngModel)]="formData.name" [placeholder]="'contact.namePlaceholder' | translate" required />
       </div>
-    </div>
+
+      <div class="field">
+        <label for="email">{{ 'contact.email' | translate }}</label>
+        <input type="email" id="email" name="email" [(ngModel)]="formData.email" [placeholder]="'contact.emailPlaceholder' | translate" required />
+      </div>
+
+      <div class="field">
+        <label for="subject">{{ 'contact.subject' | translate }}</label>
+        <input type="text" id="subject" name="subject" [(ngModel)]="formData.subject" [placeholder]="'contact.subjectPlaceholder' | translate" required />
+      </div>
+
+      <div class="field">
+        <label for="message">{{ 'contact.message' | translate }}</label>
+        <textarea id="message" name="message" [(ngModel)]="formData.message" rows="5" [placeholder]="'contact.messagePlaceholder' | translate" required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-accent" [disabled]="isSubmitting">
+        @if (isSubmitting) {
+          {{ 'contact.sending' | translate }}
+        } @else {
+          {{ 'contact.send' | translate }}
+        }
+      </button>
+    </form>
   </div>
 </section>

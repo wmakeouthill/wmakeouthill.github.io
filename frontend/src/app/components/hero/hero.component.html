@@ -1,172 +1,66 @@
-﻿<section id="hero" class="hero">
-  <div class="hero-background">
-    <div class="hero-gradient"></div>
-    <div class="hero-particles"></div>
-  </div>
-
-  <div class="hero-content container">
-    <!-- Desktop layout: full text section -->
-    <div class="hero-text fade-in-up">
-      <div class="java-code-line">
-        <span class="java-class">System</span><span class="java-dot">.</span><span class="java-method">out</span><span
-          class="java-dot">.</span><span class="java-method">println</span><span class="java-paren">(</span><span
-          class="java-string">"Hello World, I am: "</span><span class="java-paren">)</span><span
-          class="java-semicolon">;</span>
+<header class="hero wrap" id="hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="code-line">
+        <span class="cls">System</span><span class="pn">.</span><span class="mth">out</span><span class="pn">.</span><span class="mth">println</span><span class="pn">(</span><span class="str">"Hello World, I am: "</span><span class="pn">);</span>
       </div>
-      <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
-
-      <div class="hero-title">
-        <span class="typing-text">{{ displayedText() }}</span>
-        <span class="cursor">|</span>
+      <h1><span class="accent">Wesley</span> de Carvalho<br />Augusto Correia</h1>
+      <div class="hero-role">
+        <span class="typing">{{ displayedText() }}</span><span class="typing-cursor">|</span>
       </div>
-
-      <p class="hero-tagline">
-        {{ 'hero.tagline' | translate }}
-      </p>
+      <p class="hero-tagline">{{ 'hero.tagline' | translate }}</p>
 
       <div class="hero-cta">
         <button class="btn btn-accent" (click)="scrollToSection('projects')">
-          <span>{{ 'hero.viewProjects' | translate }}</span>
-          <span class="btn-icon">→</span>
+          {{ 'hero.viewProjects' | translate }} <span class="ic">→</span>
         </button>
         <button class="btn btn-outline" (click)="openCvModal()">
-          <span>{{ 'hero.myResume' | translate }}</span>
-          <span class="btn-icon">📄</span>
+          {{ 'hero.myResume' | translate }} <span class="ic">📄</span>
         </button>
-        <div class="nebula-btn-wrapper">
-          <img src="/nebula.gif" class="nebula-lottie" alt="" aria-hidden="true" />
-          <div class="nebula-stars-container">
-            @for (star of starData; track $index) {
-              <div class="nebula-star {{ star.size }}"
-                   [style.left]="'calc(50% + ' + star.x + 'px)'"
-                   [style.top]="'calc(50% + ' + star.y + 'px)'"
-                   [style.background]="star.color"
-                   [style.box-shadow]="star.glow">
-              </div>
-            }
-          </div>
-          <a class="btn btn-outline btn-github-stats" href="https://github-stats-wmakeouthill.vercel.app/" target="_blank" rel="noopener noreferrer">
-            <span class="btn-github-stats-star">✦</span>
-            <span>Github Stats</span>
-            <span class="btn-github-stats-star">✦</span>
-          </a>
+        <a class="github-stats-btn btn btn-outline" href="https://github-stats-wmakeouthill.vercel.app/" target="_blank" rel="noopener noreferrer">
+          <span class="star">✦</span> Github Stats <span class="star">✦</span>
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="num">6+</div>
+          <div class="lbl">{{ 'hero.yearsExperience' | translate }}</div>
         </div>
-      </div>
-
-      <div class="hero-stats-wrapper">
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">5+</span>
-            <span class="stat-label">{{ 'hero.yearsExperience' | translate }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">22+</span>
-            <span class="stat-label">{{ 'hero.completedProjects' | translate }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">50+</span>
-            <span class="stat-label">{{ 'hero.technologies' | translate }}</span>
-          </div>
+        <div class="stat">
+          <div class="num">22+</div>
+          <div class="lbl">{{ 'hero.completedProjects' | translate }}</div>
         </div>
-
-        <!-- Scroll indicator inline (visível em telas maiores) - removido daqui para evitar duplicação -->
-      </div>
-    </div>
-
-    <!-- Image section -->
-    <div class="hero-image fade-in-right">
-      <div class="image-wrapper">
-        <div class="image-glow"></div>
-        <img src="/wesley-photo.png" alt="Profile" class="profile-image" />
-        <div #octocatLottie class="octocat-lottie"></div>
-        <div class="image-decoration"></div>
-      </div>
-    </div>
-
-    <!-- Mobile layout: greeting and name first -->
-    <div class="hero-greeting-section fade-in-up">
-      <div class="java-code-line">
-        <span class="java-class">System</span><span class="java-dot">.</span><span class="java-method">out</span><span
-          class="java-dot">.</span><span class="java-method">println</span><span class="java-paren">(</span><span
-          class="java-string">"Hello World, I am"</span><span class="java-paren">)</span><span
-          class="java-semicolon">;</span>
-      </div>
-      <h1 class="hero-name"><span class="text-accent">Wesley</span> de Carvalho Augusto Correia</h1>
-    </div>
-
-    <!-- Mobile layout: title, tagline, cta and stats -->
-    <div class="hero-mobile-content fade-in-up">
-      <div class="hero-title">
-        <span class="typing-text">{{ displayedText() }}</span>
-        <span class="cursor">|</span>
-      </div>
-
-      <p class="hero-tagline">
-        {{ 'hero.tagline' | translate }}
-      </p>
-
-      <div class="hero-cta">
-        <button class="btn btn-accent" (click)="scrollToSection('projects')">
-          <span>{{ 'hero.viewProjects' | translate }}</span>
-          <span class="btn-icon">→</span>
-        </button>
-        <button class="btn btn-outline" (click)="openCvModal()">
-          <span>{{ 'hero.myResume' | translate }}</span>
-          <span class="btn-icon">📄</span>
-        </button>
-        <div class="nebula-btn-wrapper">
-          <img src="/nebula.gif" class="nebula-lottie" alt="" aria-hidden="true" />
-          <div class="nebula-stars-container">
-            @for (star of starData; track $index) {
-              <div class="nebula-star {{ star.size }}"
-                   [style.left]="'calc(50% + ' + star.x + 'px)'"
-                   [style.top]="'calc(50% + ' + star.y + 'px)'"
-                   [style.background]="star.color"
-                   [style.box-shadow]="star.glow">
-              </div>
-            }
-          </div>
-          <a class="btn btn-outline btn-github-stats" href="https://github-stats-wmakeouthill.vercel.app/" target="_blank" rel="noopener noreferrer">
-            <span class="btn-github-stats-star">✦</span>
-            <span>Github Stats</span>
-            <span class="btn-github-stats-star">✦</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="hero-stats-wrapper">
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">5+</span>
-            <span class="stat-label">{{ 'hero.yearsExperience' | translate }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">22+</span>
-            <span class="stat-label">{{ 'hero.completedProjects' | translate }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">50+</span>
-            <span class="stat-label">{{ 'hero.technologies' | translate }}</span>
-          </div>
+        <div class="stat">
+          <div class="num">80+</div>
+          <div class="lbl">{{ 'hero.technologies' | translate }}</div>
         </div>
       </div>
     </div>
-    <!-- indicador inline agora posicionado após a imagem para não afetar o layout da mesma -->
-    <div class="hero-scroll-row">
-      <div class="scroll-indicator-inline" (click)="scrollToSection('about')" (keydown.enter)="scrollToSection('about')"
-        (keydown.space)="scrollToSection('about')" tabindex="0" role="button" aria-label="Scroll para seção sobre">
-        <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
-        <div class="scroll-arrow">↓</div>
+
+    <div class="hero-photo reveal">
+      <div class="photo-ring">
+        <div class="photo-glow"></div>
+        <div class="photo-deco"></div>
+        <img class="profile" src="assets/wesley-photo.png" alt="Wesley de Carvalho Augusto Correia" />
+        <div class="octocat">
+          <video src="assets/octocat.mp4" autoplay loop muted playsinline></video>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="scroll-indicator" (click)="scrollToSection('about')" (keydown.enter)="scrollToSection('about')"
-    (keydown.space)="scrollToSection('about')" tabindex="0" role="button" aria-label="Scroll para seção sobre">
-    <span class="scroll-text">{{ 'hero.scroll' | translate }}</span>
-    <div class="scroll-arrow">↓</div>
+  <div
+    class="scroll-hint"
+    (click)="scrollToSection('about')"
+    (keydown.enter)="scrollToSection('about')"
+    (keydown.space)="scrollToSection('about')"
+    tabindex="0"
+    role="button"
+    aria-label="Scroll para seção sobre"
+  >
+    <span>{{ 'hero.scroll' | translate }}</span><span class="arr">↓</span>
   </div>
-</section>
+</header>
 
-<!-- CV Modal -->
 <app-cv-modal [isOpen]="showCvModal" (close)="closeCvModal()"></app-cv-modal>

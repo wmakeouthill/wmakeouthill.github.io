@@ -1,8 +1,8 @@
-<section id="certifications" class="section certifications" #certificationsSection>
-  <div class="container">
-    <div class="section-title">
+<section id="certifications" class="block wrap certifications" #certificationsSection>
+    <div class="section-title reveal">
+      <span class="eyebrow">Credenciais</span>
       <h2>{{ 'certifications.title' | translate }}</h2>
-      <p class="section-subtitle">{{ 'certifications.subtitle' | translate }}</p>
+      <p>{{ 'certifications.subtitle' | translate }}</p>
     </div>
 
     <!-- Loading State -->
@@ -35,7 +35,7 @@
       <div class="certifications-grid">
         @for (cert of paginatedCertificados(); track cert.sha) {
           <div
-            class="cert-card"
+            class="cert-card reveal"
             (click)="openCertificado(cert)"
             tabindex="0"
             role="button"
@@ -120,7 +120,6 @@
         </div>
       }
     }
-  </div>
 </section>
 
 <!-- Modal de Visualização do Certificado -->

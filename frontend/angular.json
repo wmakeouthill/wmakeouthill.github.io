@@ -34,7 +34,10 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "src/prototype-portfolio.css",
+              "src/prototype-features.css",
+              "src/prototype-enhance.css"
             ]
           },
           "configurations": {

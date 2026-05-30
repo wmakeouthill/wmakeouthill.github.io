@@ -1,183 +1,75 @@
 .chat-header {
-  padding: 0.85rem 1.1rem;
-  border-bottom: 1px solid rgba(219, 194, 125, 0.25);
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-  background: rgba(10, 10, 10, 0.96);
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--bg-card));
   flex-shrink: 0;
-  /* Evita que o header seja comprimido */
+}
+
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--color-accent);
+  flex-shrink: 0;
+}
+
+.chat-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .chat-header-info {
   flex: 1;
   min-width: 0;
-  /* Permite que o texto quebre se necessário */
 }
 
 .chat-header-info h2 {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  font-size: 0.98rem;
+  font-weight: 600;
 }
 
 .chat-header-info p {
-  margin: 0.15rem 0 0;
-  font-size: 0.75rem;
+  margin: 0.1rem 0 0;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
 }
 
 .chat-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.chat-audio-toggle {
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid rgba(219, 194, 125, 0.24);
+.chat-audio-toggle,
+.chat-close-button {
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: all var(--transition-fast);
+  transition: all var(--t-fast);
 }
 
 .chat-audio-toggle:hover,
-.chat-audio-toggle.active {
-  border-color: rgba(219, 194, 125, 0.65);
+.chat-audio-toggle.active,
+.chat-close-button:hover {
   color: var(--color-accent);
+  border-color: var(--border-accent);
   background: rgba(219, 194, 125, 0.12);
 }
 
-/* Model Toggle Button */
-.chat-model-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.25rem;
-  margin-right: 0.25rem;
-  flex-shrink: 0;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform var(--transition-fast);
-}
-
-.chat-model-toggle:hover {
-  transform: scale(1.05);
-}
-
-.chat-model-toggle:active {
-  transform: scale(0.95);
-}
-
-.model-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.5rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.model-badge.gemini {
-  background: linear-gradient(135deg, #4285f4, #00bcd4);
-  color: white;
-}
-
-.model-badge.gpt {
-  background: linear-gradient(135deg, #10a37f, #1a7f64);
-  color: white;
-}
-
 .chat-close-button {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
+  color: #fff;
   font-size: 1rem;
-  padding: 0.15rem;
-  flex-shrink: 0;
-  /* Mantém o botão sempre visível */
-  min-width: 2rem;
-  /* Área de toque adequada para mobile */
-  min-height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: manipulation;
-  /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent;
-  /* Remove highlight no iOS */
-}
-
-.chat-close-button:hover {
-  color: var(--color-accent);
-}
-
-.chat-close-button:active {
-  transform: scale(0.95);
-}
-
-/* Responsividade para mobile */
-@media (max-width: 640px) {
-  .chat-header {
-    padding: 0.75rem 1rem;
-    padding-top: max(0.75rem, env(safe-area-inset-top, 0px) + 0.5rem);
-    /* Safe area para notch */
-  }
-
-  .chat-header-info h2 {
-    font-size: 0.9rem;
-  }
-
-  .chat-header-info p {
-    font-size: 0.7rem;
-  }
-
-  .chat-close-button {
-    font-size: 1.1rem;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
-  }
-
-  .chat-audio-toggle {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-header {
-    padding: 0.65rem 0.85rem;
-    padding-top: max(0.65rem, env(safe-area-inset-top, 0px) + 0.5rem);
-  }
-
-  .chat-header-info h2 {
-    font-size: 0.85rem;
-  }
-
-  .chat-header-info p {
-    font-size: 0.65rem;
-  }
 }
