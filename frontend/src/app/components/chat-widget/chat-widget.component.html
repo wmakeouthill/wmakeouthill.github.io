@@ -3,7 +3,8 @@
 
   @if (isOpen()) {
   <section class="chat-panel" aria-label="Chat com IA sobre o Wesley">
-    <app-chat-header (onClose)="toggleOpen()" />
+    <app-chat-header [audioResponseEnabled]="audioResponseEnabled()" (onToggleAudioResponse)="toggleAudioResponse()"
+      (onClose)="toggleOpen()" />
 
     <div class="chat-messages" role="log" #messagesContainer>
       @for (message of messages(); track message.timestamp) {
@@ -16,8 +17,9 @@
     </div>
 
     <app-chat-input [isLoading]="isLoading()" [inputText]="inputText()" [canSend]="canSend()" [shouldFocus]="isOpen()"
-      [selectedModel]="selectedModel()" (onInputChange)="handleInputChange($event)" (onSend)="sendMessage()"
-      (onCancel)="cancelarMensagem()"
+      [selectedModel]="selectedModel()" [attachments]="pendingAttachments()" (onInputChange)="handleInputChange($event)"
+      (onSend)="sendMessage()" (onCancel)="cancelarMensagem()" (onAttach)="handleAttach($event)"
+      (onRemoveAttachment)="handleRemoveAttachment($event)"
       (onNewConversation)="iniciarNovaConversa()" (onModelChange)="selectedModel.set($event)" />
   </section>
   }

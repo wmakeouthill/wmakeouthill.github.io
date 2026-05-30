@@ -2,8 +2,10 @@ package com.wmakeouthill.portfolio.infrastructure.web;
 
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
+import com.wmakeouthill.portfolio.application.dto.ChatTtsRequest;
 import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.usecase.ChatUseCase;
+import com.wmakeouthill.portfolio.infrastructure.ai.GeminiTtsAdapter;
 import com.wmakeouthill.portfolio.infrastructure.document.DocumentTextExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -35,6 +37,7 @@ public class ChatController {
 
     private final ChatUseCase chatUseCase;
     private final DocumentTextExtractor documentTextExtractor;
+    private final GeminiTtsAdapter geminiTtsAdapter;
 
     @PostMapping
     public ResponseEntity<ChatResponse> chat(
@@ -56,6 +59,20 @@ public class ChatController {
         }
     }
 
+    @PostMapping("/tts")
+    public ResponseEntity<ChatResponse> tts(@RequestBody ChatTtsRequest request) {
+        String texto = request == null || request.text() == null ? "" : request.text().trim();
+        if (texto.isBlank()) {
+            return ResponseEntity.badRequest().body(new ChatResponse("Texto obrigatório para gerar áudio."));
+        }
+
+        return geminiTtsAdapter.sintetizarWavBase64(texto)
+                .map(audio -> ResponseEntity.ok(new ChatResponse("", null, audio, null, null)))
+                .orElseGet(() -> ResponseEntity
+                        .status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE)
+                        .body(new ChatResponse("Não foi possível gerar áudio agora.")));
+    }
+
     private static final int MAX_ARQUIVOS = 5;
     private static final long MAX_TAMANHO_BYTES = 20L * 1024 * 1024; // 20MB por arquivo
 
@@ -63,6 +80,7 @@ public class ChatController {
     public ResponseEntity<ChatResponse> chatMultimodal(
             @RequestParam(value = "message", required = false) String message,
             @RequestParam(value = "model", required = false) String model,
+            @RequestParam(value = "audioResponse", required = false, defaultValue = "false") boolean audioResponse,
             @RequestParam(value = "files", required = false) MultipartFile[] files,
             HttpServletRequest httpRequest) {
         try {
@@ -110,7 +128,7 @@ public class ChatController {
             }
             ChatRequest request = new ChatRequest(mensagemFinal,
                     model == null || model.isBlank() ? "gemini" : model);
-            ChatResponse response = chatUseCase.executeMultimodal(request, media, sessionId, language);
+            ChatResponse response = chatUseCase.executeMultimodal(request, media, sessionId, language, audioResponse);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ChatController.class)

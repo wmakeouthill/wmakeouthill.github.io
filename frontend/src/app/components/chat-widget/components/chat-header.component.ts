@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../i18n/i18n.pipe';
 
@@ -11,5 +11,7 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
   styleUrls: ['./chat-header.component.css']
 })
 export class ChatHeaderComponent {
+  readonly audioResponseEnabled = input(false);
+  readonly onToggleAudioResponse = output<void>();
   readonly onClose = output<void>();
 }

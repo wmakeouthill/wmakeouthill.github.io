@@ -9,6 +9,7 @@ import com.wmakeouthill.portfolio.domain.service.PortfolioPromptService;
 import com.wmakeouthill.portfolio.domain.service.TokenBudgetService;
 import com.wmakeouthill.portfolio.domain.service.TokenBudgetService.TokenBudgetResult;
 import com.wmakeouthill.portfolio.infrastructure.ai.AIChatRouter;
+import com.wmakeouthill.portfolio.infrastructure.ai.GeminiTtsAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class ChatUseCase {
     private final GerenciarHistoricoChatPort gerenciarHistoricoChatPort;
     private final PortfolioPromptService portfolioPromptService;
     private final TokenBudgetService tokenBudgetService;
+    private final GeminiTtsAdapter geminiTtsAdapter;
 
     public ChatResponse execute(ChatRequest request, String sessionId, String language) {
         String mensagemUsuarioTexto = normalizarMensagem(request);
@@ -71,6 +73,11 @@ public class ChatUseCase {
      */
     public ChatResponse executeMultimodal(ChatRequest request, java.util.List<MediaPart> media,
             String sessionId, String language) {
+        return executeMultimodal(request, media, sessionId, language, false);
+    }
+
+    public ChatResponse executeMultimodal(ChatRequest request, java.util.List<MediaPart> media,
+            String sessionId, String language, boolean audioResponse) {
         java.util.List<MediaPart> anexos = media == null ? java.util.Collections.emptyList() : media;
         String mensagemUsuarioTexto = normalizarMensagem(request);
 
@@ -104,7 +111,7 @@ public class ChatUseCase {
                 anexos);
         registrarRespostaNoHistorico(sessionId, resposta);
 
-        return resposta;
+        return adicionarAudioSeSolicitado(resposta, audioResponse);
     }
 
     private String montarTextoComPlaceholders(String mensagem, java.util.List<MediaPart> anexos) {
@@ -137,6 +144,15 @@ public class ChatUseCase {
         }
         MensagemChat mensagemAssistente = MensagemChat.criarMensagemAssistente(resposta.reply());
         gerenciarHistoricoChatPort.adicionarMensagem(sessionId, mensagemAssistente);
+    }
+
+    private ChatResponse adicionarAudioSeSolicitado(ChatResponse resposta, boolean audioResponse) {
+        if (!audioResponse || resposta.reply() == null || resposta.reply().isBlank()) {
+            return resposta;
+        }
+        return geminiTtsAdapter.sintetizarWavBase64(resposta.reply())
+                .map(resposta::comAudio)
+                .orElse(resposta);
     }
 
     /**

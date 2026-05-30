@@ -72,6 +72,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   unreadCount = signal(0);
   selectedModel = signal<AIModel>('gemini');
   pendingAttachments = signal<File[]>([]);
+  audioResponseEnabled = signal(this.carregarPreferenciaAudio());
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
@@ -189,8 +190,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
-    const request$ = files.length > 0
-      ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel())
+    const request$ = files.length > 0 || this.audioResponseEnabled()
+      ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel(), this.audioResponseEnabled())
       : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
 
     this.currentRequest = request$.subscribe({
@@ -389,6 +390,18 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleAudioResponse(): void {
+    this.audioResponseEnabled.update((enabled) => {
+      const next = !enabled;
+      try {
+        localStorage.setItem('portfolio-chat-audio-response', String(next));
+      } catch {
+        // Mantem o estado em memoria quando localStorage nao estiver disponivel.
+      }
+      return next;
+    });
+  }
+
   private configureUnreadTracking(): void {
     effect(() => {
       const msgs = this.messages();
@@ -419,6 +432,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private marcarComoLidas(): void {
     this.lastProcessedLength = this.messages().length;
     this.unreadCount.set(0);
+  }
+
+  private carregarPreferenciaAudio(): boolean {
+    try {
+      return localStorage.getItem('portfolio-chat-audio-response') === 'true';
+    } catch {
+      return false;
+    }
   }
 }
 
