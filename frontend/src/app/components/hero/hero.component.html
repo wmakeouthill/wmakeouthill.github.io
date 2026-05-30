@@ -53,6 +53,10 @@
           <div class="lbl">{{ 'hero.completedProjects' | translate }}</div>
         </div>
         <div class="stat">
+          <div class="num">{{ contributedRepos() !== null ? contributedRepos() : '—' }}</div>
+          <div class="lbl">{{ 'hero.contributedRepos' | translate }}</div>
+        </div>
+        <div class="stat">
           <div class="num">80+</div>
           <div class="lbl">{{ 'hero.technologies' | translate }}</div>
         </div>

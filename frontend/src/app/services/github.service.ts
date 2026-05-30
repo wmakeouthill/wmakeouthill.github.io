@@ -34,6 +34,7 @@ export interface GithubStats {
   totalStars: number;
   totalRepositories: number;
   totalForks: number;
+  contributedRepositories: number;
 }
 
 /**
@@ -198,7 +199,7 @@ export class GithubService {
   getStats(): Observable<GithubStats> {
     const url = `${this.BACKEND_API}/stats`;
     return this.http.get<GithubStats>(url).pipe(
-      catchError(() => of({ totalStars: 0, totalRepositories: 0, totalForks: 0 }))
+      catchError(() => of({ totalStars: 0, totalRepositories: 0, totalForks: 0, contributedRepositories: 0 }))
     );
   }
 

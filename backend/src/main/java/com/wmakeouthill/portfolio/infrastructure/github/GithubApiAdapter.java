@@ -156,6 +156,52 @@ public class GithubApiAdapter implements GithubProjectsPort {
   }
 
   @Override
+  public int contarRepositoriosContribuidos() {
+    final String cacheKey = "repos:contributed:count";
+    CacheEntryWithETag<Integer> cached = getCache(cacheKey);
+
+    // Cache válido → retorna sem chamar o GitHub
+    if (cached != null && !cached.isExpired()) {
+      log.debug("Repos contribuídos do cache ({}s)", cached.getAgeSeconds());
+      return cached.getValue();
+    }
+
+    // Requisição condicional na página 1 (sinal de mudança via ETag)
+    String existingEtag = cached != null ? cached.getEtag().orElse(null) : null;
+    ConditionalResponse<JsonNode> page1 = githubHttpClient.buscarReposContribuidosCondicional(1, PER_PAGE, existingEtag);
+
+    // 304: nada mudou → renova TTL, 0 quota consumida
+    if (page1.isNotModified() && cached != null) {
+      log.info("Repos contribuídos: 304 Not Modified — renovando TTL");
+      putCache(cacheKey, cached.getValue(), existingEtag);
+      return cached.getValue();
+    }
+
+    // Erro → fallback para cache (mesmo expirado) ou 0
+    if (page1.isError() || page1.data() == null || !page1.data().isArray()) {
+      log.warn("Repos contribuídos: erro na requisição, usando fallback");
+      return cached != null ? cached.getValue() : 0;
+    }
+
+    // 200: conta a página 1 e segue paginando enquanto vier cheia
+    int total = page1.data().size();
+    if (page1.data().size() >= PER_PAGE) {
+      int pagina = 2;
+      while (true) {
+        ConditionalResponse<JsonNode> pageN = githubHttpClient.buscarReposContribuidosCondicional(pagina, PER_PAGE, null);
+        if (!pageN.isOk() || pageN.data() == null || !pageN.data().isArray()) break;
+        total += pageN.data().size();
+        if (pageN.data().size() < PER_PAGE) break;
+        pagina++;
+      }
+    }
+
+    log.info("Repos contribuídos contados: {} (ETag armazenada: {})", total, page1.etag() != null ? "sim" : "não");
+    putCache(cacheKey, total, page1.etag());
+    return total;
+  }
+
+  @Override
   public List<TreeNodeDto> buscarArvoreRepositorio(String repoName) {
     final String cacheKey = "tree:" + repoName;
     CacheEntryWithETag<List<TreeNodeDto>> cached = getCache(cacheKey);

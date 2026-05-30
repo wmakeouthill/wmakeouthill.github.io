@@ -55,6 +55,19 @@ public class GithubHttpClient {
   }
 
   /**
+   * Lista repositórios com os quais o usuário autenticado contribui (públicos e
+   * privados): owner, colaborador e membro de organização. Usa o endpoint
+   * autenticado /user/repos e suporta ETag.
+   */
+  public ConditionalResponse<JsonNode> buscarReposContribuidosCondicional(int page, int perPage, String etag) {
+    String url = API_URL + "/user/repos?per_page=" + perPage
+        + "&page=" + page
+        + "&affiliation=owner,collaborator,organization_member"
+        + "&visibility=all&sort=updated";
+    return fazerGetCondicional(url, etag);
+  }
+
+  /**
    * Busca perfil do usuário com suporte a ETag.
    */
   public ConditionalResponse<JsonNode> buscarPerfilCondicional(String etag) {

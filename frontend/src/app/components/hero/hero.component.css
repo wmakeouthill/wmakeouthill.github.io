@@ -13,6 +13,27 @@
   min-width: 0;
 }
 
+/* Evita que o background-clip:text corte o descendente do "g"/"y" da última
+   linha do título (ex.: "Augusto"). O recorte do gradiente é limitado à caixa
+   do elemento, então damos um respiro embaixo. */
+.hero h1 {
+  padding-bottom: 0.14em;
+}
+
+/* Legibilidade dos botões do hero: peso maior e gold mais claro nos de borda. */
+.hero-cta .btn {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.005em;
+}
+.hero-cta .btn-outline {
+  color: var(--color-accent-light);
+}
+.hero-cta .github-stats-btn {
+  font-weight: 700;
+  color: var(--color-accent-light);
+}
+
 /* Transição animada da code-line ao alternar Java <-> Python.
    A classe .swapping é aplicada no meio da troca de conteúdo (fade + blur). */
 .code-line {
@@ -80,14 +101,15 @@
   transform: translateX(3px) scale(1.05);
 }
 
-/* Botão currículo — contorno dourado, preenche no hover (texto sempre legível) */
-.hero-cta .btn-outline {
+/* Botão currículo — contorno dourado, preenche no hover (texto sempre legível).
+   Exclui o .github-stats-btn, que tem identidade própria (fundo roxo + texto dourado). */
+.hero-cta .btn-outline:not(.github-stats-btn) {
   background: transparent;
   color: var(--color-accent);
   border-color: var(--border-accent);
 }
 
-.hero-cta .btn-outline:hover {
+.hero-cta .btn-outline:not(.github-stats-btn):hover {
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
   border-color: var(--color-accent);
   color: #1a1a1a;
@@ -95,8 +117,13 @@
   box-shadow: var(--shadow-gold);
 }
 
-.hero-cta .btn-outline:hover .ic {
+.hero-cta .btn-outline:not(.github-stats-btn):hover .ic {
   transform: translateY(-2px) scale(1.05);
+}
+
+/* Github Stats — mantém a cor do texto no hover (só eleva + brilho) */
+.hero-cta .github-stats-btn:hover {
+  color: var(--color-accent);
 }
 
 .photo-ring {

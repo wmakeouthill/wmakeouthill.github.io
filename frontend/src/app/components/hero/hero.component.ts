@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CvModalComponent } from '../cv-modal/cv-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
+import { GithubService } from '../../services/github.service';
 @Component({
   selector: 'app-hero',
   standalone: true,
@@ -15,6 +16,10 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('octocatVideo', { static: false }) octocatVideo!: ElementRef<HTMLVideoElement>;
 
   private readonly i18n = inject(I18nService);
+  private readonly githubService = inject(GithubService);
+
+  /** Nº de repositórios contribuídos (público + privado), vindo do backend cacheado. */
+  readonly contributedRepos = signal<number | null>(null);
 
   readonly displayedText = signal('');
   /** Linguagem exibida na code-line do topo (alterna a cada loop). */
@@ -46,6 +51,11 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loopInterval = setInterval(() => {
       this.startTypingAnimation();
     }, 10000);
+
+    // métrica cacheada no backend: repos contribuídos (público + privado)
+    this.githubService.getStats().subscribe(stats => {
+      this.contributedRepos.set(stats.contributedRepositories);
+    });
   }
 
   ngAfterViewInit() {

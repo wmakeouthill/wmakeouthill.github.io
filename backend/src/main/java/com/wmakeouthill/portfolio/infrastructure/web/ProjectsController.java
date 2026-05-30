@@ -109,7 +109,8 @@ public class ProjectsController {
     Map<String, Object> stats = Map.of(
         "totalStars", totalStars,
         "totalRepositories", repos.size(),
-        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum());
+        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum(),
+        "contributedRepositories", githubProjectsPort.contarRepositoriosContribuidos());
 
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noCache().cachePublic())
