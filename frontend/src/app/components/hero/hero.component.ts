@@ -62,6 +62,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     // Mantém o gatinho parado no primeiro quadro até a digitação terminar
     const video = this.octocatVideo?.nativeElement;
     if (video) {
+      // Garante mudo via propriedade (o atributo HTML nem sempre é respeitado)
+      video.muted = true;
+      video.volume = 0;
       video.pause();
       video.currentTime = 0;
     }
@@ -127,7 +130,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!video) {
       return;
     }
-    // Reinicia e reproduz uma única vez
+    // Reinicia e reproduz uma única vez, sempre mudo
+    video.muted = true;
+    video.volume = 0;
     video.currentTime = 0;
     void video.play().catch(() => { /* autoplay pode ser bloqueado; ignora */ });
   }
