@@ -21,7 +21,8 @@ function setCorsHeaders(req, res) {
         res.setHeader('Access-Control-Allow-Origin', '*');
     }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language, X-API-Key');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language, X-API-Key, If-None-Match');
+    res.setHeader('Access-Control-Expose-Headers', 'ETag');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 

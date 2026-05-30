@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
 import { GitHubRepository, LanguageInfo } from '../models/interfaces';
 import { resolveApiUrl } from '../utils/api-url.util';
 
@@ -67,17 +67,22 @@ interface BackendRepositoryResponse {
   totalSizeBytes: number;
 }
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
 /**
  * Serviço para integração com a API do GitHub via backend autenticado.
  *
  * IMPORTANTE: Todas as chamadas passam pelo backend que usa o token
  * seguro armazenado em secrets. O frontend NUNCA acessa a API do
  * GitHub diretamente.
+ *
+ * Cache: este serviço NÃO persiste mais dados em sessionStorage. A
+ * frescura dos dados é garantida de ponta a ponta pelo cache HTTP do
+ * browser + ETag: o backend responde `Cache-Control: no-cache` com um
+ * ETag, então o navegador revalida a cada requisição (If-None-Match) e
+ * recebe 304 quando nada mudou — barato e sempre atual para todos.
+ *
+ * Mantém-se apenas um cache in-memory (shareReplay) para deduplicar
+ * chamadas concorrentes/repetidas dentro da mesma carga de página. Ele é
+ * keyed por idioma e zerado em {@link clearCache}.
  */
 @Injectable({
   providedIn: 'root'
@@ -86,90 +91,81 @@ export class GithubService {
   private readonly http = inject(HttpClient);
 
   private readonly BACKEND_API = resolveApiUrl('/api/projects');
-  private readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutos (igual ao backend)
-  private readonly STORAGE_KEY_REPOSITORIES = 'github_repositories_cache_v2';
-  private readonly STORAGE_KEY_PROFILE = 'github_profile_cache_v1';
-  private readonly LANGUAGE_CACHE_PREFIX = 'github_languages_cache_v2_';
 
-  constructor() {
-    this.cleanExpiredCache();
-  }
-
-  /**
-   * Verifica se o cache está válido.
-   */
-  private isCacheValid(timestamp: number): boolean {
-    return Date.now() - timestamp < this.CACHE_DURATION;
-  }
+  /** Cache in-memory de dedup (não persiste; revalidação fica a cargo do ETag). */
+  private readonly repositoriesByLang = new Map<string, Observable<GitHubRepository[]>>();
+  private readonly languagesByRepo = new Map<string, Observable<LanguageInfo[]>>();
+  private profile$?: Observable<GithubProfile | null>;
 
   /**
    * Busca os repositórios do usuário via backend autenticado.
    * @param limit Número máximo de repositórios a retornar (0 = todos)
    */
   getRepositories(limit: number = 0): Observable<GitHubRepository[]> {
-    const cached = this.loadRepositoriesFromCache();
-    if (cached) {
-      console.log('📦 Retornando repositórios do cache (backend)');
-      return of(this.applyLimit(cached, limit));
+    const langKey = this.getLanguageCode();
+    let request$ = this.repositoriesByLang.get(langKey);
+
+    if (!request$) {
+      console.log('🔐 Buscando repositórios via backend autenticado...');
+      request$ = this.http.get<BackendRepositoryResponse[]>(this.BACKEND_API).pipe(
+        map(repos => this.mapBackendRepositories(repos)),
+        tap(repos => console.log(`✅ ${repos.length} repositórios carregados via backend`)),
+        catchError(error => {
+          console.error('Erro ao buscar repositórios via backend:', error);
+          this.repositoriesByLang.delete(langKey); // permite retry na próxima chamada
+          return of([] as GitHubRepository[]);
+        }),
+        shareReplay(1)
+      );
+      this.repositoriesByLang.set(langKey, request$);
     }
 
-    console.log('🔐 Buscando repositórios via backend autenticado...');
-    return this.http.get<BackendRepositoryResponse[]>(this.BACKEND_API).pipe(
-      map(repos => this.mapBackendRepositories(repos)),
-      tap(repos => this.saveRepositoriesToCache(repos)),
-      map(repos => this.applyLimit(repos, limit)),
-      tap(repos => console.log(`✅ ${repos.length} repositórios carregados via backend`)),
-      catchError(error => {
-        console.error('Erro ao buscar repositórios via backend:', error);
-        return of([]);
-      })
-    );
+    return request$.pipe(map(repos => this.applyLimit(repos, limit)));
   }
 
   /**
    * Busca as linguagens de um repositório específico via backend.
    */
   getRepositoryLanguages(repoName: string): Observable<LanguageInfo[]> {
-    const cached = this.loadLanguagesFromCache(repoName);
-    if (cached) {
-      console.log(`📦 Retornando linguagens do cache para ${repoName}`);
-      return of(cached);
+    const key = repoName.toLowerCase();
+    let request$ = this.languagesByRepo.get(key);
+
+    if (!request$) {
+      const url = `${this.BACKEND_API}/${encodeURIComponent(repoName)}/languages`;
+      console.log(`🔐 Buscando linguagens via backend: ${repoName}`);
+      request$ = this.http.get<LanguageShareResponse[]>(url).pipe(
+        map(langs => this.mapLanguages(langs)),
+        catchError(error => {
+          console.error(`Erro ao buscar linguagens para ${repoName}:`, error);
+          this.languagesByRepo.delete(key);
+          return of([] as LanguageInfo[]);
+        }),
+        shareReplay(1)
+      );
+      this.languagesByRepo.set(key, request$);
     }
 
-    const url = `${this.BACKEND_API}/${encodeURIComponent(repoName)}/languages`;
-    console.log(`🔐 Buscando linguagens via backend: ${repoName}`);
-
-    return this.http.get<LanguageShareResponse[]>(url).pipe(
-      map(langs => this.mapLanguages(langs)),
-      tap(langs => this.saveLanguagesToCache(repoName, langs)),
-      catchError(error => {
-        console.error(`Erro ao buscar linguagens para ${repoName}:`, error);
-        return of([]);
-      })
-    );
+    return request$;
   }
 
   /**
    * Busca o perfil do usuário no GitHub via backend.
    */
   getUserProfile(): Observable<GithubProfile | null> {
-    const cached = this.loadProfileFromCache();
-    if (cached) {
-      console.log('📦 Retornando perfil do cache');
-      return of(cached);
+    if (!this.profile$) {
+      const url = `${this.BACKEND_API}/profile`;
+      console.log('🔐 Buscando perfil via backend autenticado...');
+      this.profile$ = this.http.get<GithubProfile>(url).pipe(
+        tap(profile => console.log(`✅ Perfil carregado: ${profile.login}`)),
+        catchError(error => {
+          console.error('Erro ao buscar perfil via backend:', error);
+          this.profile$ = undefined;
+          return of(null);
+        }),
+        shareReplay(1)
+      );
     }
-
-    const url = `${this.BACKEND_API}/profile`;
-    console.log('🔐 Buscando perfil via backend autenticado...');
-
-    return this.http.get<GithubProfile>(url).pipe(
-      tap(profile => this.saveProfileToCache(profile)),
-      tap(profile => console.log(`✅ Perfil carregado: ${profile.login}`)),
-      catchError(error => {
-        console.error('Erro ao buscar perfil via backend:', error);
-        return of(null);
-      })
-    );
+    return this.profile$;
   }
 
   /**
@@ -207,13 +203,14 @@ export class GithubService {
   }
 
   /**
-   * Limpa todo o cache do frontend (sessionStorage).
+   * Limpa o cache in-memory de dedup, forçando que a próxima chamada faça
+   * uma nova requisição HTTP (que ainda assim revalida via ETag no browser).
    */
   clearCache(): void {
-    this.removeCache(this.repositoriesCacheKey());
-    this.removeCache(this.STORAGE_KEY_PROFILE);
-    this.removeAllLanguageCaches();
-    console.log('🧹 Cache frontend limpo');
+    this.repositoriesByLang.clear();
+    this.languagesByRepo.clear();
+    this.profile$ = undefined;
+    console.log('🧹 Cache in-memory do frontend limpo');
   }
 
   /**
@@ -329,149 +326,6 @@ export class GithubService {
       return repos;
     }
     return repos.slice(0, limit);
-  }
-
-  // ============ Cache de repositórios ============
-
-  private loadRepositoriesFromCache(): GitHubRepository[] | null {
-    const cached = this.readCache<GitHubRepository[]>(this.repositoriesCacheKey());
-    if (!cached || !this.isCacheValid(cached.timestamp)) {
-      return null;
-    }
-    return cached.data;
-  }
-
-  private saveRepositoriesToCache(repos: GitHubRepository[]): void {
-    this.writeCache(this.repositoriesCacheKey(), repos);
-  }
-
-  // ============ Cache de perfil ============
-
-  private loadProfileFromCache(): GithubProfile | null {
-    const cached = this.readCache<GithubProfile>(this.STORAGE_KEY_PROFILE);
-    if (!cached || !this.isCacheValid(cached.timestamp)) {
-      return null;
-    }
-    return cached.data;
-  }
-
-  private saveProfileToCache(profile: GithubProfile): void {
-    this.writeCache(this.STORAGE_KEY_PROFILE, profile);
-  }
-
-  // ============ Cache de linguagens ============
-
-  private loadLanguagesFromCache(repoName: string): LanguageInfo[] | null {
-    const cacheKey = this.languageCacheKey(repoName);
-    const cached = this.readCache<LanguageInfo[]>(cacheKey);
-    if (!cached || !this.isCacheValid(cached.timestamp)) {
-      return null;
-    }
-    return cached.data;
-  }
-
-  private saveLanguagesToCache(repoName: string, langs: LanguageInfo[]): void {
-    const cacheKey = this.languageCacheKey(repoName);
-    this.writeCache(cacheKey, langs);
-  }
-
-  private languageCacheKey(repoName: string): string {
-    return `${this.LANGUAGE_CACHE_PREFIX}${repoName.toLowerCase()}`;
-  }
-
-  // ============ Utilitários de cache ============
-
-  private readCache<T>(key: string): CacheEntry<T> | null {
-    if (!this.hasSessionStorage()) {
-      return null;
-    }
-    const raw = sessionStorage.getItem(key);
-    if (!raw) {
-      return null;
-    }
-    try {
-      return JSON.parse(raw) as CacheEntry<T>;
-    } catch {
-      sessionStorage.removeItem(key);
-      return null;
-    }
-  }
-
-  private writeCache<T>(key: string, data: T): void {
-    if (!this.hasSessionStorage()) {
-      return;
-    }
-    const payload: CacheEntry<T> = {
-      data,
-      timestamp: Date.now()
-    };
-    sessionStorage.setItem(key, JSON.stringify(payload));
-  }
-
-  private removeCache(key: string): void {
-    if (!this.hasSessionStorage()) {
-      return;
-    }
-    sessionStorage.removeItem(key);
-  }
-
-  private cleanExpiredCache(): void {
-    const repositoriesCache = this.readCache<GitHubRepository[]>(this.repositoriesCacheKey());
-    if (repositoriesCache && !this.isCacheValid(repositoriesCache.timestamp)) {
-      this.removeCache(this.repositoriesCacheKey());
-      console.log('🗑️ Cache de repositórios expirado');
-    }
-
-    const profileCache = this.readCache<GithubProfile>(this.STORAGE_KEY_PROFILE);
-    if (profileCache && !this.isCacheValid(profileCache.timestamp)) {
-      this.removeCache(this.STORAGE_KEY_PROFILE);
-      console.log('🗑️ Cache de perfil expirado');
-    }
-
-    this.removeExpiredLanguageCaches();
-  }
-
-  private removeExpiredLanguageCaches(): void {
-    if (!this.hasSessionStorage()) {
-      return;
-    }
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (!key || !key.startsWith(this.LANGUAGE_CACHE_PREFIX)) {
-        continue;
-      }
-      const cached = this.readCache<LanguageInfo[]>(key);
-      if (!cached || !this.isCacheValid(cached.timestamp)) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => sessionStorage.removeItem(key));
-    if (keysToRemove.length > 0) {
-      console.log(`🗑️ ${keysToRemove.length} caches de linguagens expirados`);
-    }
-  }
-
-  private removeAllLanguageCaches(): void {
-    if (!this.hasSessionStorage()) {
-      return;
-    }
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key?.startsWith(this.LANGUAGE_CACHE_PREFIX)) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => sessionStorage.removeItem(key));
-  }
-
-  private hasSessionStorage(): boolean {
-    return typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
-  }
-
-  private repositoriesCacheKey(): string {
-    return `${this.STORAGE_KEY_REPOSITORIES}_${this.getLanguageCode()}`;
   }
 
   private getLanguageCode(): string {

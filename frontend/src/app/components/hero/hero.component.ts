@@ -12,19 +12,21 @@ import { I18nService } from '../../i18n/i18n.service';
   styleUrl: './hero.component.css'
 })
 export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('octocatLottie', { static: false }) octocatLottie!: ElementRef<HTMLDivElement>;
+  @ViewChild('octocatVideo', { static: false }) octocatVideo!: ElementRef<HTMLVideoElement>;
 
   private readonly i18n = inject(I18nService);
 
   readonly displayedText = signal('');
+  /** Linguagem exibida na code-line do topo (alterna a cada loop). */
+  readonly codeLang = signal<'java' | 'python'>('java');
+  /** True durante a transição animada (fade/blur) da troca de linguagem. */
+  readonly codeSwapping = signal(false);
   readonly starData: Array<{ x: number; y: number; size: string; color: string; glow: string }> = [];
   fullText = 'Desenvolvedor Full Stack';
   typingSpeed = 100;
   private typingInterval: any;
   private loopInterval: any;
-  private lottieAnimation: any;
-  private hasPlayedInitial = false;
-  private isInitialPlayComplete = false;
+  private swapTimeout: any;
   private readonly langEffect = effect(() => {
     // Recalcula o título quando o idioma muda
     this.fullText = this.i18n.translate('hero.title');
@@ -46,26 +48,13 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 10000);
   }
 
-  async ngAfterViewInit() {
-    const lottie = (await import('lottie-web')).default;
-
-    // Octocat
-    if (this.octocatLottie?.nativeElement) {
-      this.lottieAnimation = lottie.loadAnimation({
-        container: this.octocatLottie.nativeElement,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        path: '/octocat.json',
-        rendererSettings: { preserveAspectRatio: 'xMidYMid slice' }
-      });
-      this.playLottieOnce();
-      this.hasPlayedInitial = true;
-      this.lottieAnimation.addEventListener('complete', () => {
-        this.isInitialPlayComplete = true;
-      });
+  ngAfterViewInit() {
+    // Mantém o gatinho parado no primeiro quadro até a digitação terminar
+    const video = this.octocatVideo?.nativeElement;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
     }
-
   }
 
   private generateStars() {
@@ -106,12 +95,31 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private playLottieOnce() {
-    if (this.lottieAnimation) {
-      // Para a animação atual e volta para o início
-      this.lottieAnimation.stop();
-      this.lottieAnimation.goToAndPlay(0, true);
+  /**
+   * Transição animada da code-line: aplica a classe `.swapping` (fade + blur
+   * para fora), troca o conteúdo Java ↔ Python no meio da animação e remove a
+   * classe (fade + blur de volta).
+   */
+  private swapCodeLanguage() {
+    if (this.swapTimeout) {
+      clearTimeout(this.swapTimeout);
     }
+    this.codeSwapping.set(true);
+    this.swapTimeout = setTimeout(() => {
+      this.codeLang.update(lang => (lang === 'java' ? 'python' : 'java'));
+      this.codeSwapping.set(false);
+      this.swapTimeout = null;
+    }, 300);
+  }
+
+  private playCatOnce() {
+    const video = this.octocatVideo?.nativeElement;
+    if (!video) {
+      return;
+    }
+    // Reinicia e reproduz uma única vez
+    video.currentTime = 0;
+    void video.play().catch(() => { /* autoplay pode ser bloqueado; ignora */ });
   }
 
   ngOnDestroy() {
@@ -121,8 +129,8 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.loopInterval) {
       clearInterval(this.loopInterval);
     }
-    if (this.lottieAnimation) {
-      this.lottieAnimation.destroy();
+    if (this.swapTimeout) {
+      clearTimeout(this.swapTimeout);
     }
   }
 
@@ -144,10 +152,12 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
         clearInterval(this.typingInterval);
         this.typingInterval = null;
 
-        // Reproduz o Lottie quando termina a digitação (apenas após a primeira reprodução completa)
-        if (this.isInitialPlayComplete) {
-          this.playLottieOnce();
-        }
+        // Ao terminar a digitação, dispara a animação do gatinho uma vez
+        this.playCatOnce();
+
+        // ...e faz a code-line do topo transicionar para a outra linguagem,
+        // alternando Java ↔ Python antes do próximo loop.
+        this.swapCodeLanguage();
       }
     }, this.typingSpeed);
   }

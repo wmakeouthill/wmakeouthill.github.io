@@ -9,7 +9,21 @@ const API_KEY = process.env.API_KEY || '';
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language, X-API-Key');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Language, Accept-Language, X-API-Key, If-None-Match');
+    res.setHeader('Access-Control-Expose-Headers', 'ETag');
+}
+
+/**
+ * Repassa os headers de cache/validação do backend para o browser, preservando
+ * a semântica de ETag (revalidação condicional) de ponta a ponta.
+ */
+function forwardCacheHeaders(backendResponse, res) {
+    for (const header of ['etag', 'cache-control', 'vary', 'last-modified']) {
+        const value = backendResponse.headers.get(header);
+        if (value) {
+            res.setHeader(header, value);
+        }
+    }
 }
 
 async function proxyRequest(req, res, targetPath) {
@@ -37,6 +51,11 @@ async function proxyRequest(req, res, targetPath) {
         if (req.headers['accept-language']) {
             headers['Accept-Language'] = req.headers['accept-language'];
         }
+        // Revalidação condicional por ETag: repassa o If-None-Match do browser
+        // para o backend, que pode responder 304 Not Modified (sem corpo).
+        if (req.headers['if-none-match']) {
+            headers['If-None-Match'] = req.headers['if-none-match'];
+        }
 
         const fetchOptions = { method: req.method, headers };
 
@@ -45,13 +64,21 @@ async function proxyRequest(req, res, targetPath) {
         }
 
         const response = await fetch(fullTargetUrl, fetchOptions);
+
+        // Repassa headers de cache/validação do backend para o browser, para que
+        // o cache HTTP do navegador funcione de ponta a ponta (ETag + revalidação).
+        forwardCacheHeaders(response, res);
+
+        // 304 Not Modified: backend confirmou que nada mudou — sem corpo.
+        if (response.status === 304) {
+            return res.status(304).end();
+        }
+
         const contentType = response.headers.get('content-type') || '';
 
         if (contentType.startsWith('image/') || contentType.startsWith('application/pdf')) {
             const buffer = await response.arrayBuffer();
             res.setHeader('Content-Type', contentType);
-            const cacheControl = response.headers.get('cache-control');
-            if (cacheControl) res.setHeader('Cache-Control', cacheControl);
             return res.status(response.status).send(Buffer.from(buffer));
         }
 

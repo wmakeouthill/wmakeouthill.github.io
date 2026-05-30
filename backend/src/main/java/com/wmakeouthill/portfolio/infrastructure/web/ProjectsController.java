@@ -52,7 +52,9 @@ public class ProjectsController {
 
   /**
    * Lista todos os repositórios do usuário.
-   * Cache: 30 minutos.
+   * Cache: no-cache — o browser revalida sempre via ETag (If-None-Match).
+   * Como o backend mantém cache in-memory com ETag do GitHub, a revalidação
+   * é barata (304 sem corpo) e todos veem sempre o dado mais atual.
    */
   @GetMapping
   public ResponseEntity<List<GithubRepositoryDto>> listarProjetos(jakarta.servlet.http.HttpServletRequest request) {
@@ -62,41 +64,41 @@ public class ProjectsController {
         listarProjetosGithubUseCase.executar(),
         language);
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .header("Vary", "X-Language,Accept-Language")
         .body(repositorios);
   }
 
   /**
    * Obtém o perfil do usuário no GitHub.
-   * Cache: 30 minutos.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/profile")
   public ResponseEntity<GithubProfileDto> obterPerfil() {
     log.info("Buscando perfil do GitHub via backend autenticado");
     return githubProjectsPort.buscarPerfil()
         .map(profile -> ResponseEntity.ok()
-            .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+            .cacheControl(CacheControl.noCache().cachePublic())
             .body(profile))
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   /**
    * Obtém as linguagens de um repositório específico.
-   * Cache: 1 hora.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/{repoName}/languages")
   public ResponseEntity<List<LanguageShareDto>> obterLinguagens(@PathVariable String repoName) {
     log.debug("Buscando linguagens do repositório: {}", repoName);
     List<LanguageShareDto> languages = githubProjectsPort.buscarLinguagensRepositorio(repoName);
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .body(languages);
   }
 
   /**
    * Retorna estatísticas gerais do GitHub.
-   * Cache: 30 minutos.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/stats")
   public ResponseEntity<Map<String, Object>> obterEstatisticas() {
@@ -110,7 +112,7 @@ public class ProjectsController {
         "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum());
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .body(stats);
   }
 
