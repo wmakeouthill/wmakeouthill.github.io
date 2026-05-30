@@ -34,5 +34,16 @@
   @if (message().audioUrl) {
     <audio class="chat-msg-audio" controls [src]="message().audioUrl"></audio>
   }
+
+  @if (message().generatedPdf) {
+    <div class="chat-msg-generated-pdf">
+      <span class="chat-msg-att-icon">PDF</span>
+      <span class="chat-msg-att-name">{{ message().generatedPdf?.filename }}</span>
+      <a class="chat-msg-pdf-link" [href]="message().generatedPdf?.url"
+        [download]="message().generatedPdf?.filename" target="_blank" rel="noopener">
+        Baixar
+      </a>
+    </div>
+  }
 </div>
 

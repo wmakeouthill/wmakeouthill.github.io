@@ -1,10 +1,13 @@
 package com.wmakeouthill.portfolio.infrastructure.web;
 
+import com.wmakeouthill.portfolio.application.dto.ChatEmailRequest;
+import com.wmakeouthill.portfolio.application.dto.ChatEmailResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatTtsRequest;
 import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.usecase.ChatUseCase;
+import com.wmakeouthill.portfolio.application.usecase.EnviarEmailChatUseCase;
 import com.wmakeouthill.portfolio.infrastructure.ai.GeminiTtsAdapter;
 import com.wmakeouthill.portfolio.infrastructure.document.DocumentTextExtractor;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +39,7 @@ public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
 
     private final ChatUseCase chatUseCase;
+    private final EnviarEmailChatUseCase enviarEmailChatUseCase;
     private final DocumentTextExtractor documentTextExtractor;
     private final GeminiTtsAdapter geminiTtsAdapter;
 
@@ -56,6 +60,18 @@ public class ChatController {
             return ResponseEntity
                     .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ChatResponse("Erro ao processar mensagem. Tente novamente."));
+        }
+    }
+
+    @PostMapping("/email")
+    public ResponseEntity<ChatEmailResponse> email(@Valid @RequestBody ChatEmailRequest request) {
+        try {
+            return ResponseEntity.ok(enviarEmailChatUseCase.executar(request));
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                    .error("Erro ao enviar email pelo chat", e);
+            return ResponseEntity.internalServerError()
+                    .body(ChatEmailResponse.erro("Não foi possível enviar o email agora."));
         }
     }
 
@@ -98,6 +114,10 @@ public class ChatController {
                     if (file.getSize() > MAX_TAMANHO_BYTES) {
                         return ResponseEntity.badRequest().body(new ChatResponse(
                                 "O arquivo '" + file.getOriginalFilename() + "' excede o limite de 20MB."));
+                    }
+                    if (isVideo(file.getContentType())) {
+                        return ResponseEntity.badRequest()
+                                .body(new ChatResponse("Envio de vídeo não é suportado no chat."));
                     }
                     String filename = file.getOriginalFilename();
 
@@ -176,6 +196,10 @@ public class ChatController {
     private String gerarSessionIdFallback() {
         return "session-" + System.currentTimeMillis() + "-" +
                 Thread.currentThread().getId();
+    }
+
+    private boolean isVideo(String contentType) {
+        return contentType != null && contentType.startsWith("video/");
     }
 
     /**

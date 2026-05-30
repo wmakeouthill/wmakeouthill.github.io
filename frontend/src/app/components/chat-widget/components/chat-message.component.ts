@@ -21,6 +21,10 @@ export interface ChatMessage {
   attachments?: AttachmentMeta[];
   /** Áudio TTS da resposta do assistente (object URL ou data URL). */
   audioUrl?: string;
+  generatedPdf?: {
+    filename: string;
+    url: string;
+  };
 }
 
 export function classificarAnexo(mime: string, name: string): AttachmentKind {

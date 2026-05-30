@@ -190,6 +190,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
+    if (this.isEmailCommand(text) && files.length === 0) {
+      this.enviarEmailPeloChat(text);
+      return;
+    }
+
     const request$ = files.length > 0 || this.audioResponseEnabled()
       ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel(), this.audioResponseEnabled())
       : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
@@ -223,6 +228,39 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       meta.previewUrl = URL.createObjectURL(file);
     }
     return meta;
+  }
+
+  private enviarEmailPeloChat(text: string): void {
+    this.currentRequest = this.chatService.enviarEmailChat(text, this.selectedModel()).subscribe({
+      next: async (response) => {
+        this.currentRequest = undefined;
+        const preview = response.success
+          ? this.montarRespostaEmailEnviado(response.subject, response.body)
+          : response.reply || 'Não foi possível enviar o email agora.';
+        await this.chatMessagesHandlers.handleAssistantResponse({ reply: preview });
+        setTimeout(() => this.focarInput(), 100);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.chatMessagesHandlers.handleAssistantError();
+        setTimeout(() => this.focarInput(), 100);
+      }
+    });
+  }
+
+  private isEmailCommand(text: string): boolean {
+    return text.trim().toLowerCase().startsWith('/email');
+  }
+
+  private montarRespostaEmailEnviado(subject?: string, body?: string): string {
+    const linhas = ['Email enviado para o Wesley.'];
+    if (subject) {
+      linhas.push('', `**Assunto:** ${subject}`);
+    }
+    if (body) {
+      linhas.push('', '**Mensagem enviada:**', body);
+    }
+    return linhas.join('\n');
   }
 
   cancelarMensagem(): void {

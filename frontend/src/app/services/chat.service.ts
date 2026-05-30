@@ -18,6 +18,13 @@ export interface ChatResponse {
   pdfFilename?: string; // Nome sugerido do PDF gerado
 }
 
+export interface ChatEmailResponse {
+  success: boolean;
+  reply: string;
+  subject?: string;
+  body?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -88,6 +95,10 @@ export class ChatService {
     }
 
     return this.http.post<void>(`${this.apiUrl}/clear`, {}, { headers });
+  }
+
+  enviarEmailChat(mensagem: string, model: AIModel = 'gemini'): Observable<ChatEmailResponse> {
+    return this.http.post<ChatEmailResponse>(`${this.apiUrl}/email`, { message: mensagem, model });
   }
 }
 

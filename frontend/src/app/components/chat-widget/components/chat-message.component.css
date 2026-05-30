@@ -544,3 +544,27 @@
   max-width: 260px;
   height: 36px;
 }
+
+.chat-msg-generated-pdf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  max-width: 280px;
+  padding: 8px 10px;
+  border: 1px solid rgba(219, 194, 125, 0.24);
+  border-radius: 8px;
+  background: rgba(219, 194, 125, 0.08);
+  font-size: 12px;
+}
+
+.chat-msg-pdf-link {
+  margin-left: auto;
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.chat-msg-pdf-link:hover {
+  text-decoration: underline;
+}

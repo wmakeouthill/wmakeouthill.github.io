@@ -37,7 +37,17 @@ export function useChatMessages(
     const audioUrl = response.audioBase64
       ? `data:audio/wav;base64,${response.audioBase64}`
       : undefined;
-    const assistantMessage = createAssistantMessage(reply, html, sanitizer, audioUrl);
+    const pdfUrl = response.pdfBase64
+      ? `data:application/pdf;base64,${response.pdfBase64}`
+      : undefined;
+    const assistantMessage = createAssistantMessage(
+      reply,
+      html,
+      sanitizer,
+      audioUrl,
+      pdfUrl,
+      response.pdfFilename
+    );
     messages.update((arr) => [...arr, assistantMessage]);
     isLoading.set(false);
     onSyntaxHighlighting();
@@ -64,14 +74,17 @@ function createAssistantMessage(
   text: string,
   html: string,
   sanitizer: DomSanitizer,
-  audioUrl?: string
+  audioUrl?: string,
+  pdfUrl?: string,
+  pdfFilename?: string
 ): ChatMessage {
   return {
     from: 'assistant',
     text,
     html: sanitizer.bypassSecurityTrustHtml(html),
     timestamp: new Date(),
-    ...(audioUrl ? { audioUrl } : {})
+    ...(audioUrl ? { audioUrl } : {}),
+    ...(pdfUrl ? { generatedPdf: { filename: pdfFilename || 'curriculo-wesley-personalizado.pdf', url: pdfUrl } } : {})
   };
 }
 
