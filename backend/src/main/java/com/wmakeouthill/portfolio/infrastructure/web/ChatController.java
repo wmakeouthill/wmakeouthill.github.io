@@ -4,6 +4,7 @@ import com.wmakeouthill.portfolio.application.dto.ChatRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.usecase.ChatUseCase;
+import com.wmakeouthill.portfolio.infrastructure.document.DocumentTextExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
 
     private final ChatUseCase chatUseCase;
+    private final DocumentTextExtractor documentTextExtractor;
 
     @PostMapping
     public ResponseEntity<ChatResponse> chat(
@@ -65,6 +67,7 @@ public class ChatController {
             HttpServletRequest httpRequest) {
         try {
             List<MediaPart> media = new ArrayList<>();
+            StringBuilder textoDocumentos = new StringBuilder();
             if (files != null) {
                 if (files.length > MAX_ARQUIVOS) {
                     return ResponseEntity.badRequest()
@@ -78,6 +81,22 @@ public class ChatController {
                         return ResponseEntity.badRequest().body(new ChatResponse(
                                 "O arquivo '" + file.getOriginalFilename() + "' excede o limite de 20MB."));
                     }
+                    String filename = file.getOriginalFilename();
+
+                    // Documentos Office (Word/Excel/PowerPoint) não são lidos
+                    // nativamente pelo Gemini: extraímos o texto e anexamos como contexto.
+                    if (documentTextExtractor.isDocumentoOffice(filename)) {
+                        String texto = documentTextExtractor.extrair(file.getBytes(), filename);
+                        if (!texto.isBlank()) {
+                            textoDocumentos.append("\n\n[Documento anexado: ").append(filename).append("]\n")
+                                    .append(texto);
+                        } else {
+                            textoDocumentos.append("\n\n[Documento anexado: ").append(filename)
+                                    .append(" — não foi possível extrair o texto]");
+                        }
+                        continue;
+                    }
+
                     String base64 = Base64.getEncoder().encodeToString(file.getBytes());
                     media.add(new MediaPart(file.getContentType(), base64, file.getOriginalFilename()));
                 }
@@ -85,7 +104,11 @@ public class ChatController {
 
             String sessionId = extrairSessionId(httpRequest);
             String language = extrairIdioma(httpRequest);
-            ChatRequest request = new ChatRequest(message == null ? "" : message,
+            String mensagemFinal = (message == null ? "" : message);
+            if (textoDocumentos.length() > 0) {
+                mensagemFinal += textoDocumentos;
+            }
+            ChatRequest request = new ChatRequest(mensagemFinal,
                     model == null || model.isBlank() ? "gemini" : model);
             ChatResponse response = chatUseCase.executeMultimodal(request, media, sessionId, language);
             return ResponseEntity.ok(response);

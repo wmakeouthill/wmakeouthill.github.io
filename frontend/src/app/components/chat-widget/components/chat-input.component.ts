@@ -45,7 +45,7 @@ export class ChatInputComponent {
     { id: 'gpt', name: 'GPT-5' }
   ];
 
-  readonly acceptTypes = 'image/*,application/pdf,.txt,.md,.doc,.docx,audio/*,video/*';
+  readonly acceptTypes = 'image/*,application/pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,audio/*';
 
   constructor() {
     afterNextRender(() => {
