@@ -133,6 +133,13 @@
   border-color: transparent;
 }
 
+/* No hover do botão ativo, mantém o texto escuro (sobre o fundo dourado),
+   senão a letra fica dourada e ilegível. */
+.filter-btn.active:hover,
+.pagination-btn.active:hover {
+  color: #1a1a1a;
+}
+
 .refresh-btn {
   width: 40px;
   height: 40px;
