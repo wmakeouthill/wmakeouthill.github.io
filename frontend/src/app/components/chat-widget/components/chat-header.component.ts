@@ -12,6 +12,9 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
 })
 export class ChatHeaderComponent {
   readonly audioResponseEnabled = input(false);
+  readonly historyOpen = input(false);
   readonly onToggleAudioResponse = output<void>();
+  readonly onNewChat = output<void>();
+  readonly onToggleHistory = output<void>();
   readonly onClose = output<void>();
 }

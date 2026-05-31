@@ -1,7 +1,7 @@
 .chat-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(135deg, var(--color-primary-dark), var(--bg-card));
@@ -44,6 +44,7 @@
   color: #7bd88f;
 }
 
+.chat-head-btn,
 .chat-voice-toggle,
 .x {
   width: 34px;
@@ -59,11 +60,18 @@
   transition: background var(--t-fast), color var(--t-fast);
 }
 
+.chat-head-btn:hover,
+.chat-head-btn.active,
 .chat-voice-toggle:hover,
 .chat-voice-toggle.active,
 .x:hover {
   background: rgba(255, 255, 255, 0.14);
   color: var(--color-accent);
+}
+
+.chat-head-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .chat-voice-toggle svg {

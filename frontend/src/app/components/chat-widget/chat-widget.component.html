@@ -3,8 +3,28 @@
 
   @if (isOpen()) {
   <section class="chat-panel" aria-label="Chat com IA sobre o Wesley">
-    <app-chat-header [audioResponseEnabled]="audioResponseEnabled()" (onToggleAudioResponse)="toggleAudioResponse()"
-      (onClose)="toggleOpen()" />
+    <app-chat-header [audioResponseEnabled]="audioResponseEnabled()" [historyOpen]="showHistory()"
+      (onToggleAudioResponse)="toggleAudioResponse()" (onNewChat)="iniciarNovaConversa()"
+      (onToggleHistory)="toggleHistory()" (onClose)="toggleOpen()" />
+
+    @if (showHistory()) {
+      <div class="chat-history" aria-label="Histórico de conversas">
+        @if (conversations().length === 0) {
+          <p class="chat-history-empty">{{ 'chat.historyEmpty' | translate }}</p>
+        } @else {
+          @for (conversa of conversations(); track conversa.id) {
+            <div class="chat-history-item" [class.active]="conversa.id === conversaAtualId()">
+              <button type="button" class="chat-history-open" (click)="abrirConversa(conversa.id)">
+                <span class="chat-history-title">{{ conversa.title }}</span>
+              </button>
+              <button type="button" class="chat-history-remove"
+                [attr.aria-label]="'chat.historyRemove' | translate"
+                (click)="removerConversa(conversa.id, $event)">×</button>
+            </div>
+          }
+        }
+      </div>
+    }
 
     <div class="chat-messages" role="log" #messagesContainer>
       @for (message of messages(); track message.timestamp) {

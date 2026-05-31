@@ -7,6 +7,25 @@
     <div class="hs"><span class="on">●</span> {{ 'chat.headerSubtitle' | translate }}</div>
   </div>
 
+  <button type="button" class="chat-head-btn" (click)="onNewChat.emit()"
+    [attr.aria-label]="'chat.newChat' | translate" [title]="'chat.newChat' | translate">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  </button>
+
+  <button type="button" class="chat-head-btn" [class.active]="historyOpen()" (click)="onToggleHistory.emit()"
+    [attr.aria-pressed]="historyOpen()" [attr.aria-label]="'chat.history' | translate"
+    [title]="'chat.history' | translate">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 3v5h5" />
+      <path d="M3.05 13a9 9 0 1 0 2.13-5.66L3 8" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  </button>
+
   <button type="button" class="chat-voice-toggle" [class.active]="audioResponseEnabled()"
     (click)="onToggleAudioResponse.emit()" [attr.aria-pressed]="audioResponseEnabled()"
     [attr.aria-label]="audioResponseEnabled() ? 'Desativar resposta em audio' : 'Ativar resposta em audio'"

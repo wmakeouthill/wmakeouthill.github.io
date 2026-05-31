@@ -569,12 +569,17 @@
   text-decoration: underline;
 }
 .chat-message {
-  max-width: 84% !important;
+  max-width: 92% !important;
   padding: 11px 15px !important;
   border-radius: 14px !important;
   font-size: 0.92rem !important;
   line-height: 1.55 !important;
   box-shadow: none !important;
+}
+
+/* Mensagens do assistente ocupam toda a largura útil (markdown/listas) */
+.chat-message-assistant {
+  max-width: 96% !important;
 }
 
 .chat-message-user {

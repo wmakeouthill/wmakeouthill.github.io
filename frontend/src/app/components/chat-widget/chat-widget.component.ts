@@ -29,9 +29,14 @@ import {
   obterOuGerarSessionId,
   salvarMensagens,
   carregarMensagens,
-  limparChat
+  iniciarNovaConversa as iniciarNovaConversaStorage,
+  listarConversas,
+  selecionarConversa,
+  removerConversa,
+  ConversaSalva
 } from '../../utils/chat-storage.util';
 import { I18nService } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 interface ChatMessageRaw {
   from: 'user' | 'assistant';
@@ -49,7 +54,8 @@ interface ChatMessageRaw {
     ChatHeaderComponent,
     ChatMessageComponent,
     ChatInputComponent,
-    ChatLoadingComponent
+    ChatLoadingComponent,
+    TranslatePipe
   ],
   templateUrl: './chat-widget.component.html',
   styleUrls: ['./chat-widget.component.css']
@@ -73,6 +79,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   selectedModel = signal<AIModel>('gemini');
   pendingAttachments = signal<File[]>([]);
   audioResponseEnabled = signal(this.carregarPreferenciaAudio());
+  showHistory = signal(false);
+  conversations = signal<ConversaSalva[]>([]);
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
@@ -147,6 +155,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.carregarMensagensSalvas();
+    this.atualizarConversas();
   }
 
   ngOnDestroy(): void {
@@ -434,25 +443,60 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   iniciarNovaConversa(): void {
-    // Salva o sessionId ANTIGO antes de limpar para limpar o histórico correto no backend
-    const sessionIdAntigo = this.sessionId;
+    // Cria uma nova conversa no storage (a anterior fica preservada no histórico).
+    const nova = iniciarNovaConversaStorage();
+    this.sessionId = nova.sessionId;
 
-    // Limpa mensagens no frontend
+    // Reseta o painel para a mensagem inicial.
     this.messages.set([this.initialMessage()]);
     this.marcarComoLidas();
+    this.showHistory.set(false);
+    this.atualizarConversas();
+    this.focarInput();
+  }
 
-    // Limpa sessionStorage (remove sessionId e mensagens)
-    limparChat();
-
-    // Gera novo sessionId
-    this.sessionId = obterOuGerarSessionId();
-
-    // Limpa o histórico ANTIGO no backend antes de começar nova conversa
-    if (sessionIdAntigo) {
-      this.chatService.limparHistorico(sessionIdAntigo).subscribe({
-        error: () => console.warn('Erro ao limpar histórico no backend')
-      });
+  toggleHistory(): void {
+    this.showHistory.update((v) => !v);
+    if (this.showHistory()) {
+      this.atualizarConversas();
     }
+  }
+
+  async abrirConversa(id: string): Promise<void> {
+    const conversa = selecionarConversa(id);
+    if (!conversa) {
+      return;
+    }
+    this.sessionId = conversa.sessionId;
+    const mensagens = await this.converterMensagensSalvas(conversa.messages as ChatMessageRaw[]);
+    this.messages.set(mensagens.length > 0 ? mensagens : [this.initialMessage()]);
+    this.marcarComoLidas();
+    this.showHistory.set(false);
+    this.atualizarConversas();
+    setTimeout(() => {
+      scrollToBottom(this.messagesContainer, true);
+      this.focarInput();
+    }, 100);
+  }
+
+  removerConversa(id: string, event: Event): void {
+    event.stopPropagation();
+    const eraAtual = id === this.conversaAtualId();
+    removerConversa(id);
+    this.atualizarConversas();
+    if (eraAtual) {
+      // Se removeu a conversa aberta, começa uma nova limpa.
+      this.iniciarNovaConversa();
+    }
+  }
+
+  private atualizarConversas(): void {
+    this.conversations.set(listarConversas());
+  }
+
+  conversaAtualId(): string | null {
+    const atual = this.conversations().find((c) => c.sessionId === this.sessionId);
+    return atual?.id ?? null;
   }
 
   toggleAudioResponse(): void {
