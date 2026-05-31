@@ -47,7 +47,7 @@
 }
 
 .proj-head {
-  height: clamp(82px, 11vh, 140px);
+  height: clamp(116px, 15vh, 168px);
 }
 
 .proj-body {
