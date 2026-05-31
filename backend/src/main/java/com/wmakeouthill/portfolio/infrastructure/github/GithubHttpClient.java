@@ -55,16 +55,43 @@ public class GithubHttpClient {
   }
 
   /**
-   * Lista repositórios com os quais o usuário autenticado contribui (públicos e
-   * privados): owner, colaborador e membro de organização. Usa o endpoint
-   * autenticado /user/repos e suporta ETag.
+   * Conta os repositórios com os quais o usuário contribui via GraphQL
+   * ({@code viewer.repositoriesContributedTo}). Diferente do REST /user/repos,
+   * reflete a afiliação real do usuário (owner, colaborador e membro de org),
+   * retornando o total correto numa única chamada.
+   *
+   * @return total de repositórios contribuídos, ou vazio em caso de erro.
    */
-  public ConditionalResponse<JsonNode> buscarReposContribuidosCondicional(int page, int perPage, String etag) {
-    String url = API_URL + "/user/repos?per_page=" + perPage
-        + "&page=" + page
-        + "&affiliation=owner,collaborator,organization_member"
-        + "&visibility=all&sort=updated";
-    return fazerGetCondicional(url, etag);
+  public Optional<Integer> contarReposContribuidosGraphQl() {
+    String query = "{\"query\":\"query { viewer { repositoriesContributedTo("
+        + "contributionTypes:[COMMIT,PULL_REQUEST,ISSUE,REPOSITORY,PULL_REQUEST_REVIEW],"
+        + "includeUserRepositories:true) { totalCount } } }\"}";
+
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(API_URL + "/graphql"))
+          .timeout(TIMEOUT)
+          .headers(buildApiHeaders())
+          .POST(HttpRequest.BodyPublishers.ofString(query, StandardCharsets.UTF_8))
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() >= 200 && response.statusCode() < 300) {
+        JsonNode total = objectMapper.readTree(response.body())
+            .path("data").path("viewer").path("repositoriesContributedTo").path("totalCount");
+        if (total.isInt()) {
+          return Optional.of(total.asInt());
+        }
+        log.error("GraphQL repos contribuídos: resposta sem totalCount — {}", response.body());
+      } else {
+        log.error("GraphQL repos contribuídos: status={}", response.statusCode());
+      }
+    } catch (IOException | InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Erro HTTP no GraphQL de repos contribuídos", e);
+    }
+    return Optional.empty();
   }
 
   /**
