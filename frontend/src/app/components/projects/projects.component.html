@@ -33,7 +33,7 @@
   }
 
   @if (!loading() && filteredProjects().length > 0) {
-    <div class="proj-grid">
+    <div class="proj-grid" #projGrid>
       @for (project of paginatedProjects(); track project.id; let i = $index) {
         <article class="proj-card reveal">
           <div class="proj-head">
@@ -44,9 +44,13 @@
               @if (project.homepage) {
                 <button (click)="openDemoModal(project)" class="ov-btn demo">{{ 'projects.demo' | translate }}</button>
               }
-              <button (click)="openProjectGallery(project)" class="ov-btn gallery">{{ 'projects.demoModal.galleryTitle' | translate }}</button>
+              @if (hasGallery(project.name)) {
+                <button (click)="openProjectGallery(project)" class="ov-btn gallery">{{ 'projects.demoModal.galleryTitle' | translate }}</button>
+              }
               <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
-              <button (click)="openReadmeModal(project.name)" class="ov-btn">README</button>
+              @if (hasReadme(project.name)) {
+                <button (click)="openReadmeModal(project.name)" class="ov-btn">README</button>
+              }
             </div>
           </div>
 

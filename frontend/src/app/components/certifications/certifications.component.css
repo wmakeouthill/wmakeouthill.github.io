@@ -26,7 +26,17 @@
 }
 
 .certifications-grid {
-  margin-top: 2rem;
+  margin-top: 1.25rem;
+}
+
+/* Cards um pouco mais compactos para caber grade + paginação no mesmo viewport */
+.cert-preview {
+  height: 118px;
+}
+
+.cert-body {
+  padding: 13px 14px;
+  gap: 8px;
 }
 
 .cert-card:focus-visible {
@@ -63,7 +73,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 42px;
+  margin-top: 24px;
   flex-wrap: wrap;
 }
 

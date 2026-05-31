@@ -20,8 +20,8 @@
 
 .proj-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 14px;
 }
 
 .proj-card {
@@ -36,30 +36,30 @@
 }
 
 .proj-head {
-  height: 172px;
+  height: 148px;
 }
 
 .proj-body {
-  padding: 18px 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .proj-name {
-  font-size: 1.08rem;
+  font-size: 1.02rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .proj-desc {
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 14px;
+  line-height: 1.45;
+  margin-bottom: 11px;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -71,7 +71,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 11px;
 }
 
 .proj-meta {
@@ -80,7 +80,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 
