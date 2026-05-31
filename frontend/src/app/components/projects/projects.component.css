@@ -2,12 +2,23 @@
   display: block;
 }
 
+/* Compacta a seção para caber grade + paginação em uma tela de qualquer
+   altura: as métricas verticais escalam com a viewport (vh) entre limites. */
+#projects.block {
+  padding-top: clamp(60px, 9vh, 92px);
+  padding-bottom: clamp(24px, 4vh, 56px);
+}
+
+#projects .section-title {
+  margin-bottom: clamp(14px, 2.6vh, 50px);
+}
+
 .filters-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin: 0 0 2rem;
+  margin: 0 0 clamp(14px, 2.4vh, 32px);
   flex-wrap: wrap;
 }
 
@@ -21,7 +32,7 @@
 .proj-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-  gap: 14px;
+  gap: clamp(10px, 1.4vh, 14px);
 }
 
 .proj-card {
@@ -36,11 +47,11 @@
 }
 
 .proj-head {
-  height: 148px;
+  height: clamp(82px, 11vh, 140px);
 }
 
 .proj-body {
-  padding: 14px 16px;
+  padding: clamp(9px, 1.5vh, 14px) 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -49,7 +60,7 @@
 .proj-name {
   font-size: 1.02rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: clamp(3px, 0.7vh, 6px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -58,8 +69,8 @@
 .proj-desc {
   font-size: 0.84rem;
   color: var(--text-muted);
-  line-height: 1.45;
-  margin-bottom: 11px;
+  line-height: 1.4;
+  margin-bottom: clamp(7px, 1.2vh, 11px);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -71,7 +82,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 11px;
+  margin-bottom: clamp(7px, 1.2vh, 11px);
 }
 
 .proj-meta {
@@ -80,7 +91,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: clamp(8px, 1.2vh, 12px);
   border-top: 1px solid var(--border);
 }
 
@@ -140,7 +151,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: top center;
+  object-position: center;
 }
 
 .proj-overlay img {
@@ -173,13 +184,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 42px;
+  margin-top: clamp(14px, 2.4vh, 32px);
   flex-wrap: wrap;
 }
 
 .pagination-btn {
-  min-width: 44px;
-  height: 44px;
+  min-width: clamp(36px, 4.6vh, 44px);
+  height: clamp(36px, 4.6vh, 44px);
   border-radius: 12px;
   font-family: var(--font-mono);
   font-weight: 600;

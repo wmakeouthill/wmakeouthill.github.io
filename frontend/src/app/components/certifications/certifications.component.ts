@@ -105,6 +105,24 @@ export class CertificationsComponent implements OnInit {
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
+  /** URLs de thumbnails já aquecidos no cache do navegador. */
+  private readonly preloadedThumbnails = new Set<string>();
+
+  // Pré-carrega os thumbnails de TODOS os certificados (não só a página atual)
+  // assim que a lista chega, para que a paginação seja instantânea e sem reload.
+  private readonly preloadThumbnails = effect(() => {
+    for (const cert of this.certificados()) {
+      const url = this.getThumbnailUrl(cert);
+      if (!url || this.preloadedThumbnails.has(url)) {
+        continue;
+      }
+      this.preloadedThumbnails.add(url);
+      const img = new Image();
+      img.decoding = 'async';
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
+      img.src = url;
+    }
+  });
 
   // Recarrega certificados/currículo ao trocar idioma, para usar overrides do backend
   private readonly reloadOnLangChange = effect(() => {
@@ -202,22 +220,6 @@ export class CertificationsComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.scrollToCertificationsSection();
-    }
-  }
-
-  private scrollToCertificationsSection(): void {
-    const section = this.certificationsSection();
-    if (section?.nativeElement) {
-      section.nativeElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    } else {
-      const el = document.getElementById('certifications');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
     }
   }
 

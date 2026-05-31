@@ -25,18 +25,34 @@
   color: #ff8a8a;
 }
 
+/* Compacta a seção para caber grade + paginação em uma tela de qualquer
+   altura: métricas verticais escalam com a viewport (vh) entre limites. */
+#certifications.block {
+  padding-top: clamp(60px, 9vh, 92px);
+  padding-bottom: clamp(24px, 4vh, 56px);
+}
+
+#certifications .section-title {
+  margin-bottom: clamp(14px, 2.6vh, 50px);
+}
+
 .certifications-grid {
-  margin-top: 1.25rem;
+  margin-top: clamp(8px, 1.6vh, 20px);
+  gap: clamp(12px, 1.6vh, 18px);
 }
 
 /* Cards um pouco mais compactos para caber grade + paginação no mesmo viewport */
 .cert-preview {
-  height: 118px;
+  height: clamp(88px, 12vh, 130px);
 }
 
 .cert-body {
-  padding: 13px 14px;
-  gap: 8px;
+  padding: clamp(9px, 1.5vh, 14px) 14px;
+  gap: clamp(5px, 1vh, 8px);
+}
+
+.cert-card .cert-name {
+  min-height: 0;
 }
 
 .cert-card:focus-visible {
@@ -73,13 +89,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: clamp(14px, 2.4vh, 28px);
   flex-wrap: wrap;
 }
 
 .pagination-btn {
-  min-width: 44px;
-  height: 44px;
+  min-width: clamp(36px, 4.6vh, 44px);
+  height: clamp(36px, 4.6vh, 44px);
   display: grid;
   place-items: center;
   padding: 0 8px;

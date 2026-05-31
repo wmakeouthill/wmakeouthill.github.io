@@ -66,6 +66,8 @@ export class ProjectsComponent implements OnInit {
   private lastLanguage = this.i18nService.language();
   private initialized = false;
   private gridResizeObserver?: ResizeObserver;
+  /** URLs de imagens já aquecidas no cache do navegador (evita refazer o preload). */
+  private readonly preloadedImages = new Set<string>();
 
   // Recarrega quando o idioma mudar, respeitando caches por idioma do backend
   private readonly reloadOnLangChange = effect(() => {
@@ -137,6 +139,10 @@ export class ProjectsComponent implements OnInit {
         this.loadLanguagesForProjects();
         this.loading.set(false);
 
+        // 🖼️ Pré-carrega TODAS as imagens (não só a página atual) para que a
+        // troca de página seja instantânea, sem reload visível.
+        this.preloadProjectImages(repos);
+
         // 🚀 Pré-carrega READMEs de todos os projetos em background
         this.preloadAllReadmesInBackground(repos);
 
@@ -179,6 +185,25 @@ export class ProjectsComponent implements OnInit {
       }
     }
     this.readmeProjects.set(available);
+  }
+
+  /**
+   * Aquece o cache do navegador com as imagens de todos os projetos (não apenas
+   * os da página atual). Leve e em baixa prioridade: usa `new Image()` com
+   * `fetchPriority`/`decoding` para não competir com o carregamento inicial.
+   */
+  private preloadProjectImages(repos: GitHubRepository[]): void {
+    for (const repo of repos) {
+      const url = this.getProjectImage(repo.name);
+      if (!url || this.preloadedImages.has(url) || url.includes('placehold.co')) {
+        continue;
+      }
+      this.preloadedImages.add(url);
+      const img = new Image();
+      img.decoding = 'async';
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
+      img.src = url;
+    }
   }
 
   /** Probe em background: marca projetos que possuem mídia na galeria. */
@@ -313,7 +338,6 @@ export class ProjectsComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.scrollToProjectsSection();
     }
   }
 
@@ -410,6 +434,7 @@ export class ProjectsComponent implements OnInit {
           this.loadLanguagesForProjects();
           this.loading.set(false);
           this.refreshing.set(false);
+          this.preloadProjectImages(repos);
           this.preloadAllReadmesInBackground(repos);
         },
         error: (error: any) => {
