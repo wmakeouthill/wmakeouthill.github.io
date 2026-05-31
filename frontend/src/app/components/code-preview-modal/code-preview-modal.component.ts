@@ -15,6 +15,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { resolveApiUrl } from '../../utils/api-url.util';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 import { catchError, of } from 'rxjs';
 
 /**
@@ -71,6 +72,7 @@ interface TreeNodeResponse {
 export class CodePreviewModalComponent implements OnDestroy {
     private readonly http = inject(HttpClient);
     private readonly sanitizer = inject(DomSanitizer);
+    private readonly scrollLock = inject(ScrollLockService);
 
     // Inputs
     readonly isOpen = input<boolean>(false);
@@ -104,21 +106,18 @@ export class CodePreviewModalComponent implements OnDestroy {
             const project = this.projectName();
 
             if (open) {
-                document.body.classList.add('modal-open');
                 if (project) {
                     this.loadRepositoryTree(project);
                     this.loadHighlightJs();
                 }
                 this.disableBodyScroll();
             } else {
-                document.body.classList.remove('modal-open');
                 this.enableBodyScroll();
             }
         });
     }
 
     ngOnDestroy(): void {
-        document.body.classList.remove('modal-open');
         this.enableBodyScroll();
     }
 
@@ -703,21 +702,17 @@ export class CodePreviewModalComponent implements OnDestroy {
         }
     }
 
-    private scrollY = 0;
+    private scrollLocked = false;
 
     private disableBodyScroll(): void {
-        this.scrollY = window.scrollY;
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${this.scrollY}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflowY = 'scroll'; // Avoids layout shift if scrollbar disappears
+        if (this.scrollLocked) return;
+        this.scrollLocked = true;
+        this.scrollLock.lock();
     }
 
     private enableBodyScroll(): void {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflowY = '';
-        window.scrollTo(0, this.scrollY);
+        if (!this.scrollLocked) return;
+        this.scrollLocked = false;
+        this.scrollLock.unlock();
     }
 }

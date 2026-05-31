@@ -104,7 +104,10 @@
     </div>
   }
 
-  <app-readme-modal [isOpen]="showReadmeModal()" [projectName]="currentProjectName()" (close)="closeReadmeModal()" />
-  <app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()" (close)="closeCodePreviewModal()" />
-  <app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()" [demoUrl]="currentDemoUrl()" [initialView]="currentDemoInitialView()" (close)="closeDemoModal()" />
 </section>
+
+<!-- Modais ficam FORA da <section> para escapar do stacking context (.block/.wrap têm z-index:1),
+     senão o backdrop fica preso abaixo do header fixo (z-index:50) e o topo do modal é cortado. -->
+<app-readme-modal [isOpen]="showReadmeModal()" [projectName]="currentProjectName()" (close)="closeReadmeModal()" />
+<app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()" (close)="closeCodePreviewModal()" />
+<app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()" [demoUrl]="currentDemoUrl()" [initialView]="currentDemoInitialView()" (close)="closeDemoModal()" />

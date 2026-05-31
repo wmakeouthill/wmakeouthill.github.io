@@ -4,6 +4,7 @@ import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { CertificationsService } from '../../services/certifications.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { CertificadoPdf } from '../../services/certifications.service';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 
 @Component({
   selector: 'app-cv-modal',
@@ -15,6 +16,8 @@ import { CertificadoPdf } from '../../services/certifications.service';
 export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18n = inject(I18nService);
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
   private readonly languageEffect = effect(() => {
     this.i18n.language();
     this.loadCurriculoMetadata();
@@ -95,28 +98,15 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private disableBodyScroll(): void {
-    const scrollY = window.scrollY;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.setAttribute('data-scroll-y', scrollY.toString());
+    if (this.scrollLocked) return;
+    this.scrollLocked = true;
+    this.scrollLock.lock();
   }
 
   private enableBodyScroll(): void {
-    const scrollY = document.body.getAttribute('data-scroll-y');
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.removeAttribute('data-scroll-y');
-    if (scrollY) {
-      window.scrollTo(0, parseInt(scrollY));
-    }
+    if (!this.scrollLocked) return;
+    this.scrollLocked = false;
+    this.scrollLock.unlock();
   }
 
   increaseZoom(): void {

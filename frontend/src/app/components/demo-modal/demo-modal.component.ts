@@ -15,6 +15,7 @@ import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { resolveApiUrl } from '../../utils/api-url.util';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 
 export interface GalleryMedia {
   fileName: string;
@@ -37,6 +38,8 @@ type ModalView = 'choice' | 'site' | 'gallery';
 export class DemoModalComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
 
   readonly isOpen = input<boolean>(false);
   readonly projectName = input<string>('');
@@ -119,10 +122,8 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   closeLightbox(): void {
+    // Volta para a grade da galeria (não fecha o modal inteiro)
     this.lightboxIndex.set(-1);
-    if (this.initialView() === 'gallery') {
-      this.closeModal();
-    }
   }
 
   prevItem(): void {
@@ -186,9 +187,6 @@ export class DemoModalComponent implements OnDestroy {
           isVideo: this.isVideoFile(f.fileName)
         }));
         this.galleryItems.set(items);
-        if (this.initialView() === 'gallery' && items.length > 0) {
-          this.lightboxIndex.set(0);
-        }
         this.loading.set(false);
       },
       error: () => {
@@ -204,10 +202,14 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   private disableBodyScroll(): void {
-    document.body.style.overflow = 'hidden';
+    if (this.scrollLocked) return;
+    this.scrollLocked = true;
+    this.scrollLock.lock();
   }
 
   private enableBodyScroll(): void {
-    document.body.style.overflow = '';
+    if (!this.scrollLocked) return;
+    this.scrollLocked = false;
+    this.scrollLock.unlock();
   }
 }

@@ -15,6 +15,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkdownService } from '../../services/markdown.service';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 
 @Component({
   selector: 'app-readme-modal',
@@ -28,6 +29,8 @@ import { MarkdownService } from '../../services/markdown.service';
 export class ReadmeModalComponent implements OnDestroy {
   private readonly markdownService = inject(MarkdownService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
 
   // Inputs usando nova sintaxe
   readonly isOpen = input<boolean>(false);
@@ -625,10 +628,14 @@ export class ReadmeModalComponent implements OnDestroy {
   }
 
   private disableBodyScroll(): void {
-    document.body.style.overflow = 'hidden';
+    if (this.scrollLocked) return;
+    this.scrollLocked = true;
+    this.scrollLock.lock();
   }
 
   private enableBodyScroll(): void {
-    document.body.style.overflow = '';
+    if (!this.scrollLocked) return;
+    this.scrollLocked = false;
+    this.scrollLock.unlock();
   }
 }
