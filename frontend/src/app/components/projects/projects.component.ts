@@ -46,6 +46,7 @@ export class ProjectsComponent implements OnInit {
   readonly showDemoModal = signal<boolean>(false);
   readonly currentProjectForDemo = signal<string>('');
   readonly currentDemoUrl = signal<string>('');
+  readonly currentDemoInitialView = signal<'choice' | 'site' | 'gallery'>('choice');
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
@@ -279,6 +280,14 @@ export class ProjectsComponent implements OnInit {
   openDemoModal(project: GitHubRepository): void {
     this.currentProjectForDemo.set(project.name);
     this.currentDemoUrl.set(project.homepage ?? '');
+    this.currentDemoInitialView.set('site');
+    this.showDemoModal.set(true);
+  }
+
+  openProjectGallery(project: GitHubRepository): void {
+    this.currentProjectForDemo.set(project.name);
+    this.currentDemoUrl.set(project.homepage ?? '');
+    this.currentDemoInitialView.set('gallery');
     this.showDemoModal.set(true);
   }
 
@@ -286,6 +295,7 @@ export class ProjectsComponent implements OnInit {
     this.showDemoModal.set(false);
     this.currentProjectForDemo.set('');
     this.currentDemoUrl.set('');
+    this.currentDemoInitialView.set('choice');
   }
 
   /**
@@ -336,6 +346,11 @@ export class ProjectsComponent implements OnInit {
     // Se não encontrou no cache, usa placeholder direto
     // (evita tentativas desnecessárias de .png/.jpg que vão falhar)
     return this.portfolioContentService.getPlaceholderUrl(projectName);
+  }
+
+  projectNumber(indexOnPage: number): string {
+    const absoluteIndex = (this.currentPage() - 1) * this.itemsPerPage + indexOnPage + 1;
+    return absoluteIndex.toString().padStart(2, '0');
   }
 
   /**

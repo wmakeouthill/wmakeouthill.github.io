@@ -34,26 +34,25 @@
 
   @if (!loading() && filteredProjects().length > 0) {
     <div class="proj-grid">
-      @for (project of paginatedProjects(); track project.id) {
+      @for (project of paginatedProjects(); track project.id; let i = $index) {
         <article class="proj-card reveal">
           <div class="proj-head">
             <span class="pg"></span>
-            <img [src]="getProjectImage(project.name)" [alt]="project.name" (error)="onImageError($event, project.name)" />
+            <img class="proj-thumb" [src]="getProjectImage(project.name)" [alt]="project.name" (error)="onImageError($event, project.name)" />
+            <span class="proj-num">{{ projectNumber(i) }}</span>
             <div class="proj-overlay">
-              <a [href]="project.html_url" target="_blank" rel="noopener noreferrer" class="ov-btn">
-                <img src="assets/icons/github-octocat.svg" alt="" width="14" height="14" /> GitHub
-              </a>
-              <button (click)="openReadmeModal(project.name)" class="ov-btn">README</button>
               @if (project.homepage) {
                 <button (click)="openDemoModal(project)" class="ov-btn demo">{{ 'projects.demo' | translate }}</button>
               }
+              <button (click)="openProjectGallery(project)" class="ov-btn gallery">{{ 'projects.demoModal.galleryTitle' | translate }}</button>
               <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
+              <button (click)="openReadmeModal(project.name)" class="ov-btn">README</button>
             </div>
           </div>
 
           <div class="proj-body">
-            <h3>{{ project.name }}</h3>
-            <p>{{ project.description || ('projects.noDescription' | translate) }}</p>
+            <div class="proj-name">{{ project.name }}</div>
+            <div class="proj-desc">{{ project.description || ('projects.noDescription' | translate) }}</div>
 
             @if (project.topics && project.topics.length > 0) {
               <div class="proj-stack">
@@ -74,6 +73,10 @@
                   {{ project.language }}
                 </span>
               }
+              <a class="proj-lang repo-link" [href]="project.html_url" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">
+                <img src="assets/icons/github-octocat.svg" alt="" width="14" height="14" />
+                <span>Repositorio</span>
+              </a>
             </div>
           </div>
         </article>
@@ -103,5 +106,5 @@
 
   <app-readme-modal [isOpen]="showReadmeModal()" [projectName]="currentProjectName()" (close)="closeReadmeModal()" />
   <app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()" (close)="closeCodePreviewModal()" />
-  <app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()" [demoUrl]="currentDemoUrl()" (close)="closeDemoModal()" />
+  <app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()" [demoUrl]="currentDemoUrl()" [initialView]="currentDemoInitialView()" (close)="closeDemoModal()" />
 </section>

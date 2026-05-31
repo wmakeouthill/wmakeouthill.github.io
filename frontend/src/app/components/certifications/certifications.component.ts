@@ -36,7 +36,7 @@ export class CertificationsComponent implements OnInit {
 
   /** Paginação */
   readonly currentPage = signal<number>(1);
-  readonly itemsPerPage = 6;
+  readonly itemsPerPage = 10;
 
   // Computed para certificados paginados
   readonly paginatedCertificados = computed(() => {

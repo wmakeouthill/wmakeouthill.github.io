@@ -1,171 +1,174 @@
 @if (isOpen()) {
-<div class="modal-overlay" (click)="onOverlayClick($event)">
-  <div class="modal-content">
-
-    <!-- Header -->
-    <div class="modal-header">
-      <div class="header-left">
-        @if (view() === 'gallery') {
-        <button class="back-btn" (click)="backToChoice()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-          </svg>
-          {{ 'projects.demoModal.back' | translate }}
-        </button>
-        }
-      </div>
-      <h2 class="modal-title">
-        <span class="demo-icon">🚀</span>
-        @if (view() === 'choice') {
-        {{ 'projects.demoModal.title' | translate }}
-        } @else {
-        {{ projectName() }} — {{ 'projects.demoModal.galleryTitle' | translate }}
-        }
-      </h2>
-      <button class="close-btn" (click)="closeModal()" [title]="'projects.demoModal.close' | translate">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Body -->
-    <div class="modal-body">
-
-      <!-- Choice View -->
-      @if (view() === 'choice') {
-      <div class="choice-view">
-        <button class="choice-card primary-choice" (click)="visitSite()">
-          <div class="choice-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
-            </svg>
-          </div>
-          <div class="choice-text">
-            <span class="choice-title">{{ 'projects.demoModal.visitSite' | translate }}</span>
-            <span class="choice-desc">{{ 'projects.demoModal.visitSiteDesc' | translate }}</span>
-          </div>
-          <div class="choice-arrow">›</div>
-        </button>
-
-        <button class="choice-card gallery-choice" (click)="openGallery()">
-          <div class="choice-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
-            </svg>
-          </div>
-          <div class="choice-text">
-            <span class="choice-title">{{ 'projects.demoModal.viewGallery' | translate }}</span>
-            <span class="choice-desc">{{ 'projects.demoModal.viewGalleryDesc' | translate }}</span>
-          </div>
-          <div class="choice-arrow">›</div>
-        </button>
-      </div>
-      }
-
-      <!-- Gallery View -->
-      @if (view() === 'gallery') {
-      <div class="gallery-view">
-
-        @if (loading()) {
-        <div class="gallery-loading">
-          <div class="spinner"></div>
-          <p>{{ 'projects.demoModal.galleryLoading' | translate }}</p>
-        </div>
-        }
-
-        @if (!loading() && galleryItems().length === 0) {
-        <div class="gallery-empty">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-            <path
-              d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
-          </svg>
-          <p>{{ 'projects.demoModal.galleryEmpty' | translate }}</p>
-        </div>
-        }
-
-        @if (!loading() && galleryItems().length > 0) {
-        <div class="gallery-grid">
-          @for (item of galleryItems(); track item.sha) {
-          <div class="gallery-item" (click)="openLightbox(item)">
-            @if (item.isVideo) {
-            <div class="video-thumb">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-            <div class="video-badge">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              Vídeo
-            </div>
-            } @else {
-            <img [src]="item.downloadUrl" [alt]="item.displayName" class="gallery-image" loading="lazy" />
-            }
-            <div class="gallery-item-overlay">
-              @if (item.isVideo) {
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              } @else {
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-              </svg>
-              }
-            </div>
-            <p class="gallery-item-name">{{ item.displayName }}</p>
-          </div>
+<div class="modal-backdrop open demo-modal-backdrop" (click)="onOverlayClick($event)" (keydown)="onKeyDown($event)">
+  <div class="modal wide demo-modal" role="dialog" aria-modal="true" aria-label="Demo ao vivo" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <h3>
+          @if (view() === 'choice') {
+            {{ 'projects.demoModal.title' | translate }}
+          } @else {
+            {{ projectName() }}
+          }
+        </h3>
+        <div class="sub">
+          @if (view() === 'site') {
+            Pre-visualizacao ao vivo
+          } @else if (view() === 'gallery') {
+            {{ 'projects.demoModal.galleryTitle' | translate }}
+          } @else {
+            GitHub · wmakeouthill
           }
         </div>
-        }
-
       </div>
+
+      <div class="modal-actions">
+        @if (view() !== 'choice') {
+          <button class="btn btn-outline modal-action-btn" (click)="backToChoice()">
+            {{ 'projects.demoModal.back' | translate }}
+          </button>
+        }
+        @if (view() === 'site' && demoUrl()) {
+          <a class="btn btn-accent modal-action-btn" [href]="demoUrl()" target="_blank" rel="noopener">
+            Abrir em nova aba &#8599;
+          </a>
+        }
+        <button class="modal-close close-btn" (click)="closeModal()" [title]="'projects.demoModal.close' | translate">
+          &#10005;
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      @if (view() === 'choice') {
+        <div class="choice-view">
+          <button class="choice-card primary-choice" (click)="visitSite()" [disabled]="!demoUrl()">
+            <div class="choice-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
+              </svg>
+            </div>
+            <div class="choice-text">
+              <span class="choice-title">{{ 'projects.demoModal.visitSite' | translate }}</span>
+              <span class="choice-desc">{{ 'projects.demoModal.visitSiteDesc' | translate }}</span>
+            </div>
+            <div class="choice-arrow">›</div>
+          </button>
+
+          <button class="choice-card gallery-choice" (click)="openGallery()">
+            <div class="choice-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+              </svg>
+            </div>
+            <div class="choice-text">
+              <span class="choice-title">{{ 'projects.demoModal.viewGallery' | translate }}</span>
+              <span class="choice-desc">{{ 'projects.demoModal.viewGalleryDesc' | translate }}</span>
+            </div>
+            <div class="choice-arrow">›</div>
+          </button>
+        </div>
       }
 
+      @if (view() === 'site') {
+        <div class="demo-bar">
+          <span>●●●</span>
+          <span class="url">{{ demoUrl() }}</span>
+        </div>
+        <div class="demo-frame-wrap">
+          @if (safeDemoUrl(); as url) {
+            <iframe [src]="url" title="Demo" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+          }
+        </div>
+      }
+
+      @if (view() === 'gallery') {
+        <div class="gallery-view">
+          @if (loading()) {
+            <div class="gallery-loading">
+              <div class="spinner"></div>
+              <p>{{ 'projects.demoModal.galleryLoading' | translate }}</p>
+            </div>
+          }
+
+          @if (!loading() && galleryItems().length === 0) {
+            <div class="gallery-empty">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+              </svg>
+              <p>{{ 'projects.demoModal.galleryEmpty' | translate }}</p>
+            </div>
+          }
+
+          @if (!loading() && galleryItems().length > 0) {
+            <div class="gallery-grid">
+              @for (item of galleryItems(); track item.sha) {
+                <button class="gallery-item" (click)="openLightbox(item)">
+                  @if (item.isVideo) {
+                    <div class="video-thumb">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                    <div class="video-badge">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                      Video
+                    </div>
+                  } @else {
+                    <img [src]="item.downloadUrl" [alt]="item.displayName" class="gallery-image" loading="lazy" />
+                  }
+                  <div class="gallery-item-overlay">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                  </div>
+                  <span class="gallery-item-name">{{ item.displayName }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   </div>
 </div>
 
-<!-- Lightbox -->
 @if (lightboxItem()) {
-<div class="lightbox-overlay" (click)="onLightboxOverlayClick($event)">
-
-  <button class="lightbox-close" (click)="closeLightbox()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-    </svg>
-  </button>
-
-  <button class="lightbox-nav lightbox-prev" (click)="prevItem()" [disabled]="!lightboxHasPrev()">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-    </svg>
-  </button>
-
-  <div class="lightbox-content">
-    @if (lightboxItem()!.isVideo) {
-    <video [src]="lightboxItem()!.downloadUrl" controls autoplay class="lightbox-video">
-      Seu navegador não suporta vídeos HTML5.
-    </video>
-    } @else {
-    <img [src]="lightboxItem()!.downloadUrl" [alt]="lightboxItem()!.displayName" class="lightbox-image" />
-    }
-    <div class="lightbox-footer">
-      <p class="lightbox-caption">{{ lightboxItem()!.displayName }}</p>
-      <span class="lightbox-counter">{{ lightboxCounter() }}</span>
+  <div class="lightbox open" (click)="onLightboxOverlayClick($event)">
+    <div class="lb-top">
+      <div class="lb-title">
+        {{ 'projects.demoModal.galleryTitle' | translate }}
+        <div class="sub">{{ projectName() }}</div>
+      </div>
+      <div class="lb-actions">
+        <span class="lb-count">{{ lightboxCounter() }}</span>
+        <button class="lb-close" (click)="closeLightbox()" aria-label="Fechar">&#10005;</button>
+      </div>
+    </div>
+    <div class="lb-stage">
+      <button class="lb-nav prev" (click)="prevItem()" [disabled]="!lightboxHasPrev()" aria-label="Anterior">‹</button>
+      <div class="lb-media">
+        @if (lightboxItem()!.isVideo) {
+          <video [src]="lightboxItem()!.downloadUrl" controls autoplay></video>
+        } @else {
+          <img [src]="lightboxItem()!.downloadUrl" [alt]="lightboxItem()!.displayName" />
+        }
+      </div>
+      <button class="lb-nav next" (click)="nextItem()" [disabled]="!lightboxHasNext()" aria-label="Proxima">›</button>
+    </div>
+    <div class="lb-caption">{{ lightboxItem()!.displayName }}</div>
+    <div class="lb-thumbs">
+      @for (item of galleryItems(); track item.sha; let i = $index) {
+        <button class="lb-thumb" [class.active]="lightboxIndex() === i" (click)="lightboxIndex.set(i)">
+          @if (item.isVideo) {
+            <span class="vbadge">▶</span>
+          } @else {
+            <img [src]="item.downloadUrl" [alt]="item.displayName" loading="lazy" />
+          }
+        </button>
+      }
     </div>
   </div>
-
-  <button class="lightbox-nav lightbox-next" (click)="nextItem()" [disabled]="!lightboxHasNext()">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-    </svg>
-  </button>
-
-</div>
 }
 }

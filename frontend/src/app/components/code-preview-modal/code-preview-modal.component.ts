@@ -447,20 +447,13 @@ export class CodePreviewModalComponent implements OnDestroy {
                 const result = language && hljs.getLanguage(language)
                     ? hljs.highlight(code, { language, ignoreIllegals: true })
                     : hljs.highlightAuto(code);
-                return this.sanitizer.bypassSecurityTrustHtml(this.addLineNumbers(result.value));
+                return this.sanitizer.bypassSecurityTrustHtml(result.value);
             } catch (e) {
                 console.warn('Highlight.js error:', e);
             }
         }
 
-        return this.sanitizer.bypassSecurityTrustHtml(this.addLineNumbers(this.escapeHtml(code)));
-    }
-
-    private addLineNumbers(code: string): string {
-        const lines = code.split('\n');
-        return lines.map((line, i) =>
-            `<span class="line-number">${i + 1}</span><span class="line-content">${line || ' '}</span>`
-        ).join('\n');
+        return this.sanitizer.bypassSecurityTrustHtml(this.escapeHtml(code));
     }
 
     private escapeHtml(text: string): string {

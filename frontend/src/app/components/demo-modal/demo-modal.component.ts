@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { resolveApiUrl } from '../../utils/api-url.util';
 
@@ -23,7 +24,7 @@ export interface GalleryMedia {
   isVideo: boolean;
 }
 
-type ModalView = 'choice' | 'gallery';
+type ModalView = 'choice' | 'site' | 'gallery';
 
 @Component({
   selector: 'app-demo-modal',
@@ -35,10 +36,12 @@ type ModalView = 'choice' | 'gallery';
 })
 export class DemoModalComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly isOpen = input<boolean>(false);
   readonly projectName = input<string>('');
   readonly demoUrl = input<string>('');
+  readonly initialView = input<ModalView>('choice');
 
   readonly close = output<void>();
 
@@ -64,14 +67,23 @@ export class DemoModalComponent implements OnDestroy {
     return idx >= 0 ? `${idx + 1} / ${total}` : '';
   });
 
+  readonly safeDemoUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.demoUrl();
+    if (!/^https?:\/\//i.test(url)) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
+
   constructor() {
     effect(() => {
       const open = this.isOpen();
       if (open) {
-        this.view.set('choice');
+        this.view.set(this.initialView());
         this.galleryItems.set([]);
         this.lightboxIndex.set(-1);
         this.disableBodyScroll();
+        if (this.initialView() === 'gallery') {
+          this.loadGallery();
+        }
       } else {
         this.enableBodyScroll();
       }
@@ -83,6 +95,10 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   visitSite(): void {
+    this.view.set('site');
+  }
+
+  openInNewTab(): void {
     const url = this.demoUrl();
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
   }
@@ -104,6 +120,9 @@ export class DemoModalComponent implements OnDestroy {
 
   closeLightbox(): void {
     this.lightboxIndex.set(-1);
+    if (this.initialView() === 'gallery') {
+      this.closeModal();
+    }
   }
 
   prevItem(): void {
@@ -119,7 +138,8 @@ export class DemoModalComponent implements OnDestroy {
   }
 
   onOverlayClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('modal-overlay') || target.classList.contains('modal-backdrop')) {
       this.closeModal();
     }
   }
@@ -127,7 +147,12 @@ export class DemoModalComponent implements OnDestroy {
   onLightboxOverlayClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     // Fecha ao clicar no fundo ou no lightbox-content (área vazia ao redor da mídia)
-    if (target.classList.contains('lightbox-overlay') || target.classList.contains('lightbox-content')) {
+    if (
+      target.classList.contains('lightbox') ||
+      target.classList.contains('lb-stage') ||
+      target.classList.contains('lightbox-overlay') ||
+      target.classList.contains('lightbox-content')
+    ) {
       this.closeLightbox();
     }
   }
@@ -161,6 +186,9 @@ export class DemoModalComponent implements OnDestroy {
           isVideo: this.isVideoFile(f.fileName)
         }));
         this.galleryItems.set(items);
+        if (this.initialView() === 'gallery' && items.length > 0) {
+          this.lightboxIndex.set(0);
+        }
         this.loading.set(false);
       },
       error: () => {
