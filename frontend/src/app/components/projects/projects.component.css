@@ -150,8 +150,11 @@
   z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* contain: mostra a imagem inteira sem recortar (logos/banners não ficam
+     cortados); as bordas restantes ficam sobre o fundo do card. */
+  object-fit: contain;
   object-position: center;
+  background: var(--bg-card-2);
 }
 
 .proj-overlay img {
