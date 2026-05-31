@@ -1,5 +1,92 @@
 .chat-input-wrapper {
+  position: relative;
   flex-shrink: 0;
+}
+
+/* ===== Menu de comandos slash ===== */
+.chat-slash-menu {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(100% - 6px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md, 12px);
+  background: var(--bg-card-2);
+  box-shadow: var(--shadow-lg);
+  animation: slashIn 0.14s ease-out;
+}
+
+@keyframes slashIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.chat-slash-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+
+.chat-slash-item.active {
+  background: rgba(219, 194, 125, 0.12);
+}
+
+.chat-slash-cmd {
+  color: var(--color-accent);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.chat-slash-desc {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+/* Botão "/" que abre os comandos */
+.ci-slash {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-family: 'Fira Code', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+
+.ci-slash:hover:not(:disabled),
+.ci-slash.active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.ci-slash:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .chat-attachments {
@@ -129,7 +216,8 @@
   }
 
   .ci-btn,
-  .ci-send {
+  .ci-send,
+  .ci-slash {
     width: 42px;
     height: 42px;
   }

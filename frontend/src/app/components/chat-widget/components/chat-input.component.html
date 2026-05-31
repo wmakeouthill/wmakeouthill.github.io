@@ -1,4 +1,17 @@
 <div class="chat-input-wrapper">
+  @if (showSlashMenu()) {
+    <div class="chat-slash-menu" role="listbox" [attr.aria-label]="'chat.commandsLabel' | translate">
+      @for (cmd of filteredCommands(); track cmd.command; let i = $index) {
+        <button type="button" class="chat-slash-item" role="option"
+          [class.active]="i === highlightedIndex()" [attr.aria-selected]="i === highlightedIndex()"
+          (mouseenter)="highlightedIndex.set(i)" (mousedown)="handleCommandMouseDown(cmd, $event)">
+          <span class="chat-slash-cmd">{{ cmd.hint || cmd.command }}</span>
+          <span class="chat-slash-desc">{{ cmd.descriptionKey | translate }}</span>
+        </button>
+      }
+    </div>
+  }
+
   @if (attachments().length > 0) {
     <div class="chat-attachments">
       @for (file of attachments(); track $index) {
@@ -13,6 +26,10 @@
 
   <form class="chat-input" (ngSubmit)="handleSubmit()" autocomplete="off">
     <input #fileInput type="file" multiple [accept]="acceptTypes" (change)="handleFilesSelected($event)" hidden />
+
+    <button type="button" class="ci-slash" [class.active]="showSlashMenu()" (click)="abrirComandos()"
+      [disabled]="isLoading()" [attr.aria-label]="'chat.commandsLabel' | translate"
+      [title]="'chat.commandsLabel' | translate">/</button>
 
     <button type="button" class="ci-btn" (click)="openFilePicker()" [disabled]="isLoading()"
       aria-label="Anexar arquivo" title="Anexar arquivo">

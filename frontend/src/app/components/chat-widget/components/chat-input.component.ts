@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, ViewChild, afterNextRender, effect, inject, input, output, runInInjectionContext, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, ViewChild, afterNextRender, computed, effect, inject, input, output, runInInjectionContext, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../i18n/i18n.pipe';
+
+export interface SlashCommand {
+  /** Token digitado, ex: '/email'. */
+  command: string;
+  /** Chave i18n da descrição exibida no menu. */
+  descriptionKey: string;
+  /** Dica de uso exibida no menu (ex: '/email sua mensagem'). */
+  hint?: string;
+  /** Quando true, executa uma ação no widget ao selecionar (sem argumentos). */
+  immediate?: boolean;
+}
 
 @Component({
   selector: 'app-chat-input',
@@ -28,6 +39,8 @@ export class ChatInputComponent {
   readonly onCancel = output<void>();
   readonly onAttach = output<File[]>();
   readonly onRemoveAttachment = output<number>();
+  /** Emite o token de um comando imediato (ex: '/new', '/history'). */
+  readonly onCommand = output<string>();
 
   isRecording = signal(false);
 
@@ -35,6 +48,31 @@ export class ChatInputComponent {
   private recordedChunks: Blob[] = [];
 
   readonly acceptTypes = 'image/*,application/pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,audio/*';
+
+  /** Comandos slash disponíveis no chat. */
+  readonly slashCommands: SlashCommand[] = [
+    { command: '/email', descriptionKey: 'chat.cmdEmail', hint: '/email ...' },
+    { command: '/new', descriptionKey: 'chat.cmdNew', immediate: true },
+    { command: '/history', descriptionKey: 'chat.cmdHistory', immediate: true }
+  ];
+
+  /** Índice destacado no menu (navegação por teclado). */
+  readonly highlightedIndex = signal(0);
+  /** Permite fechar o menu com Esc mesmo com o texto começando por '/'. */
+  private readonly menuDismissed = signal(false);
+
+  /** Comandos que batem com o que está sendo digitado. */
+  readonly filteredCommands = computed<SlashCommand[]>(() => {
+    const value = this.inputText().trim();
+    if (!value.startsWith('/') || value.includes(' ')) {
+      return [];
+    }
+    const query = value.slice(1).toLowerCase();
+    return this.slashCommands.filter((c) => c.command.slice(1).toLowerCase().startsWith(query));
+  });
+
+  /** Se o menu de comandos deve aparecer. */
+  readonly showSlashMenu = computed(() => !this.menuDismissed() && this.filteredCommands().length > 0);
 
   constructor() {
     afterNextRender(() => {
@@ -51,6 +89,12 @@ export class ChatInputComponent {
           this.inputText();
           queueMicrotask(() => this.adjustHeight());
         });
+
+        // Reseta o destaque quando a lista filtrada muda.
+        effect(() => {
+          this.filteredCommands();
+          this.highlightedIndex.set(0);
+        });
       });
     });
   }
@@ -60,16 +104,71 @@ export class ChatInputComponent {
   }
 
   handleInputChange(value: string): void {
+    // Voltar a digitar reabre o menu (cancela o "fechar com Esc").
+    this.menuDismissed.set(false);
     this.onInputChange.emit(value);
     queueMicrotask(() => this.adjustHeight());
   }
 
   handleKeydown(event: KeyboardEvent): void {
+    if (this.showSlashMenu()) {
+      const commands = this.filteredCommands();
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          this.highlightedIndex.update((i) => (i + 1) % commands.length);
+          return;
+        case 'ArrowUp':
+          event.preventDefault();
+          this.highlightedIndex.update((i) => (i - 1 + commands.length) % commands.length);
+          return;
+        case 'Tab':
+        case 'Enter':
+          event.preventDefault();
+          this.selectCommand(commands[this.highlightedIndex()]);
+          return;
+        case 'Escape':
+          event.preventDefault();
+          this.menuDismissed.set(true);
+          return;
+      }
+    }
+
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.handleSubmit();
     }
     // Input de linha unica como no prototipo.
+  }
+
+  /** Seleciona um comando do menu (clique ou teclado). */
+  selectCommand(cmd?: SlashCommand): void {
+    if (!cmd) {
+      return;
+    }
+    if (cmd.immediate) {
+      this.onCommand.emit(cmd.command);
+      this.onInputChange.emit('');
+      this.menuDismissed.set(true);
+      this.focus();
+      return;
+    }
+    // Comando com argumentos: preenche e mantém o foco para digitar o conteúdo.
+    this.onInputChange.emit(`${cmd.command} `);
+    this.focus();
+  }
+
+  /** Mousedown no item evita perder o foco do input antes de selecionar. */
+  handleCommandMouseDown(cmd: SlashCommand, event: MouseEvent): void {
+    event.preventDefault();
+    this.selectCommand(cmd);
+  }
+
+  /** Insere '/' e foca o input — usado pela dica de descoberta. */
+  abrirComandos(): void {
+    this.menuDismissed.set(false);
+    this.onInputChange.emit('/');
+    this.focus();
   }
 
   handleSubmit(): void {

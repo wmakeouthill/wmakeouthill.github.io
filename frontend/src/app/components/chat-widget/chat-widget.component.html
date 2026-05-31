@@ -47,7 +47,7 @@
     <app-chat-input [isLoading]="isLoading()" [inputText]="inputText()" [canSend]="canSend()" [shouldFocus]="isOpen()"
       [attachments]="pendingAttachments()" (onInputChange)="handleInputChange($event)"
       (onSend)="sendMessage()" (onCancel)="cancelarMensagem()" (onAttach)="handleAttach($event)"
-      (onRemoveAttachment)="handleRemoveAttachment($event)" />
+      (onRemoveAttachment)="handleRemoveAttachment($event)" (onCommand)="handleCommand($event)" />
   </section>
   }
 </div>

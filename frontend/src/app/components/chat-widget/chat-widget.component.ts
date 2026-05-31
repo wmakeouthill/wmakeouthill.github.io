@@ -204,10 +204,34 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     queueMicrotask(() => this.sendMessage());
   }
 
+  /** Trata comandos imediatos vindos do menu slash (sem argumentos). */
+  handleCommand(command: string): void {
+    switch (command) {
+      case '/new':
+        this.iniciarNovaConversa();
+        break;
+      case '/history':
+        this.toggleHistory();
+        break;
+    }
+  }
+
+  /** Comandos imediatos digitados manualmente não devem ir para a IA. */
+  private isImmediateCommand(text: string): boolean {
+    const cmd = text.trim().toLowerCase();
+    return cmd === '/new' || cmd === '/history';
+  }
+
   sendMessage(): void {
     const text = this.inputText().trim();
     const files = this.pendingAttachments();
     if (!this.canSendMessage(text, files)) {
+      return;
+    }
+
+    if (this.isImmediateCommand(text) && files.length === 0) {
+      this.inputText.set('');
+      this.handleCommand(text.toLowerCase());
       return;
     }
 
