@@ -61,8 +61,8 @@
 
 /* Botão "/" que abre os comandos */
 .ci-slash {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -128,28 +128,48 @@
   cursor: pointer;
 }
 
+/* Sem caixa/borda própria: apenas a divisão suave do topo, herdando o fundo.
+   Dois layouts via flex-wrap + order:
+   - .collapsed (campo vazio): tudo em uma linha, texto entre os botões.
+   - expandido (com texto): textarea ocupa a linha de cima, botões embaixo. */
 .chat-input {
   display: flex;
-  align-items: flex-end;
-  gap: 9px;
-  padding: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 12px;
+  padding: 12px 14px;
   border-top: 1px solid var(--border);
 }
 
 .ci-text {
-  flex: 1;
+  /* Expandido: ocupa a linha inteira no topo (acima dos botões). */
+  flex: 1 1 100%;
+  order: -1;
   min-width: 0;
-  padding: 11px 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: 22px;
-  background: var(--bg-primary);
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
   color: #fff;
   font-family: inherit;
   font-size: 0.92rem;
-  line-height: 1.4;
+  line-height: 1.5;
   resize: none;
   overflow-y: auto;
-  max-height: 120px;
+  max-height: 160px;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(219, 194, 125, 0.5) transparent;
+}
+
+/* Colapsado (campo vazio): texto inline entre anexar e microfone. */
+.chat-input.collapsed .ci-text {
+  flex: 1 1 auto;
+  order: 0;
+}
+
+.chat-input.collapsed .ci-spacer {
+  display: none;
 }
 
 .ci-text::placeholder {
@@ -158,13 +178,38 @@
 
 .ci-text:focus {
   outline: none;
-  border-color: var(--color-accent);
+}
+
+/* Scrollbar estilizada (Chrome/Edge/Safari) */
+.ci-text::-webkit-scrollbar {
+  width: 9px;
+}
+
+.ci-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ci-text::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9px;
+  background: rgba(219, 194, 125, 0.45);
+  background-clip: padding-box;
+}
+
+.ci-text::-webkit-scrollbar-thumb:hover {
+  background: rgba(219, 194, 125, 0.7);
+  background-clip: padding-box;
+}
+
+/* Empurra microfone/enviar para a direita (no estado expandido). */
+.ci-spacer {
+  flex: 1;
 }
 
 .ci-btn,
 .ci-send {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -178,8 +223,8 @@
 
 .ci-btn svg,
 .ci-send svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .ci-btn:hover:not(:disabled),
@@ -216,19 +261,17 @@
 
 @media (max-width: 480px) {
   .chat-input {
-    gap: 7px;
-    padding: 12px;
+    padding: 10px 12px;
   }
 
   .ci-btn,
   .ci-send,
   .ci-slash {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
   }
 
   .ci-text {
-    padding: 10px 14px;
     font-size: 0.9rem;
   }
 }

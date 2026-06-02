@@ -24,7 +24,7 @@
     </div>
   }
 
-  <form class="chat-input" (ngSubmit)="handleSubmit()" autocomplete="off">
+  <form class="chat-input" [class.collapsed]="!inputText()" (ngSubmit)="handleSubmit()" autocomplete="off">
     <input #fileInput type="file" multiple [accept]="acceptTypes" (change)="handleFilesSelected($event)" hidden />
 
     <button type="button" class="ci-slash" [class.active]="showSlashMenu()" (click)="abrirComandos()"
@@ -41,6 +41,8 @@
     <textarea #chatInput class="ci-text" rows="1" [ngModel]="inputText()" (ngModelChange)="handleInputChange($event)"
       (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
       [placeholder]="'chat.placeholder' | translate"></textarea>
+
+    <span class="ci-spacer"></span>
 
     <button type="button" class="ci-btn" [class.recording]="isRecording()" (click)="toggleRecording()"
       [disabled]="isLoading()" [attr.aria-label]="isRecording() ? 'Parar gravacao' : 'Gravar audio'"
