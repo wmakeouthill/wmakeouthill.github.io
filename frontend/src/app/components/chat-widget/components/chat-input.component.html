@@ -38,9 +38,9 @@
       </svg>
     </button>
 
-    <input #chatInput type="text" class="ci-text" [ngModel]="inputText()" (ngModelChange)="handleInputChange($event)"
+    <textarea #chatInput class="ci-text" rows="1" [ngModel]="inputText()" (ngModelChange)="handleInputChange($event)"
       (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
-      [placeholder]="'chat.placeholder' | translate" />
+      [placeholder]="'chat.placeholder' | translate"></textarea>
 
     <button type="button" class="ci-btn" [class.recording]="isRecording()" (click)="toggleRecording()"
       [disabled]="isLoading()" [attr.aria-label]="isRecording() ? 'Parar gravacao' : 'Gravar audio'"

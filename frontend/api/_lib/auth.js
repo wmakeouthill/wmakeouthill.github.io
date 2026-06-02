@@ -6,6 +6,21 @@
 const TARGET_API_URL = process.env.API_BASE_URL || 'http://137.131.158.76:8080';
 const API_KEY = process.env.API_KEY || '';
 
+// Aborta o fetch ao backend pouco antes do maxDuration da função (60s na Vercel),
+// devolvendo um 504 com corpo legível em vez do 504 opaco da plataforma.
+const BACKEND_TIMEOUT_MS = 55000;
+
+/** Executa um fetch com timeout via AbortController. */
+async function fetchWithTimeout(url, options = {}, timeoutMs = BACKEND_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -63,7 +78,7 @@ async function proxyRequest(req, res, targetPath) {
             fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
         }
 
-        const response = await fetch(fullTargetUrl, fetchOptions);
+        const response = await fetchWithTimeout(fullTargetUrl, fetchOptions);
 
         // Repassa headers de cache/validação do backend para o browser, para que
         // o cache HTTP do navegador funcione de ponta a ponta (ETag + revalidação).
@@ -93,6 +108,14 @@ async function proxyRequest(req, res, targetPath) {
         }
 
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('[Proxy Timeout] backend não respondeu a tempo');
+            return res.status(504).json({
+                error: 'O servidor demorou demais para responder',
+                message: 'A resposta da IA excedeu o tempo limite. Tente novamente.',
+                timestamp: new Date().toISOString()
+            });
+        }
         console.error('[Proxy Error]', error);
         return res.status(500).json({
             error: 'Erro no proxy para o backend',
@@ -143,7 +166,7 @@ async function proxyRawRequest(req, res, targetPath) {
         }
 
         const body = await readRawBody(req);
-        const response = await fetch(fullTargetUrl, { method: req.method, headers, body });
+        const response = await fetchWithTimeout(fullTargetUrl, { method: req.method, headers, body });
         const contentType = response.headers.get('content-type') || '';
 
         if (contentType.startsWith('image/') || contentType.startsWith('application/pdf')
@@ -162,6 +185,14 @@ async function proxyRawRequest(req, res, targetPath) {
             return res.send(responseData);
         }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('[Proxy raw Timeout] backend não respondeu a tempo');
+            return res.status(504).json({
+                error: 'O servidor demorou demais para responder',
+                message: 'A resposta da IA excedeu o tempo limite. Tente novamente.',
+                timestamp: new Date().toISOString()
+            });
+        }
         console.error('[Proxy raw Error]', error);
         return res.status(500).json({
             error: 'Erro no proxy para o backend',

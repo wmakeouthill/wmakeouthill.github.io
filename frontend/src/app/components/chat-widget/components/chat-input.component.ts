@@ -25,7 +25,7 @@ export interface SlashCommand {
 export class ChatInputComponent {
   private readonly injector = inject(Injector);
 
-  @ViewChild('chatInput') chatInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('chatInput') chatInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
 
   readonly isLoading = input<boolean>(false);
@@ -99,8 +99,17 @@ export class ChatInputComponent {
     });
   }
 
+  /** Altura máxima do campo (px) antes de exibir rolagem interna. */
+  private static readonly MAX_HEIGHT = 120;
+
+  /** Ajusta a altura do textarea ao conteúdo (auto-grow até MAX_HEIGHT). */
   private adjustHeight(): void {
-    return;
+    const el = this.chatInput?.nativeElement;
+    if (!el) {
+      return;
+    }
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, ChatInputComponent.MAX_HEIGHT)}px`;
   }
 
   handleInputChange(value: string): void {
@@ -134,11 +143,11 @@ export class ChatInputComponent {
       }
     }
 
+    // Enter envia; Shift+Enter quebra linha (comportamento padrão do textarea).
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.handleSubmit();
     }
-    // Input de linha unica como no prototipo.
   }
 
   /** Seleciona um comando do menu (clique ou teclado). */
