@@ -378,19 +378,6 @@ export class ProjectsComponent implements OnInit {
     return this.i18nService.language() === 'en' ? `/en/projects/${slug}` : `/projects/${slug}`;
   }
 
-  /**
-   * Clique no link de README: abre o modal (UX atual). Modificadores
-   * (ctrl/cmd/shift/middle-click) seguem o link real para nova aba — o que
-   * também é o caminho que o Googlebot indexa.
-   */
-  openReadmeFromLink(event: MouseEvent, projectName: string): void {
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
-      return;
-    }
-    event.preventDefault();
-    this.openReadmeModal(projectName);
-  }
-
   closeReadmeModal(): void {
     this.showReadmeModal.set(false);
     this.currentProjectName.set('');
