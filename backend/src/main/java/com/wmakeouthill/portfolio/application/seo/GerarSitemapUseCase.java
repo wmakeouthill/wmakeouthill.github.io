@@ -1,14 +1,15 @@
 package com.wmakeouthill.portfolio.application.seo;
 
-import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
-import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
+import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import com.wmakeouthill.portfolio.infrastructure.config.CaffeineCacheConfig;
 import com.wmakeouthill.portfolio.infrastructure.config.SiteProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Gera {@code sitemap.xml} (com hreflang en↔pt) e {@code robots.txt}.
@@ -20,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GerarSitemapUseCase {
 
-  private final ListarProjetosGithubUseCase listarProjetosGithubUseCase;
+  private final PortfolioContentPort portfolioContentPort;
   private final SiteProperties site;
 
   @Cacheable(cacheNames = CaffeineCacheConfig.CACHE_GITHUB_DATA, key = "'sitemap'")
@@ -32,8 +33,8 @@ public class GerarSitemapUseCase {
 
     adicionarUrl(sb, "/");
     adicionarUrl(sb, "/projects");
-    for (GithubRepositoryDto repo : listarProjetosGithubUseCase.executar()) {
-      adicionarUrl(sb, "/projects/" + repo.name().toLowerCase());
+    for (String slug : slugsMarkdownPublicos()) {
+      adicionarUrl(sb, "/projects/" + slug);
     }
 
     sb.append("</urlset>\n");
@@ -76,9 +77,24 @@ public class GerarSitemapUseCase {
     var rotas = new java.util.ArrayList<String>();
     rotas.add("/");
     rotas.add("/projects");
-    for (GithubRepositoryDto repo : listarProjetosGithubUseCase.executar()) {
-      rotas.add("/projects/" + repo.name().toLowerCase());
+    for (String slug : slugsMarkdownPublicos()) {
+      rotas.add("/projects/" + slug);
     }
     return rotas;
+  }
+
+  private Set<String> slugsMarkdownPublicos() {
+    Set<String> slugs = new LinkedHashSet<>();
+    portfolioContentPort.carregarMarkdownsDetalhados("pt").stream()
+        .filter(recurso -> recurso.projeto() && recurso.nome() != null && !recurso.nome().isBlank())
+        .map(recurso -> recurso.nome().toLowerCase())
+        .map(nome -> nome.replaceFirst("-english$", ""))
+        .forEach(slugs::add);
+    portfolioContentPort.carregarMarkdownsDetalhados("en").stream()
+        .filter(recurso -> recurso.projeto() && recurso.nome() != null && !recurso.nome().isBlank())
+        .map(recurso -> recurso.nome().toLowerCase())
+        .map(nome -> nome.replaceFirst("-english$", ""))
+        .forEach(slugs::add);
+    return slugs;
   }
 }

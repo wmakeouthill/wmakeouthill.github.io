@@ -1,3 +1,5 @@
+const { proxyRequest } = require('./_lib/auth');
+
 let reqHandlerPromise;
 
 function getReqHandler() {
@@ -8,6 +10,11 @@ function getReqHandler() {
 }
 
 module.exports = async function ssr(req, res) {
+    const backendPath = getAllowedBackendPath(req);
+    if (backendPath) {
+        return proxyRequest(req, res, backendPath);
+    }
+
     const restoreUrl = rewriteRequestUrl(req);
 
     try {
@@ -52,4 +59,16 @@ function getFirstQueryValue(value) {
 
 function isAllowedSsrPath(path) {
     return /^\/(?:|en|projects|projects\/[^/?#]+|en\/projects|en\/projects\/[^/?#]+)\/?$/.test(path);
+}
+
+function getAllowedBackendPath(req) {
+    const originalUrl = req.url || '/';
+    const parsedUrl = new URL(originalUrl, 'http://localhost');
+    const backendPath = getFirstQueryValue(req.query?.__backendPath) ?? parsedUrl.searchParams.get('__backendPath');
+
+    if (backendPath === '/sitemap.xml' || backendPath === '/robots.txt') {
+        return backendPath;
+    }
+
+    return null;
 }
