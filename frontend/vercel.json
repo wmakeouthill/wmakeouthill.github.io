@@ -2,7 +2,11 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "version": 2,
     "buildCommand": "npm run build",
+    "devCommand": "ng serve --host 127.0.0.1 --port $PORT",
     "framework": "angular",
+    "env": {
+        "NG_ALLOWED_HOSTS": "localhost,127.0.0.1,wmakeouthill.dev,www.wmakeouthill.dev,wmakeouthill.github.io,*.vercel.app"
+    },
     "functions": {
         "api/**/*.js": {
             "memory": 256,

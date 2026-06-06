@@ -80,16 +80,13 @@ RUN groupadd -g 1001 appuser && \
     useradd -u 1001 -g appuser -m -s /usr/sbin/nologin appuser
 
 # Artefatos: jar do Spring, Chromium e o bundle Angular (browser + server SSR).
-COPY --from=maven-build /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
-COPY --from=maven-build /root/.cache/ms-playwright /ms-playwright
-COPY --from=maven-build /app/frontend/dist/portfolio/browser /app/ssr/browser
-COPY --from=maven-build /app/frontend/dist/portfolio/server /app/ssr/server
+COPY --from=maven-build --chown=appuser:appuser /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
+COPY --from=maven-build --chown=appuser:appuser /root/.cache/ms-playwright /ms-playwright
+COPY --from=maven-build --chown=appuser:appuser /app/frontend/dist/portfolio/browser /app/ssr/browser
+COPY --from=maven-build --chown=appuser:appuser /app/frontend/dist/portfolio/server /app/ssr/server
 
 # Entrypoint que sobe Node SSR + Spring e supervisiona ambos.
-COPY oracle-cloud/entrypoint-ssr.sh /app/entrypoint-ssr.sh
-RUN chmod +x /app/entrypoint-ssr.sh
-
-RUN chown -R appuser:appuser /app /ms-playwright
+COPY --chown=appuser:appuser --chmod=755 oracle-cloud/entrypoint-ssr.sh /app/entrypoint-ssr.sh
 
 # --- Configuração padrão (sobrescreva no deploy) ---
 ENV SERVER_PORT=8080

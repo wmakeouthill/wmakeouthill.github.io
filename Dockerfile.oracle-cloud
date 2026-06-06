@@ -49,10 +49,8 @@ RUN mkdir -p /app /ms-playwright
 RUN groupadd -g 1001 appuser && \
     useradd -u 1001 -g appuser -m -s /usr/sbin/nologin appuser
 
-COPY --from=maven-build /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
-COPY --from=maven-build /root/.cache/ms-playwright /ms-playwright
-
-RUN chown -R appuser:appuser /app /ms-playwright
+COPY --from=maven-build --chown=appuser:appuser /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
+COPY --from=maven-build --chown=appuser:appuser /root/.cache/ms-playwright /ms-playwright
 
 ENV SERVER_PORT=8080
 ENV LOG_LEVEL=INFO

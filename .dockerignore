@@ -1,5 +1,5 @@
-# Mantém o build context leve. O frontend-maven-plugin roda npm install/build
-# DENTRO do container, então node_modules/dist locais não são necessários.
+# Keep Docker build context light. The container builds dependencies internally,
+# so local generated artifacts are not needed.
 .git
 .github
 **/node_modules
@@ -7,8 +7,16 @@ frontend/dist
 frontend/.angular
 backend/target
 **/*.log
+*.tar
+*.tar.gz
+*.zip
 
-# Docs e scripts que não entram na imagem
+# Docs and deploy scripts do not need to enter the image context.
 *.md
 deploy*.ps1
 deploy*.sh
+
+# Local secrets/configs must never enter the build context.
+*.env
+*.key
+*service-account*.json
