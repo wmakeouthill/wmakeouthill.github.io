@@ -4,16 +4,21 @@
    ===================================================================== */
 
 /* ===== Nebula galaxy ao redor do GitHub Stats (leve) ===== */
+@property --neb-angle{
+  syntax:'<angle>';
+  initial-value:0deg;
+  inherits:false;
+}
 .github-stats-btn{position:relative;isolation:isolate;overflow:visible;}
 .github-stats-btn::before{content:"";position:absolute;inset:-3px;border-radius:inherit;z-index:-2;
-  background:conic-gradient(from 0deg,
+  background:conic-gradient(from var(--neb-angle),
     transparent 0deg, rgba(124,58,237,.0) 40deg, rgba(124,58,237,.55) 120deg,
     rgba(219,194,125,.7) 190deg, rgba(0,240,255,.45) 260deg, rgba(124,58,237,.3) 320deg, transparent 360deg);
   animation:neb-spin 7s linear infinite;filter:blur(7px);opacity:.55;transition:opacity var(--t);}
 .github-stats-btn::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;
   background:linear-gradient(135deg,rgba(30,8,60,.94),rgba(15,5,35,.96));}
 .github-stats-btn:hover::before{opacity:.9;animation-duration:4s;}
-@keyframes neb-spin{to{transform:rotate(1turn);}}
+@keyframes neb-spin{to{--neb-angle:360deg;}}
 @media(prefers-reduced-motion:reduce){.github-stats-btn::before{animation:none;}}
 
 /* ===== Chat moderno ===== */

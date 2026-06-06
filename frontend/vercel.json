@@ -13,6 +13,20 @@
             "maxDuration": 60
         }
     },
+    "routes": [
+        {
+            "src": "^/$",
+            "dest": "/api/ssr?__ssrPath=/"
+        },
+        {
+            "src": "^/(en|projects|en/projects)/?$",
+            "dest": "/api/ssr?__ssrPath=/$1"
+        },
+        {
+            "src": "^/(projects/[^/]+|en/projects/[^/]+)/?$",
+            "dest": "/api/ssr?__ssrPath=/$1"
+        }
+    ],
     "rewrites": [
         {
             "source": "/api/health",
