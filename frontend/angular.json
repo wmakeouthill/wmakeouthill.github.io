@@ -37,7 +37,8 @@
               "src/styles.css",
               "src/prototype-portfolio.css",
               "src/prototype-features.css",
-              "src/prototype-enhance.css"
+              "src/prototype-enhance.css",
+              "node_modules/prismjs/themes/prism-okaidia.css"
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",

@@ -186,8 +186,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
 
-    // Inicia pré-carregamento em background (não bloqueia UI)
-    setTimeout(() => {
+    // Inicia o pré-carregamento só quando o browser estiver ocioso, para não
+    // competir com a renderização inicial (reduz TBT). A feature é preservada:
+    // o cache continua sendo populado, garantindo que o modal abra instantâneo.
+    this.runWhenIdle(() => {
       this.markdownService.preloadProjectsInBackground(projectNames)
         .then(() => this.refreshReadmeAvailability(repos))
         .catch(error => {
@@ -195,7 +197,22 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           // Mesmo com erro parcial, atualiza com o que estiver em cache
           this.refreshReadmeAvailability(repos);
         });
-    }, 500); // Pequeno delay para não competir com carregamento inicial
+    });
+  }
+
+  /**
+   * Executa uma tarefa de baixa prioridade quando a thread principal estiver
+   * ociosa, com fallback para setTimeout em browsers sem requestIdleCallback.
+   */
+  private runWhenIdle(task: () => void): void {
+    const ric = (globalThis as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+    }).requestIdleCallback;
+    if (typeof ric === 'function') {
+      ric(task, { timeout: 3000 });
+    } else {
+      setTimeout(task, 1500);
+    }
   }
 
   /** Marca quais projetos têm README disponível (conteúdo não-vazio em cache). */

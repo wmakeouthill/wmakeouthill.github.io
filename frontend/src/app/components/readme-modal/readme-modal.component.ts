@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkdownService } from '../../services/markdown.service';
 import { ScrollLockService } from '../../services/scroll-lock.service';
+import { ensurePrism } from '../../utils/prism-loader.util';
 
 @Component({
   selector: 'app-readme-modal',
@@ -145,20 +146,21 @@ export class ReadmeModalComponent implements OnDestroy {
     }
   }
 
-  private setupCodeBlocks(): void {
+  private async setupCodeBlocks(): Promise<void> {
     const contentEl = this.markdownContent()?.nativeElement;
     if (!contentEl) return;
 
-    // Aplicar syntax highlighting com PrismJS
-    if (typeof (window as any).Prism !== 'undefined') {
+    // Aplicar syntax highlighting com PrismJS (carregado sob demanda)
+    const Prism = await ensurePrism();
+    if (Prism) {
       const codeBlocks = contentEl.querySelectorAll('pre code');
       codeBlocks.forEach((codeBlock: HTMLElement) => {
-        (window as any).Prism.highlightElement(codeBlock);
+        Prism.highlightElement(codeBlock);
 
         if (!codeBlock.className.includes('language-')) {
           const language = this.detectLanguage(codeBlock.textContent || '');
           codeBlock.className = `language-${language}`;
-          (window as any).Prism.highlightElement(codeBlock);
+          Prism.highlightElement(codeBlock);
         }
       });
     }

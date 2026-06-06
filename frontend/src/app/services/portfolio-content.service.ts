@@ -217,7 +217,7 @@ export class PortfolioContentService {
     if (cached) {
       return cached;
     }
-    return resolveApiUrl(`/api/content/images/${encodeURIComponent(projectName)}.png`);
+    return resolveApiUrl(`/api/content/images/${encodeURIComponent(projectName)}.webp`);
   }
 
   /**
