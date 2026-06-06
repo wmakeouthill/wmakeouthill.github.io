@@ -26,7 +26,7 @@ public class ObterCurriculoUseCase {
      * @return Optional com o currículo, ou empty se não encontrado
      */
     @Cacheable(cacheNames = CaffeineCacheConfig.CACHE_GITHUB_DATA, key = "'curriculo:' + #language",
-            unless = "#result == null || #result.isEmpty()")
+            unless = "#result == null")
     public Optional<CertificadoPdfDto> executar(String language) {
         log.info("Buscando currículo do repositório GitHub");
         Optional<CertificadoPdfDto> curriculo = certificadosPort.obterCurriculo(language);
