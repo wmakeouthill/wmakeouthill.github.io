@@ -154,11 +154,6 @@ export function getApiKey(): string | null {
     return keyFromSession;
   }
 
-  const envKey = readApiKeyFromImportMetaEnv();
-  if (envKey) {
-    return envKey;
-  }
-
   return null;
 }
 
@@ -178,16 +173,3 @@ function readApiKeyFromSessionStorage(): string | null {
   }
 }
 
-function readApiKeyFromImportMetaEnv(): string | null {
-  const env = (import.meta as ImportMeta & { env?: Record<string, string> }).env;
-  if (!env) {
-    return null;
-  }
-
-  const envKey = env['NG_APP_API_KEY'] ?? env['API_KEY'];
-  if (!envKey) {
-    return null;
-  }
-  const trimmed = envKey.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
