@@ -2,12 +2,14 @@ package com.wmakeouthill.portfolio.application.seo;
 
 import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.port.out.SerializadorJsonPort;
-import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
+import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
+import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import com.wmakeouthill.portfolio.domain.seo.ParametrosSeo;
 import com.wmakeouthill.portfolio.infrastructure.config.SiteProperties;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,21 +47,26 @@ class SeoSitemapTest {
 
   @Test
   void sitemap_deveListarRotasComHreflangEProjetos() {
-    ListarProjetosGithubUseCase listar = mock(ListarProjetosGithubUseCase.class);
-    when(listar.executar()).thenReturn(List.of(repo("AA-Space")));
-    GerarSitemapUseCase uc = new GerarSitemapUseCase(listar, site);
+    PortfolioContentPort conteudo = mock(PortfolioContentPort.class);
+    when(conteudo.carregarMarkdownsDetalhados("pt")).thenReturn(List.of(markdown("aa-space")));
+    when(conteudo.carregarMarkdownsDetalhados("en")).thenReturn(List.of(
+        markdown("aa-space-english"),
+        markdown("english-only-english")));
+    GerarSitemapUseCase uc = new GerarSitemapUseCase(conteudo, site);
 
     String xml = uc.gerarSitemap();
 
     assertThat(xml).contains("<loc>https://meu-site.dev/</loc>");
     assertThat(xml).contains("<loc>https://meu-site.dev/projects/aa-space</loc>");
     assertThat(xml).contains("hreflang=\"en\" href=\"https://meu-site.dev/en/projects/aa-space\"");
+    assertThat(xml).contains("<loc>https://meu-site.dev/projects/english-only</loc>");
+    assertThat(xml).doesNotContain("aa-space-english");
   }
 
   @Test
   void robots_deveBloquearApiEApontarSitemap() {
-    ListarProjetosGithubUseCase listar = mock(ListarProjetosGithubUseCase.class);
-    GerarSitemapUseCase uc = new GerarSitemapUseCase(listar, site);
+    PortfolioContentPort conteudo = mock(PortfolioContentPort.class);
+    GerarSitemapUseCase uc = new GerarSitemapUseCase(conteudo, site);
 
     String robots = uc.gerarRobots();
 
@@ -71,5 +78,10 @@ class SeoSitemapTest {
     return new GithubRepositoryDto(1L, nome, "wmakeouthill/" + nome, "Descricao do projeto",
         "https://github.com/wmakeouthill/" + nome, null, 5, 1, "Java",
         List.of(), "2024-01-01", "2024-02-01", "2024-03-01", false, List.of(), 1000L);
+  }
+
+  private PortfolioMarkdownResource markdown(String nome) {
+    return new PortfolioMarkdownResource(nome, "projetos/" + nome + ".md", "# " + nome,
+        true, false, Set.of());
   }
 }
