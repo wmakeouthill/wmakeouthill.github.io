@@ -38,7 +38,7 @@
         <article class="proj-card reveal">
           <div class="proj-head">
             <span class="pg"></span>
-            <img class="proj-thumb" [src]="getProjectImage(project.name)" [alt]="project.name" (error)="onImageError($event, project.name)" />
+            <img class="proj-thumb" [src]="getProjectImage(project.name)" [alt]="project.name" loading="lazy" decoding="async" (error)="onImageError($event, project.name)" />
             <span class="proj-num">{{ projectNumber(i) }}</span>
             <div class="proj-overlay">
               @if (project.homepage) {
@@ -49,7 +49,7 @@
               }
               <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
               @if (hasReadme(project.name)) {
-                <button (click)="openReadmeModal(project.name)" class="ov-btn">README</button>
+                <a [href]="projectHref(project.name)" (click)="openReadmeFromLink($event, project.name)" class="ov-btn">README</a>
               }
             </div>
           </div>

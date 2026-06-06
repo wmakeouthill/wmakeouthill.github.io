@@ -1,0 +1,14 @@
+# Mantém o build context leve. O frontend-maven-plugin roda npm install/build
+# DENTRO do container, então node_modules/dist locais não são necessários.
+.git
+.github
+**/node_modules
+frontend/dist
+frontend/.angular
+backend/target
+**/*.log
+
+# Docs e scripts que não entram na imagem
+*.md
+deploy*.ps1
+deploy*.sh

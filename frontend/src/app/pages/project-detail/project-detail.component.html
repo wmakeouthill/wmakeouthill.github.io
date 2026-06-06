@@ -1,0 +1,19 @@
+<main class="portfolio-main project-detail wrap">
+  <nav class="pd-breadcrumb" aria-label="breadcrumb">
+    <a [href]="voltarHref()">&larr; {{ rotuloVoltar() }}</a>
+  </nav>
+
+  @if (loading()) {
+    <div class="pd-loading">
+      <div class="spinner"></div>
+    </div>
+  } @else if (notFound()) {
+    <article class="project-readme">
+      <h1>{{ titulo() }}</h1>
+      <p>{{ mensagemNaoEncontrado() }}</p>
+      <p><a [href]="voltarHref()">{{ rotuloVoltar() }}</a></p>
+    </article>
+  } @else {
+    <article class="project-readme markdown-content" [innerHTML]="readme()"></article>
+  }
+</main>

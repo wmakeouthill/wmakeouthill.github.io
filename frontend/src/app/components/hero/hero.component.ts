@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, effect, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CvModalComponent } from '../cv-modal/cv-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
@@ -17,6 +17,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly i18n = inject(I18nService);
   private readonly githubService = inject(GithubService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Nº de repositórios contribuídos (público + privado), vindo do backend cacheado. */
   readonly contributedRepos = signal<number | null>(null);
@@ -35,6 +36,11 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly langEffect = effect(() => {
     // Recalcula o título quando o idioma muda
     this.fullText = this.i18n.translate('hero.title');
+    if (!this.isBrowser) {
+      // No SSR não há timers: renderiza o título completo (bom p/ SEO) sem animar.
+      this.displayedText.set(this.fullText);
+      return;
+    }
     this.restartTypingAnimation();
   });
 
@@ -45,6 +51,14 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     this.generateStars();
     // define o texto inicial conforme idioma
     this.fullText = this.i18n.translate('hero.title');
+
+    if (!this.isBrowser) {
+      // SSR: sem timers (manteriam a zona instável e travariam o render).
+      // Renderiza o título completo para o HTML inicial (SEO).
+      this.displayedText.set(this.fullText);
+      return;
+    }
+
     // inicia a primeira execução imediatamente
     this.startTypingAnimation();
     // agenda re-execução a cada 8 segundos

@@ -1,0 +1,115 @@
+.project-detail {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 6rem 1.25rem 4rem;
+  min-height: 70vh;
+}
+
+.pd-breadcrumb {
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.pd-breadcrumb a {
+  color: #DBC27D;
+  text-decoration: none;
+}
+
+.pd-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.pd-loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.pd-loading .spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(219, 194, 125, 0.25);
+  border-top-color: #DBC27D;
+  border-radius: 50%;
+  animation: pd-spin 0.8s linear infinite;
+}
+
+@keyframes pd-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* README renderizado: legibilidade do conteúdo vindo do backend (innerHTML). */
+.project-readme {
+  color: #e6e6e6;
+  line-height: 1.7;
+  font-size: 1rem;
+  word-wrap: break-word;
+}
+
+.project-readme h1,
+.project-readme h2,
+.project-readme h3,
+.project-readme h4 {
+  color: #fff;
+  line-height: 1.3;
+  margin: 1.8rem 0 0.9rem;
+}
+
+.project-readme h1 { font-size: 1.9rem; }
+.project-readme h2 { font-size: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.3rem; }
+.project-readme h3 { font-size: 1.25rem; }
+
+.project-readme p,
+.project-readme ul,
+.project-readme ol {
+  margin: 0.9rem 0;
+}
+
+.project-readme a {
+  color: #DBC27D;
+}
+
+.project-readme img {
+  max-width: 100%;
+  height: auto;
+}
+
+.project-readme pre {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.project-readme code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.project-readme :not(pre) > code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+.project-readme table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.project-readme th,
+.project-readme td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 0.75rem;
+}
+
+.project-readme blockquote {
+  border-left: 3px solid #DBC27D;
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: #c9c9c9;
+}

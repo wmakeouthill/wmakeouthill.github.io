@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, PLATFORM_ID, ViewChild, computed, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Education } from '../../models/interfaces';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
@@ -14,6 +14,7 @@ import { I18nService } from '../../i18n/i18n.service';
 })
 export class EducationComponent implements OnInit, AfterViewInit {
   private readonly i18n = inject(I18nService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   @ViewChild('educationContainer') educationContainer!: ElementRef;
   private readonly baseEducation: Array<Education & { key: string }> = [
     {
@@ -81,6 +82,10 @@ export class EducationComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // IntersectionObserver não existe no SSR.
+    if (!this.isBrowser) {
+      return;
+    }
     this.setupScrollAnimations();
   }
 

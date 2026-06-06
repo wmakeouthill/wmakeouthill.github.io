@@ -1,4 +1,5 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, REQUEST, computed, effect, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, of, type Observable } from 'rxjs';
 
@@ -11,6 +12,8 @@ type Translations = Record<string, unknown>;
 })
 export class I18nService {
   private readonly http = inject(HttpClient);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly request = inject(REQUEST, { optional: true });
 
   private readonly currentLanguage = signal<Language>(this.detectInitialLanguage());
   private readonly translationsStore = signal<Translations>({});
@@ -22,10 +25,13 @@ export class I18nService {
 
   constructor() {
     this.loadAndSetTranslations(this.currentLanguage()).subscribe();
-    effect(() => {
-      const lang = this.currentLanguage();
-      localStorage.setItem('portfolio-language', lang);
-    });
+    // localStorage só existe no browser; no SSR o idioma vem da rota/header.
+    if (this.isBrowser) {
+      effect(() => {
+        const lang = this.currentLanguage();
+        localStorage.setItem('portfolio-language', lang);
+      });
+    }
   }
 
   setLanguage(lang: Language): void {
@@ -54,6 +60,12 @@ export class I18nService {
   }
 
   private detectInitialLanguage(): Language {
+    // No SSR não há localStorage/navigator: o idioma vem da rota (/en) ou dos
+    // headers da requisição, garantindo que /en seja renderizado em inglês.
+    if (!this.isBrowser) {
+      return this.detectServerLanguage();
+    }
+
     const saved = localStorage.getItem('portfolio-language');
     if (saved === 'pt' || saved === 'en') {
       return saved;
@@ -65,6 +77,24 @@ export class I18nService {
     }
 
     return 'pt';
+  }
+
+  /** Idioma no SSR: prefixo /en na rota tem prioridade; senão, Accept-Language. */
+  private detectServerLanguage(): Language {
+    const req = this.request;
+    if (!req) {
+      return 'pt';
+    }
+    try {
+      const path = new URL(req.url).pathname;
+      if (path === '/en' || path.startsWith('/en/')) {
+        return 'en';
+      }
+    } catch {
+      // URL inválida: cai no header.
+    }
+    const header = req.headers.get('x-language') ?? req.headers.get('accept-language');
+    return header?.toLowerCase().startsWith('en') ? 'en' : 'pt';
   }
 
   private resolveKey(key: string): unknown {

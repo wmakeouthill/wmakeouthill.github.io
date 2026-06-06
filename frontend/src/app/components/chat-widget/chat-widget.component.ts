@@ -8,9 +8,10 @@ import {
   computed,
   effect,
   OnInit,
-  OnDestroy
+  OnDestroy,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { ChatService, ChatResponse, AIModel } from '../../services/chat.service';
@@ -66,6 +67,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly markdownChatService = inject(MarkdownChatService);
   private readonly i18n = inject(I18nService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   @ViewChild('messagesContainer') private readonly messagesContainer?: ElementRef<HTMLDivElement>;
 
@@ -143,8 +145,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.configureUnreadTracking();
     this.configurarPersistenciaMensagens();
 
-    // Toggle body class for global styling (hiding scroll-to-top)
+    // Toggle body class for global styling (hiding scroll-to-top).
+    // document.body não existe no SSR — efeito só roda no browser.
     effect(() => {
+      if (!this.isBrowser) {
+        return;
+      }
       if (this.isOpen()) {
         document.body.classList.add('chat-open');
       } else {
@@ -162,7 +168,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.currentRequest?.unsubscribe();
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
-    document.body.classList.remove('chat-open');
+    if (this.isBrowser) {
+      document.body.classList.remove('chat-open');
+    }
   }
 
   toggleOpen(): void {

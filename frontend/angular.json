@@ -38,7 +38,22 @@
               "src/prototype-portfolio.css",
               "src/prototype-features.css",
               "src/prototype-enhance.css"
-            ]
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            },
+            "security": {
+              "allowedHosts": [
+                "wmakeouthill.dev",
+                "www.wmakeouthill.dev",
+                "wmakeouthill.github.io",
+                "*.vercel.app",
+                "localhost",
+                "127.0.0.1"
+              ]
+            }
           },
           "configurations": {
             "production": {

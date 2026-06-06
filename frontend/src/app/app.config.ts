@@ -5,12 +5,13 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { languageInterceptor } from './i18n/language.interceptor';
 import { apiKeyInterceptor } from './interceptors/api-key.interceptor';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([apiKeyInterceptor, languageInterceptor]))
+    provideHttpClient(withInterceptors([apiKeyInterceptor, languageInterceptor])), provideClientHydration(withEventReplay())
   ]
 };

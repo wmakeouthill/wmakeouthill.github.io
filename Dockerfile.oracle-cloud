@@ -58,7 +58,11 @@ ENV SERVER_PORT=8080
 ENV LOG_LEVEL=INFO
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0 -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+# JVM enxuta para VM de baixa RAM (API-only). Heap ~50% do container deixa folga
+# para o Chromium (Playwright roda como PROCESSO SEPARADO, fora do heap) durante a
+# geracao de PDF. Metaspace limitado evita crescimento nativo descontrolado; stacks
+# menores reduzem RAM reservada pelas threads. SerialGC + C1-only = baixo overhead.
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -XX:MaxMetaspaceSize=160m -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xss512k"
 
 EXPOSE 8080
 

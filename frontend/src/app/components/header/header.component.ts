@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, NgZone, signal, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, NgZone, PLATFORM_ID, signal, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 @Component({
@@ -16,6 +16,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly activeSection = signal<string>('hero');
 
   private readonly ngZone = inject(NgZone);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sectionObserver: IntersectionObserver | null = null;
 
   private readonly handleScroll = () => {
@@ -40,6 +41,10 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
 
   ngOnInit(): void {
+    // IntersectionObserver/window não existem no SSR.
+    if (!this.isBrowser) {
+      return;
+    }
     this.initSectionObserver();
     this.ngZone.runOutsideAngular(() => {
       window.addEventListener('scroll', this.handleScroll, { passive: true });
@@ -47,10 +52,16 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
     this.observeSections();
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) {
+      return;
+    }
     window.removeEventListener('scroll', this.handleScroll);
     this.sectionObserver?.disconnect();
   }

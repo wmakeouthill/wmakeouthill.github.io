@@ -135,6 +135,7 @@ out/
 # ============================================
 docs/generated/
 docs/build/
+regras-desenvolvimento-java-angular/
 
 # ============================================
 # Arquivos Específicos do Projeto

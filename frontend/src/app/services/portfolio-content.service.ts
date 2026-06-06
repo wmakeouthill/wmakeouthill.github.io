@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError, retry, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -42,6 +43,7 @@ interface CachedImages {
 })
 export class PortfolioContentService {
   private readonly http = inject(HttpClient);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Signal com os arquivos carregados */
   readonly imagens = signal<RepositoryFile[]>([]);
@@ -84,6 +86,10 @@ export class PortfolioContentService {
    * Não impede a consulta ao backend.
    */
   private loadFromLocalStorageAsSnapshot(): void {
+    // No SSR não há localStorage; o snapshot local é ignorado.
+    if (!this.isBrowser) {
+      return;
+    }
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
@@ -104,6 +110,9 @@ export class PortfolioContentService {
    * Persiste cache no localStorage (apenas quando há mudanças).
    */
   private saveToLocalStorage(images: RepositoryFile[]): void {
+    if (!this.isBrowser) {
+      return;
+    }
     try {
       const data: CachedImages = { images, timestamp: Date.now() };
       localStorage.setItem(CACHE_KEY, JSON.stringify(data));
@@ -189,7 +198,9 @@ export class PortfolioContentService {
    * Força recarregamento completo (ignora TTL em memória e localStorage).
    */
   forceReload(): Observable<RepositoryFile[]> {
-    localStorage.removeItem(CACHE_KEY);
+    if (this.isBrowser) {
+      localStorage.removeItem(CACHE_KEY);
+    }
     this.imagens.set([]);
     this.imageUrlCache.clear();
     this.cacheReady = false;

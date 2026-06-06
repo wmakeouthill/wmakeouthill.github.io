@@ -1,15 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
 import { HeaderComponent } from './components/header/header.component';
-import { HeroComponent } from './components/hero/hero.component';
-import { AboutComponent } from './components/about/about.component';
-import { SkillsComponent } from './components/skills/skills.component';
-import { ExperienceComponent } from './components/experience/experience.component';
-import { EducationComponent } from './components/education/education.component';
-import { ProjectsComponent } from './components/projects/projects.component';
-import { CertificationsComponent } from './components/certifications/certifications.component';
-import { ContactComponent } from './components/contact/contact.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ChatWidgetComponent } from './components/chat-widget/chat-widget.component';
 
@@ -20,14 +13,6 @@ import { ChatWidgetComponent } from './components/chat-widget/chat-widget.compon
   imports: [
     RouterOutlet,
     HeaderComponent,
-    HeroComponent,
-    AboutComponent,
-    SkillsComponent,
-    ExperienceComponent,
-    EducationComponent,
-    ProjectsComponent,
-    CertificationsComponent,
-    ContactComponent,
     FooterComponent,
     ChatWidgetComponent
   ],
@@ -38,6 +23,7 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   readonly showScrollToTop = signal(false);
 
   private readonly ngZone = inject(NgZone);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private revealObserver: IntersectionObserver | null = null;
   private mutationObserver: MutationObserver | null = null;
   private revealTransitionEnd: ((event: TransitionEvent) => void) | null = null;
@@ -49,12 +35,22 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   };
 
   ngOnInit(): void {
+    // SEO é aplicado por cada página roteada (Home/ProjectDetail) no seu
+    // ngOnInit, garantindo title/meta corretos por rota no SSR e na navegação.
+
+    // APIs de browser (window/document/observers) não existem no SSR.
+    if (!this.isBrowser) {
+      return;
+    }
     this.ngZone.runOutsideAngular(() => {
       window.addEventListener('scroll', this.handleScroll, { passive: true });
     });
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) {
+      return;
+    }
     window.removeEventListener('scroll', this.handleScroll);
     this.revealObserver?.disconnect();
     this.mutationObserver?.disconnect();
@@ -64,6 +60,9 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
     this.setupRevealAnimations();
   }
 

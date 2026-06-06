@@ -372,6 +372,25 @@ export class ProjectsComponent implements OnInit {
     console.log(`✅ Modal aberto para ${projectName}`);
   }
 
+  /** URL real (rastreável pelo bot) da página de detalhe do projeto, por idioma. */
+  projectHref(projectName: string): string {
+    const slug = projectName.toLowerCase();
+    return this.i18nService.language() === 'en' ? `/en/projects/${slug}` : `/projects/${slug}`;
+  }
+
+  /**
+   * Clique no link de README: abre o modal (UX atual). Modificadores
+   * (ctrl/cmd/shift/middle-click) seguem o link real para nova aba — o que
+   * também é o caminho que o Googlebot indexa.
+   */
+  openReadmeFromLink(event: MouseEvent, projectName: string): void {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
+      return;
+    }
+    event.preventDefault();
+    this.openReadmeModal(projectName);
+  }
+
   closeReadmeModal(): void {
     this.showReadmeModal.set(false);
     this.currentProjectName.set('');

@@ -1,7 +1,12 @@
 import { effect, Signal, OnDestroy } from '@angular/core';
 
 export function usePageScrollBlock(isOpen: Signal<boolean>): OnDestroy {
+  const temDocument = typeof document !== 'undefined';
   effect(() => {
+    // document.body não existe no SSR.
+    if (!temDocument) {
+      return;
+    }
     if (isOpen()) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -11,7 +16,9 @@ export function usePageScrollBlock(isOpen: Signal<boolean>): OnDestroy {
 
   return {
     ngOnDestroy: () => {
-      document.body.style.overflow = '';
+      if (temDocument) {
+        document.body.style.overflow = '';
+      }
     }
   };
 }

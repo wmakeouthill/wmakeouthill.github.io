@@ -6,12 +6,15 @@ import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
 import com.wmakeouthill.portfolio.application.dto.RepoTreeResponse;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
+import com.wmakeouthill.portfolio.application.port.out.PaginaCachePort;
 import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterMarkdownProjetoUseCase;
+import com.wmakeouthill.portfolio.application.usecase.RenderizarMarkdownProjetoUseCase;
 import com.wmakeouthill.portfolio.infrastructure.translate.PortfolioTranslationOverrides;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,20 +37,27 @@ public class ProjectsController {
 
   private final ListarProjetosGithubUseCase listarProjetosGithubUseCase;
   private final ObterMarkdownProjetoUseCase obterMarkdownProjetoUseCase;
+  private final RenderizarMarkdownProjetoUseCase renderizarMarkdownProjetoUseCase;
   private final GithubProjectsPort githubProjectsPort;
   private final PortfolioTranslationOverrides translationOverrides;
+  private final org.springframework.cache.CacheManager cacheManager;
+  private final PaginaCachePort paginaCachePort;
 
   /**
    * Força invalidação do cache de projetos no backend.
    * A próxima chamada a GET /api/projects vai ao GitHub (via ETag).
+   * Também limpa o cache de markdown renderizado (HTML/Mermaid).
    */
   @PostMapping("/refresh")
   public ResponseEntity<Map<String, String>> refresh() {
     log.info("Refresh manual de projetos solicitado");
     githubProjectsPort.clearCache();
+    limparCache("markdownHtml");
+    limparCache("mermaidSvg");
+    paginaCachePort.limparTudo();
     return ResponseEntity.ok(Map.of(
         "status", "ok",
-        "message", "Cache de projetos limpo. Próxima requisição buscará dados frescos do GitHub."));
+        "message", "Cache de projetos, markdown e páginas SSR limpo. Próxima requisição buscará dados frescos do GitHub."));
   }
 
   /**
@@ -158,6 +168,31 @@ public class ProjectsController {
     return obterMarkdownProjetoUseCase.executar(projectName, language)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  /**
+   * Obtém o README do projeto já renderizado em HTML no backend (commonmark +
+   * Mermaid em SVG), cacheado por {@code slug:idioma}. Usado pelo SSR/SEO para
+   * deixar o conteúdo no source-code.
+   */
+  @GetMapping(value = "/{projectName:.+}/markdown/html", produces = MediaType.TEXT_HTML_VALUE)
+  public ResponseEntity<String> obterMarkdownHtml(@PathVariable String projectName, HttpServletRequest request) {
+    log.debug("Renderizando markdown->HTML do projeto: {}", projectName);
+    String language = extrairIdioma(request);
+    String slug = projectName.trim().toLowerCase();
+    return renderizarMarkdownProjetoUseCase.executar(slug, language)
+        .map(html -> ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(6, TimeUnit.HOURS).cachePublic())
+            .header("Vary", "X-Language,Accept-Language")
+            .body(html))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  private void limparCache(String nome) {
+    org.springframework.cache.Cache cache = cacheManager.getCache(nome);
+    if (cache != null) {
+      cache.clear();
+    }
   }
 
   private String extrairIdioma(jakarta.servlet.http.HttpServletRequest request) {
