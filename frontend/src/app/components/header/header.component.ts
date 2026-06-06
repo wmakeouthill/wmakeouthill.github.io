@@ -95,7 +95,10 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isMobileMenuOpen.update((open) => !open);
   }
 
-  scrollToSection(sectionId: string) {
+  scrollToSection(sectionId: string, event?: Event) {
+    // O link tem href="#secao" (rastreável pelo Google). Aqui interceptamos o
+    // clique para fazer scroll suave com offset do header em vez do salto nativo.
+    event?.preventDefault();
     const element = document.getElementById(sectionId);
     if (element) {
       const headerOffset = 80;
