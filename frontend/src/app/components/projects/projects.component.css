@@ -104,7 +104,6 @@
 }
 
 .filter-btn,
-.refresh-btn,
 .pagination-btn {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -119,7 +118,6 @@
 }
 
 .filter-btn:hover,
-.refresh-btn:hover:not(:disabled),
 .pagination-btn:hover:not(.disabled) {
   color: var(--color-accent);
   border-color: var(--border-accent);
@@ -138,17 +136,6 @@
 .filter-btn.active:hover,
 .pagination-btn.active:hover {
   color: #1a1a1a;
-}
-
-.refresh-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-}
-
-.refresh-icon.spinning {
-  display: inline-block;
-  animation: spin 0.7s linear infinite;
 }
 
 .proj-head .proj-thumb {

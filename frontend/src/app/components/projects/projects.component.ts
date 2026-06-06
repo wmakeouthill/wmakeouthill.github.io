@@ -33,7 +33,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   // Estado com signals
   readonly projects = signal<GitHubRepository[]>([]);
   readonly loading = signal<boolean>(true);
-  readonly refreshing = signal<boolean>(false);
   readonly selectedFilter = signal<string>('all');
   readonly currentPage = signal<number>(1);
 
@@ -480,41 +479,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.currentProjectForDemo.set('');
     this.currentDemoUrl.set('');
     this.currentDemoInitialView.set('choice');
-  }
-
-  /**
-   * Força atualização dos dados de projetos:
-   * 1. Invalida cache do backend (para que ele vá ao GitHub)
-   * 2. Limpa cache do frontend (sessionStorage)
-   * 3. Re-busca os dados frescos
-   */
-  refresh(): void {
-    if (this.refreshing() || this.loading()) return;
-    this.refreshing.set(true);
-
-    // Passo 1: invalida cache do backend → ele vai buscar do GitHub na próxima chamada
-    this.githubService.invalidateBackendCache().subscribe(() => {
-      // Passo 2: limpa cache do frontend (sessionStorage)
-      this.githubService.clearCache();
-
-      // Passo 3: re-busca dados frescos
-      this.loading.set(true);
-      this.githubService.getRepositories().subscribe({
-        next: (repos: GitHubRepository[]) => {
-          this.projects.set(repos);
-          this.loadLanguagesForProjects();
-          this.loading.set(false);
-          this.refreshing.set(false);
-          this.preloadProjectImages(repos);
-          this.preloadAllReadmesInBackground(repos);
-        },
-        error: (error: any) => {
-          console.error('Erro ao atualizar projetos:', error);
-          this.loading.set(false);
-          this.refreshing.set(false);
-        }
-      });
-    });
   }
 
   /**

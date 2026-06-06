@@ -20,9 +20,6 @@
       }
     </div>
 
-    <button class="refresh-btn" (click)="refresh()" [disabled]="loading() || refreshing()" [title]="refreshing() ? ('projects.refreshing' | translate) : ('projects.refresh' | translate)">
-      <span class="refresh-icon" [class.spinning]="refreshing()">↻</span>
-    </button>
   </div>
 
   @if (loading()) {
