@@ -73,6 +73,11 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // SSR: o elemento de video do servidor nao implementa pause()/currentTime;
+    // mexer nele lanca erro e e desnecessario (controle de playback e so no browser).
+    if (!this.isBrowser) {
+      return;
+    }
     // Mantém o gatinho parado no primeiro quadro até a digitação terminar
     const video = this.octocatVideo?.nativeElement;
     if (video) {
