@@ -142,6 +142,14 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
       return cache.getFileList(cacheKey).orElse(List.of());
     }
 
+    // Recurso inexistente (404) — ex.: projeto sem pasta de galeria.
+    // Cacheia resultado vazio (cache negativo) para não rebater na API a cada request.
+    if (response.isNotFound()) {
+      log.debug("Pasta inexistente {}, cacheando lista vazia", path);
+      cache.putFileList(cacheKey, List.of());
+      return List.of();
+    }
+
     // Se deu erro, tenta retornar cache (mesmo expirado)
     if (response.isError()) {
       log.warn("Erro ao buscar {}, tentando cache expirado", path);

@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  */
 @ConfigurationProperties(prefix = "public.site")
 public record SiteProperties(
-    @DefaultValue("https://wmakeouthill.github.io") String baseUrl) {
+    @DefaultValue("https://wmakeouthill.dev") String baseUrl) {
 
   /** Base URL sem barra final, para concatenar caminhos com segurança. */
   public String baseUrlSemBarraFinal() {

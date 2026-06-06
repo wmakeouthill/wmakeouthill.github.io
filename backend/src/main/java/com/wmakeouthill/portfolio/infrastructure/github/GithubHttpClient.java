@@ -225,6 +225,11 @@ public class GithubHttpClient {
         return ConditionalResponse.ok(data, newEtag);
       }
 
+      if (response.statusCode() == 404) {
+        log.debug("404 Not Found (recurso inexistente): {}", url);
+        return ConditionalResponse.notFound();
+      }
+
       log.error("Erro {}: status={}", url, response.statusCode());
     } catch (IOException | InterruptedException e) {
       Thread.currentThread().interrupt();

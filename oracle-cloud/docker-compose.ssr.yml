@@ -19,7 +19,7 @@ services:
       SSR_RENDERER_URL: "http://127.0.0.1:4000"
       SSR_API_BASE_URL: "http://127.0.0.1:8080"
       # Ajuste para o domínio canônico real (canonical/hreflang/OG/sitemap).
-      PUBLIC_SITE_BASE_URL: "${PUBLIC_SITE_BASE_URL:-https://wmakeouthill.github.io}"
+      PUBLIC_SITE_BASE_URL: "${PUBLIC_SITE_BASE_URL:-https://wmakeouthill.dev}"
       SSR_WARMUP_ENABLED: "true"
     healthcheck:
       # Cobre os dois processos: edge Spring (/api/health) e renderer Node

@@ -52,8 +52,13 @@ public class GerarSitemapUseCase {
   private void adicionarUrl(StringBuilder sb, String caminho) {
     String pt = absoluta(caminho);
     String en = absoluta("/en" + ("/".equals(caminho) ? "" : caminho));
+    adicionarVersao(sb, pt, pt, en);
+    adicionarVersao(sb, en, pt, en);
+  }
+
+  private void adicionarVersao(StringBuilder sb, String loc, String pt, String en) {
     sb.append("  <url>\n");
-    sb.append("    <loc>").append(pt).append("</loc>\n");
+    sb.append("    <loc>").append(loc).append("</loc>\n");
     alternate(sb, "pt-BR", pt);
     alternate(sb, "en", en);
     alternate(sb, "x-default", pt);

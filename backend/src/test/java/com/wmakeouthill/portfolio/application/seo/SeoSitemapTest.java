@@ -57,7 +57,9 @@ class SeoSitemapTest {
     String xml = uc.gerarSitemap();
 
     assertThat(xml).contains("<loc>https://meu-site.dev/</loc>");
+    assertThat(xml).contains("<loc>https://meu-site.dev/en</loc>");
     assertThat(xml).contains("<loc>https://meu-site.dev/projects/aa-space</loc>");
+    assertThat(xml).contains("<loc>https://meu-site.dev/en/projects/aa-space</loc>");
     assertThat(xml).contains("hreflang=\"en\" href=\"https://meu-site.dev/en/projects/aa-space\"");
     assertThat(xml).contains("<loc>https://meu-site.dev/projects/english-only</loc>");
     assertThat(xml).doesNotContain("aa-space-english");
