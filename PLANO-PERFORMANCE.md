@@ -92,6 +92,10 @@ relatório desktop de 06/jun/2026 (`pagespeed.web.dev/.../f8w6x28hmu`).
 - [x] Mover p/ backup (raiz `_assets-backup/`, fora do `frontend/` → não vai pro deploy): `nebula.{gif,json,mov}` (~6,1 MB), `octocat.json` (2,27 MB), `octocat.mp4` (raiz, duplicata), `ai-avatar.png` (×2), `wesley-photo.png` (raiz), `new_conversation.png`, `prototype-favicon.png`.
 - [x] Remover dep morta `lottie-web` do `package.json` (não importada em lugar nenhum). Lock sincronizado, build passa.
 - [x] Mantidos (usados): `favicon.png`, `*.webp` (avatar/foto), `assets/wesley-photo.png` (OG), `assets/octocat.mp4`, `assets/pdf.worker.min.mjs`, `icons/`.
+- [x] **Reencode `octocat.mp4`**: era 1280×720/8s/449 KiB; exibido só num quadrado ~140px (`width:35%` do anel, `object-fit: cover`, redondo). Recortado pro quadrado central + escala 320×320, h264 CRF32, sem áudio → **58 KiB (-87%)**. Visualmente idêntico. Original em `_assets-backup/.../octocat.original-1280x720.mp4`.
+- [x] **Avatar do chat (`ai-avatar.webp`)**: bolha exibe 62px / header 40px (`object-fit: cover`). Regerado **160×160 quadrado** (≈2,6× retina) a partir da original 400×457 → 10,5→13,5 KiB (+3 KiB, ganho de nitidez em telas 3×).
+- [x] **OG image**: `wesley-photo.png` 571×1000 (212 KiB) → **`wesley-photo.jpg` mozjpeg q85 (26,4 KiB, -87%)**. `seo.service.ts` `OG_IMAGE` → `.jpg`. Não está na rota crítica (só scrapers sociais); PNG antigo no backup.
+- [x] **`wesley-photo.webp` (LCP)**: verificada — original nativa é 571×1000 (já no máx da fonte); 13 KiB. Nada a otimizar sem foto de maior resolução.
 
 ### ⬜ Fase 6 — Nit de canonical (SEO 85 → ~92)
 > Ganho: marginal. Risco: baixo.

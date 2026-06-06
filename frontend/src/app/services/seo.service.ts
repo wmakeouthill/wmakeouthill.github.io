@@ -46,7 +46,7 @@ const METADADOS: Record<Language, { home: PageSeo; projects: PageSeo }> = {
 };
 
 const BASE_URL_PADRAO = 'https://wmakeouthill.dev';
-const OG_IMAGE = '/assets/wesley-photo.png';
+const OG_IMAGE = '/assets/wesley-photo.jpg';
 
 /**
  * Aplica os metadados de SEO (title, description, Open Graph, Twitter, canonical
