@@ -3,11 +3,14 @@ package com.wmakeouthill.portfolio.infrastructure.web;
 import com.wmakeouthill.portfolio.application.dto.CacheStatusDto;
 import com.wmakeouthill.portfolio.application.dto.CacheStatusDto.CacheInfo;
 import com.wmakeouthill.portfolio.application.dto.CacheStatusDto.GithubApiInfo;
+import com.wmakeouthill.portfolio.domain.service.ContextSearchService;
 import com.wmakeouthill.portfolio.domain.service.ProjetoKeywordDetector;
+import com.wmakeouthill.portfolio.infrastructure.config.CaffeineCacheConfig;
 import com.wmakeouthill.portfolio.infrastructure.github.GithubContentCache;
 import com.wmakeouthill.portfolio.infrastructure.pdf.ThumbnailCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +39,8 @@ public class CacheStatusController {
     private final GithubContentCache githubContentCache;
     private final ThumbnailCacheService thumbnailCacheService;
     private final ProjetoKeywordDetector projetoKeywordDetector;
+    private final ContextSearchService contextSearchService;
+    private final CacheManager cacheManager;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
@@ -95,6 +100,10 @@ public class CacheStatusController {
     public ResponseEntity<Map<String, String>> invalidateAll() {
         githubContentCache.clear();
         thumbnailCacheService.clearAll();
+        clearSpringCache(CaffeineCacheConfig.CACHE_GITHUB_DATA);
+        clearSpringCache(CaffeineCacheConfig.CACHE_MARKDOWN);
+        clearSpringCache(CaffeineCacheConfig.CACHE_MERMAID);
+        contextSearchService.invalidarCache();
         projetoKeywordDetector.recarregarProjetosDinamicos();
 
         log.info("Cache invalidado manualmente via API");
@@ -106,6 +115,13 @@ public class CacheStatusController {
     /**
      * Busca rate limit do GitHub API (requisição muito leve).
      */
+    private void clearSpringCache(String cacheName) {
+        org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+
     private GithubApiInfo fetchGithubRateLimit() {
         try {
             HttpRequest request = HttpRequest.newBuilder()

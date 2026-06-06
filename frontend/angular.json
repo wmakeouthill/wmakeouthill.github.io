@@ -34,8 +34,26 @@
               }
             ],
             "styles": [
-              "src/styles.css"
-            ]
+              "src/styles.css",
+              "src/prototype-portfolio.css",
+              "src/prototype-features.css",
+              "src/prototype-enhance.css"
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            },
+            "security": {
+              "allowedHosts": [
+                "wmakeouthill.dev",
+                "www.wmakeouthill.dev",
+                "wmakeouthill.github.io",
+                "*.vercel.app",
+                "localhost",
+                "127.0.0.1"
+              ]
+            }
           },
           "configurations": {
             "production": {
@@ -47,8 +65,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "15kB",
-                  "maximumError": "20kB"
+                  "maximumWarning": "30kB",
+                  "maximumError": "40kB"
                 }
               ],
               "outputHashing": "all",
@@ -56,6 +74,7 @@
               "allowedCommonJsDependencies": [
                 "marked",
                 "mermaid",
+                "lottie-web",
                 "prismjs",
                 "prismjs/components/prism-java",
                 "prismjs/components/prism-typescript",

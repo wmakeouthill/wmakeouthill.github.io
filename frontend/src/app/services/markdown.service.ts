@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { marked } from 'marked';
 import { lastValueFrom } from 'rxjs';
-import mermaid from 'mermaid';
 import { resolveApiUrl } from '../utils/api-url.util';
 import { I18nService } from '../i18n/i18n.service';
 
@@ -17,16 +15,31 @@ export class MarkdownService {
   private readonly memoryCache = new Map<string, string>();
   private preloadingInProgress = false;
   private preloadedProjects = new Set<string>();
+  private markedInstance: any = null;
+  private mermaidInstance: any = null;
 
-  constructor() {
-    marked.setOptions({ breaks: true, gfm: true });
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      securityLevel: 'loose',
-      deterministicIds: true,
-      deterministicIDSeed: 'portfolio-diagram'
-    });
+  private async getMarked(): Promise<any> {
+    if (!this.markedInstance) {
+      const { marked } = await import('marked');
+      marked.setOptions({ breaks: true, gfm: true });
+      this.markedInstance = marked;
+    }
+    return this.markedInstance;
+  }
+
+  private async getMermaid(): Promise<any> {
+    if (!this.mermaidInstance) {
+      const mermaid = (await import('mermaid')).default;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+        deterministicIds: true,
+        deterministicIDSeed: 'portfolio-diagram'
+      });
+      this.mermaidInstance = mermaid;
+    }
+    return this.mermaidInstance;
   }
 
   /**
@@ -147,6 +160,7 @@ export class MarkdownService {
    * @deprecated Use renderMarkdownToHtml para funcionalidades completas
    */
   async renderMarkdownBase(markdown: string): Promise<string> {
+    const marked = await this.getMarked();
     const html = marked.parse(markdown) as string;
     return this.applyMarkdownTextClasses(html);
   }
@@ -272,6 +286,7 @@ export class MarkdownService {
     });
 
     // 2) Parse markdown to HTML
+    const marked = await this.getMarked();
     let html = marked.parse(mdWithTokens) as string;
 
     // Wrap markdown content with specific class to avoid affecting code blocks
@@ -288,6 +303,7 @@ export class MarkdownService {
     );
 
     // 4) Render each mermaid block to inline SVG and inject container
+    const mermaid = await this.getMermaid();
     for (const b of blocks) {
       const tempId = `m_${b.id}`;
       const { svg } = await mermaid.render(tempId, b.code);

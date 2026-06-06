@@ -111,7 +111,7 @@ temp/
 .DS_Store
 Thumbs.db
 desktop.ini
-
+claude-design-portfolio/
 # ============================================
 # Arquivos de Build e Deploy
 # ============================================
@@ -135,6 +135,7 @@ out/
 # ============================================
 docs/generated/
 docs/build/
+regras-desenvolvimento-java-angular/
 
 # ============================================
 # Arquivos Específicos do Projeto

@@ -105,6 +105,28 @@ public class GeminiAdapter implements AIChatPort {
 
     @Override
     public ChatResponse chat(String systemPrompt, List<MensagemChat> historico, String mensagemAtual) {
+        return chatInterno(systemPrompt, historico, mensagemAtual, java.util.Collections.emptyList());
+    }
+
+    @Override
+    public ChatResponse chat(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        return chatInterno(systemPrompt, historico, mensagemAtual,
+                media == null ? java.util.Collections.emptyList() : media);
+    }
+
+    private ChatResponse chatInterno(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        return chatInterno(systemPrompt, historico, mensagemAtual, media, 0.9);
+    }
+
+    public ChatResponse chatComTemperatura(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            double temperature) {
+        return chatInterno(systemPrompt, historico, mensagemAtual, java.util.Collections.emptyList(), temperature);
+    }
+
+    private ChatResponse chatInterno(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
         if (apiKey == null || apiKey.isBlank()) {
             return new ChatResponse("Serviço de IA não configurado. Defina a variável GEMINI_API_KEY.");
         }
@@ -129,7 +151,7 @@ public class GeminiAdapter implements AIChatPort {
                 log.info("Tentando modelo Gemini {} ({}/{})",
                         modeloAtual, i + 1, modelosFallback.size());
 
-                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual);
+                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media, temperature);
                 String body = mapper.writeValueAsString(payload);
                 HttpRequest req = criarRequisicao(modeloAtual, body);
                 HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
@@ -172,7 +194,13 @@ public class GeminiAdapter implements AIChatPort {
         return new ChatResponse(mensagemErro);
     }
 
-    private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual) {
+    private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        return criarPayload(systemPrompt, historico, mensagemAtual, media, 0.9);
+    }
+
+    private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
         Map<String, Object> payload = new HashMap<>();
 
         // System instruction (Gemini usa formato diferente do OpenAI)
@@ -192,10 +220,34 @@ public class GeminiAdapter implements AIChatPort {
             contents.add(content);
         }
 
-        // Mensagem atual do usuário
+        // Mensagem atual do usuário (texto + anexos de mídia inline)
         Map<String, Object> userMessage = new HashMap<>();
         userMessage.put("role", "user");
-        userMessage.put("parts", List.of(Map.of("text", mensagemAtual)));
+        List<Map<String, Object>> userParts = new ArrayList<>();
+        if (mensagemAtual != null && !mensagemAtual.isBlank()) {
+            userParts.add(Map.of("text", mensagemAtual));
+        }
+        if (media != null) {
+            for (com.wmakeouthill.portfolio.application.dto.MediaPart mp : media) {
+                if (mp == null || mp.base64Data() == null || mp.base64Data().isBlank()) {
+                    continue;
+                }
+                Map<String, Object> part = new HashMap<>();
+                part.put("inline_data", Map.of(
+                        "mime_type", mp.mimeType() == null ? "application/octet-stream" : mp.mimeType(),
+                        "data", mp.base64Data()));
+                // Para vídeo, reduz a amostragem de frames (≈ "acelerar"): baixa fps =
+                // menos tokens e menor custo, mantendo a compreensão do conteúdo.
+                if (mp.isVideo()) {
+                    part.put("video_metadata", Map.of("fps", 1));
+                }
+                userParts.add(part);
+            }
+        }
+        if (userParts.isEmpty()) {
+            userParts.add(Map.of("text", ""));
+        }
+        userMessage.put("parts", userParts);
         contents.add(userMessage);
 
         payload.put("contents", contents);
@@ -203,7 +255,7 @@ public class GeminiAdapter implements AIChatPort {
         // Configuração de geração
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("maxOutputTokens", maxTokens);
-        generationConfig.put("temperature", 0.9);
+        generationConfig.put("temperature", temperature);
         payload.put("generationConfig", generationConfig);
 
         return payload;

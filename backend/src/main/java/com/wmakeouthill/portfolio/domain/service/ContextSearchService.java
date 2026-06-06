@@ -22,8 +22,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ContextSearchService {
 
-  private static final int MAX_FALLBACK = 2;
+  private static final int MAX_FALLBACK = 5;
   private static final double MIN_SCORE = 0.4;
+
+  private static final Set<String> STOPWORDS = Set.of(
+      // PT - preposições, artigos, pronomes, conjunções (só as com >2 chars que passam no filtro)
+      "dos", "das", "nos", "nas", "uns", "uma", "umas", "que", "por",
+      "para", "com", "sem", "ate", "sob", "lhe", "vos", "lhes", "seu",
+      "sua", "meu", "minha", "como", "mais", "mas", "nem", "quando",
+      "onde", "quem", "qual",
+      // EN - stopwords comuns com >2 chars
+      "the", "and", "for", "are", "was", "were", "been", "have", "has",
+      "had", "does", "did", "will", "can", "your", "his", "her", "its",
+      "our", "their", "from", "with", "this", "that", "they", "them",
+      "not", "but", "what", "who", "how", "about"
+  );
 
   private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
@@ -67,6 +80,13 @@ public class ContextSearchService {
   /**
    * Verifica se o cache expirou e recarrega se necessário.
    */
+  public synchronized void invalidarCache() {
+    contextChunks.clear();
+    fallbackChunks.clear();
+    ultimoCarregamento = 0;
+    log.info("Cache de contextos da IA invalidado");
+  }
+
   private void verificarCacheExpirado(String idioma) {
     String idiomaNorm = normalizarIdioma(idioma);
     if (!idiomaNorm.equals(idiomaAtual) || System.currentTimeMillis() - ultimoCarregamento > CACHE_TTL_MS) {
@@ -169,7 +189,12 @@ public class ContextSearchService {
     if (mensagem == null || mensagem.isBlank()) {
       return List.of();
     }
-    return new ArrayList<>(extrairStems(mensagem));
+    return Arrays.stream(mensagem.split("\\W+"))
+        .map(this::stemming)
+        .filter(token -> token.length() > 2)
+        .filter(token -> !STOPWORDS.contains(token))
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   private Set<String> extrairStems(String texto) {

@@ -23,6 +23,8 @@ public class CorsConfig {
                         .allowedOriginPatterns(
                                 "https://wmakeouthill.github.io",
                                 "https://projeto-wesley-263590688560.southamerica-east1.run.app",
+                                "https://*.vercel.app",
+                                "http://137.131.158.76:*",
                                 "http://localhost:*",
                                 "http://127.0.0.1:*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")

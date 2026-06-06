@@ -1,350 +1,277 @@
-.chat-input-area {
-  display: flex;
-  align-items: center;
-  gap: 0.04rem;
-  padding: 0.7rem 0.85rem 0.8rem;
-  border-top: 1px solid rgba(219, 194, 125, 0.25);
-  background: rgba(10, 10, 10, 0.96);
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  /* Suporte para safe-area em dispositivos com notch */
-  padding-bottom: max(0.8rem, env(safe-area-inset-bottom, 0px) + 0.5rem);
-}
-
-/* Model Selector Dropdown - GitHub Copilot Style */
-.model-selector {
+.chat-input-wrapper {
   position: relative;
   flex-shrink: 0;
-  margin-left: 0.5rem;
-  align-self: center;
 }
 
-.model-selector-button {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.65rem;
-  background: transparent;
-  border: 1px solid rgba(100, 100, 100, 0.5);
-  border-radius: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.model-selector-button:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--text-primary);
-}
-
-.model-selector-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.model-name {
-  color: inherit;
-}
-
-.dropdown-arrow {
-  font-size: 0.6rem;
-  opacity: 0.7;
-  transition: transform var(--transition-fast);
-}
-
-.model-selector-button:hover .dropdown-arrow {
-  opacity: 1;
-}
-
-.model-dropdown {
+/* ===== Menu de comandos slash ===== */
+.chat-slash-menu {
   position: absolute;
-  bottom: calc(100% + 0.35rem);
-  left: 0;
-  min-width: 180px;
-  background: rgba(30, 30, 30, 0.98);
-  border: 1px solid rgba(100, 100, 100, 0.4);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  left: 14px;
+  right: 14px;
+  bottom: calc(100% - 6px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  z-index: 100;
-  animation: dropdownFadeIn 0.15s ease-out;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md, 12px);
+  background: var(--bg-card-2);
+  box-shadow: var(--shadow-lg);
+  animation: slashIn 0.14s ease-out;
 }
 
-@keyframes dropdownFadeIn {
+@keyframes slashIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
-.model-option {
+.chat-slash-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.6rem 0.75rem;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 14px;
+  border: 0;
   background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--t-fast);
 }
 
-.model-option:hover {
-  background: rgba(100, 100, 100, 0.2);
-  color: var(--text-primary);
+.chat-slash-item.active {
+  background: rgba(219, 194, 125, 0.12);
 }
 
-.model-option.selected {
+.chat-slash-cmd {
   color: var(--color-accent);
-  background: rgba(219, 194, 125, 0.1);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
-.model-option-name {
-  flex: 1;
+.chat-slash-desc {
+  color: var(--text-muted);
+  font-size: 0.74rem;
 }
 
-.model-check {
-  color: var(--color-accent);
-  font-size: 0.8rem;
-  margin-left: 0.5rem;
-}
-
-.model-recommended {
-  font-size: 0.65rem;
-  color: var(--color-accent);
-  opacity: 0.85;
-  margin-left: 0.35rem;
-}
-
-@media (max-width: 640px) {
-  .chat-input-area {
-    padding: 0.6rem 0.75rem 0.7rem;
-    padding-bottom: max(0.7rem, env(safe-area-inset-bottom, 0px) + 0.5rem);
-    gap: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-input-area {
-    padding: 0.5rem 0.65rem 0.6rem;
-    padding-bottom: max(0.6rem, env(safe-area-inset-bottom, 0px) + 0.5rem);
-    gap: 0.4rem;
-  }
-}
-
-.chat-new-conversation-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-full);
-  padding: 0.35rem;
-  background: transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  width: auto;
-  height: auto;
-  min-height: 2rem;
-  min-width: 2rem;
-  /* Área de toque adequada para mobile */
+/* Botão "/" que abre os comandos */
+.ci-slash {
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
-  position: relative;
-  touch-action: manipulation;
-  /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent;
-  /* Remove highlight no iOS */
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-family: 'Fira Code', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
 }
 
-.chat-new-conversation-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  opacity: 0.8;
+.ci-slash:hover:not(:disabled),
+.ci-slash.active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
-/* Tooltip customizado - aparece mais rápido */
-.chat-new-conversation-button::before {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 0.5rem);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.4rem 0.6rem;
-  background: rgba(20, 20, 20, 0.95);
-  color: var(--text-primary);
-  font-size: 0.7rem;
-  white-space: nowrap;
-  border-radius: 0.25rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s ease-in-out;
-  z-index: 1000;
-  border: 1px solid rgba(219, 194, 125, 0.3);
-}
-
-.chat-new-conversation-button::after {
-  content: '';
-  position: absolute;
-  bottom: calc(100% + 0.3rem);
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: rgba(219, 194, 125, 0.3);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s ease-in-out;
-  z-index: 1000;
-}
-
-.chat-new-conversation-button:hover::before,
-.chat-new-conversation-button:hover::after {
-  opacity: 1;
-}
-
-.chat-new-conversation-button:disabled {
-  cursor: not-allowed;
+.ci-slash:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.new-conversation-icon {
-  width: 2rem;
-  height: 2rem;
-  object-fit: contain;
-  display: block;
+.chat-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 14px 10px;
+  background: var(--bg-card);
 }
 
-.chat-input {
-  flex: 1;
-  padding: 0.5rem 0.85rem;
-  border-radius: 0.75rem;
-  /* Menos arredondado para funcionar melhor com múltiplas linhas */
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: rgba(20, 20, 20, 0.9);
+.chat-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--border-accent);
+  border-radius: var(--r-full);
+  background: var(--bg-card-2);
+  color: var(--color-accent);
+  font-size: 0.78rem;
+}
+
+.chat-attachment-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-attachment-remove {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
-  font-size: 0.8rem;
-  /* Melhorias para mobile */
-  -webkit-appearance: none;
-  /* Remove estilos nativos do iOS */
-  appearance: none;
-  touch-action: manipulation;
-  /* Melhora resposta ao toque */
-  /* Previne zoom no iOS quando foca no input */
-  font-size: 16px;
-  /* Tamanho mínimo para evitar zoom no iOS */
-  /* Estilos específicos para textarea */
-  resize: none;
-  /* Impede redimensionamento manual */
-  overflow-y: auto;
-  /* Scroll quando preciso */
-  min-height: 2.2rem;
-  /* Altura mínima (1 linha) */
-  max-height: 6rem;
-  /* Altura máxima (~4-5 linhas) */
-  line-height: 1.4;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Sem caixa/borda própria: apenas a divisão suave do topo, herdando o fundo.
+   Dois layouts via flex-wrap + order:
+   - .collapsed (campo vazio): tudo em uma linha, texto entre os botões.
+   - expandido (com texto): textarea ocupa a linha de cima, botões embaixo. */
+.chat-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.ci-text {
+  /* Expandido: ocupa a linha inteira no topo (acima dos botões). */
+  flex: 1 1 100%;
+  order: -1;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
   font-family: inherit;
-  /* Auto height with field-sizing (suporte moderno) */
-  field-sizing: content;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+  max-height: 160px;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(219, 194, 125, 0.5) transparent;
 }
 
-@media (max-width: 640px) {
-  .chat-input {
-    font-size: 16px;
-    /* Previne zoom no iOS */
-  }
+/* Colapsado (campo vazio): texto inline entre anexar e microfone. */
+.chat-input.collapsed .ci-text {
+  flex: 1 1 auto;
+  order: 0;
 }
 
-.chat-input::placeholder {
+.chat-input.collapsed .ci-spacer {
+  display: none;
+}
+
+.ci-text::placeholder {
   color: var(--text-muted);
 }
 
-.chat-input:focus {
+.ci-text:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px rgba(219, 194, 125, 0.5);
 }
 
-.chat-send-button {
-  border: none;
-  border-radius: var(--radius-full);
-  padding: 0.5rem 0.95rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
+/* Scrollbar estilizada (Chrome/Edge/Safari) */
+.ci-text::-webkit-scrollbar {
+  width: 9px;
+}
+
+.ci-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ci-text::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9px;
+  background: rgba(219, 194, 125, 0.45);
+  background-clip: padding-box;
+}
+
+.ci-text::-webkit-scrollbar-thumb:hover {
+  background: rgba(219, 194, 125, 0.7);
+  background-clip: padding-box;
+}
+
+/* Empurra microfone/enviar para a direita (no estado expandido). */
+.ci-spacer {
+  flex: 1;
+}
+
+.ci-btn,
+.ci-send {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #1a1a1a;
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-  color: var(--color-dark);
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 10px rgba(219, 194, 125, 0.35);
-  touch-action: manipulation;
-  /* Melhora resposta ao toque */
-  -webkit-tap-highlight-color: transparent;
-  /* Remove highlight no iOS */
-  min-width: 3.5rem;
-  /* Área de toque adequada para mobile */
+  cursor: pointer;
+  transition: transform var(--t-fast), opacity var(--t-fast), filter var(--t-fast);
 }
 
-.chat-send-button:disabled {
+.ci-btn svg,
+.ci-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ci-btn:hover:not(:disabled),
+.ci-send:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+.ci-btn:disabled,
+.ci-send:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
-  transform: none;
-  box-shadow: none;
 }
 
-.chat-send-button:not(:disabled):hover {
-  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent));
-  transform: translateY(-1px);
+.ci-btn.recording {
+  filter: drop-shadow(0 0 10px rgba(219, 194, 125, 0.55));
 }
 
-.chat-send-button:not(:disabled):active {
-  transform: translateY(0) scale(0.95);
+.chat-stop-button {
+  color: #fff;
+  background: linear-gradient(135deg, #dc3545, #b02a37);
+  animation: stopPulse 1.4s ease-in-out infinite;
 }
 
-@media (max-width: 640px) {
-  .chat-input {
-    font-size: 0.75rem;
-    padding: 0.45rem 0.75rem;
+@keyframes stopPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(220, 53, 69, 0);
   }
 
-  .chat-send-button {
-    padding: 0.45rem 0.85rem;
-    font-size: 0.75rem;
-  }
-
-  .chat-new-conversation-button {
-    min-height: 1.75rem;
-  }
-
-  .new-conversation-icon {
-    width: 1.75rem;
-    height: 1.75rem;
+  50% {
+    box-shadow: 0 0 18px rgba(220, 53, 69, 0.7);
   }
 }
 
 @media (max-width: 480px) {
   .chat-input {
-    font-size: 0.7rem;
-    padding: 0.4rem 0.65rem;
+    padding: 10px 12px;
   }
 
-  .chat-send-button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.7rem;
+  .ci-btn,
+  .ci-send,
+  .ci-slash {
+    width: 32px;
+    height: 32px;
   }
 
-  .chat-new-conversation-button {
-    min-height: 1.5rem;
-  }
-
-  .new-conversation-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+  .ci-text {
+    font-size: 0.9rem;
   }
 }

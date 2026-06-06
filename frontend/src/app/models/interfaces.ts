@@ -49,6 +49,7 @@ export interface Experience {
   id: number;
   company: string;
   position: string;
+  badgeLabel?: string;
   startDate: string;
   endDate: string | null; // null se ainda trabalha
   current: boolean;

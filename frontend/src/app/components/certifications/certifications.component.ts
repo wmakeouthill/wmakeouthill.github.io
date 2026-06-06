@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 
 @Component({
   selector: 'app-certifications',
@@ -16,6 +17,9 @@ import { I18nService } from '../../i18n/i18n.service';
 export class CertificationsComponent implements OnInit {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18nService = inject(I18nService);
+  private readonly scrollLock = inject(ScrollLockService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private scrollLocked = false;
 
   readonly certificationsSection = viewChild<ElementRef<HTMLElement>>('certificationsSection');
 
@@ -27,6 +31,8 @@ export class CertificationsComponent implements OnInit {
 
   /** Mensagem de erro */
   readonly error = this.certificationsService.error;
+  readonly showError = computed(() => this.isBrowser && !!this.error() && this.certificados().length === 0 && !this.loading());
+  readonly showEmpty = computed(() => this.isBrowser && !this.loading() && !this.error() && this.certificados().length === 0);
 
   /** Certificado selecionado para visualização */
   readonly selectedCertificado = signal<CertificadoPdf | null>(null);
@@ -36,7 +42,7 @@ export class CertificationsComponent implements OnInit {
 
   /** Paginação */
   readonly currentPage = signal<number>(1);
-  readonly itemsPerPage = 6;
+  readonly itemsPerPage = 10;
 
   // Computed para certificados paginados
   readonly paginatedCertificados = computed(() => {
@@ -102,6 +108,27 @@ export class CertificationsComponent implements OnInit {
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
+  /** URLs de thumbnails já aquecidos no cache do navegador. */
+  private readonly preloadedThumbnails = new Set<string>();
+
+  // Pré-carrega os thumbnails de TODOS os certificados (não só a página atual)
+  // assim que a lista chega, para que a paginação seja instantânea e sem reload.
+  private readonly preloadThumbnails = effect(() => {
+    if (!this.isBrowser) {
+      return;
+    }
+    for (const cert of this.certificados()) {
+      const url = this.getThumbnailUrl(cert);
+      if (!url || this.preloadedThumbnails.has(url)) {
+        continue;
+      }
+      this.preloadedThumbnails.add(url);
+      const img = new Image();
+      img.decoding = 'async';
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
+      img.src = url;
+    }
+  });
 
   // Recarrega certificados/currículo ao trocar idioma, para usar overrides do backend
   private readonly reloadOnLangChange = effect(() => {
@@ -199,22 +226,6 @@ export class CertificationsComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.scrollToCertificationsSection();
-    }
-  }
-
-  private scrollToCertificationsSection(): void {
-    const section = this.certificationsSection();
-    if (section?.nativeElement) {
-      section.nativeElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    } else {
-      const el = document.getElementById('certifications');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
     }
   }
 
@@ -321,27 +332,14 @@ export class CertificationsComponent implements OnInit {
   // ─────────────────────────────────────────────────────────────────────────────
 
   private disableBodyScroll(): void {
-    const scrollY = window.scrollY;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.setAttribute('data-scroll-y', scrollY.toString());
+    if (this.scrollLocked) return;
+    this.scrollLocked = true;
+    this.scrollLock.lock();
   }
 
   private enableBodyScroll(): void {
-    const scrollY = document.body.getAttribute('data-scroll-y');
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.removeAttribute('data-scroll-y');
-    if (scrollY) {
-      window.scrollTo(0, parseInt(scrollY));
-    }
+    if (!this.scrollLocked) return;
+    this.scrollLocked = false;
+    this.scrollLock.unlock();
   }
 }

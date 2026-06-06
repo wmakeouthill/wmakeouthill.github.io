@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, PLATFORM_ID, ViewChild, computed, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Experience } from '../../models/interfaces';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
@@ -14,6 +14,7 @@ import { I18nService } from '../../i18n/i18n.service';
 })
 export class ExperienceComponent implements OnInit, AfterViewInit {
   private readonly i18n = inject(I18nService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   @ViewChild('experienceContainer') experienceContainer!: ElementRef;
   private readonly baseExperiences: Array<Experience & { key: string }> = [
     {
@@ -21,6 +22,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       id: 1,
       company: 'AutoU',
       position: '',
+      badgeLabel: undefined,
       startDate: '2026-02',
       endDate: null,
       current: true,
@@ -31,17 +33,20 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['React', 'Python', 'RAG', 'LangGraph', 'Prophet', 'Docker', 'GitHub Actions', 'AWS EC2', 'Google Cloud Run', 'Sankhya ERP']
+      technologies: ['Python', 'FastAPI', 'LangGraph', 'RAG', 'Vision', 'YOLO', 'Prophet', 'Gemini Embeddings', 'pgvector', 'FAISS', 'React 19', 'Vite', 'Sankhya ERP', 'Slack', 'Microsoft 365', 'Docker Compose', 'GitHub Actions', 'AWS EC2', 'GCP Cloud Run', 'IaC', 'SSH']
     },
     {
       key: 'experience.items.exp2',
       id: 2,
       company: 'Anbima / Selic (Banco Central)',
       position: '',
+      badgeLabel: undefined,
       startDate: '2025-04',
-      endDate: '2026-01',
+      endDate: '2026-04',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
@@ -49,16 +54,16 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Java', 'Spring', 'Spring Boot', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'Prometheus', 'Grafana']
+      technologies: ['Java 17', 'Spring Boot 3.x', 'Angular', 'Oracle', 'Liquibase', 'Docker', 'GitLab CI/CD', 'Prometheus', 'Grafana', 'Micrometer', 'Spring Actuator', 'Blackbox Exporter', 'AlertManager']
     },
     {
       key: 'experience.items.exp3',
       id: 3,
       company: 'Anbima / Selic (Banco Central)',
       position: '',
+      badgeLabel: undefined,
       startDate: '2024-04',
       endDate: '2025-04',
       current: false,
@@ -66,27 +71,22 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       description: '',
       highlights: [
         { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Power BI', 'DAX', 'JavaScript', 'SharePoint', 'Notion']
+      technologies: ['SharePoint', 'JavaScript', 'HTML', 'CSS', 'Power BI', 'DAX', 'PMI', 'Agile', 'MPS.BR', 'CMMI']
     },
     {
       key: 'experience.items.exp4',
       id: 4,
       company: 'Gondim, Albuquerque e Negreiros ADV',
       position: '',
+      badgeLabel: undefined,
       startDate: '2019-11',
       endDate: '2024-04',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' }
       ],
@@ -97,14 +97,13 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       id: 5,
       company: 'Phillip Morris Internacional',
       position: '',
+      badgeLabel: undefined,
       startDate: '2018-10',
       endDate: '2019-10',
       current: false,
       location: 'Rio de Janeiro, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
       technologies: ['VBA', 'Excel', 'Salesforce']
@@ -114,17 +113,16 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
       id: 6,
       company: 'Liquigás / Petrobras Distribuidora S.A',
       position: '',
+      badgeLabel: undefined,
       startDate: '2017-04',
       endDate: '2018-09',
       current: false,
       location: 'Duque de Caxias, RJ',
       description: '',
       highlights: [
-        { title: '', text: '' },
-        { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Excel', 'SAP']
+      technologies: ['SAP', 'Excel']
     }
   ];
 
@@ -153,20 +151,27 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // IntersectionObserver não existe no SSR.
+    if (!this.isBrowser) {
+      return;
+    }
     this.setupScrollAnimations();
   }
 
   private setupScrollAnimations() {
     const observerOptions = {
-      threshold: [0.3, 0.6],
-      rootMargin: '0px 0px -20px 0px'
+      threshold: [0.1, 0.3],
+      rootMargin: '0px 0px 100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+          entry.target.classList.add('animate-in');
+        }
         if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
-          entry.target.classList.add('animate-in', 'auto-hover');
-        } else if (!entry.isIntersecting || entry.intersectionRatio < 0.3) {
+          entry.target.classList.add('auto-hover');
+        } else {
           entry.target.classList.remove('auto-hover');
         }
       });
@@ -175,7 +180,7 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
     // Observe experience cards
     const experienceCards = this.experienceContainer?.nativeElement?.querySelectorAll('.experience-card');
     experienceCards?.forEach((card: Element, index: number) => {
-      (card as HTMLElement).style.transitionDelay = `${index * 0.2}s`;
+      (card as HTMLElement).style.transitionDelay = `${index * 0.1}s`;
       observer.observe(card);
     });
   }

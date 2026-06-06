@@ -81,6 +81,19 @@ public class AIChatRouter implements AIChatPort {
     }
 
     /**
+     * Variante multimodal: anexos só são suportados pelo Gemini. Se Gemini não
+     * estiver disponível, faz fallback textual (a mídia é ignorada).
+     */
+    public ChatResponse chat(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
+            String modelo, List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
+        if (media != null && !media.isEmpty() && geminiAdapter != null) {
+            log.info("Roteando requisição multimodal ({} anexo(s)) para Gemini", media.size());
+            return geminiAdapter.chat(systemPrompt, historico, mensagemAtual, media);
+        }
+        return chat(systemPrompt, historico, mensagemAtual, modelo);
+    }
+
+    /**
      * Verifica se Gemini está disponível.
      */
     public boolean isGeminiDisponivel() {

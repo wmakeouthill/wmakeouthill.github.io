@@ -1,18 +1,11 @@
-<!-- Portfolio Application -->
+<div class="bg-fx" aria-hidden="true">
+  <div class="bg-grad"></div>
+  <div class="bg-stars"></div>
+</div>
 
-<!-- Main Portfolio Container -->
 <app-header></app-header>
 
-<main class="portfolio-main">
-  <app-hero></app-hero>
-  <app-about></app-about>
-  <app-skills></app-skills>
-  <app-experience></app-experience>
-  <app-education></app-education>
-  <app-projects></app-projects>
-  <app-certifications></app-certifications>
-  <app-contact></app-contact>
-</main>
+<router-outlet />
 
 <app-footer></app-footer>
 
@@ -28,5 +21,3 @@
 
 <!-- Widget de chat com IA sobre o Wesley -->
 <app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
-
-<router-outlet />

@@ -18,11 +18,17 @@ export function useOutsideClick(
     }
   };
 
-  document.addEventListener('mousedown', documentClickHandler);
+  // document não existe no SSR; o listener só faz sentido no browser.
+  const temDocument = typeof document !== 'undefined';
+  if (temDocument) {
+    document.addEventListener('mousedown', documentClickHandler);
+  }
 
   return {
     ngOnDestroy: () => {
-      document.removeEventListener('mousedown', documentClickHandler);
+      if (temDocument) {
+        document.removeEventListener('mousedown', documentClickHandler);
+      }
     }
   };
 }

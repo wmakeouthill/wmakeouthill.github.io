@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, viewChild, ElementRef, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, computed, viewChild, ElementRef, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { GithubService } from '../../services/github.service';
 import { MarkdownService } from '../../services/markdown.service';
 import { PortfolioContentService } from '../../services/portfolio-content.service';
+import { resolveApiUrl } from '../../utils/api-url.util';
 import { GitHubRepository } from '../../models/interfaces';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 import { CodePreviewModalComponent } from '../code-preview-modal/code-preview-modal.component';
+import { DemoModalComponent } from '../demo-modal/demo-modal.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -13,24 +16,37 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-projects',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, TranslatePipe],
+  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, DemoModalComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
-export class ProjectsComponent implements OnInit {
+export class ProjectsComponent implements OnInit, OnDestroy {
   private readonly githubService = inject(GithubService);
   private readonly markdownService = inject(MarkdownService);
   private readonly portfolioContentService = inject(PortfolioContentService);
   private readonly i18nService = inject(I18nService);
+  private readonly http = inject(HttpClient);
 
   readonly projectsSection = viewChild<ElementRef<HTMLElement>>('projectsSection');
+  readonly projGrid = viewChild<ElementRef<HTMLElement>>('projGrid');
 
   // Estado com signals
   readonly projects = signal<GitHubRepository[]>([]);
   readonly loading = signal<boolean>(true);
   readonly selectedFilter = signal<string>('all');
   readonly currentPage = signal<number>(1);
-  readonly itemsPerPage = 6;
+
+  /** Projetos que possuem mídia na galeria (preenchido por probe em background). */
+  readonly galleryProjects = signal<Set<string>>(new Set());
+  /** Projetos que possuem README/markdown disponível (preenchido após o preload). */
+  readonly readmeProjects = signal<Set<string>>(new Set());
+
+  /** Nº de colunas renderizadas no grid (medido), para paginação por linhas cheias. */
+  private readonly gridColumns = signal<number>(3);
+  /** Quantas linhas completas exibir por página. */
+  private readonly rowsPerPage = 2;
+  /** Itens por página = colunas medidas × linhas, para sempre preencher linhas inteiras. */
+  readonly itemsPerPage = computed(() => Math.max(1, this.gridColumns()) * this.rowsPerPage);
 
   // README Modal state
   readonly showReadmeModal = signal<boolean>(false);
@@ -40,8 +56,23 @@ export class ProjectsComponent implements OnInit {
   readonly showCodePreviewModal = signal<boolean>(false);
   readonly currentProjectForPreview = signal<string>('');
 
+  // Demo Modal state
+  readonly showDemoModal = signal<boolean>(false);
+  readonly currentProjectForDemo = signal<string>('');
+  readonly currentDemoUrl = signal<string>('');
+  readonly currentDemoInitialView = signal<'choice' | 'site' | 'gallery'>('choice');
+
   private lastLanguage = this.i18nService.language();
   private initialized = false;
+  private gridResizeObserver?: ResizeObserver;
+  /** URLs de imagens já aquecidas no cache do navegador (evita refazer o preload). */
+  private readonly preloadedImages = new Set<string>();
+  private readmeUrlPushed = false;
+  private readonly handlePopState = () => {
+    if (this.showReadmeModal()) {
+      this.closeReadmeModal({ updateHistory: false });
+    }
+  };
 
   // Recarrega quando o idioma mudar, respeitando caches por idioma do backend
   private readonly reloadOnLangChange = effect(() => {
@@ -55,12 +86,55 @@ export class ProjectsComponent implements OnInit {
     }
   });
 
+  // Mede quantas colunas o grid renderiza e mantém a paginação em linhas cheias.
+  private readonly measureGridColumns = effect((onCleanup) => {
+    if (!this.isBrowser()) {
+      return;
+    }
+    const gridRef = this.projGrid();
+    this.gridResizeObserver?.disconnect();
+    if (!gridRef?.nativeElement) {
+      return;
+    }
+    const el = gridRef.nativeElement;
+    const update = () => {
+      const template = getComputedStyle(el).gridTemplateColumns;
+      const cols = template.split(' ').filter(t => t && t !== 'none').length;
+      if (cols > 0) {
+        this.gridColumns.set(cols);
+      }
+    };
+    update();
+    this.gridResizeObserver = new ResizeObserver(update);
+    this.gridResizeObserver.observe(el);
+    onCleanup(() => this.gridResizeObserver?.disconnect());
+  });
+
+  // Garante que a página atual continua válida quando itens-por-página muda.
+  private readonly clampCurrentPage = effect(() => {
+    const total = this.totalPages();
+    if (untracked(() => this.currentPage()) > total) {
+      this.currentPage.set(Math.max(1, total));
+    }
+  });
+
   ngOnInit(): void {
+    if (this.isBrowser()) {
+      window.addEventListener('popstate', this.handlePopState);
+    }
+
     // Carrega imagens PRIMEIRO para evitar flash de placeholders
     this.loadProjectImages().then(() => {
       this.loadProjects();
       this.initialized = true;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.gridResizeObserver?.disconnect();
+    if (this.isBrowser()) {
+      window.removeEventListener('popstate', this.handlePopState);
+    }
   }
 
   /**
@@ -84,8 +158,15 @@ export class ProjectsComponent implements OnInit {
         this.loadLanguagesForProjects();
         this.loading.set(false);
 
+        // 🖼️ Pré-carrega TODAS as imagens (não só a página atual) para que a
+        // troca de página seja instantânea, sem reload visível.
+        this.preloadProjectImages(repos);
+
         // 🚀 Pré-carrega READMEs de todos os projetos em background
         this.preloadAllReadmesInBackground(repos);
+
+        // 🖼️ Descobre quais projetos têm galeria (para mostrar o botão só nesses)
+        this.probeGalleries(repos);
       },
       error: (error: any) => {
         console.error('Erro ao carregar projetos:', error);
@@ -99,15 +180,83 @@ export class ProjectsComponent implements OnInit {
    * Isso garante que quando o usuário clicar, o modal abre instantaneamente.
    */
   private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
 
     // Inicia pré-carregamento em background (não bloqueia UI)
     setTimeout(() => {
-      this.markdownService.preloadProjectsInBackground(projectNames).catch(error => {
-        console.error('Erro no pré-carregamento de READMEs:', error);
-      });
+      this.markdownService.preloadProjectsInBackground(projectNames)
+        .then(() => this.refreshReadmeAvailability(repos))
+        .catch(error => {
+          console.error('Erro no pré-carregamento de READMEs:', error);
+          // Mesmo com erro parcial, atualiza com o que estiver em cache
+          this.refreshReadmeAvailability(repos);
+        });
     }, 500); // Pequeno delay para não competir com carregamento inicial
+  }
+
+  /** Marca quais projetos têm README disponível (conteúdo não-vazio em cache). */
+  private refreshReadmeAvailability(repos: GitHubRepository[]): void {
+    const available = new Set<string>();
+    for (const repo of repos) {
+      if (this.markdownService.getReadmeContentSync(repo.name)) {
+        available.add(repo.name);
+      }
+    }
+    this.readmeProjects.set(available);
+  }
+
+  /**
+   * Aquece o cache do navegador com as imagens de todos os projetos (não apenas
+   * os da página atual). Leve e em baixa prioridade: usa `new Image()` com
+   * `fetchPriority`/`decoding` para não competir com o carregamento inicial.
+   */
+  private preloadProjectImages(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+    for (const repo of repos) {
+      const url = this.getProjectImage(repo.name);
+      if (!url || this.preloadedImages.has(url) || url.includes('placehold.co')) {
+        continue;
+      }
+      this.preloadedImages.add(url);
+      const img = new Image();
+      img.decoding = 'async';
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
+      img.src = url;
+    }
+  }
+
+  /** Probe em background: marca projetos que possuem mídia na galeria. */
+  private probeGalleries(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+    for (const repo of repos) {
+      const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
+      this.http.get<unknown[]>(url).subscribe({
+        next: (files) => {
+          if (Array.isArray(files) && files.length > 0) {
+            this.galleryProjects.update(set => new Set(set).add(repo.name));
+          }
+        },
+        error: () => { /* sem galeria — botão permanece oculto */ }
+      });
+    }
+  }
+
+  /** Projeto tem galeria com mídia? */
+  hasGallery(projectName: string): boolean {
+    return this.galleryProjects().has(projectName);
+  }
+
+  /** Projeto tem README/markdown disponível? */
+  hasReadme(projectName: string): boolean {
+    return this.readmeProjects().has(projectName);
   }
 
   private loadLanguagesForProjects(): void {
@@ -130,30 +279,39 @@ export class ProjectsComponent implements OnInit {
     });
   }
 
+  // Contagem de projetos com demo
+  readonly demoCount = computed(() =>
+    this.projects().filter(p => !!p.homepage).length
+  );
+
   // Computed para projetos filtrados
   readonly filteredProjects = computed(() => {
     const filter = this.selectedFilter();
     const allProjects = this.projects();
 
-    if (filter === 'all') {
-      return allProjects;
-    }
+    if (filter === 'all') return allProjects;
+    if (filter === 'demo') return allProjects.filter(p => !!p.homepage);
 
     return allProjects.filter(p =>
       p.language?.toLowerCase() === filter.toLowerCase()
     );
   });
 
+  readonly showEmptyProjects = computed(() =>
+    this.isBrowser() && !this.loading() && this.filteredProjects().length === 0
+  );
+
   // Computed para projetos paginados
   readonly paginatedProjects = computed(() => {
-    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
+    const perPage = this.itemsPerPage();
+    const startIndex = (this.currentPage() - 1) * perPage;
+    const endIndex = startIndex + perPage;
     return this.filteredProjects().slice(startIndex, endIndex);
   });
 
   // Computed para total de páginas
   readonly totalPages = computed(() => {
-    return Math.ceil(this.filteredProjects().length / this.itemsPerPage);
+    return Math.ceil(this.filteredProjects().length / this.itemsPerPage());
   });
 
   // Computed para números de página
@@ -212,7 +370,6 @@ export class ProjectsComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.scrollToProjectsSection();
     }
   }
 
@@ -247,10 +404,48 @@ export class ProjectsComponent implements OnInit {
     console.log(`✅ Modal aberto para ${projectName}`);
   }
 
-  closeReadmeModal(): void {
+  /** URL real (rastreável pelo bot) da página de detalhe do projeto, por idioma. */
+  projectHref(projectName: string): string {
+    const slug = projectName.toLowerCase();
+    return this.i18nService.language() === 'en' ? `/en/projects/${slug}` : `/projects/${slug}`;
+  }
+
+  openReadmeFromLink(event: MouseEvent, projectName: string): void {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
+      return;
+    }
+    event.preventDefault();
+    this.pushReadmeUrl(projectName);
+    this.openReadmeModal(projectName);
+  }
+
+  private pushReadmeUrl(projectName: string): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+    const href = this.projectHref(projectName);
+    const target = new URL(href, window.location.origin);
+    if (window.location.pathname === target.pathname) {
+      return;
+    }
+    window.history.pushState({ readmeModal: true, projectName }, '', target.pathname);
+    this.readmeUrlPushed = true;
+  }
+
+  closeReadmeModal(options: { updateHistory?: boolean } = {}): void {
     this.showReadmeModal.set(false);
     this.currentProjectName.set('');
+    if (options.updateHistory !== false && this.readmeUrlPushed && this.isBrowser()) {
+      this.readmeUrlPushed = false;
+      window.history.back();
+    } else {
+      this.readmeUrlPushed = false;
+    }
     console.log('📱 Modal fechado - cache mantido');
+  }
+
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined';
   }
 
   openCodePreviewModal(project: GitHubRepository): void {
@@ -263,6 +458,27 @@ export class ProjectsComponent implements OnInit {
     this.showCodePreviewModal.set(false);
     this.currentProjectForPreview.set('');
     console.log('💻 Code Preview fechado');
+  }
+
+  openDemoModal(project: GitHubRepository): void {
+    this.currentProjectForDemo.set(project.name);
+    this.currentDemoUrl.set(project.homepage ?? '');
+    this.currentDemoInitialView.set('site');
+    this.showDemoModal.set(true);
+  }
+
+  openProjectGallery(project: GitHubRepository): void {
+    this.currentProjectForDemo.set(project.name);
+    this.currentDemoUrl.set(project.homepage ?? '');
+    this.currentDemoInitialView.set('gallery');
+    this.showDemoModal.set(true);
+  }
+
+  closeDemoModal(): void {
+    this.showDemoModal.set(false);
+    this.currentProjectForDemo.set('');
+    this.currentDemoUrl.set('');
+    this.currentDemoInitialView.set('choice');
   }
 
   /**
@@ -279,6 +495,11 @@ export class ProjectsComponent implements OnInit {
     // Se não encontrou no cache, usa placeholder direto
     // (evita tentativas desnecessárias de .png/.jpg que vão falhar)
     return this.portfolioContentService.getPlaceholderUrl(projectName);
+  }
+
+  projectNumber(indexOnPage: number): string {
+    const absoluteIndex = (this.currentPage() - 1) * this.itemsPerPage() + indexOnPage + 1;
+    return absoluteIndex.toString().padStart(2, '0');
   }
 
   /**

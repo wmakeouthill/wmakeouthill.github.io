@@ -1,120 +1,115 @@
-/* Garantir que o componente sempre apareça */
-app-chat-floating-button {
-  display: block !important;
+:host {
+  display: block;
 }
 
 .chat-avatar-wrapper {
   position: relative;
-  display: inline-block;
+  width: 62px;
+  height: 62px;
+  border-radius: var(--r-full);
+  border: 2px solid var(--color-accent);
+  overflow: hidden;
   cursor: pointer;
-  outline: none;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  box-shadow:
+    var(--shadow-gold),
+    0 0 0 0 rgba(219, 194, 125, 0.5);
+  transition:
+    transform var(--t-fast),
+    opacity var(--t-fast),
+    box-shadow var(--t-fast);
+  animation: chatPulse 3s infinite;
+}
+
+.chat-avatar-wrapper:hover,
+.chat-avatar-wrapper:focus-visible {
+  transform: scale(1.07);
+}
+
+.chat-avatar-wrapper.has-unread {
+  border-color: #7bd88f;
+  box-shadow:
+    var(--shadow-gold),
+    0 0 0 0 rgba(123, 216, 143, 0.7);
+  animation: chatPulseUnread 2.4s infinite;
 }
 
 .chat-avatar {
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: center;
-  transition: all var(--transition-fast);
-  border-radius: 50%;
-  box-shadow: var(--shadow-md);
+  opacity: 0.88;
   display: block;
-  margin: 0;
-  padding: 0;
-  vertical-align: bottom;
-  margin-bottom: -0.25rem;
-  user-select: none;
-  -webkit-user-select: none;
-  position: relative;
-  z-index: var(--z-fixed);
-  flex-shrink: 0;
-  min-width: 5.5rem;
-  min-height: 5.5rem;
-  overflow: hidden;
-  opacity: 0.6; /* 60% de transparência quando fechado */
 }
 
-.chat-avatar:hover,
-.chat-avatar.chat-open,
-.chat-avatar-wrapper:focus-visible .chat-avatar {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 24px rgba(219, 194, 125, 0.45);
+.chat-avatar.chat-open {
   opacity: 1;
 }
 
-.chat-avatar:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: var(--shadow-md);
+.chat-avatar-wrapper:has(.chat-avatar.chat-open) {
+  animation: none;
+  box-shadow: var(--shadow-gold);
+  border-color: var(--color-accent);
 }
 
 .chat-unread-badge {
   position: absolute;
-  top: -0.2rem;
-  right: -0.2rem;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 0.35rem;
-  border-radius: var(--radius-full);
-  background: #ff4d4f;
+  top: -2px;
+  right: -2px;
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: var(--r-full);
+  background: #ff5d5d;
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  border: 2px solid var(--bg-secondary);
-  z-index: calc(var(--z-fixed) + 1);
-  line-height: 1;
+  border: 2px solid var(--bg-primary);
 }
 
-/* Tablets */
-@media (max-width: 1024px) and (min-width: 769px) {
-  .chat-avatar {
-    width: 5rem;
-    height: 5rem;
-    min-width: 5rem;
-    min-height: 5rem;
-    margin-bottom: -0.2rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .chat-avatar {
-    width: 4.5rem;
-    height: 4.5rem;
-    min-width: 4.5rem;
-    min-height: 4.5rem;
-    margin-bottom: -0.2rem;
+@keyframes chatPulse {
+  0% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 0 rgba(219, 194, 125, 0.5);
   }
 
-  .chat-avatar:hover,
-  .chat-avatar.chat-open,
-  .chat-avatar-wrapper:focus-visible .chat-avatar {
-    transform: translateY(-1px) scale(1.03);
+  70% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 14px rgba(219, 194, 125, 0);
   }
 
-  .chat-avatar:active {
-    transform: translateY(0) scale(0.97);
+  100% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 0 rgba(219, 194, 125, 0);
   }
 }
 
-@media (max-width: 480px) {
-  .chat-avatar {
-    width: 4rem;
-    height: 4rem;
-    min-width: 4rem;
-    min-height: 4rem;
-    margin-bottom: -0.15rem;
+@keyframes chatPulseUnread {
+  0% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 0 rgba(123, 216, 143, 0.7);
   }
 
-  .chat-unread-badge {
-    min-width: 1.25rem;
-    height: 1.25rem;
-    font-size: 0.7rem;
-    padding: 0 0.25rem;
+  70% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 18px rgba(123, 216, 143, 0);
+  }
+
+  100% {
+    box-shadow:
+      var(--shadow-gold),
+      0 0 0 0 rgba(123, 216, 143, 0);
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .chat-avatar-wrapper {
+    animation: none;
+  }
+}

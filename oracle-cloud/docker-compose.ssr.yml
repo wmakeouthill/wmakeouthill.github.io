@@ -1,0 +1,42 @@
+# Compose para o modo SSR/edge (front servido pelo Oracle).
+# Use junto da imagem buildada a partir de Dockerfile.oracle-ssr.
+# Rollback: deixe SSR_ENABLED=false (Spring serve o SPA estático atual) ou volte
+# para docker-compose.yml (imagem API-only) sem perder o backend.
+services:
+  backend:
+    image: portfolio-wesley-ssr:latest
+    container_name: portfolio-ssr
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # edge público (Spring). Node:4000 é interno, não exposto.
+    env_file:
+      - .env
+    environment:
+      # Liga o edge SSR. Para rollback imediato sem rebuild, troque para "false".
+      SSR_ENABLED: "true"
+      SSR_BYPASS: "false"
+      NODE_SSR_PORT: "4000"
+      SSR_RENDERER_URL: "http://127.0.0.1:4000"
+      SSR_API_BASE_URL: "http://127.0.0.1:8080"
+      # Ajuste para o domínio canônico real (canonical/hreflang/OG/sitemap).
+      PUBLIC_SITE_BASE_URL: "${PUBLIC_SITE_BASE_URL:-https://wmakeouthill.dev}"
+      SSR_WARMUP_ENABLED: "true"
+    healthcheck:
+      # Cobre os dois processos: edge Spring (/api/health) e renderer Node
+      # (asset estático servido direto pelo express.static, sem render completo).
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/api/health && wget --spider -q http://localhost:4000/favicon.ico"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          # JVM (~45%) + Node SSR + Chromium headless precisam de mais folga que
+          # o modo API-only (850M). Ajuste conforme a shape da VM Oracle.
+          memory: 1536M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

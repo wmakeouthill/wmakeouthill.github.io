@@ -29,6 +29,7 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
   private static final String CONTENT_PATH = "portfolio-content";
   private static final String PROJECTS_PATH = CONTENT_PATH + "/projects";
   private static final String TRABALHOS_PATH = CONTENT_PATH + "/trabalhos";
+  private static final String GALLERY_PATH = "portfolio-gallery";
 
   private final GithubHttpClient httpClient;
   private final GithubContentCache cache;
@@ -69,8 +70,17 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
 
   @Override
   public Optional<String> obterMarkdownConteudo(String path) {
+    String cacheKey = "markdown:" + path;
+    Optional<String> cached = cache.getText(cacheKey);
+    if (cached.isPresent()) {
+      return cached;
+    }
     return httpClient.baixarArquivoRaw(REPO_NAME, path)
-        .map(bytes -> new String(bytes, StandardCharsets.UTF_8));
+        .map(bytes -> {
+          String content = new String(bytes, StandardCharsets.UTF_8);
+          cache.putText(cacheKey, content);
+          return content;
+        });
   }
 
   @Override
@@ -87,6 +97,15 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
       });
     }
     return sb.toString();
+  }
+
+  @Override
+  public List<RepositoryFileDto> listarGaleriaProjeto(String projectName) {
+    String galleryProjectPath = GALLERY_PATH + "/" + projectName.toLowerCase();
+    return listarArquivosDaPasta(galleryProjectPath).stream()
+        .filter(RepositoryFileDto::isMedia)
+        .sorted(Comparator.comparing(RepositoryFileDto::fileName))
+        .toList();
   }
 
   private List<RepositoryFileDto> listarMarkdownsDaPasta(String path) {
@@ -123,6 +142,14 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
       return cache.getFileList(cacheKey).orElse(List.of());
     }
 
+    // Recurso inexistente (404) — ex.: projeto sem pasta de galeria.
+    // Cacheia resultado vazio (cache negativo) para não rebater na API a cada request.
+    if (response.isNotFound()) {
+      log.debug("Pasta inexistente {}, cacheando lista vazia", path);
+      cache.putFileList(cacheKey, List.of());
+      return List.of();
+    }
+
     // Se deu erro, tenta retornar cache (mesmo expirado)
     if (response.isError()) {
       log.warn("Erro ao buscar {}, tentando cache expirado", path);
@@ -130,8 +157,21 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
     }
 
     // Dados novos - atualiza cache
-    if (response.isOk() && response.data() != null && response.data().isArray()) {
-      List<RepositoryFileDto> result = mapearArquivos(response.data());
+    if (response.isOk() && response.data() != null) {
+      JsonNode data = response.data();
+      List<RepositoryFileDto> result;
+
+      if (data.isArray()) {
+        // Pasta com múltiplos arquivos → GitHub retorna array
+        result = mapearArquivos(data);
+      } else if (data.isObject() && data.has("name")) {
+        // Pasta com apenas 1 arquivo → GitHub retorna objeto único
+        result = List.of(criarDto(data));
+        log.debug("GitHub retornou objeto único para {}, tratado como lista de 1 item", path);
+      } else {
+        result = List.of();
+      }
+
       cache.putFileListWithETag(cacheKey, result, response.etag());
       log.debug("Cache atualizado para {}: {} arquivos", path, result.size());
       return result;

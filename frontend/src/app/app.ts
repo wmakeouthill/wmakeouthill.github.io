@@ -1,58 +1,142 @@
-import { Component, HostListener, OnInit, signal, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
 
 import { HeaderComponent } from './components/header/header.component';
-import { HeroComponent } from './components/hero/hero.component';
-import { AboutComponent } from './components/about/about.component';
-import { SkillsComponent } from './components/skills/skills.component';
-import { ExperienceComponent } from './components/experience/experience.component';
-import { EducationComponent } from './components/education/education.component';
-import { ProjectsComponent } from './components/projects/projects.component';
-import { CertificationsComponent } from './components/certifications/certifications.component';
-import { ContactComponent } from './components/contact/contact.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ChatWidgetComponent } from './components/chat-widget/chat-widget.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterOutlet,
-    CommonModule,
     HeaderComponent,
-    HeroComponent,
-    AboutComponent,
-    SkillsComponent,
-    ExperienceComponent,
-    EducationComponent,
-    ProjectsComponent,
-    CertificationsComponent,
-    ContactComponent,
     FooterComponent,
     ChatWidgetComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy, AfterViewInit {
   readonly showScrollToTop = signal(false);
 
+  private readonly ngZone = inject(NgZone);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private revealObserver: IntersectionObserver | null = null;
+  private mutationObserver: MutationObserver | null = null;
+  private revealTransitionEnd: ((event: TransitionEvent) => void) | null = null;
+  private readonly handleScroll = () => {
+    const shouldShow = window.scrollY > 300;
+    if (shouldShow !== this.showScrollToTop()) {
+      this.showScrollToTop.set(shouldShow);
+    }
+  };
+
   ngOnInit(): void {
-    console.log('🚀 App inicializado');
-    // Pré-carregamento de READMEs é feito no ProjectsComponent
-    // após carregar a lista de projetos do GitHub
+    // SEO é aplicado por cada página roteada (Home/ProjectDetail) no seu
+    // ngOnInit, garantindo title/meta corretos por rota no SSR e na navegação.
+
+    // APIs de browser (window/document/observers) não existem no SSR.
+    if (!this.isBrowser) {
+      return;
+    }
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.handleScroll, { passive: true });
+    });
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    this.showScrollToTop.set(window.scrollY > 300);
+  ngOnDestroy(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    window.removeEventListener('scroll', this.handleScroll);
+    this.revealObserver?.disconnect();
+    this.mutationObserver?.disconnect();
+    if (this.revealTransitionEnd) {
+      document.removeEventListener('transitionend', this.revealTransitionEnd as EventListener);
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    this.setupRevealAnimations();
   }
 
   scrollToTop(): void {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private setupRevealAnimations(): void {
+    // Sem IntersectionObserver (navegadores muito antigos): mostra tudo sem
+    // animação para não deixar o conteúdo invisível.
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.reveal').forEach((element) => element.classList.add('in'));
+      return;
+    }
+
+    // Toda a observação/manipulação de DOM roda fora da zona do Angular:
+    // alternar classes/estilos não deve agendar change detection.
+    this.ngZone.runOutsideAngular(() => {
+      const observed = new WeakSet<Element>();
+
+      const prepareElement = (element: HTMLElement): void => {
+        const siblings = element.parentElement
+          ? Array.from(element.parentElement.children).filter((child) => child.classList.contains('reveal'))
+          : [];
+        const index = siblings.indexOf(element);
+        if (index > 0) {
+          element.style.transitionDelay = `${Math.min(index, 6) * 0.07}s`;
+        }
+      };
+
+      // Reveal bidirecional: aparece ao entrar na viewport e desaparece ao sair.
+      // `will-change` é ativado só durante a animação e removido no transitionend
+      // (listener único e delegado) para não manter camadas de GPU em todos os
+      // elementos — esse é o ponto-chave de performance.
+      this.revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const element = entry.target as HTMLElement;
+            element.style.willChange = 'opacity, transform';
+            element.classList.toggle('in', entry.isIntersecting);
+          }
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -12% 0px' }
+      );
+
+      this.revealTransitionEnd = (event: TransitionEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (target && target.classList?.contains('reveal')) {
+          target.style.willChange = 'auto';
+        }
+      };
+      document.addEventListener('transitionend', this.revealTransitionEnd as EventListener, { passive: true });
+
+      const observeReveal = (element: Element): void => {
+        if (observed.has(element)) return;
+        observed.add(element);
+        prepareElement(element as HTMLElement);
+        this.revealObserver?.observe(element);
+      };
+
+      document.querySelectorAll('.reveal').forEach(observeReveal);
+
+      this.mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) return;
+            if (node.classList.contains('reveal')) {
+              observeReveal(node);
+            }
+            node.querySelectorAll('.reveal').forEach(observeReveal);
+          });
+        });
+      });
+      this.mutationObserver.observe(document.body, { childList: true, subtree: true });
     });
   }
 }

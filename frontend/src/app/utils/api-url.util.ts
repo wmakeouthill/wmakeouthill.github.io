@@ -31,12 +31,56 @@ function readCustomBaseUrl(): string | null {
     return baseFromSession;
   }
 
+  if (isServerRuntime()) {
+    const serverBase = readFromProcessEnv();
+    if (serverBase) {
+      return serverBase;
+    }
+  }
+
   const envBase = readFromImportMetaEnv();
   if (envBase) {
     return envBase;
   }
 
+  // No SSR (Node) não há window/sessionStorage: a base vem de process.env,
+  // apontando para o backend Spring. Sem isso, URLs relativas resolveriam
+  // contra a origem do renderer (Node) e dariam 404 + retries lentos.
   return null;
+}
+
+function isServerRuntime(): boolean {
+  return typeof window === 'undefined';
+}
+
+function readFromProcessEnv(): string | null {
+  if (typeof process === 'undefined' || !process.env) {
+    return null;
+  }
+  // Prioridade no SSR (Node):
+  // 1. SSR_API_BASE_URL — alvo explicito (ex.: Oracle self-host -> 127.0.0.1:8080).
+  // 2. VERCEL_URL — na Vercel o proprio deployment serve as funcoes /api (proxy que
+  //    injeta X-API-Key e encaminha pro Oracle). Chamar a propria origem evita bater
+  //    no backend sem a chave (401). VERCEL_URL e injetado automaticamente e vem sem
+  //    protocolo, por isso o https:// na frente.
+  // 3. API_BASE_URL — fallback legado (alvo bruto do backend, sem a chave).
+  const explicit = process.env['SSR_API_BASE_URL'];
+  if (isNonEmptyEnv(explicit)) {
+    return trimTrailingSlash(explicit.trim());
+  }
+  const vercelUrl = process.env['VERCEL_URL'];
+  if (isNonEmptyEnv(vercelUrl)) {
+    return trimTrailingSlash(`https://${vercelUrl.trim()}`);
+  }
+  const apiBase = process.env['API_BASE_URL'];
+  if (isNonEmptyEnv(apiBase)) {
+    return trimTrailingSlash(apiBase.trim());
+  }
+  return null;
+}
+
+function isNonEmptyEnv(value: string | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function readFromSessionStorage(): string | null {
@@ -61,7 +105,7 @@ function readFromImportMetaEnv(): string | null {
     return null;
   }
 
-  const envBase = env['NG_APP_API_BASE_URL'] ?? env['API_BASE_URL'];
+  const envBase = env['NG_APP_API_BASE_URL'];
   if (!envBase) {
     return null;
   }
@@ -105,5 +149,33 @@ export function getApiUrl(): string {
   }
 
   return '';
+}
+
+/**
+ * Retorna a API Key configurada para autenticação.
+ */
+export function getApiKey(): string | null {
+  const keyFromSession = readApiKeyFromSessionStorage();
+  if (keyFromSession) {
+    return keyFromSession;
+  }
+
+  return null;
+}
+
+function readApiKeyFromSessionStorage(): string | null {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) {
+      return null;
+    }
+    const stored = window.sessionStorage.getItem('api_key');
+    if (!stored) {
+      return null;
+    }
+    const trimmed = stored.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  } catch {
+    return null;
+  }
 }
 

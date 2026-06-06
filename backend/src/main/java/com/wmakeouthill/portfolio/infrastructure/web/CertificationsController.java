@@ -83,8 +83,16 @@ public class CertificationsController {
       return ResponseEntity.notFound().build();
     }
     String fileName = curriculoOpt.get().fileName();
+    Optional<byte[]> cached = thumbnailCacheService.getPdf(fileName);
+    if (cached.isPresent()) {
+      log.debug("PDF do currÃ­culo servido do cache: {}", fileName);
+      return buildPdfResponse(cached.get(), fileName);
+    }
     return obterCurriculoUseCase.obterBytes(language)
-        .map(bytes -> buildPdfResponse(bytes, fileName))
+        .map(bytes -> {
+          thumbnailCacheService.putPdf(fileName, bytes);
+          return buildPdfResponse(bytes, fileName);
+        })
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
@@ -128,8 +136,17 @@ public class CertificationsController {
     String decodedFileName = decodeFileName(fileName);
     log.info("Buscando PDF: '{}' (raw: '{}')", decodedFileName, fileName);
 
+    Optional<byte[]> cached = thumbnailCacheService.getPdf(decodedFileName);
+    if (cached.isPresent()) {
+      log.debug("PDF servido do cache: {}", decodedFileName);
+      return buildPdfResponse(cached.get(), decodedFileName);
+    }
+
     return obterCertificadoPdfUseCase.executar(decodedFileName)
-        .map(bytes -> buildPdfResponse(bytes, decodedFileName))
+        .map(bytes -> {
+          thumbnailCacheService.putPdf(decodedFileName, bytes);
+          return buildPdfResponse(bytes, decodedFileName);
+        })
         .orElseGet(() -> {
           log.warn("PDF não encontrado: {}", decodedFileName);
           return ResponseEntity.notFound().build();

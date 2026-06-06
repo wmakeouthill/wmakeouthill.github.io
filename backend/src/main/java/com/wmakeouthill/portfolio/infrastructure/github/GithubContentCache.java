@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class GithubContentCache {
 
-  private static final long DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+  private static final long DEFAULT_TTL_MS = 10 * 60 * 1000; // 10 minutos
 
   private final ConcurrentHashMap<String, CacheEntry<?>> cache = new ConcurrentHashMap<>();
 
@@ -30,6 +30,18 @@ public class GithubContentCache {
     if (entry != null && !entry.isExpired()) {
       log.debug("Cache hit: {}", key);
       return Optional.of((List<RepositoryFileDto>) entry.getValue());
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * ObtÃ©m texto bruto do cache (markdowns e pequenos conteÃºdos textuais).
+   */
+  public Optional<String> getText(String key) {
+    CacheEntry<?> entry = cache.get(key);
+    if (entry != null && !entry.isExpired() && entry.getValue() instanceof String value) {
+      log.debug("Text cache hit: {}", key);
+      return Optional.of(value);
     }
     return Optional.empty();
   }
@@ -60,6 +72,16 @@ public class GithubContentCache {
     cache.put(key, new CacheEntry<>(files, DEFAULT_TTL_MS, etag));
     log.debug("Cache put com ETag: {} ({} itens, etag={})", key, files.size(),
         etag != null ? etag.substring(0, Math.min(10, etag.length())) + "..." : "null");
+  }
+
+  /**
+   * Armazena texto bruto no cache.
+   */
+  public void putText(String key, String value) {
+    if (value != null && !value.isBlank()) {
+      cache.put(key, new CacheEntry<>(value, DEFAULT_TTL_MS, null));
+      log.debug("Text cache put: {} ({} chars)", key, value.length());
+    }
   }
 
   /**
@@ -102,7 +124,7 @@ public class GithubContentCache {
    * Retorna o TTL padrão em minutos.
    */
   public long getTtlMinutes() {
-    return DEFAULT_TTL_MS / 60 / 1000;
+    return DEFAULT_TTL_MS / 1000 / 60;
   }
 
   /**

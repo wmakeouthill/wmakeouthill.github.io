@@ -1,40 +1,72 @@
-<form class="chat-input-area" (ngSubmit)="handleSubmit()" autocomplete="off">
-  <textarea #chatInput class="chat-input" [disabled]="isLoading()" [ngModel]="inputText()"
-    (ngModelChange)="handleInputChange($event)" (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
-    [placeholder]="'chat.placeholder' | translate" rows="1"></textarea>
-
-  <!-- Model Selector Dropdown - GitHub Copilot Style -->
-  <div class="model-selector">
-    <button type="button" class="model-selector-button" (click)="toggleDropdown()" [disabled]="isLoading()">
-      <span class="model-name">{{ getModelName() }}</span>
-      <span class="dropdown-arrow">▾</span>
-    </button>
-
-    @if (isDropdownOpen()) {
-    <div class="model-dropdown">
-      @for (model of models; track model.id) {
-      <button type="button" class="model-option" [class.selected]="selectedModel() === model.id"
-        (click)="selectModel(model.id)">
-        <span class="model-option-name">
-          {{ model.name }}
-          @if (model.id === 'gemini') {
-          <span class="model-recommended">(Recomendado)</span>
-          }
-        </span>
-        @if (selectedModel() === model.id) {
-        <span class="model-check">✓</span>
-        }
-      </button>
+<div class="chat-input-wrapper">
+  @if (showSlashMenu()) {
+    <div class="chat-slash-menu" role="listbox" [attr.aria-label]="'chat.commandsLabel' | translate">
+      @for (cmd of filteredCommands(); track cmd.command; let i = $index) {
+        <button type="button" class="chat-slash-item" role="option"
+          [class.active]="i === highlightedIndex()" [attr.aria-selected]="i === highlightedIndex()"
+          (mouseenter)="highlightedIndex.set(i)" (mousedown)="handleCommandMouseDown(cmd, $event)">
+          <span class="chat-slash-cmd">{{ cmd.hint || cmd.command }}</span>
+          <span class="chat-slash-desc">{{ cmd.descriptionKey | translate }}</span>
+        </button>
       }
     </div>
-    }
-  </div>
+  }
 
-  <button type="button" class="chat-new-conversation-button" (click)="iniciarNovaConversa()" [disabled]="isLoading()"
-    [aria-label]="'chat.newChat' | translate" [attr.data-tooltip]="'chat.newChat' | translate">
-    <img src="/new_conversation.png" [alt]="'chat.newChat' | translate" class="new-conversation-icon" />
-  </button>
-  <button type="submit" class="chat-send-button" [disabled]="!canSend()">
-    {{ 'chat.send' | translate }}
-  </button>
-</form>
+  @if (attachments().length > 0) {
+    <div class="chat-attachments">
+      @for (file of attachments(); track $index) {
+        <div class="chat-attachment-chip">
+          <span class="chat-attachment-name" [title]="file.name">{{ file.name }}</span>
+          <button type="button" class="chat-attachment-remove" (click)="removeAttachment($index)"
+            aria-label="Remover anexo">x</button>
+        </div>
+      }
+    </div>
+  }
+
+  <form class="chat-input" [class.collapsed]="!inputText()" (ngSubmit)="handleSubmit()" autocomplete="off">
+    <input #fileInput type="file" multiple [accept]="acceptTypes" (change)="handleFilesSelected($event)" hidden />
+
+    <button type="button" class="ci-slash" [class.active]="showSlashMenu()" (click)="abrirComandos()"
+      [disabled]="isLoading()" [attr.aria-label]="'chat.commandsLabel' | translate"
+      [title]="'chat.commandsLabel' | translate">/</button>
+
+    <button type="button" class="ci-btn" (click)="openFilePicker()" [disabled]="isLoading()"
+      aria-label="Anexar arquivo" title="Anexar arquivo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+      </svg>
+    </button>
+
+    <textarea #chatInput class="ci-text" rows="1" [ngModel]="inputText()" (ngModelChange)="handleInputChange($event)"
+      (keydown)="handleKeydown($event)" name="chatInput" autocomplete="off"
+      [placeholder]="'chat.placeholder' | translate"></textarea>
+
+    <span class="ci-spacer"></span>
+
+    <button type="button" class="ci-btn" [class.recording]="isRecording()" (click)="toggleRecording()"
+      [disabled]="isLoading()" [attr.aria-label]="isRecording() ? 'Parar gravacao' : 'Gravar audio'"
+      [title]="isRecording() ? 'Parar gravacao' : 'Gravar audio'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+        <rect x="9" y="2" width="6" height="12" rx="3" />
+        <path d="M5 10a7 7 0 0 0 14 0M12 17v4" />
+      </svg>
+    </button>
+
+    @if (isLoading()) {
+      <button type="button" class="ci-send chat-stop-button" (click)="handleCancel()"
+        [attr.aria-label]="'chat.stop' | translate" [title]="'chat.stop' | translate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+        </svg>
+      </button>
+    } @else {
+      <button type="submit" class="ci-send" [disabled]="!canSend()" [aria-label]="'chat.send' | translate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20V5M6 11l6-6 6 6" />
+        </svg>
+      </button>
+    }
+  </form>
+</div>

@@ -2,14 +2,39 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "version": 2,
     "buildCommand": "npm run build",
-    "outputDirectory": "dist/portfolio/browser",
+    "devCommand": "ng serve --host 127.0.0.1 --port $PORT",
     "framework": "angular",
+    "env": {
+        "NG_ALLOWED_HOSTS": "localhost,127.0.0.1,wmakeouthill.dev,www.wmakeouthill.dev,wmakeouthill.github.io,*.vercel.app"
+    },
     "functions": {
         "api/**/*.js": {
             "memory": 256,
-            "maxDuration": 30
+            "maxDuration": 60
         }
     },
+    "routes": [
+        {
+            "src": "^/sitemap\\.xml$",
+            "dest": "/api/ssr?__backendPath=/sitemap.xml"
+        },
+        {
+            "src": "^/robots\\.txt$",
+            "dest": "/api/ssr?__backendPath=/robots.txt"
+        },
+        {
+            "src": "^/$",
+            "dest": "/api/ssr?__ssrPath=/"
+        },
+        {
+            "src": "^/(en|projects|en/projects)/?$",
+            "dest": "/api/ssr?__ssrPath=/$1"
+        },
+        {
+            "src": "^/(projects/[^/]+|en/projects/[^/]+)/?$",
+            "dest": "/api/ssr?__ssrPath=/$1"
+        }
+    ],
     "rewrites": [
         {
             "source": "/api/health",
@@ -20,7 +45,7 @@
             "destination": "/api/projects"
         },
         {
-            "source": "/api/projects/:path*",
+            "source": "/api/projects/:rest*",
             "destination": "/api/projects"
         },
         {
@@ -28,7 +53,7 @@
             "destination": "/api/certifications"
         },
         {
-            "source": "/api/certifications/:path*",
+            "source": "/api/certifications/:rest*",
             "destination": "/api/certifications"
         },
         {
@@ -36,7 +61,7 @@
             "destination": "/api/chat"
         },
         {
-            "source": "/api/chat/:path*",
+            "source": "/api/chat/:rest*",
             "destination": "/api/chat"
         },
         {
@@ -44,7 +69,7 @@
             "destination": "/api/content"
         },
         {
-            "source": "/api/content/:path*",
+            "source": "/api/content/:rest*",
             "destination": "/api/content"
         }
     ],
@@ -72,6 +97,15 @@
                 {
                     "key": "Cache-Control",
                     "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/assets/i18n/(.*)\\.json",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache, must-revalidate"
                 }
             ]
         },

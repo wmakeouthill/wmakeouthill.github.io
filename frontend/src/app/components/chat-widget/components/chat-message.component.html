@@ -5,8 +5,45 @@
 >
   @if (message().from === 'assistant' && message().html) {
     <div [innerHTML]="message().html"></div>
-  } @else {
+  } @else if (message().text) {
     <p>{{ message().text }}</p>
+  }
+
+  @if (message().attachments?.length) {
+    <div class="chat-msg-attachments">
+      @for (att of message().attachments; track $index) {
+        @if (att.kind === 'image' && att.previewUrl) {
+          <img class="chat-msg-att-image" [src]="att.previewUrl" [alt]="att.name" />
+        } @else {
+          <div class="chat-msg-att-file">
+            <span class="chat-msg-att-icon">
+              @switch (att.kind) {
+                @case ('pdf') { 📄 }
+                @case ('audio') { 🎵 }
+                @case ('video') { 🎬 }
+                @default { 📎 }
+              }
+            </span>
+            <span class="chat-msg-att-name" [title]="att.name">{{ att.name }}</span>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (message().audioUrl) {
+    <audio class="chat-msg-audio" controls [src]="message().audioUrl"></audio>
+  }
+
+  @if (message().generatedPdf) {
+    <div class="chat-msg-generated-pdf">
+      <span class="chat-msg-att-icon">PDF</span>
+      <span class="chat-msg-att-name">{{ message().generatedPdf?.filename }}</span>
+      <a class="chat-msg-pdf-link" [href]="message().generatedPdf?.url"
+        [download]="message().generatedPdf?.filename" target="_blank" rel="noopener">
+        Baixar
+      </a>
+    </div>
   }
 </div>
 

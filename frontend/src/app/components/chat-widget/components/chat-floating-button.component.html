@@ -1,5 +1,6 @@
 <div
   class="chat-avatar-wrapper"
+  [class.has-unread]="unreadCount() > 0 && !isOpen()"
   role="button"
   tabindex="0"
   [aria-label]="'chat.openAria' | translate"
@@ -18,4 +19,3 @@
     <span class="chat-unread-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
   }
 </div>
-

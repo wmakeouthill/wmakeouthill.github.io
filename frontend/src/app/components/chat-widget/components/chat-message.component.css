@@ -501,3 +501,111 @@
 .chat-message-assistant pre code .token.cdata {
   opacity: 0.7;
 }
+/* ===== Anexos na mensagem ===== */
+.chat-msg-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chat-msg-att-image {
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.chat-msg-att-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 200px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+}
+
+.chat-message-user .chat-msg-att-file {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chat-msg-att-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-msg-audio {
+  display: block;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+  height: 36px;
+}
+
+.chat-msg-generated-pdf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  max-width: 280px;
+  padding: 8px 10px;
+  border: 1px solid rgba(219, 194, 125, 0.24);
+  border-radius: 8px;
+  background: rgba(219, 194, 125, 0.08);
+  font-size: 12px;
+}
+
+.chat-msg-pdf-link {
+  margin-left: auto;
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.chat-msg-pdf-link:hover {
+  text-decoration: underline;
+}
+.chat-message {
+  max-width: 92% !important;
+  padding: 11px 15px !important;
+  border-radius: 14px !important;
+  font-size: 0.92rem !important;
+  line-height: 1.55 !important;
+  box-shadow: none !important;
+}
+
+/* Mensagens do assistente ocupam toda a largura útil (markdown/listas) */
+.chat-message-assistant {
+  max-width: 96% !important;
+}
+
+.chat-message-user {
+  align-self: flex-end !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)) !important;
+  border: none !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.chat-message-assistant {
+  align-self: flex-start !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-card-2) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+.chat-message-assistant strong,
+.chat-message-assistant .chat-strong {
+  color: var(--color-accent) !important;
+}
+
+.chat-message p,
+.chat-message-assistant p,
+.chat-message-user p {
+  margin: 0 !important;
+  color: inherit !important;
+}

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Wesley de Carvalho Augusto Correia — Engenheiro de Software Pleno</title>
+<style>
+  /* ============ TOKENS (paleta do portfólio wmakeouthill.dev) ============ */
+  :root{
+    --primary:#002E59;
+    --primary-dark:#001a33;
+    --primary-light:#004080;
+    --accent:#DBC27D;
+    --accent-light:#f0e5c4;
+    --accent-dark:#c5a85a;
+
+    --bg:#ffffff;
+    --bg-soft:#f7f5ee;
+    --ink:#0f172a;
+    --ink-soft:#334155;
+    --line:#e6e1d3;
+
+    --side-1:#0a0a0a;
+    --side-2:#1a1a1a;
+    --side-3:#202020;
+    --side-ink:#ffffff;
+    --side-muted:#b0b0b0;
+    --side-line:rgba(219,194,125,.22);
+
+    --tag-bg:rgba(219,194,125,.08);
+    --tag-bg-strong:rgba(219,194,125,.14);
+    --tag-ink:#e8d59b;
+    --tag-bd:rgba(219,194,125,.35);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#e9e6dd;color:var(--ink);
+    font-family:"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:10.5pt;line-height:1.45}
+
+  .page{
+    width:210mm;min-height:297mm;
+    margin:24px auto;background:var(--bg);
+    display:grid;grid-template-columns:60mm 1fr;
+    box-shadow:0 16px 48px rgba(15,23,42,.22);
+    overflow:hidden;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .side{
+    background:linear-gradient(180deg,var(--side-1) 0%, var(--side-2) 60%, #141414 100%);
+    color:var(--side-ink);
+    padding:11mm 5mm 10mm 5mm;
+    position:relative;
+  }
+  .side::after{
+    content:"";position:absolute;top:0;right:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,transparent,var(--accent),transparent);
+    opacity:.55;
+  }
+
+  /* foto: square, foco no rosto */
+  .photo-wrap{
+    width:48mm;height:48mm;margin:0 auto 4mm auto;
+    border-radius:8px;overflow:hidden;
+    border:2px solid var(--accent);
+    box-shadow:
+      0 0 0 3px rgba(219,194,125,.12),
+      0 10px 22px rgba(0,0,0,.45);
+    background:#0c0c0c;
+    position:relative;
+  }
+  .photo-wrap::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.30) 100%);
+    pointer-events:none;
+  }
+  .photo-wrap img{
+    width:100%;height:100%;display:block;
+    object-fit:cover;object-position:center 12%;
+  }
+
+  .side h1{
+    font-size:12.5pt;margin:0 0 1mm 0;letter-spacing:.15px;
+    color:#fff;font-weight:700;text-align:center;line-height:1.18;
+  }
+  .role{
+    text-align:center;font-size:8.6pt;color:var(--accent);
+    font-family:"JetBrains Mono","Fira Code",ui-monospace,monospace;
+    margin-bottom:4.5mm;letter-spacing:.3px;
+  }
+  .role::before{content:"> ";color:var(--accent-light)}
+
+  .side h2{
+    font-size:8.2pt;margin:3.8mm 0 1.6mm 0;color:var(--accent);
+    text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
+    border-bottom:1px solid var(--side-line);padding-bottom:.8mm;
+    display:flex;align-items:center;gap:5px;
+  }
+  .side h2::before{
+    content:"●";color:var(--accent);font-size:5.6pt;line-height:1;
+  }
+
+  .contact{font-size:8.2pt;color:var(--side-ink);margin:0;padding:0;list-style:none}
+  .contact li{
+    display:flex;gap:6px;margin-bottom:1.6mm;align-items:center;
+    word-break:break-word;line-height:1.3;
+  }
+  .contact li > a{
+    display:flex;align-items:center;gap:6px;
+    color:inherit;text-decoration:none;
+    transition:color .15s ease;
+  }
+  .contact li > a:hover{color:var(--accent-light)}
+  .contact .ico{
+    color:var(--accent);width:11px;height:11px;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .contact .ico svg{width:11px;height:11px;display:block}
+
+  /* stack groups */
+  .stack-group{margin-bottom:2mm}
+  .stack-group .label{
+    font-size:7.4pt;color:var(--accent);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    margin-bottom:.8mm;letter-spacing:.3px;opacity:.95;
+  }
+  .stack-group .label::before{content:"// "}
+  .tags{display:flex;flex-wrap:wrap;gap:1mm}
+  .tag{
+    font-size:7pt;background:var(--tag-bg);color:var(--tag-ink);
+    border:1px solid var(--tag-bd);padding:.4mm 1.2mm;border-radius:3px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;line-height:1.3;
+    white-space:nowrap;
+  }
+
+  .edu .item{margin-bottom:1.8mm;font-size:8.2pt}
+  .edu .deg{font-weight:600;color:#fff;line-height:1.22}
+  .edu .meta{color:var(--side-muted);font-size:7.6pt;
+    font-family:"JetBrains Mono",ui-monospace,monospace}
+
+  .lang li{font-size:8.2pt;margin-bottom:.8mm}
+  .lang strong{color:#fff}
+
+  /* ============ MAIN ============ */
+  .main{padding:10mm 8mm 9mm 9mm;background:var(--bg)}
+
+  .main h2{
+    font-size:10.6pt;margin:0 0 2mm 0;color:var(--primary);
+    text-transform:uppercase;letter-spacing:1.1px;font-weight:800;
+    display:flex;align-items:center;gap:7px;
+  }
+  .main h2::before{
+    content:"//";color:var(--accent-dark);
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.6pt;
+  }
+  .main h2::after{
+    content:"";flex:1;height:1px;
+    background:linear-gradient(90deg,var(--accent),transparent);
+    margin-left:6px;
+  }
+
+  .summary{
+    font-size:9.6pt;color:var(--ink);margin:0 0 4mm 0;text-align:justify;
+    border-left:3px solid var(--accent);padding:.8mm 0 .8mm 3.5mm;
+    background:linear-gradient(90deg,var(--bg-soft),transparent 70%);
+    line-height:1.4;
+  }
+
+  .xp{margin-bottom:3mm;page-break-inside:avoid}
+  .xp .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .xp .title{font-size:10pt;font-weight:700;color:var(--primary);margin:0}
+  .xp .title .sub{
+    color:var(--accent-dark);font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-weight:600;font-size:9pt;
+  }
+  .xp .company{font-size:9.2pt;color:var(--ink-soft);margin:.3mm 0 .8mm 0}
+  .xp .company strong{color:var(--primary-dark)}
+  .xp .period{
+    font-size:8pt;color:var(--accent-light);background:var(--primary);
+    padding:.5mm 2mm;border-radius:3px;white-space:nowrap;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    border:1px solid var(--primary-light);
+  }
+  .xp ul{margin:1mm 0 0 0;padding-left:0;list-style:none}
+  .xp li{
+    font-size:9.2pt;margin-bottom:1mm;text-align:justify;
+    position:relative;padding-left:4mm;line-height:1.36;
+  }
+  .xp li::before{
+    content:"▸";position:absolute;left:0;top:0;color:var(--accent-dark);font-weight:700;
+  }
+  .xp b{color:var(--primary-dark)}
+  code{
+    background:rgba(219,194,125,.18);color:#7a5f1c;
+    padding:.2mm 1.1mm;border-radius:3px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:8.6pt;
+    border:1px solid rgba(219,194,125,.45);
+  }
+
+  .proj{margin-bottom:1.8mm;font-size:9.1pt;text-align:justify;page-break-inside:avoid;
+    padding-left:4mm;position:relative;line-height:1.38}
+  .proj::before{
+    content:"▸";position:absolute;left:0;top:0;color:var(--accent-dark);font-weight:700;
+  }
+  .proj .name{font-weight:700;color:var(--primary)}
+
+  /* ============ PRINT ============ */
+  @page{size:A4;margin:0}
+  @media print{
+    html,body{background:#fff;margin:0;padding:0}
+    *{
+      -webkit-print-color-adjust:exact !important;
+      print-color-adjust:exact !important;
+      color-adjust:exact !important;
+    }
+    .page{
+      margin:0;box-shadow:none;width:210mm;min-height:297mm;
+      overflow:visible;
+    }
+    .xp,.proj,.stack-group,.edu .item{break-inside:avoid;page-break-inside:avoid}
+    .main h2,.side h2{break-after:avoid;page-break-after:avoid}
+    .xp ul{orphans:2;widows:2}
+    a{color:inherit;text-decoration:none}
+    /* sidebar precisa repintar fundo na pág 2 caso quebre */
+    .side{background:#0f0f0f !important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- =========== SIDEBAR =========== -->
+  <aside class="side">
+    <div class="photo-wrap">
+      <img src="foto-wesley.png" alt="Wesley de Carvalho Augusto Correia">
+    </div>
+
+    <h1>Wesley de Carvalho<br>Augusto Correia</h1>
+    <div class="role">engenheiro_software.pleno</div>
+
+    <h2>Contato</h2>
+    <ul class="contact">
+      <li>
+        <a href="mailto:wcacorreia1995@gmail.com">
+          <span class="ico" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          </span>
+          wcacorreia1995@gmail.com
+        </a>
+      </li>
+      <li>
+        <a href="https://wa.me/5521983866676" target="_blank" rel="noopener" aria-label="Abrir conversa no WhatsApp">
+          <span class="ico" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          </span>
+          +55 21 98386-6676
+        </a>
+      </li>
+      <li>
+        <span class="ico" aria-label="Localização">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 12-8 12s-8-5-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </span>
+        Duque de Caxias / RJ
+      </li>
+      <li>
+        <a href="https://linkedin.com/in/wcacorreia" target="_blank" rel="noopener">
+          <span class="ico" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          </span>
+          linkedin.com/in/wcacorreia
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/wmakeouthill" target="_blank" rel="noopener">
+          <span class="ico" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.94 10.94 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.83 1.18 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.13 0 1.54-.01 2.78-.01 3.16 0 .31.21.67.79.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
+          </span>
+          github.com/wmakeouthill
+        </a>
+      </li>
+      <li>
+        <a href="https://wmakeouthill.dev" target="_blank" rel="noopener">
+          <span class="ico" aria-label="Portfólio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </span>
+          wmakeouthill.dev
+        </a>
+      </li>
+    </ul>
+
+    <h2>Stack Principal</h2>
+
+    <div class="stack-group">
+      <div class="label">backend</div>
+      <div class="tags">
+        <span class="tag">Java 17/21</span>
+        <span class="tag">Spring Boot 3.x</span>
+        <span class="tag">Spring Web</span>
+        <span class="tag">Data JPA</span>
+        <span class="tag">Validation</span>
+        <span class="tag">Mail</span>
+        <span class="tag">Python 3.11+</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">LangGraph</span>
+        <span class="tag">Node.js</span>
+        <span class="tag">C# / .NET 9</span>
+        <span class="tag">ASP.NET WebApi</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">frontend</div>
+      <div class="tags">
+        <span class="tag">Angular 17–20</span>
+        <span class="tag">Standalone</span>
+        <span class="tag">Signals</span>
+        <span class="tag">Reactive Forms</span>
+        <span class="tag">RxJS</span>
+        <span class="tag">React 19</span>
+        <span class="tag">Vite</span>
+        <span class="tag">TypeScript 5.x</span>
+        <span class="tag">HTML5</span>
+        <span class="tag">SCSS</span>
+        <span class="tag">Angular Material</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">mobile_desktop</div>
+      <div class="tags">
+        <span class="tag">Electron 27/28</span>
+        <span class="tag">Ionic</span>
+        <span class="tag">React Native</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">ia_dados</div>
+      <div class="tags">
+        <span class="tag">LLMs</span>
+        <span class="tag">Gemini</span>
+        <span class="tag">OpenAI</span>
+        <span class="tag">RAG</span>
+        <span class="tag">Embeddings</span>
+        <span class="tag">FAISS</span>
+        <span class="tag">pgvector</span>
+        <span class="tag">Prophet</span>
+        <span class="tag">Vision</span>
+        <span class="tag">YOLO</span>
+        <span class="tag">LangGraph</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">bancos</div>
+      <div class="tags">
+        <span class="tag">Oracle</span>
+        <span class="tag">PostgreSQL</span>
+        <span class="tag">MySQL</span>
+        <span class="tag">SQLite</span>
+        <span class="tag">Redis</span>
+        <span class="tag">DynamoDB</span>
+        <span class="tag">Firebase</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">devops_cloud</div>
+      <div class="tags">
+        <span class="tag">Docker</span>
+        <span class="tag">Compose</span>
+        <span class="tag">Kubernetes</span>
+        <span class="tag">GitHub Actions</span>
+        <span class="tag">GitLab CI/CD</span>
+        <span class="tag">AWS EC2</span>
+        <span class="tag">GCP Cloud Run</span>
+        <span class="tag">Cloud Build</span>
+        <span class="tag">Vercel</span>
+        <span class="tag">NGINX</span>
+        <span class="tag">Liquibase</span>
+        <span class="tag">Alembic</span>
+        <span class="tag">Git</span>
+        <span class="tag">GitHub</span>
+        <span class="tag">GitLab</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">observabilidade</div>
+      <div class="tags">
+        <span class="tag">Prometheus</span>
+        <span class="tag">Grafana</span>
+        <span class="tag">Micrometer</span>
+        <span class="tag">Spring Actuator</span>
+        <span class="tag">AlertManager</span>
+        <span class="tag">Blackbox Exporter</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">seguranca_devsecops</div>
+      <div class="tags">
+        <span class="tag">OWASP Top 10</span>
+        <span class="tag">Spring Security</span>
+        <span class="tag">JWT</span>
+        <span class="tag">OAuth 2.0</span>
+        <span class="tag">RBAC</span>
+        <span class="tag">CORS</span>
+        <span class="tag">API Key (X-Header)</span>
+        <span class="tag">AWS IAM</span>
+        <span class="tag">GCP IAM</span>
+        <span class="tag">VPC</span>
+        <span class="tag">Security Groups</span>
+        <span class="tag">Firewall</span>
+        <span class="tag">NAT</span>
+        <span class="tag">Secrets Manager</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">arquitetura</div>
+      <div class="tags">
+        <span class="tag">Clean Architecture</span>
+        <span class="tag">Clean Code</span>
+        <span class="tag">Design Patterns</span>
+        <span class="tag">DDD</span>
+        <span class="tag">Hexagonal</span>
+        <span class="tag">SOLID</span>
+        <span class="tag">DRY</span>
+        <span class="tag">KISS</span>
+        <span class="tag">ACID</span>
+        <span class="tag">REST</span>
+        <span class="tag">gRPC</span>
+        <span class="tag">WebSockets</span>
+        <span class="tag">Event-Driven</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">automacao_bi</div>
+      <div class="tags">
+        <span class="tag">Selenium</span>
+        <span class="tag">RPA</span>
+        <span class="tag">VBA</span>
+        <span class="tag">Power BI</span>
+        <span class="tag">DAX</span>
+      </div>
+    </div>
+
+    <div class="stack-group">
+      <div class="label">dev_tooling &amp; ai_coding</div>
+      <div class="tags">
+        <span class="tag">IntelliJ IDEA</span>
+        <span class="tag">VS Code</span>
+        <span class="tag">Cursor</span>
+        <span class="tag">Antigravity</span>
+        <span class="tag">Claude Code (CLI)</span>
+        <span class="tag">Codex (CLI)</span>
+        <span class="tag">GitHub Copilot</span>
+      </div>
+    </div>
+
+    <h2>Formação</h2>
+    <div class="edu">
+      <div class="item">
+        <div class="deg">Ciências da Computação</div>
+        <div class="meta">Faculdade GRAN · 2024–2027</div>
+      </div>
+      <div class="item">
+        <div class="deg">Pós — Full Stack Java Developer</div>
+        <div class="meta">FACINT · 2025–2026</div>
+      </div>
+      <div class="item">
+        <div class="deg">Pós — Gestão de Projetos</div>
+        <div class="meta">Unigama · 2025</div>
+      </div>
+      <div class="item">
+        <div class="deg">Bacharel em Direito</div>
+        <div class="meta">Unigama · 2018–2022</div>
+      </div>
+    </div>
+
+    <h2>Idiomas</h2>
+    <ul class="lang contact">
+      <li><strong>Português</strong>&nbsp;·&nbsp;Nativo</li>
+      <li><strong>Inglês</strong>&nbsp;·&nbsp;Avançado</li>
+    </ul>
+  </aside>
+
+  <!-- =========== MAIN =========== -->
+  <main class="main">
+
+    <h2>Resumo</h2>
+    <p class="summary">
+      Engenheiro Full Stack atuando do desenho da arquitetura ao monitoramento em produção, com foco em <b>eficiência operacional</b> e em produtos que geram <b>ganho real de produtividade no dia a dia das empresas</b>. Concentro a atuação em <b>automação de fluxos manuais</b>, <b>integração de IA aplicada</b> (LLMs, RAG, Visão Computacional + YOLO, modelos preditivos com Prophet) e <b>integrações com sistemas corporativos</b> (ERPs Sankhya/Microwork e SAP, Slack, Microsoft 365) — reduzindo retrabalho, evitando ruptura de estoque, acelerando decisão comercial e encurtando ciclos de venda. Entrego software <b>escalável e cloud-native</b> em AWS e GCP — e em <b>VPS dedicada</b> (Oracle Cloud Always Free) para cargas previsíveis 24/7 — com pipelines de CI/CD, containerização e <b>observabilidade ponta a ponta</b>, sob <b>Clean Architecture, SOLID</b> e código sustentável. Stack core: <b>Java + Spring Boot 3.x</b> e <b>Python (FastAPI, LangGraph)</b>, com Angular e React no front. Bacharel em Direito — base que agrega leitura analítica de regras de negócio e domínios regulatórios.
+    </p>
+
+    <h2>Experiência</h2>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Desenvolvedor Full Stack <span class="sub">— full cycle</span></h3>
+        <span class="period">Fev/2026 – Atual</span>
+      </div>
+      <div class="company"><strong>AutoU</strong> · Remoto</div>
+      <ul>
+        <li>Arquitetei pipeline de monitoramento em tempo real combinando <b>Visão Computacional (Vision + YOLO) + LLM</b> via <code>LangGraph</code> e <code>RAG</code>, automatizando análise de imagens e geração de insights, reduzindo o esforço manual de inspeção operacional.</li>
+        <li>Implementei ingestão de catálogos PDF com extração assistida por IA, geração de <b>embeddings (Gemini)</b> e indexação em <code>pgvector</code>/<code>FAISS</code> para busca semântica de produtos, enriquecendo pipelines internos e agentes de IA.</li>
+        <li>Evoluí algoritmos preditivos com <b>Prophet</b> (séries temporais) para predição de demanda, otimização de estoque, transferências entre filiais e sugestão de produtos substitutos, com impacto direto em decisão comercial e redução de ruptura.</li>
+        <li>Integrei o <b>ERP Sankhya/Microwork</b> via API para automação de relatórios, orçamentos e fluxos operacionais de vendas, eliminando tarefas manuais recorrentes.</li>
+        <li>Atuei full cycle em <b>plataforma B2B de gestão de pessoas, metas e RH</b> usada por clientes corporativos — backend <b>FastAPI</b> + frontend <b>React 19 + Vite</b> — entregando ciclos de avaliação, gestão de OKRs/metas e administração do quadro de colaboradores.</li>
+        <li>Implementei <b>integrações corporativas com Slack e Outlook (Microsoft 365)</b> para notificações em tempo real e e-mails transacionais, conectando os sistemas aos canais de comunicação que as empresas já operam no dia a dia.</li>
+        <li>Provisionei infraestrutura como código em <b>AWS (EC2)</b> e <b>GCP (Cloud Run)</b>, com deploy via SSH automatizado, <code>Docker Compose</code> e <code>GitHub Actions</code>, garantindo entrega contínua em multi-cloud.</li>
+      </ul>
+    </article>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Desenvolvedor Full Stack <span class="sub">— scrum team</span></h3>
+        <span class="period">Abr/2025 – Abr/2026</span>
+      </div>
+      <div class="company"><strong>ANBIMA / Selic</strong> (convênio Banco Central do Brasil) · Rio de Janeiro, RJ · Híbrido</div>
+      <ul>
+        <li>Atuei na <b>modernização do Novo-Selic</b>, migrando sistema crítico da infraestrutura financeira nacional de <b>mainframe COBOL</b> para arquitetura <b>Java 17 + Spring Boot 3.x + Angular</b>, com persistência em <b>Oracle Database</b>.</li>
+        <li>Implementei stack completa de observabilidade (<code>Prometheus</code>, <code>Grafana</code>, <code>Spring Actuator</code>, <code>Micrometer</code>, <code>Blackbox Exporter</code>, <code>AlertManager</code>), habilitando monitoramento de métricas, healthchecks e SLAs em ambiente de missão crítica.</li>
+        <li>Containerizei aplicações com <b>Docker</b> e estruturei pipelines de <b>CI/CD no GitLab</b>, automatizando build, testes e deploy com versionamento rigoroso de branches.</li>
+        <li>Versionei schemas Oracle com <code>Liquibase</code> e scripts SQL, garantindo rastreabilidade e rollback controlado em base transacional sensível.</li>
+      </ul>
+    </article>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Projetos / Governança de TI</h3>
+        <span class="period">Abr/2024 – Abr/2025</span>
+      </div>
+      <div class="company"><strong>ANBIMA / Selic</strong> (convênio Banco Central do Brasil) · Rio de Janeiro, RJ · Híbrido</div>
+      <ul>
+        <li>Desenvolvi <b>webparts SharePoint</b> (JavaScript, HTML, CSS) integrados via SharePoint API e dashboards <b>Power BI (DAX)</b> para indicadores executivos, atendendo demandas de C-level (Banco Central e ANBIMA).</li>
+        <li>Apliquei frameworks <b>PMI, Agile, MPS.BR e CMMI</b> em iniciativas alinhadas ao <b>PDTIC</b>, padronizando processos e sustentando entregas de governança de TI.</li>
+      </ul>
+    </article>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Automações &amp; Assistente Jurídico</h3>
+        <span class="period">Nov/2019 – Abr/2024</span>
+      </div>
+      <div class="company"><strong>Gondim, Albuquerque e Negreiros ADV</strong> · Rio de Janeiro, RJ · Presencial</div>
+      <ul>
+        <li>Construí arquitetura de <b>RPA</b> com <code>Python</code>, <code>VBA</code> e <code>Selenium</code> para extração em larga escala de dados de tribunais brasileiros, integrando sistemas internos a plataformas judiciais e reduzindo significativamente o tempo de cadastro processual.</li>
+        <li>Estruturei a gestão de diligências, depósitos judiciais e custas com automações, elevando a integridade da base de dados e a precisão dos indicadores operacionais do escritório.</li>
+      </ul>
+    </article>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Analytics / Salesforce</h3>
+        <span class="period">Out/2018 – Out/2019</span>
+      </div>
+      <div class="company"><strong>Phillip Morris Internacional</strong> · Rio de Janeiro, RJ · Presencial</div>
+      <ul>
+        <li>Automatizei coleta de dados, geração de relatórios e análise de KPIs comerciais com <b>VBA/Excel</b> e Salesforce, reduzindo o tempo de rotinas administrativas.</li>
+      </ul>
+    </article>
+
+    <article class="xp">
+      <div class="head">
+        <h3 class="title">Aux. Administrativo — Produção</h3>
+        <span class="period">Abr/2017 – Set/2018</span>
+      </div>
+      <div class="company"><strong>Liquigás / Petrobras Distribuidora S.A</strong> · Duque de Caxias, RJ · Presencial</div>
+      <ul>
+        <li>Operação em <b>SAP</b> e Excel para gestão operacional, controle de qualidade e suporte ao atendimento (primeira exposição a ERP corporativo).</li>
+      </ul>
+    </article>
+
+    <h2>Projetos Pessoais Relevantes</h2>
+
+    <p class="proj"><span class="name">LoL Fazenda Inhouse</span> — Plataforma de matchmaking competitivo (FastAPI + <b>gRPC</b> + Angular 20 + Electron 28 + PostgreSQL/Alembic), integração com League Client (LCU) e bot Discord (JDA). Migração arquitetural Java/Spring/Redis → Python/gRPC.</p>
+
+    <p class="proj"><span class="name">Mercearia R&amp;V</span> — Sistema desktop <b>offline-first</b> para varejo (Spring Boot 3.5 + Java 21 + PostgreSQL embarcado + Angular 20 + Electron 27). Geração server-side de PDFs (OpenHTMLToPDF/PDFBox), JWT e instalador NSIS empacotando JDK e banco.</p>
+
+    <p class="proj"><span class="name">Wesley Bot WhatsApp</span> — Assistente conversacional com <b>RAG</b> (FastAPI + FAISS + Gemini + Evolution API), fluxo agêntico, exportação XLSX e TTS, em produção 24/7 em Oracle Cloud.</p>
+
+    <p class="proj"><span class="name">Publique Sua Notícia Popular</span> — Plataforma full-stack (Spring Boot 3.4 + Angular 21 + PostgreSQL 16) com OAuth Google, JWT, editor em blocos e assistente editorial baseado em LLM (Gemini).</p>
+
+    <p class="proj"><span class="name">Experimenta AI – Soneca</span> — Sistema full-stack para foodservice em <b>Clean Architecture</b> (Java 17 + Spring Boot 3.2 + Angular 17 + MySQL), com pipeline CI/CD completo.</p>
+
+  </main>
+</div>
+</body>
+</html>

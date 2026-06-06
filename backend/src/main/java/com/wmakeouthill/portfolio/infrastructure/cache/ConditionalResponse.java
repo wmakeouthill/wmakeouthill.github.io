@@ -16,6 +16,8 @@ public record ConditionalResponse<T>(
         NOT_MODIFIED,
         /** Dados atualizados, usar nova resposta */
         OK,
+        /** Recurso inexistente (404) — condição esperada, não é falha */
+        NOT_FOUND,
         /** Erro na requisição */
         ERROR
     }
@@ -35,6 +37,13 @@ public record ConditionalResponse<T>(
     }
 
     /**
+     * Cria resposta de recurso inexistente (404).
+     */
+    public static <T> ConditionalResponse<T> notFound() {
+        return new ConditionalResponse<>(Status.NOT_FOUND, null, null);
+    }
+
+    /**
      * Cria resposta de erro.
      */
     public static <T> ConditionalResponse<T> error() {
@@ -47,6 +56,10 @@ public record ConditionalResponse<T>(
 
     public boolean isOk() {
         return status == Status.OK;
+    }
+
+    public boolean isNotFound() {
+        return status == Status.NOT_FOUND;
     }
 
     public boolean isError() {

@@ -6,15 +6,23 @@ import com.wmakeouthill.portfolio.application.dto.GithubRepositoryDto;
 import com.wmakeouthill.portfolio.application.dto.LanguageShareDto;
 import com.wmakeouthill.portfolio.application.dto.RepoTreeResponse;
 import com.wmakeouthill.portfolio.application.port.out.GithubProjectsPort;
+import com.wmakeouthill.portfolio.application.port.out.PaginaCachePort;
 import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterMarkdownProjetoUseCase;
+import com.wmakeouthill.portfolio.application.usecase.RenderizarMarkdownProjetoUseCase;
+import com.wmakeouthill.portfolio.domain.service.ContextSearchService;
+import com.wmakeouthill.portfolio.domain.service.ProjetoKeywordDetector;
+import com.wmakeouthill.portfolio.infrastructure.config.CaffeineCacheConfig;
+import com.wmakeouthill.portfolio.infrastructure.github.GithubContentCache;
 import com.wmakeouthill.portfolio.infrastructure.translate.PortfolioTranslationOverrides;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,12 +41,41 @@ public class ProjectsController {
 
   private final ListarProjetosGithubUseCase listarProjetosGithubUseCase;
   private final ObterMarkdownProjetoUseCase obterMarkdownProjetoUseCase;
+  private final RenderizarMarkdownProjetoUseCase renderizarMarkdownProjetoUseCase;
   private final GithubProjectsPort githubProjectsPort;
   private final PortfolioTranslationOverrides translationOverrides;
+  private final org.springframework.cache.CacheManager cacheManager;
+  private final PaginaCachePort paginaCachePort;
+  private final GithubContentCache githubContentCache;
+  private final ProjetoKeywordDetector projetoKeywordDetector;
+  private final ContextSearchService contextSearchService;
+
+  /**
+   * Força invalidação do cache de projetos no backend.
+   * A próxima chamada a GET /api/projects vai ao GitHub (via ETag).
+   * Também limpa o cache de markdown renderizado (HTML/Mermaid).
+   */
+  @PostMapping("/refresh")
+  public ResponseEntity<Map<String, String>> refresh() {
+    log.info("Refresh manual de projetos solicitado");
+    githubProjectsPort.clearCache();
+    githubContentCache.clear();
+    limparCache(CaffeineCacheConfig.CACHE_MARKDOWN);
+    limparCache(CaffeineCacheConfig.CACHE_MERMAID);
+    limparCache(CaffeineCacheConfig.CACHE_GITHUB_DATA);
+    contextSearchService.invalidarCache();
+    projetoKeywordDetector.recarregarProjetosDinamicos();
+    paginaCachePort.limparTudo();
+    return ResponseEntity.ok(Map.of(
+        "status", "ok",
+        "message", "Cache de projetos, markdown e páginas SSR limpo. Próxima requisição buscará dados frescos do GitHub."));
+  }
 
   /**
    * Lista todos os repositórios do usuário.
-   * Cache: 30 minutos.
+   * Cache: no-cache — o browser revalida sempre via ETag (If-None-Match).
+   * Como o backend mantém cache in-memory com ETag do GitHub, a revalidação
+   * é barata (304 sem corpo) e todos veem sempre o dado mais atual.
    */
   @GetMapping
   public ResponseEntity<List<GithubRepositoryDto>> listarProjetos(jakarta.servlet.http.HttpServletRequest request) {
@@ -48,41 +85,41 @@ public class ProjectsController {
         listarProjetosGithubUseCase.executar(),
         language);
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .header("Vary", "X-Language,Accept-Language")
         .body(repositorios);
   }
 
   /**
    * Obtém o perfil do usuário no GitHub.
-   * Cache: 30 minutos.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/profile")
   public ResponseEntity<GithubProfileDto> obterPerfil() {
     log.info("Buscando perfil do GitHub via backend autenticado");
     return githubProjectsPort.buscarPerfil()
         .map(profile -> ResponseEntity.ok()
-            .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+            .cacheControl(CacheControl.noCache().cachePublic())
             .body(profile))
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   /**
    * Obtém as linguagens de um repositório específico.
-   * Cache: 1 hora.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/{repoName}/languages")
   public ResponseEntity<List<LanguageShareDto>> obterLinguagens(@PathVariable String repoName) {
     log.debug("Buscando linguagens do repositório: {}", repoName);
     List<LanguageShareDto> languages = githubProjectsPort.buscarLinguagensRepositorio(repoName);
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .body(languages);
   }
 
   /**
    * Retorna estatísticas gerais do GitHub.
-   * Cache: 30 minutos.
+   * Cache: no-cache — revalidação por ETag a cada requisição.
    */
   @GetMapping("/stats")
   public ResponseEntity<Map<String, Object>> obterEstatisticas() {
@@ -93,10 +130,11 @@ public class ProjectsController {
     Map<String, Object> stats = Map.of(
         "totalStars", totalStars,
         "totalRepositories", repos.size(),
-        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum());
+        "totalForks", repos.stream().mapToInt(GithubRepositoryDto::forksCount).sum(),
+        "contributedRepositories", githubProjectsPort.contarRepositoriosContribuidos());
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(30, TimeUnit.MINUTES).cachePublic())
+        .cacheControl(CacheControl.noCache().cachePublic())
         .body(stats);
   }
 
@@ -141,6 +179,31 @@ public class ProjectsController {
     return obterMarkdownProjetoUseCase.executar(projectName, language)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  /**
+   * Obtém o README do projeto já renderizado em HTML no backend (commonmark +
+   * Mermaid em SVG), cacheado por {@code slug:idioma}. Usado pelo SSR/SEO para
+   * deixar o conteúdo no source-code.
+   */
+  @GetMapping(value = "/{projectName:.+}/markdown/html", produces = MediaType.TEXT_HTML_VALUE)
+  public ResponseEntity<String> obterMarkdownHtml(@PathVariable String projectName, HttpServletRequest request) {
+    log.debug("Renderizando markdown->HTML do projeto: {}", projectName);
+    String language = extrairIdioma(request);
+    String slug = projectName.trim().toLowerCase();
+    return renderizarMarkdownProjetoUseCase.executar(slug, language)
+        .map(html -> ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(6, TimeUnit.HOURS).cachePublic())
+            .header("Vary", "X-Language,Accept-Language")
+            .body(html))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  private void limparCache(String nome) {
+    org.springframework.cache.Cache cache = cacheManager.getCache(nome);
+    if (cache != null) {
+      cache.clear();
+    }
   }
 
   private String extrairIdioma(jakarta.servlet.http.HttpServletRequest request) {

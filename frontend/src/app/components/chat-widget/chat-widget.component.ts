@@ -8,15 +8,17 @@ import {
   computed,
   effect,
   OnInit,
-  OnDestroy
+  OnDestroy,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 import { ChatService, ChatResponse, AIModel } from '../../services/chat.service';
 import { MarkdownChatService } from '../../services/markdown-chat.service';
 import { ChatFloatingButtonComponent } from './components/chat-floating-button.component';
 import { ChatHeaderComponent } from './components/chat-header.component';
-import { ChatMessageComponent, ChatMessage } from './components/chat-message.component';
+import { ChatMessageComponent, ChatMessage, AttachmentMeta, classificarAnexo } from './components/chat-message.component';
 import { ChatInputComponent } from './components/chat-input.component';
 import { ChatLoadingComponent } from './components/chat-loading.component';
 import { useChatScroll, scrollToBottom } from './composables/use-chat-scroll';
@@ -28,14 +30,20 @@ import {
   obterOuGerarSessionId,
   salvarMensagens,
   carregarMensagens,
-  limparSessionStorage
-} from '../../utils/session-storage.util';
+  iniciarNovaConversa as iniciarNovaConversaStorage,
+  listarConversas,
+  selecionarConversa,
+  removerConversa,
+  ConversaSalva
+} from '../../utils/chat-storage.util';
 import { I18nService } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/i18n.pipe';
 
 interface ChatMessageRaw {
   from: 'user' | 'assistant';
   text: string;
   timestamp: string | Date;
+  attachments?: AttachmentMeta[];
 }
 
 @Component({
@@ -47,7 +55,8 @@ interface ChatMessageRaw {
     ChatHeaderComponent,
     ChatMessageComponent,
     ChatInputComponent,
-    ChatLoadingComponent
+    ChatLoadingComponent,
+    TranslatePipe
   ],
   templateUrl: './chat-widget.component.html',
   styleUrls: ['./chat-widget.component.css']
@@ -58,6 +67,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly markdownChatService = inject(MarkdownChatService);
   private readonly i18n = inject(I18nService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   @ViewChild('messagesContainer') private readonly messagesContainer?: ElementRef<HTMLDivElement>;
 
@@ -69,18 +79,44 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   messages = signal<ChatMessage[]>([]);
   unreadCount = signal(0);
   selectedModel = signal<AIModel>('gemini');
+  pendingAttachments = signal<File[]>([]);
+  audioResponseEnabled = signal(this.carregarPreferenciaAudio());
+  showHistory = signal(false);
+  conversations = signal<ConversaSalva[]>([]);
   private lastProcessedLength = 0;
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
+  private currentRequest?: Subscription;
 
   readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
-    text: this.i18n.translate('chat.initialMessage'),
+    text: this.initialMessageText(),
+    html: this.sanitizer.bypassSecurityTrustHtml(this.initialMessageHtml()),
     timestamp: new Date()
   }));
 
+  readonly suggestions = computed(() => {
+    if (this.i18n.language() === 'en') {
+      return [
+        'Which technologies does he master?',
+        'Tell me about his latest experience',
+        'Which AI-powered projects has he built?'
+      ];
+    }
+
+    return [
+      'Quais tecnologias ele domina?',
+      'Conte sobre a última experiência',
+      'Quais projetos AI-powered ele fez?'
+    ];
+  });
+
+  readonly shouldShowSuggestions = computed(
+    () => !this.isLoading() && this.messages().length === 1 && this.messages()[0].from === 'assistant'
+  );
+
   readonly canSend = computed(
-    () => this.inputText().trim().length > 0 && !this.isLoading()
+    () => (this.inputText().trim().length > 0 || this.pendingAttachments().length > 0) && !this.isLoading()
   );
 
   private readonly outsideClickDestroy = useOutsideClick(this.hostElement, this.isOpen);
@@ -109,8 +145,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.configureUnreadTracking();
     this.configurarPersistenciaMensagens();
 
-    // Toggle body class for global styling (hiding scroll-to-top)
+    // Toggle body class for global styling (hiding scroll-to-top).
+    // document.body não existe no SSR — efeito só roda no browser.
     effect(() => {
+      if (!this.isBrowser) {
+        return;
+      }
       if (this.isOpen()) {
         document.body.classList.add('chat-open');
       } else {
@@ -121,12 +161,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.carregarMensagensSalvas();
+    this.atualizarConversas();
   }
 
   ngOnDestroy(): void {
+    this.currentRequest?.unsubscribe();
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
-    document.body.classList.remove('chat-open');
+    if (this.isBrowser) {
+      document.body.classList.remove('chat-open');
+    }
   }
 
   toggleOpen(): void {
@@ -152,14 +196,57 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.inputText.set(value);
   }
 
+  handleAttach(files: File[]): void {
+    if (!files || files.length === 0) {
+      return;
+    }
+    this.pendingAttachments.update((arr) => [...arr, ...files]);
+  }
+
+  handleRemoveAttachment(index: number): void {
+    this.pendingAttachments.update((arr) => arr.filter((_, i) => i !== index));
+  }
+
+  sendSuggestedMessage(text: string): void {
+    this.inputText.set(text);
+    queueMicrotask(() => this.sendMessage());
+  }
+
+  /** Trata comandos imediatos vindos do menu slash (sem argumentos). */
+  handleCommand(command: string): void {
+    switch (command) {
+      case '/new':
+        this.iniciarNovaConversa();
+        break;
+      case '/history':
+        this.toggleHistory();
+        break;
+    }
+  }
+
+  /** Comandos imediatos digitados manualmente não devem ir para a IA. */
+  private isImmediateCommand(text: string): boolean {
+    const cmd = text.trim().toLowerCase();
+    return cmd === '/new' || cmd === '/history';
+  }
+
   sendMessage(): void {
     const text = this.inputText().trim();
-    if (!this.canSendMessage(text)) {
+    const files = this.pendingAttachments();
+    if (!this.canSendMessage(text, files)) {
       return;
     }
 
-    this.chatMessagesHandlers.addUserMessage(text);
+    if (this.isImmediateCommand(text) && files.length === 0) {
+      this.inputText.set('');
+      this.handleCommand(text.toLowerCase());
+      return;
+    }
+
+    const attachmentMetas = files.map((f) => this.toAttachmentMeta(f));
+    this.chatMessagesHandlers.addUserMessage(text, attachmentMetas);
     this.inputText.set('');
+    this.pendingAttachments.set([]);
     this.isLoading.set(true);
 
     // Scroll após mensagem do usuário
@@ -170,8 +257,18 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     // Mantém foco no input após enviar
     this.focarInput();
 
-    this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel()).subscribe({
+    if (this.isEmailCommand(text) && files.length === 0) {
+      this.enviarEmailPeloChat(text);
+      return;
+    }
+
+    const request$ = files.length > 0 || this.audioResponseEnabled()
+      ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel(), this.audioResponseEnabled())
+      : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
+
+    this.currentRequest = request$.subscribe({
       next: (response: ChatResponse) => {
+        this.currentRequest = undefined;
         this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
         });
@@ -181,6 +278,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         }, 100);
       },
       error: () => {
+        this.currentRequest = undefined;
         this.chatMessagesHandlers.handleAssistantError();
         // Mantém foco mesmo em caso de erro
         setTimeout(() => {
@@ -190,8 +288,59 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
-  private canSendMessage(text: string): boolean {
-    return text.length > 0 && !this.isLoading();
+  private toAttachmentMeta(file: File): AttachmentMeta {
+    const kind = classificarAnexo(file.type, file.name);
+    const meta: AttachmentMeta = { name: file.name, mime: file.type, kind };
+    if (kind === 'image') {
+      meta.previewUrl = URL.createObjectURL(file);
+    }
+    return meta;
+  }
+
+  private enviarEmailPeloChat(text: string): void {
+    this.currentRequest = this.chatService.enviarEmailChat(text, this.selectedModel()).subscribe({
+      next: async (response) => {
+        this.currentRequest = undefined;
+        const preview = response.success
+          ? this.montarRespostaEmailEnviado(response.subject, response.body)
+          : response.reply || 'Não foi possível enviar o email agora.';
+        await this.chatMessagesHandlers.handleAssistantResponse({ reply: preview });
+        setTimeout(() => this.focarInput(), 100);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.chatMessagesHandlers.handleAssistantError();
+        setTimeout(() => this.focarInput(), 100);
+      }
+    });
+  }
+
+  private isEmailCommand(text: string): boolean {
+    return text.trim().toLowerCase().startsWith('/email');
+  }
+
+  private montarRespostaEmailEnviado(subject?: string, body?: string): string {
+    const linhas = ['Email enviado para o Wesley.'];
+    if (subject) {
+      linhas.push('', `**Assunto:** ${subject}`);
+    }
+    if (body) {
+      linhas.push('', '**Mensagem enviada:**', body);
+    }
+    return linhas.join('\n');
+  }
+
+  cancelarMensagem(): void {
+    if (this.currentRequest) {
+      this.currentRequest.unsubscribe();
+      this.currentRequest = undefined;
+    }
+    this.isLoading.set(false);
+    this.focarInput();
+  }
+
+  private canSendMessage(text: string, files: File[] = []): boolean {
+    return (text.length > 0 || files.length > 0) && !this.isLoading();
   }
 
   private configureChatOpenEffects(): void {
@@ -249,6 +398,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
             {
               ...current[0],
               text: initial.text,
+              html: initial.html,
               timestamp: new Date()
             }
           ]);
@@ -297,7 +447,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         mensagens.push({
           from: msg.from,
           text: msg.text,
-          timestamp
+          timestamp,
+          ...(msg.attachments && msg.attachments.length > 0 ? { attachments: msg.attachments } : {})
         });
       }
     }
@@ -309,11 +460,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     effect(() => {
       const currentMessages = this.messages();
       if (currentMessages.length > 0) {
-        // Remove HTML antes de salvar (não é serializável)
+        // Remove HTML (não serializável) e dados pesados (previewUrl/audioUrl/data-url)
         const mensagensParaSalvar = currentMessages.map(msg => ({
           from: msg.from,
           text: msg.text,
-          timestamp: msg.timestamp.toISOString()
+          timestamp: msg.timestamp.toISOString(),
+          ...(msg.attachments && msg.attachments.length > 0
+            ? { attachments: msg.attachments.map(a => ({ name: a.name, mime: a.mime, kind: a.kind })) }
+            : {})
         }));
         salvarMensagens(mensagensParaSalvar);
       }
@@ -321,25 +475,72 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   iniciarNovaConversa(): void {
-    // Salva o sessionId ANTIGO antes de limpar para limpar o histórico correto no backend
-    const sessionIdAntigo = this.sessionId;
+    // Cria uma nova conversa no storage (a anterior fica preservada no histórico).
+    const nova = iniciarNovaConversaStorage();
+    this.sessionId = nova.sessionId;
 
-    // Limpa mensagens no frontend
+    // Reseta o painel para a mensagem inicial.
     this.messages.set([this.initialMessage()]);
     this.marcarComoLidas();
+    this.showHistory.set(false);
+    this.atualizarConversas();
+    this.focarInput();
+  }
 
-    // Limpa sessionStorage (remove sessionId e mensagens)
-    limparSessionStorage();
-
-    // Gera novo sessionId
-    this.sessionId = obterOuGerarSessionId();
-
-    // Limpa o histórico ANTIGO no backend antes de começar nova conversa
-    if (sessionIdAntigo) {
-      this.chatService.limparHistorico(sessionIdAntigo).subscribe({
-        error: () => console.warn('Erro ao limpar histórico no backend')
-      });
+  toggleHistory(): void {
+    this.showHistory.update((v) => !v);
+    if (this.showHistory()) {
+      this.atualizarConversas();
     }
+  }
+
+  async abrirConversa(id: string): Promise<void> {
+    const conversa = selecionarConversa(id);
+    if (!conversa) {
+      return;
+    }
+    this.sessionId = conversa.sessionId;
+    const mensagens = await this.converterMensagensSalvas(conversa.messages as ChatMessageRaw[]);
+    this.messages.set(mensagens.length > 0 ? mensagens : [this.initialMessage()]);
+    this.marcarComoLidas();
+    this.showHistory.set(false);
+    this.atualizarConversas();
+    setTimeout(() => {
+      scrollToBottom(this.messagesContainer, true);
+      this.focarInput();
+    }, 100);
+  }
+
+  removerConversa(id: string, event: Event): void {
+    event.stopPropagation();
+    const eraAtual = id === this.conversaAtualId();
+    removerConversa(id);
+    this.atualizarConversas();
+    if (eraAtual) {
+      // Se removeu a conversa aberta, começa uma nova limpa.
+      this.iniciarNovaConversa();
+    }
+  }
+
+  private atualizarConversas(): void {
+    this.conversations.set(listarConversas());
+  }
+
+  conversaAtualId(): string | null {
+    const atual = this.conversations().find((c) => c.sessionId === this.sessionId);
+    return atual?.id ?? null;
+  }
+
+  toggleAudioResponse(): void {
+    this.audioResponseEnabled.update((enabled) => {
+      const next = !enabled;
+      try {
+        localStorage.setItem('portfolio-chat-audio-response', String(next));
+      } catch {
+        // Mantem o estado em memoria quando localStorage nao estiver disponivel.
+      }
+      return next;
+    });
   }
 
   private configureUnreadTracking(): void {
@@ -372,6 +573,30 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private marcarComoLidas(): void {
     this.lastProcessedLength = this.messages().length;
     this.unreadCount.set(0);
+  }
+
+  private carregarPreferenciaAudio(): boolean {
+    try {
+      return localStorage.getItem('portfolio-chat-audio-response') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private initialMessageText(): string {
+    if (this.i18n.language() === 'en') {
+      return "Hi! I'm the AI trained with Wesley's portfolio. Ask about technologies, projects, or experience. You can also attach a file or send audio.";
+    }
+
+    return 'Olá! Sou a IA treinada com o portfólio do Wesley. Pergunte sobre tecnologias, projetos ou experiências — você também pode anexar um arquivo ou mandar um áudio.';
+  }
+
+  private initialMessageHtml(): string {
+    if (this.i18n.language() === 'en') {
+      return "Hi! I'm the AI trained with Wesley's portfolio. Ask about technologies, projects, or experience. You can also <strong>attach a file</strong> or <strong>send audio</strong>.";
+    }
+
+    return 'Olá! Sou a IA treinada com o portfólio do Wesley. Pergunte sobre tecnologias, projetos ou experiências — você também pode <strong>anexar um arquivo</strong> ou <strong>mandar um áudio</strong>.';
   }
 }
 
