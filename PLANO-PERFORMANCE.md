@@ -97,7 +97,24 @@ relatório desktop de 06/jun/2026 (`pagespeed.web.dev/.../f8w6x28hmu`).
 - [x] **OG image**: `wesley-photo.png` 571×1000 (212 KiB) → **`wesley-photo.jpg` mozjpeg q85 (26,4 KiB, -87%)**. `seo.service.ts` `OG_IMAGE` → `.jpg`. Não está na rota crítica (só scrapers sociais); PNG antigo no backup.
 - [x] **`wesley-photo.webp` (LCP)**: verificada — original nativa é 571×1000 (já no máx da fonte); 13 KiB. Nada a otimizar sem foto de maior resolução.
 
-### ⬜ Fase 6 — Nit de canonical (SEO 85 → ~92)
+### ✅ Fase 6 — PDF nativo-primeiro + thumbnails JPEG
+> Os modais de **certificado** e **currículo** usavam pdf.js (worker 1,4 MB +
+> chunk 377 kB + parse na main-thread + download do PDF inteiro). Render lento,
+> não-instantâneo. Solução: renderizar com o viewer **nativo do navegador**
+> (PDFium via `<iframe>`) quando há suporte inline, mantendo pdf.js só como
+> fallback lazy. Como o viewer de PDF é client-only + lazy, **zero impacto no
+> SEO/bot** (a página SSR não o carrega). Risco: baixo.
+
+**Backlog**
+- [x] Detecção padrão `navigator.pdfViewerEnabled` → `<iframe>` nativo (`#toolbar=1&navpanes=0&view=FitH`, `DomSanitizer.bypassSecurityTrustResourceUrl`). Desktop (Chrome/Edge/Firefox) renderiza **na hora**, sem baixar pdf.js (~1,8 MB economizados).
+- [x] Fallback pdf.js lazy preservado p/ mobile / navegadores sem viewer inline. Controles custom de zoom/rotação ocultos no modo nativo (o viewer nativo tem os dele).
+- [x] Aplicado nos **dois** componentes: `certifications.component` (certificados) e `cv-modal.component` (currículo). `cv-modal` ganhou guarda de SSR (`PLATFORM_ID`).
+- [x] Backend já serve o PDF com `Content-Disposition: inline` + `application/pdf` (pré-requisito do iframe nativo) e cache 1 h.
+- [x] **Thumbnails PNG → JPEG q0.82** (`PdfThumbnailService` via `ImageWriteParam`; `ImageType.RGB` é alpha-free → JPEG-safe). Nativo do JDK, **container-safe** (sem lib nativa, ao contrário de WebP — que quebraria no Dockerfile Alpine). Content-type do controller → `IMAGE_JPEG`. Esperado ~−75% vs PNG nos cards.
+- [x] **Cache quente**: `ThumbnailPreloadService` (`@PostConstruct` + `@Async`) já baixa o PDF e gera a thumbnail de **todos** os certificados + currículo no startup, cacheando `putPdf` + `putThumbnail` (TTL 24 h). Primeira abertura já vem quente.
+- [x] Build frontend OK (chunk `pdf` continua lazy, 377 kB) + compile backend OK.
+
+### ⬜ Fase 7 — Nit de canonical (SEO 85 → ~92)
 > Ganho: marginal. Risco: baixo.
 
 **Backlog**

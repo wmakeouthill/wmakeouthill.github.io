@@ -114,6 +114,7 @@
           <div class="sub">Documento PDF</div>
         </div>
         <div class="modal-controls">
+          @if (!useNativePdf) {
           <div class="zoom-controls">
             <button class="zoom-btn" (click)="decreaseZoom()" [title]="'certifications.zoomOut' | translate">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -143,6 +144,7 @@
               </svg>
             </button>
           </div>
+          }
           <button class="btn btn-outline download-btn-modal" (click)="downloadCertificado(selectedCertificado()!)" [title]="'certifications.download' | translate">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
@@ -162,19 +164,27 @@
         </div>
       </div>
       <div class="modal-body" (keydown)="onKeyDown($event)">
-        <div
-          class="pdf-container"
-          [class.dragging]="isDragging"
-          (wheel)="onMouseWheel($event)"
-          (mousedown)="onDragStart($event)"
-          (mousemove)="onDragMove($event)"
-          (mouseup)="onDragEnd($event)"
-          (mouseleave)="onDragEnd($event)"
-        >
-          <div class="pdf-rotation-wrapper" [style.transform]="'rotate(' + pdfRotation + 'deg)'">
-            <app-pdf-viewer [src]="getPdfUrl(selectedCertificado()!)" [zoom]="pdfZoom"></app-pdf-viewer>
+        @if (useNativePdf) {
+          <iframe
+            class="pdf-native-frame"
+            [src]="nativePdfUrl()"
+            [title]="selectedCertificado()!.displayName"
+          ></iframe>
+        } @else {
+          <div
+            class="pdf-container"
+            [class.dragging]="isDragging"
+            (wheel)="onMouseWheel($event)"
+            (mousedown)="onDragStart($event)"
+            (mousemove)="onDragMove($event)"
+            (mouseup)="onDragEnd($event)"
+            (mouseleave)="onDragEnd($event)"
+          >
+            <div class="pdf-rotation-wrapper" [style.transform]="'rotate(' + pdfRotation + 'deg)'">
+              <app-pdf-viewer [src]="getPdfUrl(selectedCertificado()!)" [zoom]="pdfZoom"></app-pdf-viewer>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </div>
   </div>

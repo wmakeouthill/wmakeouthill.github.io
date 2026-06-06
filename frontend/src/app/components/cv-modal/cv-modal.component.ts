@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy, inject, OnInit, signal, effect, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy, inject, OnInit, signal, effect, computed, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { CertificationsService } from '../../services/certifications.service';
 import { I18nService } from '../../i18n/i18n.service';
@@ -17,7 +18,18 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18n = inject(I18nService);
   private readonly scrollLock = inject(ScrollLockService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private scrollLocked = false;
+
+  /**
+   * Usa o renderizador de PDF nativo do navegador (PDFium via <iframe>) quando há
+   * suporte inline (`navigator.pdfViewerEnabled`), evitando baixar o pdf.js. O
+   * pdf.js continua como fallback lazy (mobile/sem viewer nativo).
+   */
+  readonly useNativePdf = this.isBrowser
+    && typeof navigator !== 'undefined'
+    && navigator.pdfViewerEnabled === true;
   private readonly languageEffect = effect(() => {
     this.i18n.language();
     this.loadCurriculoMetadata();
@@ -47,6 +59,15 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
     const lang = this.i18n.getLanguageForBackend?.() ?? 'pt';
     const version = this.curriculo()?.sha ?? Date.now();
     return `${this.certificationsService.getCurriculoPdfUrl()}?lang=${lang}&v=${version}`;
+  });
+
+  /** URL confiável do PDF para o <iframe> nativo (somente quando `useNativePdf`). */
+  readonly nativePdfUrl = computed<SafeResourceUrl | null>(() => {
+    if (!this.useNativePdf) {
+      return null;
+    }
+    const url = `${this.pdfUrl()}#toolbar=1&navpanes=0&view=FitH`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
   /** Loading state */
