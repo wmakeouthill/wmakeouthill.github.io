@@ -102,7 +102,7 @@
     }
   }
 
-  @if (!loading() && filteredProjects().length === 0) {
+  @if (showEmptyProjects()) {
     <div class="empty-state">
       <p>{{ 'projects.empty' | translate }}</p>
     </div>

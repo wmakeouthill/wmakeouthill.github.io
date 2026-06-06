@@ -83,7 +83,9 @@ export class CertificationsService {
       }),
       catchError(err => {
         console.error('Erro ao carregar certificados:', err);
-        this.error.set('Não foi possível carregar os certificados');
+        if (this.certificados().length === 0) {
+          this.error.set('Não foi possível carregar os certificados');
+        }
         this.loading.set(false);
         return of({ certificados: [], curriculo: null });
       })
@@ -106,7 +108,9 @@ export class CertificationsService {
       }),
       catchError(err => {
         console.error('Erro ao carregar certificados:', err);
-        this.error.set('Não foi possível carregar os certificados');
+        if (this.certificados().length === 0) {
+          this.error.set('Não foi possível carregar os certificados');
+        }
         this.loading.set(false);
         return of([]);
       })

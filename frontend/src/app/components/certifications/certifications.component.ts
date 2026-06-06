@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
@@ -18,6 +18,7 @@ export class CertificationsComponent implements OnInit {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18nService = inject(I18nService);
   private readonly scrollLock = inject(ScrollLockService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private scrollLocked = false;
 
   readonly certificationsSection = viewChild<ElementRef<HTMLElement>>('certificationsSection');
@@ -30,6 +31,8 @@ export class CertificationsComponent implements OnInit {
 
   /** Mensagem de erro */
   readonly error = this.certificationsService.error;
+  readonly showError = computed(() => this.isBrowser && !!this.error() && this.certificados().length === 0 && !this.loading());
+  readonly showEmpty = computed(() => this.isBrowser && !this.loading() && !this.error() && this.certificados().length === 0);
 
   /** Certificado selecionado para visualização */
   readonly selectedCertificado = signal<CertificadoPdf | null>(null);
@@ -111,6 +114,9 @@ export class CertificationsComponent implements OnInit {
   // Pré-carrega os thumbnails de TODOS os certificados (não só a página atual)
   // assim que a lista chega, para que a paginação seja instantânea e sem reload.
   private readonly preloadThumbnails = effect(() => {
+    if (!this.isBrowser) {
+      return;
+    }
     for (const cert of this.certificados()) {
       const url = this.getThumbnailUrl(cert);
       if (!url || this.preloadedThumbnails.has(url)) {

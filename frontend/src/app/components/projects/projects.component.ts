@@ -89,6 +89,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   // Mede quantas colunas o grid renderiza e mantém a paginação em linhas cheias.
   private readonly measureGridColumns = effect((onCleanup) => {
+    if (!this.isBrowser()) {
+      return;
+    }
     const gridRef = this.projGrid();
     this.gridResizeObserver?.disconnect();
     if (!gridRef?.nativeElement) {
@@ -178,6 +181,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
    * Isso garante que quando o usuário clicar, o modal abre instantaneamente.
    */
   private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
 
@@ -210,6 +216,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
    * `fetchPriority`/`decoding` para não competir com o carregamento inicial.
    */
   private preloadProjectImages(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     for (const repo of repos) {
       const url = this.getProjectImage(repo.name);
       if (!url || this.preloadedImages.has(url) || url.includes('placehold.co')) {
@@ -225,6 +234,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   /** Probe em background: marca projetos que possuem mídia na galeria. */
   private probeGalleries(repos: GitHubRepository[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     for (const repo of repos) {
       const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
       this.http.get<unknown[]>(url).subscribe({
@@ -285,6 +297,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       p.language?.toLowerCase() === filter.toLowerCase()
     );
   });
+
+  readonly showEmptyProjects = computed(() =>
+    this.isBrowser() && !this.loading() && this.filteredProjects().length === 0
+  );
 
   // Computed para projetos paginados
   readonly paginatedProjects = computed(() => {
