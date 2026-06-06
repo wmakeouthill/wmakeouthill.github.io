@@ -45,7 +45,7 @@ const METADADOS: Record<Language, { home: PageSeo; projects: PageSeo }> = {
   }
 };
 
-const BASE_URL_PADRAO = 'https://wmakeouthill.github.io';
+const BASE_URL_PADRAO = 'https://wmakeouthill.dev';
 const OG_IMAGE = '/assets/wesley-photo.png';
 
 /**
