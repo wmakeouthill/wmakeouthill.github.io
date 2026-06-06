@@ -35,6 +35,18 @@ public class GithubContentCache {
   }
 
   /**
+   * ObtÃ©m texto bruto do cache (markdowns e pequenos conteÃºdos textuais).
+   */
+  public Optional<String> getText(String key) {
+    CacheEntry<?> entry = cache.get(key);
+    if (entry != null && !entry.isExpired() && entry.getValue() instanceof String value) {
+      log.debug("Text cache hit: {}", key);
+      return Optional.of(value);
+    }
+    return Optional.empty();
+  }
+
+  /**
    * Obtém ETag de uma entrada do cache (para conditional requests).
    */
   public Optional<String> getETag(String key) {
@@ -60,6 +72,16 @@ public class GithubContentCache {
     cache.put(key, new CacheEntry<>(files, DEFAULT_TTL_MS, etag));
     log.debug("Cache put com ETag: {} ({} itens, etag={})", key, files.size(),
         etag != null ? etag.substring(0, Math.min(10, etag.length())) + "..." : "null");
+  }
+
+  /**
+   * Armazena texto bruto no cache.
+   */
+  public void putText(String key, String value) {
+    if (value != null && !value.isBlank()) {
+      cache.put(key, new CacheEntry<>(value, DEFAULT_TTL_MS, null));
+      log.debug("Text cache put: {} ({} chars)", key, value.length());
+    }
   }
 
   /**

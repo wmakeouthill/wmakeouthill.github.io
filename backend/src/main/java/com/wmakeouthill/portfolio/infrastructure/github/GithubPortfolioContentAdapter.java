@@ -70,8 +70,17 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
 
   @Override
   public Optional<String> obterMarkdownConteudo(String path) {
+    String cacheKey = "markdown:" + path;
+    Optional<String> cached = cache.getText(cacheKey);
+    if (cached.isPresent()) {
+      return cached;
+    }
     return httpClient.baixarArquivoRaw(REPO_NAME, path)
-        .map(bytes -> new String(bytes, StandardCharsets.UTF_8));
+        .map(bytes -> {
+          String content = new String(bytes, StandardCharsets.UTF_8);
+          cache.putText(cacheKey, content);
+          return content;
+        });
   }
 
   @Override

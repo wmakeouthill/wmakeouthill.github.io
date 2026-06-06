@@ -80,6 +80,13 @@ public class ContextSearchService {
   /**
    * Verifica se o cache expirou e recarrega se necessário.
    */
+  public synchronized void invalidarCache() {
+    contextChunks.clear();
+    fallbackChunks.clear();
+    ultimoCarregamento = 0;
+    log.info("Cache de contextos da IA invalidado");
+  }
+
   private void verificarCacheExpirado(String idioma) {
     String idiomaNorm = normalizarIdioma(idioma);
     if (!idiomaNorm.equals(idiomaAtual) || System.currentTimeMillis() - ultimoCarregamento > CACHE_TTL_MS) {

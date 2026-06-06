@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wmakeouthill.portfolio.application.dto.CertificadoPdfDto;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.dto.CurriculoPersonalizado;
-import com.wmakeouthill.portfolio.application.port.out.CertificadosPort;
 import com.wmakeouthill.portfolio.domain.service.PortfolioPromptService;
 import com.wmakeouthill.portfolio.infrastructure.ai.GeminiAdapter;
 import com.wmakeouthill.portfolio.infrastructure.pdf.CurriculoPdfService;
@@ -21,7 +20,7 @@ public class GerarCurriculoUseCase {
 
     private final CurriculoPdfService curriculoPdfService;
     private final PortfolioPromptService portfolioPromptService;
-    private final CertificadosPort certificadosPort;
+    private final ListarCertificadosUseCase listarCertificadosUseCase;
     private final GeminiAdapter geminiAdapter;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -91,7 +90,7 @@ public class GerarCurriculoUseCase {
 
     private String listarCertificados() {
         try {
-            return certificadosPort.listarCertificados().stream()
+            return listarCertificadosUseCase.executar().stream()
                     .map(CertificadoPdfDto::displayName)
                     .limit(40)
                     .reduce("", (acc, item) -> acc + "- " + item + "\n");

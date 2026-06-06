@@ -10,6 +10,10 @@ import com.wmakeouthill.portfolio.application.port.out.PaginaCachePort;
 import com.wmakeouthill.portfolio.application.usecase.ListarProjetosGithubUseCase;
 import com.wmakeouthill.portfolio.application.usecase.ObterMarkdownProjetoUseCase;
 import com.wmakeouthill.portfolio.application.usecase.RenderizarMarkdownProjetoUseCase;
+import com.wmakeouthill.portfolio.domain.service.ContextSearchService;
+import com.wmakeouthill.portfolio.domain.service.ProjetoKeywordDetector;
+import com.wmakeouthill.portfolio.infrastructure.config.CaffeineCacheConfig;
+import com.wmakeouthill.portfolio.infrastructure.github.GithubContentCache;
 import com.wmakeouthill.portfolio.infrastructure.translate.PortfolioTranslationOverrides;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +46,9 @@ public class ProjectsController {
   private final PortfolioTranslationOverrides translationOverrides;
   private final org.springframework.cache.CacheManager cacheManager;
   private final PaginaCachePort paginaCachePort;
+  private final GithubContentCache githubContentCache;
+  private final ProjetoKeywordDetector projetoKeywordDetector;
+  private final ContextSearchService contextSearchService;
 
   /**
    * Força invalidação do cache de projetos no backend.
@@ -52,8 +59,12 @@ public class ProjectsController {
   public ResponseEntity<Map<String, String>> refresh() {
     log.info("Refresh manual de projetos solicitado");
     githubProjectsPort.clearCache();
-    limparCache("markdownHtml");
-    limparCache("mermaidSvg");
+    githubContentCache.clear();
+    limparCache(CaffeineCacheConfig.CACHE_MARKDOWN);
+    limparCache(CaffeineCacheConfig.CACHE_MERMAID);
+    limparCache(CaffeineCacheConfig.CACHE_GITHUB_DATA);
+    contextSearchService.invalidarCache();
+    projetoKeywordDetector.recarregarProjetosDinamicos();
     paginaCachePort.limparTudo();
     return ResponseEntity.ok(Map.of(
         "status", "ok",
