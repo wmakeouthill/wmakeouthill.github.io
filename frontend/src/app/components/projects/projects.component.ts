@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, viewChild, ElementRef, effect, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, computed, viewChild, ElementRef, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { GithubService } from '../../services/github.service';
@@ -20,7 +20,7 @@ import { I18nService } from '../../i18n/i18n.service';
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
-export class ProjectsComponent implements OnInit {
+export class ProjectsComponent implements OnInit, OnDestroy {
   private readonly githubService = inject(GithubService);
   private readonly markdownService = inject(MarkdownService);
   private readonly portfolioContentService = inject(PortfolioContentService);
@@ -68,6 +68,12 @@ export class ProjectsComponent implements OnInit {
   private gridResizeObserver?: ResizeObserver;
   /** URLs de imagens já aquecidas no cache do navegador (evita refazer o preload). */
   private readonly preloadedImages = new Set<string>();
+  private readmeUrlPushed = false;
+  private readonly handlePopState = () => {
+    if (this.showReadmeModal()) {
+      this.closeReadmeModal({ updateHistory: false });
+    }
+  };
 
   // Recarrega quando o idioma mudar, respeitando caches por idioma do backend
   private readonly reloadOnLangChange = effect(() => {
@@ -111,11 +117,22 @@ export class ProjectsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.isBrowser()) {
+      window.addEventListener('popstate', this.handlePopState);
+    }
+
     // Carrega imagens PRIMEIRO para evitar flash de placeholders
     this.loadProjectImages().then(() => {
       this.loadProjects();
       this.initialized = true;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.gridResizeObserver?.disconnect();
+    if (this.isBrowser()) {
+      window.removeEventListener('popstate', this.handlePopState);
+    }
   }
 
   /**
@@ -378,10 +395,42 @@ export class ProjectsComponent implements OnInit {
     return this.i18nService.language() === 'en' ? `/en/projects/${slug}` : `/projects/${slug}`;
   }
 
-  closeReadmeModal(): void {
+  openReadmeFromLink(event: MouseEvent, projectName: string): void {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
+      return;
+    }
+    event.preventDefault();
+    this.pushReadmeUrl(projectName);
+    this.openReadmeModal(projectName);
+  }
+
+  private pushReadmeUrl(projectName: string): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+    const href = this.projectHref(projectName);
+    const target = new URL(href, window.location.origin);
+    if (window.location.pathname === target.pathname) {
+      return;
+    }
+    window.history.pushState({ readmeModal: true, projectName }, '', target.pathname);
+    this.readmeUrlPushed = true;
+  }
+
+  closeReadmeModal(options: { updateHistory?: boolean } = {}): void {
     this.showReadmeModal.set(false);
     this.currentProjectName.set('');
+    if (options.updateHistory !== false && this.readmeUrlPushed && this.isBrowser()) {
+      this.readmeUrlPushed = false;
+      window.history.back();
+    } else {
+      this.readmeUrlPushed = false;
+    }
     console.log('📱 Modal fechado - cache mantido');
+  }
+
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined';
   }
 
   openCodePreviewModal(project: GitHubRepository): void {

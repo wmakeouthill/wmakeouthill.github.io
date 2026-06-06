@@ -31,6 +31,13 @@ function readCustomBaseUrl(): string | null {
     return baseFromSession;
   }
 
+  if (isServerRuntime()) {
+    const serverBase = readFromProcessEnv();
+    if (serverBase) {
+      return serverBase;
+    }
+  }
+
   const envBase = readFromImportMetaEnv();
   if (envBase) {
     return envBase;
@@ -39,12 +46,11 @@ function readCustomBaseUrl(): string | null {
   // No SSR (Node) não há window/sessionStorage: a base vem de process.env,
   // apontando para o backend Spring. Sem isso, URLs relativas resolveriam
   // contra a origem do renderer (Node) e dariam 404 + retries lentos.
-  const serverBase = readFromProcessEnv();
-  if (serverBase) {
-    return serverBase;
-  }
-
   return null;
+}
+
+function isServerRuntime(): boolean {
+  return typeof window === 'undefined';
 }
 
 function readFromProcessEnv(): string | null {
@@ -99,7 +105,7 @@ function readFromImportMetaEnv(): string | null {
     return null;
   }
 
-  const envBase = env['NG_APP_API_BASE_URL'] ?? env['API_BASE_URL'];
+  const envBase = env['NG_APP_API_BASE_URL'];
   if (!envBase) {
     return null;
   }

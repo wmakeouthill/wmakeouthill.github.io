@@ -49,7 +49,7 @@
               }
               <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
               @if (hasReadme(project.name)) {
-                <a [href]="projectHref(project.name)" class="ov-btn">README</a>
+                <a [href]="projectHref(project.name)" (click)="openReadmeFromLink($event, project.name)" class="ov-btn">README</a>
               }
             </div>
           </div>
