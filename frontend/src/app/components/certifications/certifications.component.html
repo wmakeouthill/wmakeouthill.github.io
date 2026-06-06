@@ -12,7 +12,7 @@
     </div>
   }
 
-  @if (error()) {
+  @if (error() && certificados().length === 0) {
     <div class="error-container">
       <p class="error-message">{{ error() }}</p>
       <button class="btn btn-outline retry-btn" (click)="refresh()">
@@ -27,7 +27,7 @@
     </div>
   }
 
-  @if (!loading() && !error() && certificados().length > 0) {
+  @if (!loading() && certificados().length > 0) {
     <div class="cert-grid certifications-grid">
       @for (cert of paginatedCertificados(); track cert.sha) {
         <div

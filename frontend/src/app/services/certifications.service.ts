@@ -72,6 +72,7 @@ export class CertificationsService {
     return this.http.get<CertificadoPdf[]>(`${this.API_BASE}/api/certifications`).pipe(
       tap(certificados => {
         this.certificados.set(certificados);
+        this.error.set(null);
         console.log(`✅ Carregados ${certificados.length} certificados do backend`);
       }),
       map(certificados => ({ certificados, curriculo: null as CertificadoPdf | null })),
@@ -99,6 +100,7 @@ export class CertificationsService {
     return this.http.get<CertificadoPdf[]>(`${this.API_BASE}/api/certifications`).pipe(
       tap(certificados => {
         this.certificados.set(certificados);
+        this.error.set(null);
         this.loading.set(false);
         console.log(`✅ Carregados ${certificados.length} certificados`);
       }),
