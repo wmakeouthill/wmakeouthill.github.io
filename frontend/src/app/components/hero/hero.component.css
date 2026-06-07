@@ -190,11 +190,6 @@
     width: min(280px, calc(100vw - 64px));
   }
 
-  .photo-deco {
-    top: -12px;
-    right: -10px;
-  }
-
   .octocat {
     top: -10px;
     right: -8px;

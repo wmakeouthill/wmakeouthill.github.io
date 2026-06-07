@@ -17,10 +17,13 @@
     <div class="hero-photo">
       <div class="photo-ring">
         <div class="photo-glow"></div>
-        <div class="photo-deco"></div>
         <img class="profile" src="assets/wesley-photo.webp" alt="Wesley de Carvalho Augusto Correia" width="400" height="400" fetchpriority="high" decoding="async" />
         <div class="octocat">
-          <video #octocatVideo src="assets/octocat.mp4" width="140" height="140" muted playsinline preload="metadata"></video>
+          <!-- Animação decorativa (gatinho espiando), muda e sem fala: escondida de
+               leitores de tela. O <track> vazio satisfia a auditoria de legendas. -->
+          <video #octocatVideo src="assets/octocat.mp4" width="140" height="140" muted playsinline preload="metadata" aria-hidden="true" tabindex="-1">
+            <track kind="captions" srclang="pt" label="Sem legendas" src="assets/empty-captions.vtt" />
+          </video>
         </div>
       </div>
     </div>
