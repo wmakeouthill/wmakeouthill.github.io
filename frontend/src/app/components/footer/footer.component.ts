@@ -37,7 +37,8 @@ export class FooterComponent {
     { platform: 'Email', url: 'mailto:wcacorreia1995@gmail.com', iconSrc: 'assets/icons/gmail.svg' }
   ];
 
-  scrollToSection(sectionId: string) {
+  scrollToSection(sectionId: string, event?: Event) {
+    event?.preventDefault();
     const element = document.getElementById(sectionId);
     if (element) {
       const headerOffset = 80;

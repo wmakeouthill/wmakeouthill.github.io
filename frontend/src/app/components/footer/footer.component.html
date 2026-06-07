@@ -23,7 +23,7 @@
       <h4>{{ 'footer.quickLinks' | translate }}</h4>
       <div class="foot-links">
         @for (link of quickLinks; track link.section) {
-          <a (click)="scrollToSection(link.section)">{{ link.labelKey | translate }}</a>
+          <a [href]="'#' + link.section" (click)="scrollToSection(link.section, $event)">{{ link.labelKey | translate }}</a>
         }
       </div>
     </div>

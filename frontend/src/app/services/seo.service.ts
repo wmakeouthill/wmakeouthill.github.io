@@ -2,7 +2,7 @@ import { DOCUMENT, isPlatformServer } from '@angular/common';
 import { Injectable, PLATFORM_ID, REQUEST, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
-import { I18nService, type Language } from '../i18n/i18n.service';
+import type { Language } from '../i18n/i18n.service';
 
 interface PageSeo {
   readonly title: string;
@@ -58,14 +58,14 @@ export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
-  private readonly i18n = inject(I18nService);
   private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
   private readonly request = inject(REQUEST, { optional: true });
 
   /** Define todas as tags de SEO a partir do path e idioma correntes. */
   aplicarParaRotaAtual(): void {
-    const idioma = this.i18n.language();
-    const ptPath = this.normalizarParaPt(this.caminhoAtual());
+    const caminho = this.caminhoAtual();
+    const idioma = this.idiomaDaRota(caminho);
+    const ptPath = this.normalizarParaPt(caminho);
     const meta = this.metadadosDe(ptPath, idioma);
 
     this.title.setTitle(meta.title);
@@ -218,6 +218,11 @@ export class SeoService {
       return limpo.substring(3);
     }
     return limpo === '' ? '/' : limpo;
+  }
+
+  private idiomaDaRota(caminho: string): Language {
+    const limpo = this.semBarraFinal(caminho);
+    return limpo === '/en' || limpo.startsWith('/en/') ? 'en' : 'pt';
   }
 
   /** Reconstrói o path no idioma alvo a partir do path em português. */

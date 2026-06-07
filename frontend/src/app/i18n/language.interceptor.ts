@@ -23,26 +23,24 @@ export const languageInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 function resolveLanguage(): 'pt' | 'en' {
-  if (typeof localStorage !== 'undefined') {
-    return localStorage.getItem('portfolio-language') === 'en' ? 'en' : 'pt';
+  if (typeof location !== 'undefined') {
+    return languageFromPath(location.pathname);
   }
   return resolveServerLanguage();
 }
 
-/** Idioma no SSR: prefixo /en na rota tem prioridade; senão, Accept-Language. */
 function resolveServerLanguage(): 'pt' | 'en' {
   const request = inject(REQUEST, { optional: true });
   if (!request) {
     return 'pt';
   }
   try {
-    const path = new URL(request.url).pathname;
-    if (path === '/en' || path.startsWith('/en/')) {
-      return 'en';
-    }
+    return languageFromPath(new URL(request.url).pathname);
   } catch {
-    // URL inválida: cai no header.
+    return 'pt';
   }
-  const header = request.headers.get('x-language') ?? request.headers.get('accept-language');
-  return header?.toLowerCase().startsWith('en') ? 'en' : 'pt';
+}
+
+function languageFromPath(path: string): 'pt' | 'en' {
+  return path === '/en' || path.startsWith('/en/') ? 'en' : 'pt';
 }
