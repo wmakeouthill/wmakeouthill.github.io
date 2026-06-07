@@ -65,8 +65,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   private lastLanguage = this.i18nService.language();
   private initialized = false;
   private gridResizeObserver?: ResizeObserver;
-  /** URLs de imagens já aquecidas no cache do navegador (evita refazer o preload). */
-  private readonly preloadedImages = new Set<string>();
   private readmeUrlPushed = false;
   private readonly handlePopState = () => {
     if (this.showReadmeModal()) {
@@ -158,10 +156,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         this.loadLanguagesForProjects();
         this.loading.set(false);
 
-        // 🖼️ Pré-carrega TODAS as imagens (não só a página atual) para que a
-        // troca de página seja instantânea, sem reload visível.
-        this.preloadProjectImages(repos);
-
         // 📄 Marca quais projetos têm README (o backend já informa via hasReadme)
         this.markReadmeAvailability(repos);
 
@@ -218,28 +212,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       ric(task, { timeout: 3000 });
     } else {
       setTimeout(task, 1500);
-    }
-  }
-
-  /**
-   * Aquece o cache do navegador com as imagens de todos os projetos (não apenas
-   * os da página atual). Leve e em baixa prioridade: usa `new Image()` com
-   * `fetchPriority`/`decoding` para não competir com o carregamento inicial.
-   */
-  private preloadProjectImages(repos: GitHubRepository[]): void {
-    if (!this.isBrowser()) {
-      return;
-    }
-    for (const repo of repos) {
-      const url = this.getProjectImage(repo.name);
-      if (!url || this.preloadedImages.has(url) || url.includes('placehold.co')) {
-        continue;
-      }
-      this.preloadedImages.add(url);
-      const img = new Image();
-      img.decoding = 'async';
-      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
-      img.src = url;
     }
   }
 

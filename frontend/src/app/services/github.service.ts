@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 import { GitHubRepository, LanguageInfo } from '../models/interfaces';
 import { resolveApiUrl } from '../utils/api-url.util';
 
@@ -108,10 +108,8 @@ export class GithubService {
     let request$ = this.repositoriesByLang.get(langKey);
 
     if (!request$) {
-      console.log('🔐 Buscando repositórios via backend autenticado...');
       request$ = this.http.get<BackendRepositoryResponse[]>(this.BACKEND_API).pipe(
         map(repos => this.mapBackendRepositories(repos)),
-        tap(repos => console.log(`✅ ${repos.length} repositórios carregados via backend`)),
         catchError(error => {
           console.error('Erro ao buscar repositórios via backend:', error);
           this.repositoriesByLang.delete(langKey); // permite retry na próxima chamada
@@ -134,7 +132,6 @@ export class GithubService {
 
     if (!request$) {
       const url = `${this.BACKEND_API}/${encodeURIComponent(repoName)}/languages`;
-      console.log(`🔐 Buscando linguagens via backend: ${repoName}`);
       request$ = this.http.get<LanguageShareResponse[]>(url).pipe(
         map(langs => this.mapLanguages(langs)),
         catchError(error => {
@@ -156,9 +153,7 @@ export class GithubService {
   getUserProfile(): Observable<GithubProfile | null> {
     if (!this.profile$) {
       const url = `${this.BACKEND_API}/profile`;
-      console.log('🔐 Buscando perfil via backend autenticado...');
       this.profile$ = this.http.get<GithubProfile>(url).pipe(
-        tap(profile => console.log(`✅ Perfil carregado: ${profile.login}`)),
         catchError(error => {
           console.error('Erro ao buscar perfil via backend:', error);
           this.profile$ = undefined;
@@ -212,7 +207,6 @@ export class GithubService {
     this.repositoriesByLang.clear();
     this.languagesByRepo.clear();
     this.profile$ = undefined;
-    console.log('🧹 Cache in-memory do frontend limpo');
   }
 
   /**
@@ -222,7 +216,6 @@ export class GithubService {
   invalidateBackendCache(): Observable<void> {
     const url = `${this.BACKEND_API}/refresh`;
     return this.http.post<{ status: string }>(url, null).pipe(
-      tap(() => console.log('🔄 Cache do backend invalidado — próxima busca vai ao GitHub')),
       map(() => void 0),
       catchError(err => {
         console.warn('⚠️ Falha ao invalidar cache do backend:', err.message);

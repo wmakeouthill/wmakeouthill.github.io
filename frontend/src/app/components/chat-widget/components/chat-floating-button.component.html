@@ -13,6 +13,9 @@
     [alt]="'chat.avatarAlt' | translate"
     class="chat-avatar"
     [class.chat-open]="isOpen()"
+    width="58"
+    height="58"
+    decoding="async"
   />
 
   @if (unreadCount() > 0 && !isOpen()) {

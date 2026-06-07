@@ -131,27 +131,12 @@ export class CertificationsComponent implements OnInit {
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
-  /** URLs de thumbnails já aquecidos no cache do navegador. */
-  private readonly preloadedThumbnails = new Set<string>();
 
-  // Pré-carrega os thumbnails de TODOS os certificados (não só a página atual)
-  // assim que a lista chega, para que a paginação seja instantânea e sem reload.
-  private readonly preloadThumbnails = effect(() => {
-    if (!this.isBrowser) {
-      return;
-    }
-    for (const cert of this.certificados()) {
-      const url = this.getThumbnailUrl(cert);
-      if (!url || this.preloadedThumbnails.has(url)) {
-        continue;
-      }
-      this.preloadedThumbnails.add(url);
-      const img = new Image();
-      img.decoding = 'async';
-      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
-      img.src = url;
-    }
-  });
+  // Os thumbnails usam `loading="lazy"` no template e a seção fica bem abaixo da
+  // dobra, então o navegador só os baixa quando entram em viewport. NÃO fazemos
+  // mais preload eager de todos (isso baixava ~2 MB no load e arruinava o Speed
+  // Index). O espaço do card já é reservado via CSS (.cert-preview tem height
+  // fixo), então o carregamento tardio não gera layout shift.
 
   // Recarrega certificados/currículo ao trocar idioma, para usar overrides do backend
   private readonly reloadOnLangChange = effect(() => {

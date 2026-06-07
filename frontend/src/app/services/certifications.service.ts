@@ -73,7 +73,6 @@ export class CertificationsService {
       tap(certificados => {
         this.certificados.set(certificados);
         this.error.set(null);
-        console.log(`✅ Carregados ${certificados.length} certificados do backend`);
       }),
       map(certificados => ({ certificados, curriculo: null as CertificadoPdf | null })),
       tap(() => {
@@ -104,7 +103,6 @@ export class CertificationsService {
         this.certificados.set(certificados);
         this.error.set(null);
         this.loading.set(false);
-        console.log(`✅ Carregados ${certificados.length} certificados`);
       }),
       catchError(err => {
         console.error('Erro ao carregar certificados:', err);
@@ -124,7 +122,6 @@ export class CertificationsService {
     return this.http.get<CertificadoPdf>(`${this.API_BASE}/api/certifications/curriculo`).pipe(
       tap(curriculo => {
         this.curriculo.set(curriculo);
-        console.log('✅ Currículo carregado:', curriculo.fileName);
       }),
       catchError(err => {
         console.warn('Currículo não encontrado no backend:', err);
@@ -141,7 +138,6 @@ export class CertificationsService {
     this.http.get<CertificadoPdf>(`${this.API_BASE}/api/certifications/curriculo`).pipe(
       tap(curriculo => {
         this.curriculo.set(curriculo);
-        console.log('✅ Currículo carregado:', curriculo.fileName);
       }),
       catchError(err => {
         console.warn('Currículo não encontrado:', err);

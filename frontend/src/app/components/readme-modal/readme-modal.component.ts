@@ -119,25 +119,11 @@ export class ReadmeModalComponent implements OnDestroy {
 
   private async loadRawMarkdownBackground(project: string): Promise<void> {
     try {
-      const normalized = project.toLowerCase();
-      const backendUrl = `/api/projects/${normalized}/markdown`;
-
-      try {
-        const response = await fetch(backendUrl);
-        if (response.ok) {
-          this.rawMarkdown.set(await response.text());
-          return;
-        }
-      } catch {
-        // Backend não disponível, tenta assets locais
-      }
-
-      const projectFile = this.markdownService.mapProjectToFile(project);
-      if (projectFile) {
-        const response = await fetch(`/assets/portfolio_md/${projectFile}`);
-        if (response.ok) {
-          this.rawMarkdown.set(await response.text());
-        }
+      // Reaproveita o markdown cru já em cache (preenchido na sondagem/render),
+      // evitando uma segunda requisição ao abrir o modal.
+      const raw = await this.markdownService.getRawMarkdown(project);
+      if (raw) {
+        this.rawMarkdown.set(raw);
       }
     } catch (error) {
       console.error('Erro ao carregar markdown raw:', error);

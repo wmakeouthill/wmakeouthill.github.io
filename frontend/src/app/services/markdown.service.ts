@@ -131,9 +131,25 @@ export class MarkdownService {
 
     const html = await this.renderMarkdownToHtmlInternal(markdown, normalized);
     this.setCache(normalized, html);
-    this.rawCache.delete(rawKey);
+    // Mantém o cru no cache para o botão de download (evita refazer a requisição).
+    this.rawCache.set(rawKey, markdown);
     this.availableReadmes.add(normalized);
     return html;
+  }
+
+  /**
+   * Retorna o markdown cru (para o botão de download), reaproveitando o cache
+   * preenchido na sondagem/renderização. Só faz requisição se ainda não estiver
+   * em cache — evita o fetch duplicado ao abrir o modal.
+   */
+  async getRawMarkdown(projectName: string): Promise<string> {
+    const normalized = this.normalizeProject(projectName);
+    const rawKey = this.cacheKey(normalized);
+    const cached = this.rawCache.get(rawKey);
+    if (cached) return cached;
+    const markdown = await this.fetchRawMarkdown(normalized);
+    if (markdown) this.rawCache.set(rawKey, markdown);
+    return markdown;
   }
 
   /**

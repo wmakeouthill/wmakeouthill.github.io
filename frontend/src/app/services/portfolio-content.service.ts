@@ -95,7 +95,6 @@ export class PortfolioContentService {
       if (cached) {
         const data: CachedImages = JSON.parse(cached);
         if (data.images?.length > 0) {
-          console.log(`📦 Snapshot localStorage: ${data.images.length} imagens (age: ${Math.round((Date.now() - data.timestamp) / 1000)}s)`);
           this.imagens.set(data.images);
           this.buildImageCache(data.images);
         }
@@ -116,7 +115,6 @@ export class PortfolioContentService {
     try {
       const data: CachedImages = { images, timestamp: Date.now() };
       localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      console.log(`💾 Cache de ${images.length} imagens salvo no localStorage`);
     } catch (e) {
       console.warn('Erro ao salvar cache no localStorage:', e);
     }
@@ -166,9 +164,6 @@ export class PortfolioContentService {
           this.imagens.set(imagens);
           this.buildImageCache(imagens);
           this.saveToLocalStorage(imagens);
-          console.log(`✅ ${imagens.length} imagens atualizadas (mudanças detectadas)`);
-        } else {
-          console.log(`📦 Imagens sem mudanças (${imagens.length} itens, backend confirmou)`);
         }
       }),
       map(() => this.imagens()),
@@ -249,7 +244,6 @@ export class PortfolioContentService {
       }
     }
 
-    console.log(`📦 Cache de imagens construído com ${this.imageUrlCache.size} entradas`);
     this.cacheReady = true;
   }
 
@@ -290,7 +284,6 @@ export class PortfolioContentService {
    */
   findBestImageUrl(projectName: string): string | null {
     if (!this.cacheReady && !this.loadingInProgress) {
-      console.log('🔄 Cache não pronto, iniciando carregamento em background...');
       this.loadImagens().subscribe();
     }
 
@@ -311,7 +304,6 @@ export class PortfolioContentService {
     const projectLower = projectName.toLowerCase();
     for (const [key, url] of this.imageUrlCache.entries()) {
       if (key.includes(projectLower) || projectLower.includes(key)) {
-        console.log(`🔍 Match parcial: "${projectName}" → "${key}"`);
         return url;
       }
     }
@@ -322,15 +314,10 @@ export class PortfolioContentService {
       const keyWords = key.split(/[-_\s.]+/).filter(w => w.length > 2);
       const commonWords = projectWords.filter(w => keyWords.includes(w));
       if (commonWords.length >= 2 || (commonWords.length === 1 && commonWords[0].length > 5)) {
-        console.log(`🔍 Match por palavras-chave: "${projectName}" → "${key}" (comum: ${commonWords.join(', ')})`);
         return url;
       }
     }
 
-    if (!this.loggedMissing.has(projectLower)) {
-      this.loggedMissing.add(projectLower);
-      console.debug(`⚠️ Sem imagem para: "${projectName}". Disponíveis: ${this.availableImageNames.join(', ')}`);
-    }
     return null;
   }
 
