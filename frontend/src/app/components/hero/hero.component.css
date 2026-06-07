@@ -2,12 +2,16 @@
   display: block;
 }
 
+/* Ocupa exatamente uma tela cheia em qualquer altura de desktop. O conteúdo é
+   centrado verticalmente; o padding-top só reserva o espaço da nav fixa (72px).
+   O ritmo vertical abaixo é apertado o suficiente pra tudo (incl. os 4 stats)
+   caber sem estourar a viewport e cortar embaixo. */
 .hero {
-  min-height: calc(100vh - 72px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
-  padding-top: 120px;
-  padding-bottom: 70px;
+  padding-top: 88px;
+  padding-bottom: 32px;
 }
 
 .hero-copy {
@@ -33,7 +37,15 @@
    do elemento, então damos um respiro embaixo. */
 .hero h1 {
   padding-bottom: 0.14em;
+  margin-bottom: 10px;
 }
+
+/* Espaçamentos enxutos (sobrepõem os globais) pra caber tudo em 100vh. */
+.hero-role { margin-bottom: 12px; }
+.hero-tagline { margin-bottom: 20px; }
+.hero-cta { margin-bottom: 26px; }
+/* Gap dos stats encolhe em telas menores pra manter os 4 numa linha só. */
+.hero-stats { gap: clamp(22px, 2.6vw, 48px); }
 
 /* Legibilidade dos botões do hero: peso maior e gold mais claro nos de borda. */
 .hero-cta .btn {
@@ -52,6 +64,7 @@
 /* Transição animada da code-line ao alternar Java <-> Python.
    A classe .swapping é aplicada no meio da troca de conteúdo (fade + blur). */
 .code-line {
+  margin-bottom: 10px;
   transition: opacity .28s ease, filter .28s ease, transform .28s ease;
   will-change: opacity, filter, transform;
 }

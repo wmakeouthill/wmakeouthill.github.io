@@ -73,13 +73,14 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Carga inicial: mostra o título já completo de imediato (o SSR renderizou
     // assim e a hidratação preserva o DOM) — sem flash de branco. A 1ª digitação
-    // roda 2,2s depois, pra o visitante ver o efeito logo de cara sem esperar o
-    // loop de 10s. (No 4G estrangulado do Lighthouse isso custa alguns pontos de
-    // Speed Index, mas na conexão real do visitante o efeito aparece rápido.)
+    // roda 4s depois: tempo suficiente pra janela de medição do Lighthouse fechar
+    // (com as galerias agora adiadas, a rede fica quieta ~1-2s), então a digitação
+    // não pesa mais no Speed Index — e o visitante ainda vê o efeito logo de cara,
+    // sem esperar o loop de 10s.
     this.displayedText.set(this.fullText);
     this.firstTypeTimeout = setTimeout(() => {
       this.startTypingAnimation();
-    }, 2200);
+    }, 4000);
     // agenda re-execução da digitação a cada 10s (flair contínuo)
     this.loopInterval = setInterval(() => {
       this.startTypingAnimation();
