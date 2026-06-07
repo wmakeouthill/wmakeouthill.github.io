@@ -7,7 +7,11 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,14 +31,18 @@ public class PdfThumbnailService {
    */
   private static final float DEFAULT_DPI = 150f;
 
-  /** Formato de saída da imagem */
-  private static final String OUTPUT_FORMAT = "png";
+  /** Formato de saída da imagem (JPEG: nativo do JDK, ~75% menor que PNG nessas
+   *  páginas escaneadas, container-safe sem dependência nativa). */
+  private static final String OUTPUT_FORMAT = "jpg";
+
+  /** Qualidade do JPEG (0.0–1.0). 0.82 é o ponto bom para scans de certificados. */
+  private static final float JPEG_QUALITY = 0.82f;
 
   /**
    * Gera um thumbnail da primeira página do PDF.
    *
    * @param pdfBytes bytes do PDF
-   * @return Optional com os bytes da imagem PNG, ou empty se falhar
+   * @return Optional com os bytes da imagem JPEG, ou empty se falhar
    */
   public Optional<byte[]> gerarThumbnail(byte[] pdfBytes) {
     return gerarThumbnail(pdfBytes, DEFAULT_DPI);
@@ -45,7 +53,7 @@ public class PdfThumbnailService {
    *
    * @param pdfBytes bytes do PDF
    * @param dpi      resolução da imagem (72 = tamanho original)
-   * @return Optional com os bytes da imagem PNG, ou empty se falhar
+   * @return Optional com os bytes da imagem JPEG, ou empty se falhar
    */
   public Optional<byte[]> gerarThumbnail(byte[] pdfBytes, float dpi) {
     if (pdfBytes == null || pdfBytes.length == 0) {
@@ -70,11 +78,8 @@ public class PdfThumbnailService {
 
       log.info("Página renderizada: {}x{} pixels", image.getWidth(), image.getHeight());
 
-      // Converte para bytes PNG
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      ImageIO.write(image, OUTPUT_FORMAT, outputStream);
-
-      byte[] imageBytes = outputStream.toByteArray();
+      // Converte para bytes JPEG com qualidade controlada
+      byte[] imageBytes = encodeJpeg(image);
       log.info("Thumbnail gerado com sucesso: {} bytes", imageBytes.length);
 
       return Optional.of(imageBytes);
@@ -85,10 +90,30 @@ public class PdfThumbnailService {
   }
 
   /**
+   * Codifica a imagem como JPEG aplicando {@link #JPEG_QUALITY}. A imagem é
+   * renderizada como {@link ImageType#RGB} (sem canal alfa), então é JPEG-safe.
+   */
+  private static byte[] encodeJpeg(BufferedImage image) throws IOException {
+    ImageWriter writer = ImageIO.getImageWritersByFormatName(OUTPUT_FORMAT).next();
+    ImageWriteParam param = writer.getDefaultWriteParam();
+    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+    param.setCompressionQuality(JPEG_QUALITY);
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
+      writer.setOutput(ios);
+      writer.write(null, new IIOImage(image, null, null), param);
+    } finally {
+      writer.dispose();
+    }
+    return outputStream.toByteArray();
+  }
+
+  /**
    * Gera um thumbnail com tamanho reduzido (menor DPI) para cards.
    *
    * @param pdfBytes bytes do PDF
-   * @return Optional com os bytes da imagem PNG, ou empty se falhar
+   * @return Optional com os bytes da imagem JPEG, ou empty se falhar
    */
   public Optional<byte[]> gerarThumbnailPequeno(byte[] pdfBytes) {
     return gerarThumbnail(pdfBytes, 72f); // DPI menor para thumbnail de card

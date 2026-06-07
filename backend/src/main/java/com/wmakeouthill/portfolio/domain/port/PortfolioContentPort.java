@@ -4,6 +4,7 @@ import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Porta de domínio para carregar conteúdos do portfólio
@@ -57,5 +58,16 @@ public interface PortfolioContentPort {
    */
   default Optional<String> carregarMarkdownPorProjeto(String nomeProjetoNormalizado, String language) {
     return carregarMarkdownPorProjeto(nomeProjetoNormalizado);
+  }
+
+  /**
+   * Conjunto de nomes-base (lowercase) de projetos que possuem markdown/README,
+   * derivado da listagem de arquivos (sem baixar o conteúdo). Usado para marcar
+   * {@code hasReadme} na listagem de projetos e evitar sondagem no cliente.
+   *
+   * @return nomes normalizados; nunca {@code null}
+   */
+  default Set<String> listarNomesProjetosComMarkdown() {
+    return Set.of();
   }
 }

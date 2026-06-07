@@ -126,6 +126,18 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
     return Optional.empty();
   }
 
+  @Override
+  public Set<String> listarNomesProjetosComMarkdown() {
+    Set<String> nomes = new java.util.HashSet<>();
+    for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesProjetos()) {
+      nomes.add(baseName(doc.displayName()));
+    }
+    for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesTrabalhos()) {
+      nomes.add(baseName(doc.displayName()));
+    }
+    return nomes;
+  }
+
   /**
    * Busca o markdown na lista de arquivos do repositório (case-insensitive).
    */

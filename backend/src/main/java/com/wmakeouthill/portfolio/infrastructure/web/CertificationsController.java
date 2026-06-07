@@ -216,11 +216,11 @@ public class CertificationsController {
   }
 
   /**
-   * Constrói a resposta HTTP com a imagem PNG.
+   * Constrói a resposta HTTP com a imagem JPEG do thumbnail.
    */
   private ResponseEntity<byte[]> buildImageResponse(byte[] imageBytes) {
     return ResponseEntity.ok()
-        .contentType(MediaType.IMAGE_PNG)
+        .contentType(MediaType.IMAGE_JPEG)
         .contentLength(imageBytes.length)
         .cacheControl(CacheControl.maxAge(24, TimeUnit.HOURS).cachePublic())
         .body(imageBytes);

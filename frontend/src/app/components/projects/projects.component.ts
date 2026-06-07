@@ -65,8 +65,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   private lastLanguage = this.i18nService.language();
   private initialized = false;
   private gridResizeObserver?: ResizeObserver;
-  /** URLs de imagens já aquecidas no cache do navegador (evita refazer o preload). */
-  private readonly preloadedImages = new Set<string>();
   private readmeUrlPushed = false;
   private readonly handlePopState = () => {
     if (this.showReadmeModal()) {
@@ -158,12 +156,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         this.loadLanguagesForProjects();
         this.loading.set(false);
 
-        // 🖼️ Pré-carrega TODAS as imagens (não só a página atual) para que a
-        // troca de página seja instantânea, sem reload visível.
-        this.preloadProjectImages(repos);
-
-        // 🚀 Pré-carrega READMEs de todos os projetos em background
-        this.preloadAllReadmesInBackground(repos);
+        // 📄 Marca quais projetos têm README (o backend já informa via hasReadme)
+        this.markReadmeAvailability(repos);
 
         // 🖼️ Descobre quais projetos têm galeria (para mostrar o botão só nesses)
         this.probeGalleries(repos);
@@ -176,58 +170,48 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Pré-carrega todos os READMEs em background após carregar projetos.
-   * Isso garante que quando o usuário clicar, o modal abre instantaneamente.
+   * Marca quais projetos têm README. O backend já envia `hasReadme` na listagem,
+   * então isso é síncrono e sem requisições. A renderização do markdown só
+   * acontece no clique, ao abrir o modal (mantém o TBT inicial baixo).
    */
-  private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
+  private markReadmeAvailability(repos: GitHubRepository[]): void {
+    const flagged = repos.filter(repo => repo.hasReadme);
+    if (flagged.length > 0) {
+      this.readmeProjects.set(new Set(flagged.map(repo => repo.name)));
+      return;
+    }
+
+    // Fallback p/ backend antigo (sem o campo hasReadme): sonda em idle SEM
+    // renderizar, para não acoplar a ordem dos deploys (frontend antes do Oracle).
     if (!this.isBrowser()) {
       return;
     }
-    // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
-
-    // Inicia pré-carregamento em background (não bloqueia UI)
-    setTimeout(() => {
-      this.markdownService.preloadProjectsInBackground(projectNames)
-        .then(() => this.refreshReadmeAvailability(repos))
-        .catch(error => {
-          console.error('Erro no pré-carregamento de READMEs:', error);
-          // Mesmo com erro parcial, atualiza com o que estiver em cache
-          this.refreshReadmeAvailability(repos);
-        });
-    }, 500); // Pequeno delay para não competir com carregamento inicial
-  }
-
-  /** Marca quais projetos têm README disponível (conteúdo não-vazio em cache). */
-  private refreshReadmeAvailability(repos: GitHubRepository[]): void {
-    const available = new Set<string>();
-    for (const repo of repos) {
-      if (this.markdownService.getReadmeContentSync(repo.name)) {
-        available.add(repo.name);
-      }
-    }
-    this.readmeProjects.set(available);
+    this.runWhenIdle(() => {
+      this.markdownService.probeReadmesInBackground(projectNames).finally(() => {
+        const available = new Set<string>();
+        for (const repo of repos) {
+          if (this.markdownService.isReadmeAvailable(repo.name)) {
+            available.add(repo.name);
+          }
+        }
+        this.readmeProjects.set(available);
+      });
+    });
   }
 
   /**
-   * Aquece o cache do navegador com as imagens de todos os projetos (não apenas
-   * os da página atual). Leve e em baixa prioridade: usa `new Image()` com
-   * `fetchPriority`/`decoding` para não competir com o carregamento inicial.
+   * Executa uma tarefa de baixa prioridade quando a thread principal estiver
+   * ociosa, com fallback para setTimeout em browsers sem requestIdleCallback.
    */
-  private preloadProjectImages(repos: GitHubRepository[]): void {
-    if (!this.isBrowser()) {
-      return;
-    }
-    for (const repo of repos) {
-      const url = this.getProjectImage(repo.name);
-      if (!url || this.preloadedImages.has(url) || url.includes('placehold.co')) {
-        continue;
-      }
-      this.preloadedImages.add(url);
-      const img = new Image();
-      img.decoding = 'async';
-      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
-      img.src = url;
+  private runWhenIdle(task: () => void): void {
+    const ric = (globalThis as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+    }).requestIdleCallback;
+    if (typeof ric === 'function') {
+      ric(task, { timeout: 3000 });
+    } else {
+      setTimeout(task, 1500);
     }
   }
 
@@ -236,17 +220,22 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     if (!this.isBrowser()) {
       return;
     }
-    for (const repo of repos) {
-      const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
-      this.http.get<unknown[]>(url).subscribe({
-        next: (files) => {
-          if (Array.isArray(files) && files.length > 0) {
-            this.galleryProjects.update(set => new Set(set).add(repo.name));
-          }
-        },
-        error: () => { /* sem galeria — botão permanece oculto */ }
-      });
-    }
+    // Sonda em idle: são ~1 request por projeto (~33) e disparar tudo no load
+    // satura a conexão (no 4G lento) justo na janela de medição do Speed Index.
+    // O botão de galeria fica abaixo da dobra, então pode ser descoberto depois.
+    this.runWhenIdle(() => {
+      for (const repo of repos) {
+        const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
+        this.http.get<unknown[]>(url).subscribe({
+          next: (files) => {
+            if (Array.isArray(files) && files.length > 0) {
+              this.galleryProjects.update(set => new Set(set).add(repo.name));
+            }
+          },
+          error: () => { /* sem galeria — botão permanece oculto */ }
+        });
+      }
+    });
   }
 
   /** Projeto tem galeria com mídia? */
@@ -398,10 +387,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   openReadmeModal(projectName: string): void {
-    console.log(`⚡ Abrindo modal README para: ${projectName}`);
     this.currentProjectName.set(projectName);
     this.showReadmeModal.set(true);
-    console.log(`✅ Modal aberto para ${projectName}`);
   }
 
   /** URL real (rastreável pelo bot) da página de detalhe do projeto, por idioma. */
@@ -441,7 +428,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     } else {
       this.readmeUrlPushed = false;
     }
-    console.log('📱 Modal fechado - cache mantido');
   }
 
   private isBrowser(): boolean {
@@ -449,7 +435,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   openCodePreviewModal(project: GitHubRepository): void {
-    console.log(`💻 Abrindo Code Preview para: ${project.name}`);
     this.currentProjectForPreview.set(project.name);
     this.showCodePreviewModal.set(true);
   }
@@ -457,7 +442,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   closeCodePreviewModal(): void {
     this.showCodePreviewModal.set(false);
     this.currentProjectForPreview.set('');
-    console.log('💻 Code Preview fechado');
   }
 
   openDemoModal(project: GitHubRepository): void {
@@ -517,7 +501,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
     // Se cache não está pronto, tenta recarregar imagens
     if (!this.portfolioContentService.isCacheReady()) {
-      console.log(`🔄 Recarregando imagens devido erro em: ${projectName}`);
       this.portfolioContentService.forceReload().subscribe({
         next: () => {
           // Tenta nova URL do cache atualizado

@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MarkdownService } from '../../services/markdown.service';
 import { ScrollLockService } from '../../services/scroll-lock.service';
+import { ensurePrism } from '../../utils/prism-loader.util';
 
 @Component({
   selector: 'app-readme-modal',
@@ -89,7 +90,6 @@ export class ReadmeModalComponent implements OnDestroy {
 
     if (cached) {
       // Conteúdo já em cache - mostra instantaneamente sem loading
-      console.log(`⚡ README de ${project} carregado do cache instantaneamente!`);
       this.readmeContent.set(this.sanitizer.bypassSecurityTrustHtml(cached));
       this.loadingReadme.set(false);
 
@@ -103,7 +103,6 @@ export class ReadmeModalComponent implements OnDestroy {
 
     // Não está no cache - precisa carregar (mostra loading)
     this.loadingReadme.set(true);
-    console.log(`📥 Carregando README de ${project} do servidor...`);
 
     try {
       const html = await this.markdownService.preloadProject(project);
@@ -120,45 +119,32 @@ export class ReadmeModalComponent implements OnDestroy {
 
   private async loadRawMarkdownBackground(project: string): Promise<void> {
     try {
-      const normalized = project.toLowerCase();
-      const backendUrl = `/api/projects/${normalized}/markdown`;
-
-      try {
-        const response = await fetch(backendUrl);
-        if (response.ok) {
-          this.rawMarkdown.set(await response.text());
-          return;
-        }
-      } catch {
-        // Backend não disponível, tenta assets locais
-      }
-
-      const projectFile = this.markdownService.mapProjectToFile(project);
-      if (projectFile) {
-        const response = await fetch(`/assets/portfolio_md/${projectFile}`);
-        if (response.ok) {
-          this.rawMarkdown.set(await response.text());
-        }
+      // Reaproveita o markdown cru já em cache (preenchido na sondagem/render),
+      // evitando uma segunda requisição ao abrir o modal.
+      const raw = await this.markdownService.getRawMarkdown(project);
+      if (raw) {
+        this.rawMarkdown.set(raw);
       }
     } catch (error) {
       console.error('Erro ao carregar markdown raw:', error);
     }
   }
 
-  private setupCodeBlocks(): void {
+  private async setupCodeBlocks(): Promise<void> {
     const contentEl = this.markdownContent()?.nativeElement;
     if (!contentEl) return;
 
-    // Aplicar syntax highlighting com PrismJS
-    if (typeof (window as any).Prism !== 'undefined') {
+    // Aplicar syntax highlighting com PrismJS (carregado sob demanda)
+    const Prism = await ensurePrism();
+    if (Prism) {
       const codeBlocks = contentEl.querySelectorAll('pre code');
       codeBlocks.forEach((codeBlock: HTMLElement) => {
-        (window as any).Prism.highlightElement(codeBlock);
+        Prism.highlightElement(codeBlock);
 
         if (!codeBlock.className.includes('language-')) {
           const language = this.detectLanguage(codeBlock.textContent || '');
           codeBlock.className = `language-${language}`;
-          (window as any).Prism.highlightElement(codeBlock);
+          Prism.highlightElement(codeBlock);
         }
       });
     }

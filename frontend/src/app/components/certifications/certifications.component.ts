@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, inject, signal, effect, computed, viewChild, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CertificationsService, CertificadoPdf } from '../../services/certifications.service';
 import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
 import { TranslatePipe } from '../../i18n/i18n.pipe';
@@ -18,8 +19,30 @@ export class CertificationsComponent implements OnInit {
   private readonly certificationsService = inject(CertificationsService);
   private readonly i18nService = inject(I18nService);
   private readonly scrollLock = inject(ScrollLockService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private scrollLocked = false;
+
+  /**
+   * Usa o renderizador de PDF nativo do navegador (PDFium via <iframe>) quando ele
+   * suporta exibição inline — detecção padrão `navigator.pdfViewerEnabled`. Isso
+   * evita baixar o pdf.js (~1,8 MB: worker + chunk) e renderiza instantaneamente
+   * a partir do PDF já servido `inline` e cacheado pelo backend. O pdf.js continua
+   * como fallback (mobile/navegadores sem viewer nativo), carregado lazy.
+   */
+  readonly useNativePdf = this.isBrowser
+    && typeof navigator !== 'undefined'
+    && navigator.pdfViewerEnabled === true;
+
+  /** URL confiável do PDF para o <iframe> nativo (somente quando `useNativePdf`). */
+  readonly nativePdfUrl = computed<SafeResourceUrl | null>(() => {
+    const cert = this.selectedCertificado();
+    if (!cert || !this.useNativePdf) {
+      return null;
+    }
+    const url = `${this.getPdfUrl(cert)}#toolbar=1&navpanes=0&view=FitH`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
 
   readonly certificationsSection = viewChild<ElementRef<HTMLElement>>('certificationsSection');
 
@@ -108,27 +131,12 @@ export class CertificationsComponent implements OnInit {
 
   private lastLanguage = this.i18nService.language();
   private initialized = false;
-  /** URLs de thumbnails já aquecidos no cache do navegador. */
-  private readonly preloadedThumbnails = new Set<string>();
 
-  // Pré-carrega os thumbnails de TODOS os certificados (não só a página atual)
-  // assim que a lista chega, para que a paginação seja instantânea e sem reload.
-  private readonly preloadThumbnails = effect(() => {
-    if (!this.isBrowser) {
-      return;
-    }
-    for (const cert of this.certificados()) {
-      const url = this.getThumbnailUrl(cert);
-      if (!url || this.preloadedThumbnails.has(url)) {
-        continue;
-      }
-      this.preloadedThumbnails.add(url);
-      const img = new Image();
-      img.decoding = 'async';
-      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'low';
-      img.src = url;
-    }
-  });
+  // Os thumbnails usam `loading="lazy"` no template e a seção fica bem abaixo da
+  // dobra, então o navegador só os baixa quando entram em viewport. NÃO fazemos
+  // mais preload eager de todos (isso baixava ~2 MB no load e arruinava o Speed
+  // Index). O espaço do card já é reservado via CSS (.cert-preview tem height
+  // fixo), então o carregamento tardio não gera layout shift.
 
   // Recarrega certificados/currículo ao trocar idioma, para usar overrides do backend
   private readonly reloadOnLangChange = effect(() => {

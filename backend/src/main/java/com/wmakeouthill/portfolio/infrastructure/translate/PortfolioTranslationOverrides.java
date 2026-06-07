@@ -67,7 +67,8 @@ public class PortfolioTranslationOverrides {
               repo.pushedAt(),
               repo.fork(),
               repo.languages(),
-              repo.totalSizeBytes());
+              repo.totalSizeBytes(),
+              repo.hasReadme());
         })
         .toList();
   }

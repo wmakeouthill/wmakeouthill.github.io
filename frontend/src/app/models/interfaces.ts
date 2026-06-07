@@ -28,6 +28,7 @@ export interface GitHubRepository {
   updated_at: string;
   pushed_at: string;
   fork: boolean; // Adicionada propriedade fork
+  hasReadme?: boolean; // Backend informa se há README/markdown (evita sondagem no cliente)
 }
 
 // Interface para skills/tecnologias

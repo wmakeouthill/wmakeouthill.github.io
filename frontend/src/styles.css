@@ -1,4 +1,19 @@
 /* ===========================
+   Fontes self-hosted
+   =========================== */
+/* Press Start 2P (pixel) servida do nosso domínio com cache imutável.
+   font-display:optional = se não carregar no curto bloco inicial, usa o fallback
+   monospace e NÃO troca depois do paint → zero CLS por troca de fonte. */
+@font-face {
+  font-family: 'Press Start 2P';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/fonts/press-start-2p-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ===========================
    Variáveis CSS Globais
    =========================== */
 :root {

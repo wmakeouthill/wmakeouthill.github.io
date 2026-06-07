@@ -224,6 +224,17 @@
   cursor: grabbing;
 }
 
+/* Renderizador de PDF nativo do navegador (PDFium). O toolbar/zoom/scroll são do
+   próprio viewer nativo — por isso os controles customizados ficam ocultos. */
+.pdf-native-frame {
+  width: 100%;
+  height: 72vh;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: #525659;
+  display: block;
+}
+
 .pdf-rotation-wrapper {
   min-height: 100%;
   display: flex;
@@ -265,7 +276,8 @@
     flex-wrap: wrap;
   }
 
-  .pdf-container {
+  .pdf-container,
+  .pdf-native-frame {
     height: calc(100dvh - 190px);
   }
 }

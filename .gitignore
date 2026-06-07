@@ -108,6 +108,7 @@ temp/
 .tmp/
 *.tmp
 *.temp
+.tmp-portfolio-wesley-backend.tar*
 .DS_Store
 Thumbs.db
 desktop.ini

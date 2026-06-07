@@ -1,11 +1,17 @@
 import { ElementRef } from '@angular/core';
+import { ensurePrism } from '../../../utils/prism-loader.util';
 
 export function useSyntaxHighlighting(
   messagesContainer: ElementRef<HTMLDivElement> | undefined
 ): void {
-  setTimeout(() => {
+  setTimeout(async () => {
     const container = messagesContainer?.nativeElement;
-    if (!container || typeof (window as any).Prism === 'undefined') {
+    if (!container) {
+      return;
+    }
+
+    const Prism = await ensurePrism();
+    if (!Prism) {
       return;
     }
 
@@ -26,7 +32,7 @@ export function useSyntaxHighlighting(
       }
 
       try {
-        (window as any).Prism.highlightElement(codeBlock, false);
+        Prism.highlightElement(codeBlock, false);
       } catch (error) {
         console.warn('Erro ao aplicar syntax highlighting:', error);
       }

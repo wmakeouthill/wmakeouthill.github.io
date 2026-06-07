@@ -1,6 +1,6 @@
 <nav class="top" [class.scrolled]="isScrolled()">
   <div class="nav-inner">
-    <a (click)="scrollToSection('hero')" class="brand">
+    <a href="#hero" (click)="scrollToSection('hero', $event)" class="brand">
       <span class="logo">
         <svg viewBox="0 0 40 40" aria-hidden="true">
           <defs>
@@ -20,7 +20,7 @@
     <div class="nav-links">
       @for (item of navItems; track item.section) {
         @if (item.section !== 'hero') {
-          <a (click)="scrollToSection(item.section)" [class.active]="activeSection() === item.section">
+          <a [href]="'#' + item.section" (click)="scrollToSection(item.section, $event)" [class.active]="activeSection() === item.section">
             {{ item.labelKey | translate }}
           </a>
         }
@@ -28,7 +28,7 @@
     </div>
 
     <div class="nav-right">
-      <a (click)="scrollToSection('contact')" class="btn btn-accent nav-cta">Vamos conversar</a>
+      <a href="#contact" (click)="scrollToSection('contact', $event)" class="btn btn-accent nav-cta">Vamos conversar</a>
       <button class="nav-toggle" (click)="toggleMobileMenu()" aria-label="Menu">☰</button>
     </div>
   </div>
@@ -37,7 +37,7 @@
     <div class="mobile-menu prototype-mobile-menu">
       @for (item of navItems; track item.section) {
         @if (item.section !== 'hero') {
-          <a (click)="scrollToSection(item.section)" [class.active]="activeSection() === item.section">
+          <a [href]="'#' + item.section" (click)="scrollToSection(item.section, $event)" [class.active]="activeSection() === item.section">
             {{ item.labelKey | translate }}
           </a>
         }

@@ -13,8 +13,12 @@ export class MarkdownService {
   private readonly i18n = inject(I18nService);
 
   private readonly memoryCache = new Map<string, string>();
-  private preloadingInProgress = false;
-  private preloadedProjects = new Set<string>();
+  // Markdown cru (sem renderizar) buscado na sondagem de disponibilidade. Evita
+  // refazer a requisição na abertura do modal — lá só falta renderizar.
+  private readonly rawCache = new Map<string, string>();
+  // Projetos que comprovadamente possuem README (controla o badge/botão).
+  private readonly availableReadmes = new Set<string>();
+  private probingInProgress = false;
   private markedInstance: any = null;
   private mermaidInstance: any = null;
 
@@ -43,74 +47,76 @@ export class MarkdownService {
   }
 
   /**
-   * Pré-carrega READMEs de uma lista dinâmica de projetos.
-   * Carrega em background sem bloquear a UI.
-   * @param projectNames Lista de nomes de projetos para pré-carregar
+   * Descobre quais projetos têm README SEM renderizar (sem carregar marked nem
+   * mermaid). Busca só o markdown cru e o guarda em cache, para que a abertura
+   * do modal não refaça a requisição — só renderiza no clique. Roda em idle,
+   * mantendo o TBT baixo (antes, renderizar ~40 docs no load era o gargalo).
+   * @param projectNames Lista de nomes de projetos para sondar
    */
-  async preloadProjectsInBackground(projectNames: string[]): Promise<void> {
-    if (this.preloadingInProgress) {
-      console.log('⏳ Pré-carregamento já em andamento...');
+  async probeReadmesInBackground(projectNames: string[]): Promise<void> {
+    if (this.probingInProgress) {
       return;
     }
-
-    this.preloadingInProgress = true;
-    console.log(`🚀 Iniciando pré-carregamento de ${projectNames.length} READMEs em background...`);
-
-    const startTime = performance.now();
-    let loaded = 0;
-    let cached = 0;
-    let failed = 0;
+    this.probingInProgress = true;
 
     for (const project of projectNames) {
       const normalized = this.normalizeProject(project);
 
-      // Já pré-carregado nesta sessão?
-      if (this.preloadedProjects.has(normalized)) {
-        cached++;
+      // Já conhecido (sondado nesta sessão ou já renderizado em cache)?
+      if (this.availableReadmes.has(normalized)) {
         continue;
       }
-
-      // Já está no cache (localStorage ou memória)?
-      const existing = this.getReadmeContentSync(normalized);
-      if (existing) {
-        this.preloadedProjects.add(normalized);
-        cached++;
+      if (this.getReadmeContentSync(normalized)) {
+        this.availableReadmes.add(normalized);
         continue;
       }
 
       try {
-        // Aguarda um pouco entre requisições para não sobrecarregar
+        // Espaça as requisições para não saturar a rede em idle.
         await this.delay(100);
-        await this.preloadProject(project);
-        this.preloadedProjects.add(normalized);
-        loaded++;
-        console.log(`✅ README de "${project}" pré-carregado`);
-      } catch (error) {
-        failed++;
-        console.warn(`⚠️ Falha ao pré-carregar README de "${project}":`, error);
+        const markdown = await this.fetchRawMarkdown(normalized);
+        if (markdown) {
+          this.rawCache.set(this.cacheKey(normalized), markdown);
+          this.availableReadmes.add(normalized);
+        }
+      } catch {
+        // Projeto sem README — botão permanece oculto.
       }
     }
 
-    const duration = Math.round(performance.now() - startTime);
-    console.log(`📦 Pré-carregamento concluído em ${duration}ms: ${loaded} carregados, ${cached} já em cache, ${failed} falhas`);
-    this.preloadingInProgress = false;
+    this.probingInProgress = false;
+  }
+
+  /** README disponível? (cache renderizado, markdown cru sondado ou já marcado) */
+  isReadmeAvailable(projectName: string): boolean {
+    const normalized = this.normalizeProject(projectName);
+    return this.availableReadmes.has(normalized) || !!this.getReadmeContentSync(normalized);
   }
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Compat: pré-carrega todos os projetos conhecidos (lista estática - fallback)
-  async preloadAllMermaidDiagrams(): Promise<void> {
-    const defaultProjects = [
-      'aa_space',
-      'lol-matchmaking-fazenda',
-      'mercearia-r-v',
-      'traffic_manager',
-      'first-angular-app',
-      'investment_calculator'
-    ];
-    await this.preloadProjectsInBackground(defaultProjects);
+  /** Busca o markdown cru (backend → fallback assets locais) SEM renderizar. */
+  private async fetchRawMarkdown(projectName: string): Promise<string> {
+    const normalized = this.normalizeProject(projectName);
+
+    // 1) Backend: busca dinâmica do repositório GitHub.
+    const backendUrl = `${this.backendProjectsApi}/${encodeURIComponent(normalized)}/markdown`;
+    try {
+      const markdown = await lastValueFrom(this.http.get(backendUrl, { responseType: 'text' }));
+      if (markdown) return markdown;
+    } catch {
+      // Cai no fallback de assets locais.
+    }
+
+    // 2) Fallback: assets locais.
+    const mdPath = `assets/portfolio_md/${this.mapProjectToFile(normalized)}`;
+    try {
+      return await lastValueFrom(this.http.get(mdPath, { responseType: 'text' }));
+    } catch {
+      return '';
+    }
   }
 
   async preloadProject(projectName: string): Promise<string> {
@@ -118,40 +124,32 @@ export class MarkdownService {
     const existing = this.getReadmeContentSync(normalized);
     if (existing) return existing;
 
-    let markdown = '';
-
-    // 1) Tenta backend: /api/projects/{projectName}/markdown
-    // O backend busca dinamicamente do repositório GitHub
-    const backendUrl = `${this.backendProjectsApi}/${encodeURIComponent(normalized)}/markdown`;
-    try {
-      markdown = await lastValueFrom(
-        this.http.get(backendUrl, { responseType: 'text' })
-      );
-      console.log(`✅ Markdown de "${projectName}" carregado do backend`);
-    } catch (error) {
-      console.warn(`⚠️ Markdown de "${projectName}" não encontrado no backend:`, error);
-      markdown = '';
-    }
-
-    // 2) Fallback para assets locais apenas se backend falhou
-    if (!markdown) {
-      const file = this.mapProjectToFile(normalized);
-      const mdPath = `assets/portfolio_md/${file}`;
-      try {
-        markdown = await lastValueFrom(
-          this.http.get(mdPath, { responseType: 'text' })
-        );
-        console.log(`✅ Markdown de "${projectName}" carregado de assets locais`);
-      } catch {
-        console.warn(`⚠️ Markdown de "${projectName}" não encontrado em assets locais`);
-        markdown = '';
-      }
-    }
-
+    const rawKey = this.cacheKey(normalized);
+    // Reaproveita o markdown cru da sondagem quando disponível; senão, busca.
+    const markdown = this.rawCache.get(rawKey) ?? await this.fetchRawMarkdown(normalized);
     if (!markdown) return '';
+
     const html = await this.renderMarkdownToHtmlInternal(markdown, normalized);
     this.setCache(normalized, html);
+    // Mantém o cru no cache para o botão de download (evita refazer a requisição).
+    this.rawCache.set(rawKey, markdown);
+    this.availableReadmes.add(normalized);
     return html;
+  }
+
+  /**
+   * Retorna o markdown cru (para o botão de download), reaproveitando o cache
+   * preenchido na sondagem/renderização. Só faz requisição se ainda não estiver
+   * em cache — evita o fetch duplicado ao abrir o modal.
+   */
+  async getRawMarkdown(projectName: string): Promise<string> {
+    const normalized = this.normalizeProject(projectName);
+    const rawKey = this.cacheKey(normalized);
+    const cached = this.rawCache.get(rawKey);
+    if (cached) return cached;
+    const markdown = await this.fetchRawMarkdown(normalized);
+    if (markdown) this.rawCache.set(rawKey, markdown);
+    return markdown;
   }
 
   /**

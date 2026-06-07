@@ -33,6 +33,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private typingInterval: any;
   private loopInterval: any;
   private swapTimeout: any;
+  private firstTypeTimeout: any;
+  /** Evita re-digitar na 1ª execução do effect (carga inicial). */
+  private firstLangRun = true;
   private readonly langEffect = effect(() => {
     // Recalcula o título quando o idioma muda
     this.fullText = this.i18n.translate('hero.title');
@@ -41,6 +44,15 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       this.displayedText.set(this.fullText);
       return;
     }
+    if (this.firstLangRun) {
+      // Carga inicial: mostra o título completo (SSR já renderizou assim) sem
+      // re-digitar, evitando o flash de branco que inflava o Speed Index.
+      // A digitação roda nos loops seguintes (ver ngOnInit).
+      this.firstLangRun = false;
+      this.displayedText.set(this.fullText);
+      return;
+    }
+    // Troca de idioma real (interação do usuário): aí sim re-digita.
     this.restartTypingAnimation();
   });
 
@@ -59,9 +71,16 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // inicia a primeira execução imediatamente
-    this.startTypingAnimation();
-    // agenda re-execução a cada 8 segundos
+    // Carga inicial: mostra o título já completo de imediato (o SSR renderizou
+    // assim e a hidratação preserva o DOM) — sem flash de branco. A 1ª digitação
+    // roda 2,2s depois, pra o visitante ver o efeito logo de cara sem esperar o
+    // loop de 10s. (No 4G estrangulado do Lighthouse isso custa alguns pontos de
+    // Speed Index, mas na conexão real do visitante o efeito aparece rápido.)
+    this.displayedText.set(this.fullText);
+    this.firstTypeTimeout = setTimeout(() => {
+      this.startTypingAnimation();
+    }, 2200);
+    // agenda re-execução da digitação a cada 10s (flair contínuo)
     this.loopInterval = setInterval(() => {
       this.startTypingAnimation();
     }, 10000);
@@ -165,6 +184,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.swapTimeout) {
       clearTimeout(this.swapTimeout);
+    }
+    if (this.firstTypeTimeout) {
+      clearTimeout(this.firstTypeTimeout);
     }
   }
 
