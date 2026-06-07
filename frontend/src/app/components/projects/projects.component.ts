@@ -220,17 +220,22 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     if (!this.isBrowser()) {
       return;
     }
-    for (const repo of repos) {
-      const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
-      this.http.get<unknown[]>(url).subscribe({
-        next: (files) => {
-          if (Array.isArray(files) && files.length > 0) {
-            this.galleryProjects.update(set => new Set(set).add(repo.name));
-          }
-        },
-        error: () => { /* sem galeria — botão permanece oculto */ }
-      });
-    }
+    // Sonda em idle: são ~1 request por projeto (~33) e disparar tudo no load
+    // satura a conexão (no 4G lento) justo na janela de medição do Speed Index.
+    // O botão de galeria fica abaixo da dobra, então pode ser descoberto depois.
+    this.runWhenIdle(() => {
+      for (const repo of repos) {
+        const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
+        this.http.get<unknown[]>(url).subscribe({
+          next: (files) => {
+            if (Array.isArray(files) && files.length > 0) {
+              this.galleryProjects.update(set => new Set(set).add(repo.name));
+            }
+          },
+          error: () => { /* sem galeria — botão permanece oculto */ }
+        });
+      }
+    });
   }
 
   /** Projeto tem galeria com mídia? */

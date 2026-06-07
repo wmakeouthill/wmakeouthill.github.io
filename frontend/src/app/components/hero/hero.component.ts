@@ -33,6 +33,8 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private typingInterval: any;
   private loopInterval: any;
   private swapTimeout: any;
+  /** Evita re-digitar na 1ª execução do effect (carga inicial). */
+  private firstLangRun = true;
   private readonly langEffect = effect(() => {
     // Recalcula o título quando o idioma muda
     this.fullText = this.i18n.translate('hero.title');
@@ -41,6 +43,15 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       this.displayedText.set(this.fullText);
       return;
     }
+    if (this.firstLangRun) {
+      // Carga inicial: mostra o título completo (SSR já renderizou assim) sem
+      // re-digitar, evitando o flash de branco que inflava o Speed Index.
+      // A digitação roda nos loops seguintes (ver ngOnInit).
+      this.firstLangRun = false;
+      this.displayedText.set(this.fullText);
+      return;
+    }
+    // Troca de idioma real (interação do usuário): aí sim re-digita.
     this.restartTypingAnimation();
   });
 
@@ -59,9 +70,11 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // inicia a primeira execução imediatamente
-    this.startTypingAnimation();
-    // agenda re-execução a cada 8 segundos
+    // Carga inicial: NÃO digita — mostra o título já completo (o SSR renderizou
+    // assim e a hidratação preserva o DOM). Isso mantém o hero "visualmente
+    // completo" no FCP e melhora o Speed Index. A digitação fica só nos loops.
+    this.displayedText.set(this.fullText);
+    // agenda a animação de digitação a cada 10s (flair, sem custo no load)
     this.loopInterval = setInterval(() => {
       this.startTypingAnimation();
     }, 10000);
