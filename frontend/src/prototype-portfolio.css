@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:54px 0 38px;position:relative;
   nav.top.open .nav-links{display:flex;position:absolute;top:72px;left:0;right:0;flex-direction:column;background:var(--bg-primary);border-bottom:1px solid var(--border);padding:14px 32px;gap:2px;}
 }
 @media(max-width:620px){
-  .wrap,.nav-inner{width:100%;max-width:100%;padding-left:16px;padding-right:16px;}
+  .wrap,.nav-inner{width:100%;max-width:100%;padding-left:24px;padding-right:24px;}
   section.block{padding:66px 0;}
   .hero{padding-top:100px;}
   .proj-grid,.highlights{grid-template-columns:1fr;}

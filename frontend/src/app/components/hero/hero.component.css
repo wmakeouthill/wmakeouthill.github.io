@@ -163,8 +163,9 @@
 
 @media (max-width: 620px) {
   .hero {
+    flex-direction: column;
     padding-top: 92px;
-    padding-bottom: 52px;
+    padding-bottom: 40px;
   }
 
   .hero-grid {
@@ -196,5 +197,12 @@
   .octocat {
     top: -10px;
     right: -8px;
+  }
+
+  .scroll-hint {
+    position: static;
+    transform: none;
+    margin: 36px auto 0;
+    animation: none;
   }
 }
