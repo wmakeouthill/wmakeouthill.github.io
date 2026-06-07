@@ -19,5 +19,10 @@
   ↑
 </button>
 
-<!-- Widget de chat com IA sobre o Wesley -->
-<app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
+<!-- Widget de chat com IA sobre o Wesley — carregado em idle, fora do caminho
+     crítico. É interativo só no browser, então não precisa entrar no main.js
+     nem no HTML do SSR; o @defer gera um chunk próprio (corta o JS não usado no
+     load). É position:fixed, então o placeholder vazio não causa CLS. -->
+@defer (on idle) {
+  <app-chat-widget [scrollToTopVisible]="showScrollToTop()"></app-chat-widget>
+}
