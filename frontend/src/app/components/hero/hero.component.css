@@ -6,7 +6,8 @@
   min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
-  padding: 120px 0 70px;
+  padding-top: 120px;
+  padding-bottom: 70px;
 }
 
 .hero-copy {

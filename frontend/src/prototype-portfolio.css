@@ -108,7 +108,7 @@ nav.top.scrolled{border-bottom:1px solid var(--border);background:rgba(10,10,12,
 .nav-toggle{display:none;background:none;border:1px solid var(--border-strong);color:#fff;width:42px;height:40px;border-radius:9px;font-size:18px;}
 
 /* ===== Section scaffolding ===== */
-section.block{padding:92px 0;position:relative;z-index:1;}
+section.block{padding-block:92px;position:relative;z-index:1;}
 .section-title{text-align:center;margin-bottom:50px;}
 .section-title .eyebrow{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:var(--color-accent);display:block;margin-bottom:14px;}
 .section-title h2{display:inline-block;position:relative;font-size:clamp(2rem,4vw,2.8rem);font-weight:700;letter-spacing:-.02em;padding-bottom:18px;}
@@ -116,7 +116,7 @@ section.block{padding:92px 0;position:relative;z-index:1;}
 .section-title p{color:var(--text-muted);font-size:1.1rem;margin-top:18px;max-width:620px;margin-left:auto;margin-right:auto;}
 
 /* ===== Hero ===== */
-.hero{min-height:calc(100vh - 72px);display:flex;align-items:center;padding:120px 0 70px;position:relative;z-index:1;}
+.hero{min-height:calc(100vh - 72px);display:flex;align-items:center;padding-top:120px;padding-bottom:70px;position:relative;z-index:1;}
 .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;grid-template-areas:"intro photo" "details photo";column-gap:60px;row-gap:0;align-items:center;width:100%;}
 .code-line{font-family:var(--font-mono);font-size:.95rem;margin-bottom:18px;color:var(--text-muted);}
 .code-line .cls{color:#4FC3F7;}.code-line .mth{color:var(--color-accent);}.code-line .str{color:#A5D6A7;}.code-line .pn{color:var(--text-secondary);}
@@ -396,8 +396,8 @@ footer{border-top:1px solid var(--border);padding:54px 0 38px;position:relative;
   nav.top.open .nav-links{display:flex;position:absolute;top:72px;left:0;right:0;flex-direction:column;background:var(--bg-primary);border-bottom:1px solid var(--border);padding:14px 32px;gap:2px;}
 }
 @media(max-width:620px){
-  .wrap,.nav-inner{width:100%;max-width:100%;padding-left:24px;padding-right:24px;}
-  section.block{padding:66px 0;}
+  header.wrap,section.wrap,footer .wrap,.nav-inner{width:100%;max-width:100%;padding-left:24px;padding-right:24px;}
+  section.block{padding-block:66px;}
   .hero{padding-top:100px;}
   .proj-grid,.highlights{grid-template-columns:1fr;}
   .hero-stats{gap:30px;}
