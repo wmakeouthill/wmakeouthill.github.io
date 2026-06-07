@@ -33,6 +33,7 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
   private typingInterval: any;
   private loopInterval: any;
   private swapTimeout: any;
+  private firstTypeTimeout: any;
   /** Evita re-digitar na 1ª execução do effect (carga inicial). */
   private firstLangRun = true;
   private readonly langEffect = effect(() => {
@@ -70,11 +71,16 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Carga inicial: NÃO digita — mostra o título já completo (o SSR renderizou
-    // assim e a hidratação preserva o DOM). Isso mantém o hero "visualmente
-    // completo" no FCP e melhora o Speed Index. A digitação fica só nos loops.
+    // Carga inicial: mostra o título já completo de imediato (o SSR renderizou
+    // assim e a hidratação preserva o DOM) — sem flash de branco. A 1ª digitação
+    // roda 2,2s depois, pra o visitante ver o efeito logo de cara sem esperar o
+    // loop de 10s. (No 4G estrangulado do Lighthouse isso custa alguns pontos de
+    // Speed Index, mas na conexão real do visitante o efeito aparece rápido.)
     this.displayedText.set(this.fullText);
-    // agenda a animação de digitação a cada 10s (flair, sem custo no load)
+    this.firstTypeTimeout = setTimeout(() => {
+      this.startTypingAnimation();
+    }, 2200);
+    // agenda re-execução da digitação a cada 10s (flair contínuo)
     this.loopInterval = setInterval(() => {
       this.startTypingAnimation();
     }, 10000);
@@ -178,6 +184,9 @@ export class HeroComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.swapTimeout) {
       clearTimeout(this.swapTimeout);
+    }
+    if (this.firstTypeTimeout) {
+      clearTimeout(this.firstTypeTimeout);
     }
   }
 
