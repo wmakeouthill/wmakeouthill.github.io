@@ -69,7 +69,7 @@ public class AIChatRouter implements AIChatPort {
             return openaiAdapter.chat(systemPrompt, historico, mensagemAtual);
         }
 
-        return new ChatResponse("Nenhum provedor de IA configurado. Configure GEMINI_API_KEY ou OPENAI_API_KEY.");
+        return new ChatResponse("Nenhum provedor de IA configurado. Configure o Vertex AI ou OPENAI_API_KEY.");
     }
 
     /**

@@ -13,11 +13,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Adapter para integração com a API do Google Gemini.
+ * Adapter para integração com o Gemini através do Vertex AI.
  * 
  * <p>
  * Gemini é significativamente mais rápido que GPT-4, mantendo boa qualidade.
@@ -35,17 +31,18 @@ import java.util.stream.Collectors;
  * </p>
  * 
  * <p>
- * A chave deve ser fornecida via variável de ambiente `GEMINI_API_KEY`
- * ou via propriedade `gemini.api.key`.
+ * A autenticação usa Application Default Credentials. Em produção, forneça o
+ * JSON da service account via `GOOGLE_APPLICATION_CREDENTIALS`.
  * </p>
  * 
  * <p>
  * Exemplo de configuração:
  * 
  * <pre>
- * gemini.api.key=${GEMINI_API_KEY:}
- * gemini.model=gemini-2.5-flash
- * gemini.models.fallback=gemini-2.0-flash,gemini-2.0-flash-lite
+ * vertex.ai.project-id=${VERTEX_AI_PROJECT_ID:}
+ * vertex.ai.location=${VERTEX_AI_LOCATION:global}
+ * gemini.model=gemini-3.1-flash-lite
+ * gemini.models.fallback=gemini-2.5-flash
  * </pre>
  * </p>
  */
@@ -53,23 +50,22 @@ import java.util.stream.Collectors;
 @Primary
 public class GeminiAdapter implements AIChatPort {
     private static final Logger log = LoggerFactory.getLogger(GeminiAdapter.class);
-    private static final String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
-    private static final String MODELO_PADRAO = "gemini-1.5-flash";
+    private static final String MODELO_PADRAO = "gemini-3.1-flash-lite";
     private static final int MAX_TOKENS_PADRAO = 4000;
 
-    private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
     private final TokenCounter tokenCounter = TokenCounter.getInstance();
-    private final String apiKey;
+    private final VertexAiClient vertexAiClient;
     private final List<String> modelosFallback;
     private final int maxTokens;
 
     public GeminiAdapter(
-            @Value("${gemini.api.key:}") String geminiApiKey,
+            VertexAiClient vertexAiClient,
             @Value("${gemini.model:" + MODELO_PADRAO + "}") String modelo,
             @Value("${gemini.models.fallback:}") String modelosFallbackStr,
             @Value("${gemini.max-tokens:" + MAX_TOKENS_PADRAO + "}") int maxTokens) {
         this.maxTokens = maxTokens;
+        this.vertexAiClient = vertexAiClient;
 
         // Constrói lista de modelos: modelo principal + fallbacks
         List<String> modelos = new ArrayList<>();
@@ -84,21 +80,6 @@ public class GeminiAdapter implements AIChatPort {
         }
 
         this.modelosFallback = modelos;
-        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
-            this.apiKey = geminiApiKey;
-            log.info("Gemini API key carregada via Spring property 'gemini.api.key'");
-        } else {
-            String envKey = System.getenv("GEMINI_API_KEY");
-            if (envKey != null && !envKey.isBlank()) {
-                this.apiKey = envKey;
-                log.info("Gemini API key carregada via environment variable 'GEMINI_API_KEY'");
-            } else {
-                this.apiKey = null;
-                log.warn("Gemini API key NÃO encontrada! Verifique:");
-                log.warn("  1. Variável de ambiente GEMINI_API_KEY");
-                log.warn("  2. Propriedade gemini.api.key no application.properties");
-            }
-        }
         log.info("Gemini Adapter configurado com {} modelo(s): {}, max_tokens: {}",
                 this.modelosFallback.size(), this.modelosFallback, this.maxTokens);
     }
@@ -127,8 +108,8 @@ public class GeminiAdapter implements AIChatPort {
 
     private ChatResponse chatInterno(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
             List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
-        if (apiKey == null || apiKey.isBlank()) {
-            return new ChatResponse("Serviço de IA não configurado. Defina a variável GEMINI_API_KEY.");
+        if (!vertexAiClient.isConfigured()) {
+            return new ChatResponse("Serviço de IA não configurado. Configure o Vertex AI.");
         }
 
         // Log de tokens de entrada antes da requisição
@@ -153,8 +134,7 @@ public class GeminiAdapter implements AIChatPort {
 
                 Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media, temperature);
                 String body = mapper.writeValueAsString(payload);
-                HttpRequest req = criarRequisicao(modeloAtual, body);
-                HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> resp = vertexAiClient.generateContent(modeloAtual, body);
 
                 // Verifica se é erro recuperável
                 if (isErroRecuperavel(resp)) {
@@ -174,8 +154,12 @@ public class GeminiAdapter implements AIChatPort {
 
                 return resposta;
 
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                ultimoErro = e;
+                log.warn("Chamada ao Vertex AI interrompida no modelo {}: {}", modeloAtual, e.getMessage());
+                break;
+            } catch (IOException e) {
                 ultimoErro = e;
 
                 if (isUltimoModelo) {
@@ -233,13 +217,13 @@ public class GeminiAdapter implements AIChatPort {
                     continue;
                 }
                 Map<String, Object> part = new HashMap<>();
-                part.put("inline_data", Map.of(
-                        "mime_type", mp.mimeType() == null ? "application/octet-stream" : mp.mimeType(),
+                part.put("inlineData", Map.of(
+                        "mimeType", mp.mimeType() == null ? "application/octet-stream" : mp.mimeType(),
                         "data", mp.base64Data()));
                 // Para vídeo, reduz a amostragem de frames (≈ "acelerar"): baixa fps =
                 // menos tokens e menor custo, mantendo a compreensão do conteúdo.
                 if (mp.isVideo()) {
-                    part.put("video_metadata", Map.of("fps", 1));
+                    part.put("videoMetadata", Map.of("fps", 1));
                 }
                 userParts.add(part);
             }
@@ -259,16 +243,6 @@ public class GeminiAdapter implements AIChatPort {
         payload.put("generationConfig", generationConfig);
 
         return payload;
-    }
-
-    private HttpRequest criarRequisicao(String modelo, String body) {
-        String url = String.format(API_URL_TEMPLATE, modelo, apiKey);
-        return HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(60))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
     }
 
     private ChatResponse processarResposta(HttpResponse<String> resp, String modeloUsado) throws IOException {

@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Extrai texto de documentos Office (Word/Excel/PowerPoint) usando Apache POI.
  *
- * <p>O Gemini só entende nativamente PDF, imagem e texto via inline_data; os
+ * <p>O Gemini só entende nativamente PDF, imagem e texto via inlineData; os
  * formatos binários do Office são rejeitados. Para esses arquivos extraímos o
  * texto aqui e enviamos como contexto textual. Imagens, PDF, texto puro e áudio
  * NÃO passam por aqui — vão direto pro Gemini.</p>

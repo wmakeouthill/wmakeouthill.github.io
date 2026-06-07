@@ -192,6 +192,22 @@ O script faz tudo automaticamente:
 
 ## 📁 Arquivos de Configuração no Servidor
 
+Antes do deploy, mantenha a chave JSON da service account na raiz do projeto:
+
+```text
+portfolio-wesley-479723-27fce2d0b7ef.json
+```
+
+O arquivo está ignorado pelo Git e nunca é incluído na imagem Docker. O script
+de deploy verifica somente sua existência, envia por SCP para a VPS e aplica
+permissão `0400` para o usuário não-root do container.
+
+Para validar o Compose sem imprimir os segredos do `.env`, use sempre:
+
+```bash
+docker compose -f oracle-cloud/docker-compose.yml config --quiet
+```
+
 ### `/home/ubuntu/portfolio-backend/.env`
 ```env
 # ===================================
@@ -203,7 +219,9 @@ O script faz tudo automaticamente:
 API_KEY=GERE_UM_TOKEN_SEGURO_AQUI
 
 # AI Providers
-GEMINI_API_KEY=sua-chave-gemini
+# Opcional se o projeto for o mesmo project_id presente no JSON
+VERTEX_AI_PROJECT_ID=seu-project-id-google-cloud
+VERTEX_AI_LOCATION=global
 OPENAI_API_KEY=sua-chave-openai
 
 # Email
@@ -224,7 +242,6 @@ FRONTEND_ENABLED=false
 
 ### `/home/ubuntu/portfolio-backend/docker-compose.yml`
 ```yaml
-version: '3.8'
 services:
   backend:
     image: portfolio-wesley-backend:latest
@@ -235,7 +252,10 @@ services:
     env_file:
       - .env
     environment:
-      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google-service-account.json
+      JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC
+    volumes:
+      - ./secrets/google-service-account.json:/run/secrets/google-service-account.json:ro
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/health"]
       interval: 30s

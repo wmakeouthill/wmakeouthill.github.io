@@ -19,6 +19,7 @@ $ServerIp = "137.131.158.76"
 $ServerUser = "ubuntu"
 $ImageName = "portfolio-wesley-backend"
 $RemoteDir = "/home/ubuntu/portfolio-backend"
+$GoogleCredentialsPath = "portfolio-wesley-479723-27fce2d0b7ef.json"
 
 # Corrige permissões da chave SSH (Windows OpenSSH exige que apenas o dono tenha acesso)
 icacls $SshKeyPath /inheritance:r | Out-Null
@@ -60,6 +61,11 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Oracle Cloud Deploy" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
+# Verifica somente a existência da credencial. O conteúdo não é lido pelo deploy.
+if (-not (Test-Path -LiteralPath $GoogleCredentialsPath -PathType Leaf)) {
+  throw "Credencial Vertex AI não encontrada em $GoogleCredentialsPath"
+}
+
 # 1. Build
 Write-Host "[1/5] Fazendo build da imagem Docker..." -ForegroundColor Green
 docker build -f Dockerfile.oracle-cloud -t "${ImageName}:latest" .
@@ -71,9 +77,12 @@ docker save -o "${ImageName}.tar" "${ImageName}:latest"
 
 # 3. SCP
 Write-Host "[3/5] Transferindo arquivos para Oracle (pode demorar ~30s)..." -ForegroundColor Green
+Invoke-Ssh "mkdir -p $RemoteDir/secrets && chmod 700 $RemoteDir/secrets"
 Invoke-Scp "${ImageName}.tar" "${ImageName}.tar"
 Invoke-Scp "oracle-cloud\.env" ".env"
 Invoke-Scp "oracle-cloud\docker-compose.yml" "docker-compose.yml"
+Invoke-Scp $GoogleCredentialsPath "secrets/google-service-account.json"
+Invoke-Ssh "sudo chown 1001:1001 $RemoteDir/secrets/google-service-account.json && sudo chmod 0400 $RemoteDir/secrets/google-service-account.json"
 
 # 4. SSH Load and Up
 Write-Host "[4/5] Reiniciando container na nuvem..." -ForegroundColor Green
