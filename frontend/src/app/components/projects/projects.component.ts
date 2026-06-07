@@ -186,17 +186,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
 
-    // Inicia o pré-carregamento só quando o browser estiver ocioso, para não
-    // competir com a renderização inicial (reduz TBT). A feature é preservada:
-    // o cache continua sendo populado, garantindo que o modal abra instantâneo.
+    // Só quando o browser estiver ocioso, sonda quais projetos têm README SEM
+    // renderizar (sem marked/mermaid) — antes, renderizar ~40 docs aqui era o
+    // gargalo de TBT. A renderização agora acontece no clique, ao abrir o modal.
     this.runWhenIdle(() => {
-      this.markdownService.preloadProjectsInBackground(projectNames)
-        .then(() => this.refreshReadmeAvailability(repos))
-        .catch(error => {
-          console.error('Erro no pré-carregamento de READMEs:', error);
-          // Mesmo com erro parcial, atualiza com o que estiver em cache
-          this.refreshReadmeAvailability(repos);
-        });
+      this.markdownService.probeReadmesInBackground(projectNames)
+        .finally(() => this.refreshReadmeAvailability(repos));
     });
   }
 
@@ -215,11 +210,11 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Marca quais projetos têm README disponível (conteúdo não-vazio em cache). */
+  /** Marca quais projetos têm README disponível (após a sondagem em idle). */
   private refreshReadmeAvailability(repos: GitHubRepository[]): void {
     const available = new Set<string>();
     for (const repo of repos) {
-      if (this.markdownService.getReadmeContentSync(repo.name)) {
+      if (this.markdownService.isReadmeAvailable(repo.name)) {
         available.add(repo.name);
       }
     }
@@ -415,10 +410,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   openReadmeModal(projectName: string): void {
-    console.log(`⚡ Abrindo modal README para: ${projectName}`);
     this.currentProjectName.set(projectName);
     this.showReadmeModal.set(true);
-    console.log(`✅ Modal aberto para ${projectName}`);
   }
 
   /** URL real (rastreável pelo bot) da página de detalhe do projeto, por idioma. */
@@ -458,7 +451,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     } else {
       this.readmeUrlPushed = false;
     }
-    console.log('📱 Modal fechado - cache mantido');
   }
 
   private isBrowser(): boolean {
@@ -466,7 +458,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   openCodePreviewModal(project: GitHubRepository): void {
-    console.log(`💻 Abrindo Code Preview para: ${project.name}`);
     this.currentProjectForPreview.set(project.name);
     this.showCodePreviewModal.set(true);
   }
@@ -474,7 +465,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   closeCodePreviewModal(): void {
     this.showCodePreviewModal.set(false);
     this.currentProjectForPreview.set('');
-    console.log('💻 Code Preview fechado');
   }
 
   openDemoModal(project: GitHubRepository): void {
@@ -534,7 +524,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
     // Se cache não está pronto, tenta recarregar imagens
     if (!this.portfolioContentService.isCacheReady()) {
-      console.log(`🔄 Recarregando imagens devido erro em: ${projectName}`);
       this.portfolioContentService.forceReload().subscribe({
         next: () => {
           // Tenta nova URL do cache atualizado

@@ -1,30 +1,36 @@
 import { Injectable, PLATFORM_ID, REQUEST, computed, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { catchError, map, of, type Observable } from 'rxjs';
+import ptTranslations from '../../assets/i18n/pt.json';
+import enTranslations from '../../assets/i18n/en.json';
 
 export type Language = 'pt' | 'en';
 
 type Translations = Record<string, unknown>;
 
+// Traduções embutidas no bundle (não via HTTP). Disponíveis de forma síncrona e
+// idêntica no SSR e no cliente: o HTML já sai com o texto final (bom p/ SEO),
+// sem re-fetch do JSON no cliente e sem troca de labels pós-paint — o que antes
+// causava reflow (CLS) e risco de hydration mismatch.
+const TRANSLATIONS: Record<Language, Translations> = {
+  pt: ptTranslations,
+  en: enTranslations
+};
+
 @Injectable({
   providedIn: 'root'
 })
 export class I18nService {
-  private readonly http = inject(HttpClient);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly request = inject(REQUEST, { optional: true });
 
   private readonly currentLanguage = signal<Language>(this.detectInitialLanguage());
-  private readonly translationsStore = signal<Translations>({});
-  private readonly translationsCache: Partial<Record<Language, Translations>> = {};
+  private readonly translationsStore = signal<Translations>(TRANSLATIONS[this.currentLanguage()]);
 
   readonly language = computed(() => this.currentLanguage());
-  // Usado para disparar atualização no pipe quando as traduções chegam
+  // Usado para disparar atualização no pipe quando o idioma muda
   readonly translationsSignal = computed(() => this.translationsStore());
 
   constructor() {
-    this.loadAndSetTranslations(this.currentLanguage()).subscribe();
     // localStorage só existe no browser; no SSR o idioma vem da rota/header.
     if (this.isBrowser) {
       effect(() => {
@@ -39,12 +45,7 @@ export class I18nService {
       return;
     }
     this.currentLanguage.set(lang);
-    const cached = this.translationsCache[lang];
-    if (cached) {
-      this.translationsStore.set(cached);
-    } else {
-      this.loadAndSetTranslations(lang).subscribe();
-    }
+    this.translationsStore.set(TRANSLATIONS[lang]);
   }
 
   translate(key: string, params?: Record<string, unknown>): string {
@@ -127,27 +128,5 @@ export class I18nService {
       const replacement = params[paramKey];
       return replacement === undefined ? match : String(replacement);
     });
-  }
-
-  private readonly buildVersion = Math.floor(Date.now() / 86400000);
-
-  private loadAndSetTranslations(lang: Language): Observable<Translations> {
-    return this.http.get<Translations>(`assets/i18n/${lang}.json?v=${this.buildVersion}`).pipe(
-      map((translations) => {
-        this.translationsCache[lang] = translations;
-        if (this.currentLanguage() === lang) {
-          this.translationsStore.set(translations);
-        }
-        return translations;
-      }),
-      catchError((error) => {
-        console.error(`Erro ao carregar traduções ${lang}:`, error);
-        this.translationsCache[lang] = {};
-        if (this.currentLanguage() === lang) {
-          this.translationsStore.set({});
-        }
-        return of({});
-      })
-    );
   }
 }

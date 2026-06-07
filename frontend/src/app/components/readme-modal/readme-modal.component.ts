@@ -90,7 +90,6 @@ export class ReadmeModalComponent implements OnDestroy {
 
     if (cached) {
       // Conteúdo já em cache - mostra instantaneamente sem loading
-      console.log(`⚡ README de ${project} carregado do cache instantaneamente!`);
       this.readmeContent.set(this.sanitizer.bypassSecurityTrustHtml(cached));
       this.loadingReadme.set(false);
 
@@ -104,7 +103,6 @@ export class ReadmeModalComponent implements OnDestroy {
 
     // Não está no cache - precisa carregar (mostra loading)
     this.loadingReadme.set(true);
-    console.log(`📥 Carregando README de ${project} do servidor...`);
 
     try {
       const html = await this.markdownService.preloadProject(project);
