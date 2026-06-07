@@ -162,8 +162,8 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         // troca de página seja instantânea, sem reload visível.
         this.preloadProjectImages(repos);
 
-        // 🚀 Pré-carrega READMEs de todos os projetos em background
-        this.preloadAllReadmesInBackground(repos);
+        // 📄 Marca quais projetos têm README (o backend já informa via hasReadme)
+        this.markReadmeAvailability(repos);
 
         // 🖼️ Descobre quais projetos têm galeria (para mostrar o botão só nesses)
         this.probeGalleries(repos);
@@ -176,22 +176,33 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Pré-carrega todos os READMEs em background após carregar projetos.
-   * Isso garante que quando o usuário clicar, o modal abre instantaneamente.
+   * Marca quais projetos têm README. O backend já envia `hasReadme` na listagem,
+   * então isso é síncrono e sem requisições. A renderização do markdown só
+   * acontece no clique, ao abrir o modal (mantém o TBT inicial baixo).
    */
-  private preloadAllReadmesInBackground(repos: GitHubRepository[]): void {
+  private markReadmeAvailability(repos: GitHubRepository[]): void {
+    const flagged = repos.filter(repo => repo.hasReadme);
+    if (flagged.length > 0) {
+      this.readmeProjects.set(new Set(flagged.map(repo => repo.name)));
+      return;
+    }
+
+    // Fallback p/ backend antigo (sem o campo hasReadme): sonda em idle SEM
+    // renderizar, para não acoplar a ordem dos deploys (frontend antes do Oracle).
     if (!this.isBrowser()) {
       return;
     }
-    // Extrai nomes dos projetos
     const projectNames = repos.map(repo => repo.name);
-
-    // Só quando o browser estiver ocioso, sonda quais projetos têm README SEM
-    // renderizar (sem marked/mermaid) — antes, renderizar ~40 docs aqui era o
-    // gargalo de TBT. A renderização agora acontece no clique, ao abrir o modal.
     this.runWhenIdle(() => {
-      this.markdownService.probeReadmesInBackground(projectNames)
-        .finally(() => this.refreshReadmeAvailability(repos));
+      this.markdownService.probeReadmesInBackground(projectNames).finally(() => {
+        const available = new Set<string>();
+        for (const repo of repos) {
+          if (this.markdownService.isReadmeAvailable(repo.name)) {
+            available.add(repo.name);
+          }
+        }
+        this.readmeProjects.set(available);
+      });
     });
   }
 
@@ -208,17 +219,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     } else {
       setTimeout(task, 1500);
     }
-  }
-
-  /** Marca quais projetos têm README disponível (após a sondagem em idle). */
-  private refreshReadmeAvailability(repos: GitHubRepository[]): void {
-    const available = new Set<string>();
-    for (const repo of repos) {
-      if (this.markdownService.isReadmeAvailable(repo.name)) {
-        available.add(repo.name);
-      }
-    }
-    this.readmeProjects.set(available);
   }
 
   /**

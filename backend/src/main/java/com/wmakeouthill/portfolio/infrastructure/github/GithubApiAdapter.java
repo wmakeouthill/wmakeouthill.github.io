@@ -314,7 +314,7 @@ public class GithubApiAdapter implements GithubProjectsPort {
         LinguagensResult langs = buscarLinguagensPorRepo(name, pushedAtChanged);
         return new GithubRepositoryDto(id, name, fullName, description, htmlUrl, homepage,
             stars, forks, language, topics, createdAt, updatedAt, pushedAt, false,
-            langs.languages(), langs.totalBytes());
+            langs.languages(), langs.totalBytes(), false);
       }, LANG_EXECUTOR));
     }
 

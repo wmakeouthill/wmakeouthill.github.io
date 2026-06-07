@@ -66,6 +66,7 @@ interface BackendRepositoryResponse {
   fork: boolean;
   languages: LanguageShareResponse[];
   totalSizeBytes: number;
+  hasReadme: boolean;
 }
 
 /**
@@ -310,7 +311,8 @@ export class GithubService {
         color: l.color
       })) || [],
       totalLanguageBytes: repo.totalSizeBytes,
-      size: Math.round(repo.totalSizeBytes / 1024)
+      size: Math.round(repo.totalSizeBytes / 1024),
+      hasReadme: repo.hasReadme ?? false
     }));
   }
 
