@@ -988,6 +988,31 @@ a.btn-accent:hover {
   height: auto;
 }
 
+/* Bloco Mermaid renderizado client-side na página de detalhe do projeto.
+   Antes do render é um <pre> com o código; depois, mermaid.run substitui o
+   conteúdo pelo SVG e marca data-processed="true". */
+pre.mermaid {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+pre.mermaid[data-processed='true'] {
+  white-space: normal;
+}
+
+pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* ===========================
    Chat Message Heading Overrides
    (Override global h1-h6 sizes for chat messages)

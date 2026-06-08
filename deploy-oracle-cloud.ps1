@@ -81,6 +81,9 @@ Invoke-Ssh "mkdir -p $RemoteDir/secrets && chmod 700 $RemoteDir/secrets"
 Invoke-Scp "${ImageName}.tar" "${ImageName}.tar"
 Invoke-Scp "oracle-cloud\.env" ".env"
 Invoke-Scp "oracle-cloud\docker-compose.yml" "docker-compose.yml"
+# Remove o secret antigo antes do scp: o deploy anterior o deixa 0400/uid 1001,
+# o que faz o scp falhar com "Permission denied" ao tentar sobrescrever.
+Invoke-Ssh "sudo rm -f $RemoteDir/secrets/google-service-account.json"
 Invoke-Scp $GoogleCredentialsPath "secrets/google-service-account.json"
 Invoke-Ssh "sudo chown 1001:1001 $RemoteDir/secrets/google-service-account.json && sudo chmod 0400 $RemoteDir/secrets/google-service-account.json"
 

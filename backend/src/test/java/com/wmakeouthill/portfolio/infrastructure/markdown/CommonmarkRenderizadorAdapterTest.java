@@ -1,19 +1,12 @@
 package com.wmakeouthill.portfolio.infrastructure.markdown;
 
-import com.wmakeouthill.portfolio.application.port.out.RenderizadorMermaidPort;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class CommonmarkRenderizadorAdapterTest {
 
-  private final RenderizadorMermaidPort mermaid = mock(RenderizadorMermaidPort.class);
-  private final CommonmarkRenderizadorAdapter adapter = new CommonmarkRenderizadorAdapter(mermaid);
+  private final CommonmarkRenderizadorAdapter adapter = new CommonmarkRenderizadorAdapter();
 
   @Test
   void renderizarParaHtml_deveConverterTitulosEParagrafos() {
@@ -34,24 +27,21 @@ class CommonmarkRenderizadorAdapterTest {
   }
 
   @Test
-  void renderizarParaHtml_deveEmbutirSvgQuandoMermaidRenderiza() {
-    when(mermaid.renderizarParaSvg(anyString())).thenReturn(Optional.of("<svg>diagrama</svg>"));
-
+  void renderizarParaHtml_deveEmitirBlocoMermaidParaRenderClientSide() {
     String html = adapter.renderizarParaHtml("```mermaid\ngraph TD; A-->B;\n```");
 
-    assertThat(html).contains("mermaid-diagram");
-    assertThat(html).contains("<svg>diagrama</svg>");
+    assertThat(html).contains("<pre class=\"mermaid\">");
+    // Código preservado como texto (indexável) e HTML escapado.
+    assertThat(html).contains("graph TD; A--&gt;B;");
     assertThat(html).doesNotContain("<code");
   }
 
   @Test
-  void renderizarParaHtml_deveManterBlocoComoTextoQuandoMermaidFalha() {
-    when(mermaid.renderizarParaSvg(anyString())).thenReturn(Optional.empty());
+  void renderizarParaHtml_deveEscaparHtmlNoCodigoMermaid() {
+    String html = adapter.renderizarParaHtml("```mermaid\nA[\"<script>\"] --> B\n```");
 
-    String html = adapter.renderizarParaHtml("```mermaid\ngraph TD; A-->B;\n```");
-
-    assertThat(html).contains("graph TD");
-    assertThat(html).doesNotContain("<svg>");
+    assertThat(html).contains("&lt;script&gt;");
+    assertThat(html).doesNotContain("<script>");
   }
 
   @Test

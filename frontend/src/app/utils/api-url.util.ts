@@ -160,7 +160,22 @@ export function getApiKey(): string | null {
     return keyFromSession;
   }
 
+  // No SSR (Node) não há sessionStorage: quando o render bate direto no backend
+  // Oracle (SSR_API_BASE_URL), a chave precisa vir de process.env, senão o
+  // backend devolve 401. No browser process é undefined, então isso é no-op.
+  if (isServerRuntime()) {
+    return readApiKeyFromProcessEnv();
+  }
+
   return null;
+}
+
+function readApiKeyFromProcessEnv(): string | null {
+  if (typeof process === 'undefined' || !process.env) {
+    return null;
+  }
+  const key = process.env['API_KEY'];
+  return isNonEmptyEnv(key) ? key.trim() : null;
 }
 
 function readApiKeyFromSessionStorage(): string | null {
