@@ -2,6 +2,7 @@ package com.wmakeouthill.portfolio.domain.service;
 
 import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
 import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
+import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,8 @@ public class ContextSearchService {
   private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
   private final PortfolioContentPort portfolioContentPort;
+  private final MarkdownPassageSplitter passageSplitter;
+  private final TokenCounter tokenCounter = TokenCounter.getInstance();
 
   private final List<ContextChunk> contextChunks = new ArrayList<>();
   private final List<ContextChunk> fallbackChunks = new ArrayList<>();
@@ -63,13 +66,19 @@ public class ContextSearchService {
     contextChunks.clear();
     int indice = 0;
     for (PortfolioMarkdownResource recurso : recursos) {
-      contextChunks.add(new ContextChunk(
-          recurso.nome() + "-" + indice++,
-          recurso.conteudo(),
-          extrairStems(recurso.conteudo()),
-          recurso.projeto(),
-          recurso.preferencialFallback(),
-          normalizarTags(recurso.tags())));
+      Set<String> tagStems = normalizarTags(recurso.tags());
+      // Fatiar cada documento em passagens: a busca recupera só os trechos
+      // relevantes, em vez do arquivo inteiro (que inflava o prompt a ~70k tokens).
+      for (String passagem : passageSplitter.dividir(recurso.conteudo())) {
+        String conteudo = "「" + recurso.nome() + "」\n" + passagem;
+        contextChunks.add(new ContextChunk(
+            recurso.nome() + "-" + indice++,
+            conteudo,
+            extrairStems(passagem),
+            recurso.projeto(),
+            recurso.preferencialFallback(),
+            tagStems));
+      }
     }
     atualizarFallback();
     ultimoCarregamento = System.currentTimeMillis();
@@ -95,22 +104,30 @@ public class ContextSearchService {
     }
   }
 
-  public List<String> buscarContextos(String mensagem, int limite, String language) {
+  /**
+   * Recupera as passagens mais relevantes para a mensagem, respeitando dois
+   * limites: número máximo de passagens e teto de tokens acumulados. Garante ao
+   * menos a passagem mais relevante quando há match (mesmo que ela sozinha
+   * exceda o orçamento), para nunca devolver contexto vazio à toa.
+   *
+   * @param mensagem        pergunta do usuário
+   * @param maxPassagens    teto de passagens
+   * @param orcamentoTokens teto de tokens estimados acumulados
+   * @param language        idioma ("pt" | "en")
+   */
+  public List<String> buscarContextos(String mensagem, int maxPassagens, int orcamentoTokens, String language) {
     // Verifica se precisa recarregar contextos
     verificarCacheExpirado(language);
 
     List<String> tokens = tokenizar(mensagem);
+    List<ContextChunk> selecionados;
     if (tokens.isEmpty()) {
-      return limitar(obterFallback(), limite);
+      selecionados = obterFallback();
+    } else {
+      List<ContextChunk> ranqueados = ranquear(tokens);
+      selecionados = ranqueados.isEmpty() ? obterFallback() : ranqueados;
     }
-    List<ContextChunk> ranqueados = ranquear(tokens);
-    if (ranqueados.isEmpty()) {
-      return limitar(obterFallback(), limite);
-    }
-    return ranqueados.stream()
-        .limit(limite)
-        .map(ContextChunk::conteudo)
-        .toList();
+    return limitarPorOrcamento(selecionados, maxPassagens, orcamentoTokens);
   }
 
   private List<ContextChunk> ranquear(List<String> tokens) {
@@ -244,15 +261,12 @@ public class ContextSearchService {
     return semAcento.toLowerCase(Locale.ROOT);
   }
 
-  private List<String> obterFallback() {
+  private List<ContextChunk> obterFallback() {
     if (!fallbackChunks.isEmpty()) {
-      return fallbackChunks.stream()
-          .map(ContextChunk::conteudo)
-          .toList();
+      return List.copyOf(fallbackChunks);
     }
     return contextChunks.stream()
         .limit(MAX_FALLBACK)
-        .map(ContextChunk::conteudo)
         .toList();
   }
 
@@ -270,10 +284,27 @@ public class ContextSearchService {
     }
   }
 
-  private List<String> limitar(List<String> contextos, int limite) {
-    return contextos.stream()
-        .limit(limite)
-        .toList();
+  /**
+   * Acumula passagens (já ordenadas por relevância) respeitando dois tetos: número
+   * de passagens e tokens acumulados. A passagem mais relevante é sempre incluída,
+   * mesmo que sozinha estoure o orçamento — evita devolver contexto vazio quando há
+   * match. As demais só entram se couberem no orçamento restante.
+   */
+  private List<String> limitarPorOrcamento(List<ContextChunk> chunks, int maxPassagens, int orcamentoTokens) {
+    List<String> resultado = new ArrayList<>();
+    int tokensUsados = 0;
+    for (ContextChunk chunk : chunks) {
+      if (resultado.size() >= maxPassagens) {
+        break;
+      }
+      int custo = tokenCounter.estimarTokens(chunk.conteudo());
+      boolean cabeNoOrcamento = resultado.isEmpty() || tokensUsados + custo <= orcamentoTokens;
+      if (cabeNoOrcamento) {
+        resultado.add(chunk.conteudo());
+        tokensUsados += custo;
+      }
+    }
+    return resultado;
   }
 
   private record ContextChunk(

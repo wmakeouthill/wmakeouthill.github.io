@@ -1,17 +1,25 @@
 package com.wmakeouthill.portfolio.domain.service;
 
 import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
+import com.wmakeouthill.portfolio.infrastructure.utils.TokenCounter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PortfolioPromptService {
 
+  /** Teto absoluto de passagens recuperadas, independente do orçamento de tokens. */
+  private static final int MAX_PASSAGENS = 28;
+
   private final ProjetoKeywordDetector projetoKeywordDetector;
   private final ContextSearchService contextSearchService;
+  private final MarkdownPassageSplitter passageSplitter;
+  private final TokenCounter tokenCounter = TokenCounter.getInstance();
 
   private static final String BASE_SYSTEM_PROMPT = """
       Você é a IA oficial do portfólio do desenvolvedor brasileiro Wesley Correia (usuário GitHub "wmakeouthill").
@@ -240,61 +248,82 @@ public class PortfolioPromptService {
   public String obterSystemPromptOtimizado(String mensagemUsuario, String language) {
     boolean english = language != null && language.toLowerCase().startsWith("en");
     StringBuilder builder = new StringBuilder(english ? BASE_SYSTEM_PROMPT_EN : BASE_SYSTEM_PROMPT);
-    anexarContextoRelevante(builder, mensagemUsuario, language);
-    anexarProjetos(builder, mensagemUsuario, language);
+
+    // Orçamento global de tokens para o contexto recuperado (RAG). Em vez de
+    // anexar documentos inteiros (o que inflava o prompt a ~70k tokens), as
+    // passagens relevantes são acumuladas até esgotar o orçamento.
+    int orcamento = orcamentoTokens(mensagemUsuario);
+    Set<String> incluidos = new HashSet<>();
+
+    int usadosContexto = anexarContextoRelevante(builder, mensagemUsuario, language, orcamento, incluidos);
+    int restante = Math.max(0, orcamento - usadosContexto);
+    anexarProjetos(builder, mensagemUsuario, language, restante, incluidos);
+
     if (english) {
       builder.append("\n\nYou must always respond in English.");
     }
     return builder.toString();
   }
 
-  private void anexarContextoRelevante(StringBuilder builder, String mensagemUsuario, String language) {
-    int limite = calcularLimiteContextos(mensagemUsuario);
-    var contextos = contextSearchService.buscarContextos(mensagemUsuario, limite, language);
+  /**
+   * Anexa as passagens mais relevantes recuperadas pelo {@link ContextSearchService},
+   * respeitando o orçamento de tokens. Retorna quantos tokens foram consumidos.
+   */
+  private int anexarContextoRelevante(StringBuilder builder, String mensagemUsuario, String language,
+      int orcamento, Set<String> incluidos) {
+    List<String> contextos = contextSearchService.buscarContextos(mensagemUsuario, MAX_PASSAGENS, orcamento, language);
     if (contextos.isEmpty()) {
-      return;
+      return 0;
     }
     builder.append("\n\n---\nCONTEXTOS DO PORTFÓLIO:\n");
-    contextos.forEach(contexto -> anexarMarkdown(builder, contexto));
+    int usados = 0;
+    for (String contexto : contextos) {
+      if (incluidos.add(contexto)) {
+        anexarMarkdown(builder, contexto);
+        usados += tokenCounter.estimarTokens(contexto);
+      }
+    }
+    return usados;
   }
 
   /**
-   * Calcula o limite de contextos baseado no tipo de pergunta.
-   * Sempre inclui pelo menos os contextos básicos (currículo, stacks).
+   * Define o teto de tokens do contexto recuperado conforme o tipo de pergunta.
+   * Antes isso era uma contagem de documentos (4/5/8/20); agora é um orçamento de
+   * tokens, que limita o tamanho real do prompt independentemente do tamanho de
+   * cada arquivo.
    */
-  private int calcularLimiteContextos(String mensagem) {
+  private int orcamentoTokens(String mensagem) {
     if (mensagem == null || mensagem.isBlank()) {
-      // Sem mensagem, carrega contextos básicos
-      return 4;
+      return 4000;
     }
     String lower = mensagem.toLowerCase();
 
-    // Se pergunta sobre todos os projetos, aumenta bastante
+    // Listar todos os projetos: precisa cobrir muitos projetos, então orçamento maior.
     if ((lower.contains("projeto") || lower.contains("project")) &&
         (lower.contains("todos") || lower.contains("all") || lower.contains("list") || lower.contains("quais"))) {
-      return 20; // Carrega muitos contextos para listar todos os projetos
+      return 16000;
     }
 
-    // Se pergunta sobre trabalhos/experiências, aumenta limite
+    // Trabalhos/experiências/carreira.
     if (lower.contains("trabalh") || lower.contains("experienc") ||
         lower.contains("emprego") || lower.contains("onde trabalhei") ||
         lower.contains("carreira") || lower.contains("profissional") ||
         lower.contains("work") || lower.contains("job") || lower.contains("career")) {
-      return 8;
+      return 9000;
     }
 
-    // Se pergunta sobre stacks/tecnologias
+    // Stacks/tecnologias.
     if (lower.contains("stack") || lower.contains("tecnolog") || lower.contains("tech") ||
         lower.contains("linguagem") || lower.contains("framework")) {
-      return 5;
+      return 6000;
     }
 
-    // Padrão: contextos básicos + alguns relevantes
-    return 8;
+    return 8000;
   }
 
-  private void anexarProjetos(StringBuilder builder, String mensagemUsuario, String language) {
-    if (mensagemUsuario == null || mensagemUsuario.isBlank()) {
+  private void anexarProjetos(StringBuilder builder, String mensagemUsuario, String language,
+      int orcamento, Set<String> incluidos) {
+    if (mensagemUsuario == null || mensagemUsuario.isBlank() || orcamento <= 0) {
       return;
     }
 
@@ -325,8 +354,44 @@ public class PortfolioPromptService {
               "Use essas informações como contexto adicional para responder perguntas sobre projetos específicos.\n");
     }
 
-    projetosRelevantes.forEach(nomeProjeto -> portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto, language)
-        .ifPresent(markdown -> anexarMarkdown(builder, markdown)));
+    // Ao listar todos, distribui a cobertura: só a 1ª passagem de cada projeto.
+    // Caso contrário (projeto específico), traz quantas passagens couberem.
+    int passagensPorProjeto = querListarTodos ? 1 : Integer.MAX_VALUE;
+    int restante = orcamento;
+    for (String nomeProjeto : projetosRelevantes) {
+      if (restante <= 0) {
+        break;
+      }
+      var markdown = portfolioContentPort.carregarMarkdownPorProjeto(nomeProjeto, language);
+      if (markdown.isPresent()) {
+        restante -= anexarPassagensProjeto(builder, nomeProjeto, markdown.get(), restante,
+            passagensPorProjeto, incluidos);
+      }
+    }
+  }
+
+  /**
+   * Fatiar o markdown do projeto em passagens e anexar as iniciais até esgotar o
+   * orçamento (ou o teto de passagens). Retorna quantos tokens foram consumidos.
+   */
+  private int anexarPassagensProjeto(StringBuilder builder, String nomeProjeto, String markdown,
+      int orcamento, int maxPassagens, Set<String> incluidos) {
+    int usados = 0;
+    int adicionadas = 0;
+    for (String passagem : passageSplitter.dividir(markdown)) {
+      if (adicionadas >= maxPassagens) {
+        break;
+      }
+      String conteudo = "「" + nomeProjeto + "」\n" + passagem;
+      int custo = tokenCounter.estimarTokens(conteudo);
+      boolean cabe = usados == 0 || usados + custo <= orcamento;
+      if (cabe && incluidos.add(conteudo)) {
+        anexarMarkdown(builder, conteudo);
+        usados += custo;
+        adicionadas++;
+      }
+    }
+    return usados;
   }
 
   private void anexarMarkdown(StringBuilder builder, String markdown) {
