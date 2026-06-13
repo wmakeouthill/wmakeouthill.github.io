@@ -9,7 +9,7 @@ class VertexAiClientTest {
 
     @Test
     void deveMontarEndpointGlobal() {
-        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "global");
+        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "global", 120);
 
         assertThat(client.buildEndpoint("gemini-2.5-flash-lite"))
                 .isEqualTo("https://aiplatform.googleapis.com/v1/projects/meu-projeto-123/locations/global"
@@ -18,7 +18,7 @@ class VertexAiClientTest {
 
     @Test
     void deveMontarEndpointRegional() {
-        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "us-central1");
+        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "us-central1", 120);
 
         assertThat(client.buildEndpoint("gemini-2.5-flash"))
                 .startsWith("https://us-central1-aiplatform.googleapis.com/v1/projects/meu-projeto-123/");
@@ -26,7 +26,7 @@ class VertexAiClientTest {
 
     @Test
     void deveRejeitarModeloInvalido() {
-        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "global");
+        VertexAiClient client = new VertexAiClient(false, "meu-projeto-123", "global", 120);
 
         assertThatThrownBy(() -> client.buildEndpoint("../modelo"))
                 .isInstanceOf(IllegalArgumentException.class);

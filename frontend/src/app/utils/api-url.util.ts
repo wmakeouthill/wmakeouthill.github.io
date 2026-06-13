@@ -25,6 +25,26 @@ function normalizePath(path: string): string {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
+/**
+ * Resolve a URL de uma mídia/arquivo que será EMBUTIDA no HTML (ex.: `src` de
+ * `<img>`, `href` de PDF) e buscada diretamente pelo browser.
+ *
+ * Diferente de {@link resolveApiUrl}: no SSR (Node) NUNCA usa a base absoluta do
+ * backend (`http://137.x.x.x:8080`). Essa base vazaria para o HTML entregue ao
+ * cliente e o browser bloquearia o recurso por Mixed Content (página HTTPS
+ * pedindo recurso HTTP). No SSR retorna um caminho relativo (`/api/...`), que o
+ * browser resolve contra a origem HTTPS da página (passando pelo proxy /api).
+ * No browser, resolve contra a origem atual (tratando o dev 4200 -> 8080).
+ */
+export function resolveMediaUrl(path: string): string {
+  const normalizedPath = normalizePath(path);
+  const origin = resolveOriginFromWindow();
+  if (origin) {
+    return `${origin}${normalizedPath}`;
+  }
+  return normalizedPath;
+}
+
 function readCustomBaseUrl(): string | null {
   const baseFromSession = readFromSessionStorage();
   if (baseFromSession) {

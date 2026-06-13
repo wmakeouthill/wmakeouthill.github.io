@@ -58,13 +58,16 @@ public class GeminiAdapter implements AIChatPort {
     private final VertexAiClient vertexAiClient;
     private final List<String> modelosFallback;
     private final int maxTokens;
+    private final String thinkingLevel;
 
     public GeminiAdapter(
             VertexAiClient vertexAiClient,
             @Value("${gemini.model:" + MODELO_PADRAO + "}") String modelo,
             @Value("${gemini.models.fallback:}") String modelosFallbackStr,
-            @Value("${gemini.max-tokens:" + MAX_TOKENS_PADRAO + "}") int maxTokens) {
+            @Value("${gemini.max-tokens:" + MAX_TOKENS_PADRAO + "}") int maxTokens,
+            @Value("${gemini.thinking-level:low}") String thinkingLevel) {
         this.maxTokens = maxTokens;
+        this.thinkingLevel = thinkingLevel == null || thinkingLevel.isBlank() ? "low" : thinkingLevel.trim();
         this.vertexAiClient = vertexAiClient;
 
         // Constrói lista de modelos: modelo principal + fallbacks
@@ -132,7 +135,8 @@ public class GeminiAdapter implements AIChatPort {
                 log.info("Tentando modelo Gemini {} ({}/{})",
                         modeloAtual, i + 1, modelosFallback.size());
 
-                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media, temperature);
+                Map<String, Object> payload = criarPayload(systemPrompt, historico, mensagemAtual, media, temperature,
+                        modeloAtual);
                 String body = mapper.writeValueAsString(payload);
                 HttpResponse<String> resp = vertexAiClient.generateContent(modeloAtual, body);
 
@@ -179,12 +183,7 @@ public class GeminiAdapter implements AIChatPort {
     }
 
     private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
-            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media) {
-        return criarPayload(systemPrompt, historico, mensagemAtual, media, 0.9);
-    }
-
-    private Map<String, Object> criarPayload(String systemPrompt, List<MensagemChat> historico, String mensagemAtual,
-            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature) {
+            List<com.wmakeouthill.portfolio.application.dto.MediaPart> media, double temperature, String modelo) {
         Map<String, Object> payload = new HashMap<>();
 
         // System instruction (Gemini usa formato diferente do OpenAI)
@@ -240,6 +239,13 @@ public class GeminiAdapter implements AIChatPort {
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("maxOutputTokens", maxTokens);
         generationConfig.put("temperature", temperature);
+
+        // Nível de raciocínio (thinking) — só os modelos Gemini 3.x aceitam
+        // "thinkingLevel"; o Gemini 2.5 usa "thinkingBudget" e rejeitaria este
+        // campo. "medium" equilibra qualidade e latência.
+        if (modelo != null && modelo.startsWith("gemini-3") && !thinkingLevel.isBlank()) {
+            generationConfig.put("thinkingConfig", Map.of("thinkingLevel", thinkingLevel));
+        }
         payload.put("generationConfig", generationConfig);
 
         return payload;

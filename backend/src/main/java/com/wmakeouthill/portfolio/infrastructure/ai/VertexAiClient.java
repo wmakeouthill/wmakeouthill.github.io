@@ -26,13 +26,16 @@ public class VertexAiClient {
     private final GoogleCredentials credentials;
     private final String projectId;
     private final String location;
+    private final int defaultTimeoutSeconds;
 
     public VertexAiClient(
             @Value("${vertex.ai.enabled:true}") boolean enabled,
             @Value("${vertex.ai.project-id:}") String projectId,
-            @Value("${vertex.ai.location:global}") String location) {
+            @Value("${vertex.ai.location:global}") String location,
+            @Value("${vertex.ai.timeout-seconds:120}") int timeoutSeconds) {
         String configuredProjectId = projectId == null ? "" : projectId.trim();
         this.location = location == null || location.isBlank() ? "global" : location.trim();
+        this.defaultTimeoutSeconds = timeoutSeconds > 0 ? timeoutSeconds : 120;
         this.credentials = enabled ? carregarCredenciais() : null;
         this.projectId = resolverProjectId(configuredProjectId, this.credentials);
 
@@ -54,7 +57,7 @@ public class VertexAiClient {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(buildEndpoint(model)))
-                .timeout(Duration.ofSeconds(60))
+                .timeout(Duration.ofSeconds(defaultTimeoutSeconds))
                 .header("Authorization", "Bearer " + getAccessToken())
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
