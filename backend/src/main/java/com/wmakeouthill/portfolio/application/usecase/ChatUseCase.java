@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -171,24 +169,6 @@ public class ChatUseCase {
             return resposta;
         }
         return resposta.comCurriculoDisponivel();
-    }
-
-    /**
-     * Gera o PDF do currículo personalizado sob demanda, em uma requisição
-     * dedicada (com seu próprio orçamento de tempo) — uma única chamada ao Vertex.
-     *
-     * @param mensagemUsuario vaga / pedido do usuário
-     * @param respostaIa      resposta conversacional já gerada (opcional, usada
-     *                        como contexto extra; pode ser vazia no fluxo /curriculo)
-     */
-    public ChatResponse gerarCurriculo(String mensagemUsuario, String respostaIa) {
-        String mensagem = mensagemUsuario == null ? "" : mensagemUsuario.trim();
-        if (mensagem.isBlank()) {
-            return new ChatResponse("");
-        }
-        byte[] pdf = gerarCurriculoUseCase.executar(mensagem, respostaIa == null ? "" : respostaIa);
-        String base64 = Base64.getEncoder().encodeToString(pdf);
-        return new ChatResponse("").comPdf(base64, "curriculo-wesley-personalizado.pdf");
     }
 
     /**

@@ -87,6 +87,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
   private currentRequest?: Subscription;
+  private curriculoPollTimer?: ReturnType<typeof setTimeout>;
 
   readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
@@ -166,6 +167,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.currentRequest?.unsubscribe();
+    if (this.curriculoPollTimer) {
+      clearTimeout(this.curriculoPollTimer);
+    }
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
     if (this.isBrowser) {
@@ -364,35 +368,74 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.dispararGeracaoCurriculo(message, pedido.message, pedido.reply);
   }
 
+  /**
+   * Inicia a geração assíncrona e entra em polling até o PDF ficar pronto. Como
+   * a geração roda em background no backend, nenhuma requisição individual fica
+   * perto do teto de 60s — o 504 deixa de acontecer mesmo se o Vertex demorar.
+   */
   private dispararGeracaoCurriculo(alvo: ChatMessage, vaga: string, reply: string): void {
-    const en = this.i18n.language() === 'en';
-    this.currentRequest = this.chatService.gerarCurriculo(vaga, reply, this.sessionId).subscribe({
-      next: (response: ChatResponse) => {
+    this.currentRequest = this.chatService.iniciarCurriculo(vaga, reply, this.sessionId).subscribe({
+      next: (job) => {
         this.currentRequest = undefined;
-        if (response?.pdfBase64) {
-          const url = `data:application/pdf;base64,${response.pdfBase64}`;
-          const filename = response.pdfFilename || 'curriculo-wesley-personalizado.pdf';
-          const texto = en
-            ? '✅ Your tailored résumé is ready — download it below.'
-            : '✅ Seu currículo personalizado está pronto — baixe abaixo.';
-          this.atualizarMensagem(alvo, {
-            text: texto,
-            html: this.sanitizer.bypassSecurityTrustHtml(texto),
-            curriculoLoading: false,
-            curriculoRequest: undefined,
-            curriculoError: undefined,
-            generatedPdf: { filename, url }
-          });
-        } else {
-          this.marcarErroCurriculo(alvo, response?.reply);
+        if (!job?.jobId || job.status === 'ERROR') {
+          this.marcarErroCurriculo(alvo, job?.error);
+          return;
         }
-        setTimeout(() => this.focarInput(), 100);
+        this.pollCurriculo(alvo, job.jobId, 0);
       },
       error: () => {
         this.currentRequest = undefined;
         this.marcarErroCurriculo(alvo);
-        setTimeout(() => this.focarInput(), 100);
       }
+    });
+  }
+
+  private pollCurriculo(alvo: ChatMessage, jobId: string, tentativas: number): void {
+    const MAX_TENTATIVAS = 60; // ~60 × 3s = 180s de teto total
+    this.currentRequest = this.chatService.consultarCurriculo(jobId, this.sessionId).subscribe({
+      next: (job) => {
+        this.currentRequest = undefined;
+        if (job?.status === 'DONE' && job.pdfBase64) {
+          this.aplicarCurriculoPronto(alvo, job.pdfBase64, job.pdfFilename);
+          setTimeout(() => this.focarInput(), 100);
+          return;
+        }
+        if (job?.status === 'ERROR') {
+          this.marcarErroCurriculo(alvo, job.error);
+          return;
+        }
+        this.agendarProximoPoll(alvo, jobId, tentativas);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.agendarProximoPoll(alvo, jobId, tentativas);
+      }
+    });
+  }
+
+  private agendarProximoPoll(alvo: ChatMessage, jobId: string, tentativas: number): void {
+    const MAX_TENTATIVAS = 60;
+    if (tentativas >= MAX_TENTATIVAS) {
+      this.marcarErroCurriculo(alvo);
+      return;
+    }
+    this.curriculoPollTimer = setTimeout(() => this.pollCurriculo(alvo, jobId, tentativas + 1), 3000);
+  }
+
+  private aplicarCurriculoPronto(alvo: ChatMessage, pdfBase64: string, pdfFilename?: string): void {
+    const en = this.i18n.language() === 'en';
+    const url = `data:application/pdf;base64,${pdfBase64}`;
+    const filename = pdfFilename || 'curriculo-wesley-personalizado.pdf';
+    const texto = en
+      ? '✅ Your tailored résumé is ready — download it below.'
+      : '✅ Seu currículo personalizado está pronto — baixe abaixo.';
+    this.atualizarMensagem(alvo, {
+      text: texto,
+      html: this.sanitizer.bypassSecurityTrustHtml(texto),
+      curriculoLoading: false,
+      curriculoRequest: undefined,
+      curriculoError: undefined,
+      generatedPdf: { filename, url }
     });
   }
 
@@ -400,7 +443,19 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     const en = this.i18n.language() === 'en';
     const erro = mensagem?.trim()
       || (en ? 'Could not generate the résumé now. Try again.' : 'Não foi possível gerar o currículo agora. Tente novamente.');
-    this.atualizarMensagem(alvo, { curriculoLoading: false, curriculoError: erro });
+    if (alvo.curriculoRequest) {
+      // Fluxo do botão: mantém a mensagem e mostra o erro abaixo do botão (permite tentar de novo).
+      this.atualizarMensagem(alvo, { curriculoLoading: false, curriculoError: erro });
+      return;
+    }
+    // Fluxo do comando /curriculo: não há botão onde pendurar o erro, então
+    // transforma a própria mensagem "Gerando…" no texto de erro.
+    this.atualizarMensagem(alvo, {
+      text: erro,
+      html: this.sanitizer.bypassSecurityTrustHtml(erro),
+      curriculoLoading: false,
+      curriculoError: undefined
+    });
   }
 
   private adicionarMensagemCurriculoEmAndamento(texto: string): ChatMessage {
@@ -442,6 +497,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (this.currentRequest) {
       this.currentRequest.unsubscribe();
       this.currentRequest = undefined;
+    }
+    if (this.curriculoPollTimer) {
+      clearTimeout(this.curriculoPollTimer);
+      this.curriculoPollTimer = undefined;
     }
     this.isLoading.set(false);
     this.focarInput();
