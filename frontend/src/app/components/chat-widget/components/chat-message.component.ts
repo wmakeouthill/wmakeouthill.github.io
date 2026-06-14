@@ -37,6 +37,11 @@ export interface ChatMessage {
   curriculoLoading?: boolean;
   /** Mensagem de erro caso a geração do currículo falhe. */
   curriculoError?: string;
+  /**
+   * Id do job de geração do currículo (assíncrono). Persistido no localStorage
+   * para permitir retomar o polling caso a página seja recarregada no meio.
+   */
+  curriculoJobId?: string;
 }
 
 export function classificarAnexo(mime: string, name: string): AttachmentKind {

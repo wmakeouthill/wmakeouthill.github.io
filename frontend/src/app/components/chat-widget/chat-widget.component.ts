@@ -44,6 +44,10 @@ interface ChatMessageRaw {
   text: string;
   timestamp: string | Date;
   attachments?: AttachmentMeta[];
+  /** Estado da geração de currículo, persistido para retomar após reload. */
+  curriculoJobId?: string;
+  curriculoLoading?: boolean;
+  curriculoRequest?: { message: string; reply: string };
 }
 
 @Component({
@@ -167,9 +171,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.currentRequest?.unsubscribe();
-    if (this.curriculoPollTimer) {
-      clearTimeout(this.curriculoPollTimer);
-    }
+    this.pararPollCurriculo();
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
     if (this.isBrowser) {
@@ -381,11 +383,67 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           this.marcarErroCurriculo(alvo, job?.error);
           return;
         }
+        // Grava o jobId na mensagem (e, portanto, no localStorage) para conseguir
+        // retomar o polling caso a página recarregue antes de o PDF ficar pronto.
+        this.atualizarMensagem(alvo, { curriculoJobId: job.jobId });
         this.pollCurriculo(alvo, job.jobId, 0);
       },
       error: () => {
         this.currentRequest = undefined;
         this.marcarErroCurriculo(alvo);
+      }
+    });
+  }
+
+  /**
+   * Após carregar mensagens (abertura inicial ou troca de conversa), varre por
+   * gerações de currículo que ficaram pendentes em um reload e as retoma:
+   * - estava gerando + tem jobId → retoma o polling de onde parou;
+   * - estava gerando sem jobId (reload no instante do POST) → marca erro;
+   * - já tinha concluído → reidrata o PDF (o data URL não é persistido).
+   */
+  /** Cancela qualquer polling de currículo em andamento (troca/nova conversa, destroy). */
+  private pararPollCurriculo(): void {
+    if (this.curriculoPollTimer) {
+      clearTimeout(this.curriculoPollTimer);
+      this.curriculoPollTimer = undefined;
+    }
+  }
+
+  private retomarCurriculosPendentes(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    for (const msg of this.messages()) {
+      if (msg.generatedPdf) {
+        continue;
+      }
+      if (msg.curriculoLoading) {
+        if (msg.curriculoJobId) {
+          this.pollCurriculo(msg, msg.curriculoJobId, 0);
+        } else {
+          this.marcarErroCurriculo(msg);
+        }
+      } else if (msg.curriculoJobId) {
+        this.reidratarCurriculo(msg, msg.curriculoJobId);
+      }
+    }
+  }
+
+  /**
+   * Tenta rebuscar um currículo já concluído cujo PDF (data URL) foi descartado
+   * na persistência. Só age em DONE; PENDING/ERROR/expirado são ignorados em
+   * silêncio para não alterar uma mensagem que já estava pronta.
+   */
+  private reidratarCurriculo(alvo: ChatMessage, jobId: string): void {
+    this.chatService.consultarCurriculo(jobId, this.sessionId).subscribe({
+      next: (job) => {
+        if (job?.status === 'DONE' && job.pdfBase64) {
+          this.aplicarCurriculoPronto(alvo, job.pdfBase64, job.pdfFilename);
+        }
+      },
+      error: () => {
+        // Silencioso: a mensagem permanece como está (sem o link de download).
       }
     });
   }
@@ -498,10 +556,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       this.currentRequest.unsubscribe();
       this.currentRequest = undefined;
     }
-    if (this.curriculoPollTimer) {
-      clearTimeout(this.curriculoPollTimer);
-      this.curriculoPollTimer = undefined;
-    }
+    this.pararPollCurriculo();
     this.isLoading.set(false);
     this.focarInput();
   }
@@ -580,6 +635,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       const mensagensConvertidas = await this.converterMensagensSalvas(mensagensSalvas);
       this.messages.set(mensagensConvertidas);
       this.marcarComoLidas();
+      this.retomarCurriculosPendentes();
       // Se o chat já estiver aberto, garante scroll para o final
       if (this.isOpen()) {
         setTimeout(() => {
@@ -607,7 +663,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           from: msg.from,
           text: msg.text,
           html: this.sanitizer.bypassSecurityTrustHtml(html),
-          timestamp
+          timestamp,
+          // Restaura o estado da geração de currículo para retomar após reload.
+          ...(msg.curriculoJobId ? { curriculoJobId: msg.curriculoJobId } : {}),
+          ...(msg.curriculoLoading ? { curriculoLoading: true } : {}),
+          ...(msg.curriculoRequest ? { curriculoRequest: msg.curriculoRequest } : {})
         });
       } else {
         // Mensagens de usuário não precisam HTML
@@ -634,7 +694,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           timestamp: msg.timestamp.toISOString(),
           ...(msg.attachments && msg.attachments.length > 0
             ? { attachments: msg.attachments.map(a => ({ name: a.name, mime: a.mime, kind: a.kind })) }
-            : {})
+            : {}),
+          // Estado da geração de currículo (leve) para retomar após reload.
+          // O PDF em si (generatedPdf, data URL pesada) continua não sendo salvo.
+          ...(msg.curriculoJobId ? { curriculoJobId: msg.curriculoJobId } : {}),
+          ...(msg.curriculoLoading ? { curriculoLoading: true } : {}),
+          ...(msg.curriculoRequest ? { curriculoRequest: msg.curriculoRequest } : {})
         }));
         salvarMensagens(mensagensParaSalvar);
       }
@@ -642,6 +707,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   iniciarNovaConversa(): void {
+    // Encerra qualquer polling de currículo da conversa anterior.
+    this.pararPollCurriculo();
     // Cria uma nova conversa no storage (a anterior fica preservada no histórico).
     const nova = iniciarNovaConversaStorage();
     this.sessionId = nova.sessionId;
@@ -666,10 +733,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (!conversa) {
       return;
     }
+    // Encerra qualquer polling de currículo da conversa que estava aberta.
+    this.pararPollCurriculo();
     this.sessionId = conversa.sessionId;
     const mensagens = await this.converterMensagensSalvas(conversa.messages as ChatMessageRaw[]);
     this.messages.set(mensagens.length > 0 ? mensagens : [this.initialMessage()]);
     this.marcarComoLidas();
+    this.retomarCurriculosPendentes();
     this.showHistory.set(false);
     this.atualizarConversas();
     setTimeout(() => {
