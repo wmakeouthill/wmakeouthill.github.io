@@ -44,10 +44,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app /ms-playwright
-
 RUN groupadd -g 1001 appuser && \
     useradd -u 1001 -g appuser -m -s /usr/sbin/nologin appuser
+
+# /ms-playwright precisa ser gravavel pelo appuser: a cada Playwright.create() o
+# driver tenta criar um lockfile (__dirlock) na RAIZ desse diretorio. Se a pasta
+# for de root (o COPY --chown abaixo so ajusta o conteudo, nao a pasta), da
+# "EACCES: permission denied, mkdir /ms-playwright/__dirlock", a criacao do driver
+# falha e o curriculo nunca chega a ser renderizado.
+RUN mkdir -p /app /ms-playwright && chown appuser:appuser /app /ms-playwright
 
 COPY --from=maven-build --chown=appuser:appuser /app/backend/target/backend-portfolio-wesley-*.jar /app/app.jar
 COPY --from=maven-build --chown=appuser:appuser /root/.cache/ms-playwright /ms-playwright
