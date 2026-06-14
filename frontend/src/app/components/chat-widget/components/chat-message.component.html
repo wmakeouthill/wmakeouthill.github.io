@@ -35,6 +35,23 @@
     <audio class="chat-msg-audio" controls [src]="message().audioUrl"></audio>
   }
 
+  @if (message().curriculoRequest && !message().generatedPdf) {
+    <div class="chat-msg-curriculo-action">
+      <button type="button" class="chat-msg-curriculo-btn" (click)="onGerarCurriculo()"
+        [disabled]="message().curriculoLoading">
+        @if (message().curriculoLoading) {
+          <span class="chat-msg-curriculo-spinner" aria-hidden="true"></span>
+          Gerando currículo…
+        } @else {
+          📄 Gerar currículo PDF
+        }
+      </button>
+      @if (message().curriculoError) {
+        <span class="chat-msg-curriculo-error">{{ message().curriculoError }}</span>
+      }
+    </div>
+  }
+
   @if (message().generatedPdf) {
     <div class="chat-msg-generated-pdf">
       <span class="chat-msg-att-icon">PDF</span>

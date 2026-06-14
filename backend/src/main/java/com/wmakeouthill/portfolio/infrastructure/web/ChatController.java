@@ -1,5 +1,6 @@
 package com.wmakeouthill.portfolio.infrastructure.web;
 
+import com.wmakeouthill.portfolio.application.dto.ChatCurriculoRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatEmailRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatEmailResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
@@ -72,6 +73,22 @@ public class ChatController {
                     .error("Erro ao enviar email pelo chat", e);
             return ResponseEntity.internalServerError()
                     .body(ChatEmailResponse.erro("Não foi possível enviar o email agora."));
+        }
+    }
+
+    @PostMapping("/curriculo")
+    public ResponseEntity<ChatResponse> curriculo(@RequestBody ChatCurriculoRequest request) {
+        try {
+            ChatResponse response = chatUseCase.gerarCurriculo(
+                    request == null ? null : request.message(),
+                    request == null ? null : request.reply());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                    .error("Erro ao gerar currículo pelo chat", e);
+            return ResponseEntity
+                    .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ChatResponse("Não foi possível gerar o currículo agora. Tente novamente."));
         }
     }
 

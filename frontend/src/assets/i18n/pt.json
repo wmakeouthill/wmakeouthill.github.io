@@ -334,6 +334,7 @@
     "historyRemove": "Remover conversa",
     "commandsLabel": "Comandos disponíveis",
     "cmdEmail": "Enviar um email para o Wesley",
+    "cmdCurriculo": "Gerar um currículo em PDF para uma vaga",
     "cmdNew": "Iniciar uma nova conversa",
     "cmdHistory": "Ver o histórico de conversas",
     "thinking": "Pensando...",

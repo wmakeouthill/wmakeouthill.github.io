@@ -16,6 +16,7 @@ export interface ChatResponse {
   audioBase64?: string; // Áudio TTS da resposta (WAV base64), quando solicitado
   pdfBase64?: string; // PDF gerado (ex: currículo) em base64
   pdfFilename?: string; // Nome sugerido do PDF gerado
+  curriculoDisponivel?: boolean; // True quando a mensagem pede currículo (gerar sob demanda)
 }
 
 export interface ChatEmailResponse {
@@ -99,6 +100,24 @@ export class ChatService {
 
   enviarEmailChat(mensagem: string, model: AIModel = 'gemini'): Observable<ChatEmailResponse> {
     return this.http.post<ChatEmailResponse>(`${this.apiUrl}/email`, { message: mensagem, model });
+  }
+
+  /**
+   * Gera o currículo personalizado (PDF) sob demanda, em uma requisição própria
+   * (com seu próprio orçamento de tempo) — evita disparar duas chamadas pesadas
+   * ao Vertex dentro da requisição do chat.
+   *
+   * @param message vaga / pedido do usuário
+   * @param reply resposta conversacional já gerada (opcional; vazia no comando /curriculo)
+   * @param sessionId identificador da sessão (header X-Session-ID)
+   */
+  gerarCurriculo(message: string, reply = '', sessionId?: string): Observable<ChatResponse> {
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+
+    return this.http.post<ChatResponse>(`${this.apiUrl}/curriculo`, { message, reply }, { headers });
   }
 }
 

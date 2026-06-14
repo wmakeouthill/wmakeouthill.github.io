@@ -52,6 +52,7 @@ export class ChatInputComponent {
   /** Comandos slash disponíveis no chat. */
   readonly slashCommands: SlashCommand[] = [
     { command: '/email', descriptionKey: 'chat.cmdEmail', hint: '/email ...' },
+    { command: '/curriculo', descriptionKey: 'chat.cmdCurriculo', hint: '/curriculo ...' },
     { command: '/new', descriptionKey: 'chat.cmdNew', immediate: true },
     { command: '/history', descriptionKey: 'chat.cmdHistory', immediate: true }
   ];

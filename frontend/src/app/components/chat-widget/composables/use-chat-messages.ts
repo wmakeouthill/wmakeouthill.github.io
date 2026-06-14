@@ -21,7 +21,7 @@ export function useChatMessages(
     messages.update((arr) => [...arr, userMessage]);
   };
 
-  const handleAssistantResponse = async (response: ChatResponse): Promise<void> => {
+  const handleAssistantResponse = async (response: ChatResponse, userMessage?: string): Promise<void> => {
     const reply = response?.reply?.trim();
     if (!reply) {
       isLoading.set(false);
@@ -40,13 +40,19 @@ export function useChatMessages(
     const pdfUrl = response.pdfBase64
       ? `data:application/pdf;base64,${response.pdfBase64}`
       : undefined;
+    // Quando o backend sinaliza que a mensagem pede currículo, oferecemos a
+    // geração sob demanda (botão), sem gerar o PDF inline (evita 2ª chamada Vertex).
+    const curriculoRequest = response.curriculoDisponivel && userMessage
+      ? { message: userMessage, reply }
+      : undefined;
     const assistantMessage = createAssistantMessage(
       reply,
       html,
       sanitizer,
       audioUrl,
       pdfUrl,
-      response.pdfFilename
+      response.pdfFilename,
+      curriculoRequest
     );
     messages.update((arr) => [...arr, assistantMessage]);
     isLoading.set(false);
@@ -76,7 +82,8 @@ function createAssistantMessage(
   sanitizer: DomSanitizer,
   audioUrl?: string,
   pdfUrl?: string,
-  pdfFilename?: string
+  pdfFilename?: string,
+  curriculoRequest?: { message: string; reply: string }
 ): ChatMessage {
   return {
     from: 'assistant',
@@ -84,7 +91,8 @@ function createAssistantMessage(
     html: sanitizer.bypassSecurityTrustHtml(html),
     timestamp: new Date(),
     ...(audioUrl ? { audioUrl } : {}),
-    ...(pdfUrl ? { generatedPdf: { filename: pdfFilename || 'curriculo-wesley-personalizado.pdf', url: pdfUrl } } : {})
+    ...(pdfUrl ? { generatedPdf: { filename: pdfFilename || 'curriculo-wesley-personalizado.pdf', url: pdfUrl } } : {}),
+    ...(curriculoRequest ? { curriculoRequest } : {})
   };
 }
 

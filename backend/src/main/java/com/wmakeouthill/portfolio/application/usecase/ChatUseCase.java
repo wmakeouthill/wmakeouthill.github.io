@@ -62,7 +62,7 @@ public class ChatUseCase {
                 modeloSelecionado);
         registrarRespostaNoHistorico(sessionId, resposta);
 
-        return adicionarCurriculoSeSolicitado(mensagemUsuarioTexto, resposta);
+        return sinalizarCurriculoSeSolicitado(mensagemUsuarioTexto, resposta);
     }
 
     /**
@@ -114,7 +114,7 @@ public class ChatUseCase {
                 anexos);
         registrarRespostaNoHistorico(sessionId, resposta);
 
-        ChatResponse respostaComPdf = adicionarCurriculoSeSolicitado(mensagemParaIa, resposta);
+        ChatResponse respostaComPdf = sinalizarCurriculoSeSolicitado(mensagemParaIa, resposta);
         return adicionarAudioSeSolicitado(respostaComPdf, audioResponse);
     }
 
@@ -159,13 +159,36 @@ public class ChatUseCase {
                 .orElse(resposta);
     }
 
-    private ChatResponse adicionarCurriculoSeSolicitado(String mensagemUsuario, ChatResponse resposta) {
-        if (!gerarCurriculoUseCase.deveGerar(mensagemUsuario) || resposta.reply() == null || resposta.reply().isBlank()) {
+    /**
+     * Não gera o currículo aqui (seria uma 2ª chamada pesada ao Vertex na mesma
+     * requisição, estourando o teto de ~58s do proxy). Apenas sinaliza ao frontend
+     * que a mensagem pede currículo; a geração acontece sob demanda em uma
+     * requisição própria ({@link #gerarCurriculo}) via POST /api/chat/curriculo.
+     */
+    private ChatResponse sinalizarCurriculoSeSolicitado(String mensagemUsuario, ChatResponse resposta) {
+        if (!gerarCurriculoUseCase.deveGerar(mensagemUsuario) || resposta.reply() == null
+                || resposta.reply().isBlank()) {
             return resposta;
         }
-        byte[] pdf = gerarCurriculoUseCase.executar(mensagemUsuario, resposta.reply());
+        return resposta.comCurriculoDisponivel();
+    }
+
+    /**
+     * Gera o PDF do currículo personalizado sob demanda, em uma requisição
+     * dedicada (com seu próprio orçamento de tempo) — uma única chamada ao Vertex.
+     *
+     * @param mensagemUsuario vaga / pedido do usuário
+     * @param respostaIa      resposta conversacional já gerada (opcional, usada
+     *                        como contexto extra; pode ser vazia no fluxo /curriculo)
+     */
+    public ChatResponse gerarCurriculo(String mensagemUsuario, String respostaIa) {
+        String mensagem = mensagemUsuario == null ? "" : mensagemUsuario.trim();
+        if (mensagem.isBlank()) {
+            return new ChatResponse("");
+        }
+        byte[] pdf = gerarCurriculoUseCase.executar(mensagem, respostaIa == null ? "" : respostaIa);
         String base64 = Base64.getEncoder().encodeToString(pdf);
-        return resposta.comPdf(base64, "curriculo-wesley-personalizado.pdf");
+        return new ChatResponse("").comPdf(base64, "curriculo-wesley-personalizado.pdf");
     }
 
     /**

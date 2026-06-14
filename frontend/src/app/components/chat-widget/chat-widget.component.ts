@@ -262,6 +262,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isCurriculoCommand(text) && files.length === 0) {
+      this.gerarCurriculoPeloComando(text);
+      return;
+    }
+
     const request$ = files.length > 0 || this.audioResponseEnabled()
       ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel(), this.audioResponseEnabled())
       : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
@@ -269,7 +274,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.currentRequest = request$.subscribe({
       next: (response: ChatResponse) => {
         this.currentRequest = undefined;
-        this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
+        this.chatMessagesHandlers.handleAssistantResponse(response, text).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
         });
         // Mantém foco após resposta
@@ -317,6 +322,109 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   private isEmailCommand(text: string): boolean {
     return text.trim().toLowerCase().startsWith('/email');
+  }
+
+  private isCurriculoCommand(text: string): boolean {
+    return text.trim().toLowerCase().startsWith('/curriculo');
+  }
+
+  /**
+   * Fluxo do comando /curriculo <vaga>: mostra na hora uma mensagem de "gerando"
+   * e, quando o PDF volta da requisição dedicada, transforma essa mesma mensagem
+   * no card de download (sem nunca rodar duas chamadas ao Vertex na mesma requisição).
+   */
+  private gerarCurriculoPeloComando(text: string): void {
+    const vaga = text.replace(/^\/curriculo\s*/i, '').trim();
+    const en = this.i18n.language() === 'en';
+
+    if (!vaga) {
+      const dica = en
+        ? 'Use: /curriculo <paste the job posting here>'
+        : 'Use: /curriculo <cole o conteúdo da vaga aqui>';
+      this.chatMessagesHandlers.handleAssistantResponse({ reply: dica });
+      return;
+    }
+
+    const aviso = en
+      ? '📄 Generating your tailored résumé for this role… it will show up here shortly.'
+      : '📄 Gerando seu currículo personalizado para essa vaga… já aparece aqui.';
+    const placeholder = this.adicionarMensagemCurriculoEmAndamento(aviso);
+    this.isLoading.set(false);
+
+    this.dispararGeracaoCurriculo(placeholder, vaga, '');
+  }
+
+  /** Handler do botão "Gerar currículo PDF" (fluxo de linguagem natural). */
+  onGenerateCurriculo(message: ChatMessage): void {
+    const pedido = message.curriculoRequest;
+    if (!pedido || message.curriculoLoading || message.generatedPdf) {
+      return;
+    }
+    this.atualizarMensagem(message, { curriculoLoading: true, curriculoError: undefined });
+    this.dispararGeracaoCurriculo(message, pedido.message, pedido.reply);
+  }
+
+  private dispararGeracaoCurriculo(alvo: ChatMessage, vaga: string, reply: string): void {
+    const en = this.i18n.language() === 'en';
+    this.currentRequest = this.chatService.gerarCurriculo(vaga, reply, this.sessionId).subscribe({
+      next: (response: ChatResponse) => {
+        this.currentRequest = undefined;
+        if (response?.pdfBase64) {
+          const url = `data:application/pdf;base64,${response.pdfBase64}`;
+          const filename = response.pdfFilename || 'curriculo-wesley-personalizado.pdf';
+          const texto = en
+            ? '✅ Your tailored résumé is ready — download it below.'
+            : '✅ Seu currículo personalizado está pronto — baixe abaixo.';
+          this.atualizarMensagem(alvo, {
+            text: texto,
+            html: this.sanitizer.bypassSecurityTrustHtml(texto),
+            curriculoLoading: false,
+            curriculoRequest: undefined,
+            curriculoError: undefined,
+            generatedPdf: { filename, url }
+          });
+        } else {
+          this.marcarErroCurriculo(alvo, response?.reply);
+        }
+        setTimeout(() => this.focarInput(), 100);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.marcarErroCurriculo(alvo);
+        setTimeout(() => this.focarInput(), 100);
+      }
+    });
+  }
+
+  private marcarErroCurriculo(alvo: ChatMessage, mensagem?: string): void {
+    const en = this.i18n.language() === 'en';
+    const erro = mensagem?.trim()
+      || (en ? 'Could not generate the résumé now. Try again.' : 'Não foi possível gerar o currículo agora. Tente novamente.');
+    this.atualizarMensagem(alvo, { curriculoLoading: false, curriculoError: erro });
+  }
+
+  private adicionarMensagemCurriculoEmAndamento(texto: string): ChatMessage {
+    const mensagem: ChatMessage = {
+      from: 'assistant',
+      text: texto,
+      html: this.sanitizer.bypassSecurityTrustHtml(texto),
+      timestamp: new Date(),
+      curriculoLoading: true
+    };
+    this.messages.update((arr) => [...arr, mensagem]);
+    setTimeout(() => scrollToBottom(this.messagesContainer), 50);
+    return mensagem;
+  }
+
+  /**
+   * Aplica um patch a uma mensagem do signal. Casa pela referência do timestamp
+   * (preservada entre patches, já que nunca a sobrescrevemos) para continuar
+   * encontrando a mensagem certa mesmo depois de updates anteriores a recriarem.
+   */
+  private atualizarMensagem(alvo: ChatMessage, patch: Partial<ChatMessage>): void {
+    this.messages.update((arr) =>
+      arr.map((m) => (m === alvo || m.timestamp === alvo.timestamp ? { ...m, ...patch } : m))
+    );
   }
 
   private montarRespostaEmailEnviado(subject?: string, body?: string): string {
