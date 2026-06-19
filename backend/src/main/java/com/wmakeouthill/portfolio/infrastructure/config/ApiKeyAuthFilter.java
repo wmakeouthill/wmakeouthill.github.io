@@ -23,7 +23,9 @@ import java.util.Set;
  * Exceções (não exigem API Key):
  * - /api/health (health check)
  * - Requisições OPTIONS (CORS preflight)
- * - Requisições de localhost em desenvolvimento
+ * - Requisições internas (loopback: SSR Node → Spring, Caddy → localhost:8080)
+ * - Requisições via domínio público (front + API na mesma origem Oracle)
+ * - API_KEY não configurada (modo desenvolvimento)
  * 
  * Configuração:
  * - Variável de ambiente API_KEY ou propriedade api.key
@@ -39,6 +41,13 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     // Paths que NÃO exigem API Key
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/api/health");
+
+    /** Hosts do site servido pelo Oracle (browser same-origin via Caddy). */
+    private static final Set<String> TRUSTED_PUBLIC_HOSTS = Set.of(
+            "wmakeouthill.dev",
+            "www.wmakeouthill.dev",
+            "localhost",
+            "127.0.0.1");
 
     private final String apiKey;
     private final boolean filterEnabled;
@@ -79,7 +88,31 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return true;
         }
 
+        // Loopback (SSR Node, Caddy reverse_proxy → 127.0.0.1:8080)
+        if (isLoopbackRequest(request)) {
+            return true;
+        }
+
+        // Browser same-origin: front e API servidos pelo mesmo domínio (Caddy → Spring)
+        if (isTrustedPublicHost(request)) {
+            return true;
+        }
+
         return false;
+    }
+
+    private boolean isLoopbackRequest(HttpServletRequest request) {
+        String remote = request.getRemoteAddr();
+        return "127.0.0.1".equals(remote) || "0:0:0:0:0:0:0:1".equals(remote);
+    }
+
+    private boolean isTrustedPublicHost(HttpServletRequest request) {
+        String hostHeader = request.getHeader("Host");
+        if (hostHeader == null || hostHeader.isBlank()) {
+            return false;
+        }
+        String hostname = hostHeader.split(":")[0].trim().toLowerCase();
+        return TRUSTED_PUBLIC_HOSTS.contains(hostname);
     }
 
     @Override

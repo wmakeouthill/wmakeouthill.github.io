@@ -1,9 +1,8 @@
 # Deploy Oracle — modo SSR/edge (Fase 7)
 
-> **Status:** preparado, **não migrado**. O deploy atual continua sendo o
-> `Dockerfile.oracle-cloud` (API-only, front no Vercel). Os arquivos abaixo
-> permitem ligar o modo SSR quando você decidir migrar o serving do front para o
-> Oracle — a troca de produção exige sua confirmação explícita.
+> **Status:** pronto para produção. Use `deploy-oracle-ssr.ps1` + Caddy para servir
+> `wmakeouthill.dev` sem Vercel. O modo API-only (`Dockerfile.oracle-cloud`) continua
+> disponível como fallback via `deploy-oracle-cloud.ps1`.
 
 ## O que esta imagem faz
 

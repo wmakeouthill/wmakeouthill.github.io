@@ -1,0 +1,14 @@
+# HTTPS automático (Let's Encrypt) para wmakeouthill.dev
+# Instale Caddy na VM e copie este arquivo para /etc/caddy/Caddyfile
+# O container Docker escuta apenas em 127.0.0.1:8080 (não expor 8080 publicamente).
+
+wmakeouthill.dev, www.wmakeouthill.dev {
+	encode gzip zstd
+
+	reverse_proxy localhost:8080 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
