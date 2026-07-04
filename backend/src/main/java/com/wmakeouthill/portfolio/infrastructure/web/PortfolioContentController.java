@@ -1,7 +1,9 @@
 package com.wmakeouthill.portfolio.infrastructure.web;
 
+import com.wmakeouthill.portfolio.application.dto.CaseDto;
 import com.wmakeouthill.portfolio.application.dto.RepositoryFileDto;
 import com.wmakeouthill.portfolio.application.port.out.GithubRepositoryContentPort;
+import com.wmakeouthill.portfolio.application.usecase.ListarCasesUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class PortfolioContentController {
 
   private final GithubRepositoryContentPort contentPort;
+  private final ListarCasesUseCase listarCasesUseCase;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // IMAGENS DE PROJETOS
@@ -97,6 +100,18 @@ public class PortfolioContentController {
     log.info("Listando documentações de trabalhos");
     List<RepositoryFileDto> docs = contentPort.listarDocumentacoesTrabalhos();
     return ResponseEntity.ok(docs);
+  }
+
+  /**
+   * Lista os cases profissionais (aba Profissionais) como cards.
+   */
+  @GetMapping("/cases")
+  public ResponseEntity<List<CaseDto>> listarCases(
+      @RequestParam(name = "lang", defaultValue = "pt") String lang) {
+    log.info("Listando cases profissionais (lang={})", lang);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
+        .body(listarCasesUseCase.executar(lang));
   }
 
   /**
