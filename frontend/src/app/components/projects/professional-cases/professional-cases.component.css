@@ -5,7 +5,7 @@
 .professional-cases {
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 2.4vh, 28px);
+  gap: clamp(8px, 1.4vh, 16px);
 }
 
 .case-filters {
@@ -15,7 +15,7 @@
 .cases-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-  gap: clamp(10px, 1.4vh, 14px);
+  gap: clamp(8px, 1.1vh, 12px);
 }
 
 .pagination {
@@ -31,7 +31,7 @@
   display: grid;
   place-items: center;
   gap: 1rem;
-  min-height: 220px;
+  min-height: 160px;
   color: var(--text-muted);
 }
 
@@ -45,4 +45,45 @@
   .cases-grid {
     grid-template-columns: 1fr;
   }
+}
+.case-filters {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.case-filters .filter-btn {
+  min-height: 34px;
+  padding: 0 0.72rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: transform var(--t-fast), color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+}
+
+.case-filters .filter-btn:hover,
+.case-filters .filter-btn:focus-visible {
+  color: var(--color-accent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+.case-filters .filter-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.case-filters .filter-btn.active {
+  color: #1a1a1a;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  border-color: transparent;
+}
+
+.case-filters .filter-btn.active:hover,
+.case-filters .filter-btn.active:focus-visible {
+  color: #1a1a1a;
 }

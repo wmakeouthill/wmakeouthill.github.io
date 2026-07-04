@@ -64,6 +64,11 @@ public class ListarCasesUseCase {
         : (doc.path().contains("/autou/") ? "autou" : "freela");
     String gallerySlug = fm.gallery() != null ? fm.gallery() : slug;
     List<RepositoryFileDto> galeria = contentPort.listarGaleriaProjeto(gallerySlug);
+    String logoUrl = resolverMidia(galeria, fm.logo(), "logo.");
+    String coverUrl = resolverMidia(galeria, fm.cover(), "cover.");
+    if (coverUrl == null && logoUrl != null) {
+      coverUrl = logoUrl;
+    }
     return Optional.of(new CaseDto(
         slug,
         fm.title() != null ? fm.title() : humanizar(slug),
@@ -71,8 +76,8 @@ public class ListarCasesUseCase {
         categoria,
         fm.status(),
         fm.stack(),
-        resolverMidia(galeria, fm.cover(), "cover."),
-        resolverMidia(galeria, fm.logo(), "logo."),
+        coverUrl,
+        logoUrl,
         !galeria.isEmpty(),
         gallerySlug,
         fm.order()));

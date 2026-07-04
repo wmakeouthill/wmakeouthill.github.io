@@ -16,7 +16,8 @@
     <article class="showcase-card">
       <div class="showcase-media">
         @if (caseItem.coverUrl) {
-          <img [src]="caseItem.coverUrl" [alt]="caseItem.title" decoding="async" />
+          <img [src]="caseItem.coverUrl" [alt]="caseItem.title" decoding="async"
+            [class.showcase-media-logo]="isLogoCover()" />
         } @else {
           <div class="showcase-media-fallback" aria-hidden="true">
             <span>{{ caseItem.client || caseItem.title }}</span>

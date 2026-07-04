@@ -28,6 +28,15 @@ export class CaseCardComponent {
 
   readonly isDemo = computed(() => (this.caseItem().status ?? '').toLowerCase().includes('demo'));
 
+  readonly isLogoCover = computed(() => {
+    const item = this.caseItem();
+    const cover = item.coverUrl;
+    if (!cover) {
+      return false;
+    }
+    return cover === item.logoUrl || cover.toLowerCase().includes('.svg');
+  });
+
   onReadCase(event: MouseEvent): void {
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) {
       return;

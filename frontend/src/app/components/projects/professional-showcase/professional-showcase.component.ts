@@ -30,6 +30,14 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
   readonly activeIndex = signal<number>(0);
   readonly activeCase = computed(() => this.cases()[this.activeIndex()] ?? null);
 
+  readonly isLogoCover = computed(() => {
+    const item = this.activeCase();
+    if (!item?.coverUrl) {
+      return false;
+    }
+    return item.coverUrl === item.logoUrl || item.coverUrl.toLowerCase().includes('.svg');
+  });
+
   private rotateTimer: ReturnType<typeof setInterval> | null = null;
   private pauseTimeout: ReturnType<typeof setTimeout> | null = null;
   private visibilityObserver?: IntersectionObserver;

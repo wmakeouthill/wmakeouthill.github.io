@@ -1,7 +1,8 @@
 <article class="case-card reveal">
   <div class="case-cover">
     @if (caseItem().coverUrl) {
-      <img [src]="caseItem().coverUrl" [alt]="caseItem().title" loading="lazy" decoding="async" />
+      <img [src]="caseItem().coverUrl" [alt]="caseItem().title" loading="lazy" decoding="async"
+        [class.case-cover-logo]="isLogoCover()" />
     } @else {
       <div class="case-cover-fallback" aria-hidden="true">
         <span>{{ caseItem().client || caseItem().title }}</span>

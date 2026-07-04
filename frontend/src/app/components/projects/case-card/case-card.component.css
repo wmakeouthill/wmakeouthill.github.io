@@ -15,14 +15,14 @@
 
 .case-card:hover,
 .case-card:focus-within {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   border-color: var(--border-accent);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
 }
 
 .case-cover {
   position: relative;
-  min-height: clamp(128px, 16vh, 184px);
+  min-height: clamp(92px, 12vh, 128px);
   background: var(--bg-card-2);
   overflow: hidden;
 }
@@ -30,13 +30,19 @@
 .case-cover img {
   width: 100%;
   height: 100%;
-  min-height: clamp(128px, 16vh, 184px);
+  min-height: clamp(92px, 12vh, 128px);
   object-fit: cover;
   display: block;
 }
 
+.case-cover img.case-cover-logo {
+  object-fit: contain;
+  padding: 1.25rem;
+  background: var(--bg-card);
+}
+
 .case-cover-fallback {
-  min-height: clamp(128px, 16vh, 184px);
+  min-height: clamp(92px, 12vh, 128px);
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -59,10 +65,10 @@
 }
 
 .case-body {
-  padding: clamp(12px, 1.6vh, 16px);
+  padding: clamp(8px, 1.1vh, 12px);
   display: flex;
   flex-direction: column;
-  gap: 0.72rem;
+  gap: 0.48rem;
   flex: 1;
 }
 
@@ -90,7 +96,7 @@
 .case-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 1.02rem;
+  font-size: 0.94rem;
   line-height: 1.25;
   text-wrap: balance;
 }
@@ -110,13 +116,13 @@
 
 .case-link,
 .case-gallery-btn {
-  min-height: 36px;
+  min-height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--r-full);
   font-weight: 700;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   text-decoration: none;
   transition: transform var(--t-fast), border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
 }

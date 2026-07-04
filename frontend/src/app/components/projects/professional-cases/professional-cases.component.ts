@@ -34,7 +34,7 @@ export class ProfessionalCasesComponent {
   readonly currentPage = signal<number>(1);
 
   private readonly gridColumns = signal<number>(3);
-  private readonly rowsPerPage = 2;
+  private readonly rowsPerPage = 1;
 
   readonly itemsPerPage = computed(() => Math.max(1, this.gridColumns()) * this.rowsPerPage);
 

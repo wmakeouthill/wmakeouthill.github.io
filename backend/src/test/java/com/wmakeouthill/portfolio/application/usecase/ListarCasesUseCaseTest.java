@@ -101,6 +101,29 @@ class ListarCasesUseCaseTest {
   }
 
   @Test
+  void executar_comApenasLogo_deveUsarLogoComoCoverPlaceholder() {
+    when(port.listarDocumentacoesCases()).thenReturn(List.of(
+        md("saint-gobain-replica-ai", "portfolio-content/cases/autou/saint-gobain-replica-ai.md")));
+    when(port.obterMarkdownConteudo("portfolio-content/cases/autou/saint-gobain-replica-ai.md"))
+        .thenReturn(Optional.of("""
+            ---
+            title: Réplica AI
+            client: Saint-Gobain
+            category: autou
+            ---
+            corpo"""));
+    when(port.listarGaleriaProjeto("saint-gobain-replica-ai")).thenReturn(List.of(
+        midia("logo.svg", "portfolio-gallery/saint-gobain-replica-ai/logo.svg")));
+
+    List<CaseDto> cases = useCase.executar("pt");
+
+    CaseDto dto = cases.get(0);
+    assertThat(dto.logoUrl()).endsWith("saint-gobain-replica-ai/logo.svg");
+    assertThat(dto.coverUrl()).isEqualTo(dto.logoUrl());
+    assertThat(dto.hasGallery()).isTrue();
+  }
+
+  @Test
   void executar_semGaleria_deveDevolverHasGalleryFalseEUrlsNulas() {
     when(port.listarDocumentacoesCases()).thenReturn(List.of(
         md("itau-demo", "portfolio-content/cases/autou/itau-demo.md")));

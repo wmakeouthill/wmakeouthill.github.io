@@ -5,12 +5,12 @@
 /* Compacta a seção para caber grade + paginação em uma tela de qualquer
    altura: as métricas verticais escalam com a viewport (vh) entre limites. */
 #projects.block {
-  padding-top: clamp(60px, 9vh, 92px);
-  padding-bottom: clamp(24px, 4vh, 56px);
+  padding-top: clamp(44px, 6vh, 68px);
+  padding-bottom: clamp(18px, 3vh, 38px);
 }
 
 #projects .section-title {
-  margin-bottom: clamp(14px, 2.6vh, 50px);
+  margin-bottom: clamp(10px, 1.6vh, 24px);
 }
 
 .filters-wrapper {
@@ -231,7 +231,7 @@
   gap: 0.5rem;
   width: fit-content;
   max-width: 100%;
-  margin: 0 auto clamp(14px, 2.4vh, 30px);
+  margin: 0 auto clamp(10px, 1.4vh, 18px);
   padding: 0.35rem;
   border: 1px solid var(--border);
   border-radius: var(--r-full);
@@ -239,8 +239,8 @@
 }
 
 .tab-btn {
-  min-height: 40px;
-  padding: 0 1rem;
+  min-height: 34px;
+  padding: 0 0.82rem;
   border: 1px solid transparent;
   border-radius: var(--r-full);
   color: var(--text-secondary);
