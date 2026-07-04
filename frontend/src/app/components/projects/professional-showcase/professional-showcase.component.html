@@ -12,7 +12,7 @@
         (pointercancel)="onStripPointerUp($event)">
         @for (item of cases(); track item.slug; let i = $index) {
           <button type="button" role="tab" class="showcase-logo" [attr.aria-selected]="i === activeIndex()"
-            [class.active]="i === activeIndex()" (click)="onLogoClick(i, $event)" [title]="item.title">
+            [class.active]="i === activeIndex()" (click)="onLogoActivate(i, $event)" [title]="item.title">
             @if (item.logoUrl) {
               <img [src]="item.logoUrl" [alt]="item.client || item.title" loading="lazy" decoding="async"
                 draggable="false" />

@@ -107,11 +107,10 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
     this.activeIndex.set((this.activeIndex() + 1) % total);
   }
 
-  onLogoClick(index: number, event: MouseEvent): void {
+  onLogoActivate(index: number, event: MouseEvent): void {
     if (this.dragged) {
       event.preventDefault();
       event.stopPropagation();
-      this.dragged = false;
       return;
     }
     this.select(index);
@@ -135,6 +134,10 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
 
   onStripPointerDown(event: PointerEvent): void {
     if (!this.isBrowser() || event.button !== 0) {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.closest('.showcase-logo')) {
       return;
     }
     const strip = this.logosStrip()?.nativeElement;
@@ -172,6 +175,9 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
     strip?.releasePointerCapture(event.pointerId);
     this.dragPointerId = null;
     this.isDragging.set(false);
+    globalThis.setTimeout(() => {
+      this.dragged = false;
+    }, 0);
   }
 
   caseHref(slug: string): string {
