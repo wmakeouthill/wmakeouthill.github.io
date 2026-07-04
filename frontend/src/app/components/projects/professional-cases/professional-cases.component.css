@@ -88,3 +88,19 @@
 .case-filters .filter-btn.active:focus-visible {
   color: #1a1a1a;
 }
+
+@media (max-width: 620px) {
+  .cases-grid {
+    gap: 8px;
+  }
+
+  .case-filters {
+    gap: 0.35rem;
+  }
+
+  .case-filters .filter-btn {
+    min-height: 36px;
+    padding: 0 0.62rem;
+    font-size: 0.78rem;
+  }
+}

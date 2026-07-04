@@ -276,17 +276,41 @@
 
 @media (max-width: 620px) {
   .showcase-logo {
-    min-width: 84px;
-    height: 44px;
+    min-width: 72px;
+    max-width: 108px;
+    height: 40px;
+    padding: 0.28rem 0.5rem;
+  }
+
+  .showcase-logo img {
+    max-height: 20px;
   }
 
   .showcase-info {
-    padding: 14px;
+    padding: 10px 12px;
+    gap: 5px;
+  }
+
+  .showcase-client,
+  .showcase-status,
+  .showcase-stack span {
+    font-size: 0.68rem;
+    padding: 0.3rem 0.48rem;
+  }
+
+  /* Menos chips na vitrine — prioriza título e CTA em telas estreitas */
+  .showcase-stack span:nth-child(n + 4) {
+    display: none;
   }
 
   .showcase-nav {
-    min-width: 32px;
-    height: 32px;
-    font-size: 1.2rem;
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .showcase-media {
+    max-height: clamp(92px, 13vh, 118px);
   }
 }

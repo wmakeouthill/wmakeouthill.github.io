@@ -271,3 +271,28 @@
 .tab-btn.active:focus-visible {
   color: #1a1a1a;
 }
+
+@media (max-width: 620px) {
+  #projects.block {
+    padding-top: clamp(36px, 5vh, 52px);
+    padding-bottom: clamp(14px, 2.5vh, 28px);
+  }
+
+  #projects .section-title {
+    margin-bottom: clamp(8px, 1.2vh, 16px);
+  }
+
+  .tabs-toggle {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: clamp(8px, 1.1vh, 14px);
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-height: 36px;
+    padding: 0 0.5rem;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+}
