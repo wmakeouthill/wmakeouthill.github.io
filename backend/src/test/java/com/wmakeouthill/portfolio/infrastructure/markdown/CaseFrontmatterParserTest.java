@@ -77,4 +77,37 @@ class CaseFrontmatterParserTest {
     assertThat(fm.corpo()).isEmpty();
     assertThat(fm.title()).isNull();
   }
+
+  @Test
+  void extrair_comYamlRaizNaoMapa_deveDevolverCorpoSemBlocoECamposNulos() {
+    String md = "---\n- a\n- b\n---\ncorpo";
+
+    CaseFrontmatter fm = parser.extrair(md);
+
+    assertThat(fm.title()).isNull();
+    assertThat(fm.stack()).isEmpty();
+    assertThat(fm.order()).isNull();
+    assertThat(fm.corpo()).isEqualTo("corpo");
+  }
+
+  @Test
+  void extrair_comFrontmatterSemFechamento_deveDevolverTextoIntegralComoCorpo() {
+    String md = "---\ntitle: X\n# Corpo";
+
+    CaseFrontmatter fm = parser.extrair(md);
+
+    assertThat(fm.title()).isNull();
+    assertThat(fm.stack()).isEmpty();
+    assertThat(fm.corpo()).isEqualTo(md);
+  }
+
+  @Test
+  void extrair_stringVazia_deveDevolverCorpoVazioECamposNulos() {
+    CaseFrontmatter fm = parser.extrair("");
+
+    assertThat(fm.corpo()).isEmpty();
+    assertThat(fm.title()).isNull();
+    assertThat(fm.stack()).isEmpty();
+    assertThat(fm.order()).isNull();
+  }
 }
