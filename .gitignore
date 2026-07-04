@@ -150,6 +150,8 @@ regras-desenvolvimento-java-angular/
 *-key.json
 vercel-service-account-key.json
 *service-account*.json
+portfolio-wesley-479723-27fce2d0b7ef.json
+oracle-cloud/secrets/
 
 # Arquivos grandes de mídia que não são essenciais (ajuste conforme necessário)
 # *.mp4

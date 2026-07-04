@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtml } from '@angular/platform-browser';
 
@@ -25,6 +25,23 @@ export interface ChatMessage {
     filename: string;
     url: string;
   };
+  /**
+   * Quando presente, a mensagem oferece a geração do currículo sob demanda:
+   * exibe um botão que dispara POST /api/chat/curriculo com estes dados.
+   */
+  curriculoRequest?: {
+    message: string;
+    reply: string;
+  };
+  /** True enquanto o currículo está sendo gerado (mostra estado de carregando). */
+  curriculoLoading?: boolean;
+  /** Mensagem de erro caso a geração do currículo falhe. */
+  curriculoError?: string;
+  /**
+   * Id do job de geração do currículo (assíncrono). Persistido no localStorage
+   * para permitir retomar o polling caso a página seja recarregada no meio.
+   */
+  curriculoJobId?: string;
 }
 
 export function classificarAnexo(mime: string, name: string): AttachmentKind {
@@ -44,5 +61,11 @@ export function classificarAnexo(mime: string, name: string): AttachmentKind {
 })
 export class ChatMessageComponent {
   message = input.required<ChatMessage>();
+  /** Emitido quando o usuário pede para gerar o currículo a partir desta mensagem. */
+  generateCurriculo = output<ChatMessage>();
+
+  onGerarCurriculo(): void {
+    this.generateCurriculo.emit(this.message());
+  }
 }
 

@@ -1,12 +1,15 @@
 package com.wmakeouthill.portfolio.infrastructure.web;
 
+import com.wmakeouthill.portfolio.application.dto.ChatCurriculoRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatEmailRequest;
 import com.wmakeouthill.portfolio.application.dto.ChatEmailResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatRequest;
+import com.wmakeouthill.portfolio.application.dto.CurriculoJobResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatResponse;
 import com.wmakeouthill.portfolio.application.dto.ChatTtsRequest;
 import com.wmakeouthill.portfolio.application.dto.MediaPart;
 import com.wmakeouthill.portfolio.application.usecase.ChatUseCase;
+import com.wmakeouthill.portfolio.application.usecase.CurriculoJobService;
 import com.wmakeouthill.portfolio.application.usecase.EnviarEmailChatUseCase;
 import com.wmakeouthill.portfolio.infrastructure.ai.GeminiTtsAdapter;
 import com.wmakeouthill.portfolio.infrastructure.document.DocumentTextExtractor;
@@ -16,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +44,7 @@ public class ChatController {
     private static final String HEADER_SESSION_ID = "X-Session-ID";
 
     private final ChatUseCase chatUseCase;
+    private final CurriculoJobService curriculoJobService;
     private final EnviarEmailChatUseCase enviarEmailChatUseCase;
     private final DocumentTextExtractor documentTextExtractor;
     private final GeminiTtsAdapter geminiTtsAdapter;
@@ -73,6 +79,37 @@ public class ChatController {
             return ResponseEntity.internalServerError()
                     .body(ChatEmailResponse.erro("Não foi possível enviar o email agora."));
         }
+    }
+
+    /**
+     * Inicia a geração do currículo em background e devolve o id do job na hora
+     * (não bloqueia até o Vertex responder — evita o 504 do teto de ~58s do proxy).
+     * O frontend consulta o resultado por polling em {@link #curriculoStatus}.
+     */
+    @PostMapping("/curriculo")
+    public ResponseEntity<CurriculoJobResponse> curriculo(@RequestBody ChatCurriculoRequest request) {
+        try {
+            String jobId = curriculoJobService.iniciar(
+                    request == null ? null : request.message(),
+                    request == null ? null : request.reply());
+            return ResponseEntity.accepted().body(new CurriculoJobResponse(jobId, "PENDING", null, null, null));
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ChatController.class)
+                    .error("Erro ao iniciar geração de currículo pelo chat", e);
+            return ResponseEntity
+                    .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CurriculoJobResponse(null, "ERROR", null, null,
+                            "Não foi possível gerar o currículo agora. Tente novamente."));
+        }
+    }
+
+    /**
+     * Consulta o estado da geração do currículo (polling). Cada chamada é rápida
+     * e cabe folgada no teto do proxy, independente de quanto o Vertex demore.
+     */
+    @GetMapping("/curriculo/{jobId}")
+    public ResponseEntity<CurriculoJobResponse> curriculoStatus(@PathVariable String jobId) {
+        return ResponseEntity.ok(curriculoJobService.consultar(jobId));
     }
 
     @PostMapping("/tts")

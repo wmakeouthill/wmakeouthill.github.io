@@ -568,6 +568,58 @@
 .chat-msg-pdf-link:hover {
   text-decoration: underline;
 }
+
+.chat-msg-curriculo-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-msg-curriculo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid rgba(219, 194, 125, 0.4);
+  border-radius: 8px;
+  background: rgba(219, 194, 125, 0.12);
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.chat-msg-curriculo-btn:hover:not(:disabled) {
+  background: rgba(219, 194, 125, 0.22);
+}
+
+.chat-msg-curriculo-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.chat-msg-curriculo-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(219, 194, 125, 0.35);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: chat-msg-curriculo-spin 0.7s linear infinite;
+}
+
+@keyframes chat-msg-curriculo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-msg-curriculo-error {
+  font-size: 12px;
+  color: #e06c6c;
+}
 .chat-message {
   max-width: 92% !important;
   padding: 11px 15px !important;

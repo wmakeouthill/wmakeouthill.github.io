@@ -334,6 +334,7 @@
     "historyRemove": "Remove conversation",
     "commandsLabel": "Available commands",
     "cmdEmail": "Send an email to Wesley",
+    "cmdCurriculo": "Generate a PDF résumé tailored to a job",
     "cmdNew": "Start a new conversation",
     "cmdHistory": "View conversation history",
     "thinking": "Thinking...",

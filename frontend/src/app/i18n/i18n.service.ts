@@ -61,41 +61,26 @@ export class I18nService {
   }
 
   private detectInitialLanguage(): Language {
-    // No SSR não há localStorage/navigator: o idioma vem da rota (/en) ou dos
-    // headers da requisição, garantindo que /en seja renderizado em inglês.
     if (!this.isBrowser) {
       return this.detectServerLanguage();
     }
-
-    const saved = localStorage.getItem('portfolio-language');
-    if (saved === 'pt' || saved === 'en') {
-      return saved;
-    }
-
-    const browserLang = navigator.language || (navigator as any).userLanguage;
-    if (browserLang?.toLowerCase().startsWith('en')) {
-      return 'en';
-    }
-
-    return 'pt';
+    return this.languageFromPath(globalThis.location?.pathname ?? '/');
   }
 
-  /** Idioma no SSR: prefixo /en na rota tem prioridade; senão, Accept-Language. */
   private detectServerLanguage(): Language {
     const req = this.request;
     if (!req) {
       return 'pt';
     }
     try {
-      const path = new URL(req.url).pathname;
-      if (path === '/en' || path.startsWith('/en/')) {
-        return 'en';
-      }
+      return this.languageFromPath(new URL(req.url).pathname);
     } catch {
-      // URL inválida: cai no header.
+      return 'pt';
     }
-    const header = req.headers.get('x-language') ?? req.headers.get('accept-language');
-    return header?.toLowerCase().startsWith('en') ? 'en' : 'pt';
+  }
+
+  private languageFromPath(path: string): Language {
+    return path === '/en' || path.startsWith('/en/') ? 'en' : 'pt';
   }
 
   private resolveKey(key: string): unknown {

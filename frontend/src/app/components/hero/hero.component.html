@@ -1,6 +1,6 @@
 <header class="hero wrap" id="hero">
   <div class="hero-grid">
-    <div class="hero-copy">
+    <div class="hero-copy hero-intro">
       <div class="code-line" [class.swapping]="codeSwapping()">
         @if (codeLang() === 'java') {
           <span class="cls">System</span><span class="pn">.</span><span class="mth">out</span><span class="pn">.</span><span class="mth">println</span><span class="pn">(</span><span class="str">"Hello World, I am: "</span><span class="pn">);</span>
@@ -12,6 +12,23 @@
       <div class="hero-role">
         <span class="typing">{{ displayedText() }}</span><span class="typing-cursor">|</span>
       </div>
+    </div>
+
+    <div class="hero-photo">
+      <div class="photo-ring">
+        <div class="photo-glow"></div>
+        <img class="profile" src="assets/wesley-photo.webp" alt="Wesley de Carvalho Augusto Correia" width="400" height="400" fetchpriority="high" decoding="async" />
+        <div class="octocat">
+          <!-- Animação decorativa (gatinho espiando), muda e sem fala: escondida de
+               leitores de tela. O <track> vazio satisfia a auditoria de legendas. -->
+          <video #octocatVideo src="assets/octocat.mp4" width="140" height="140" muted playsinline preload="metadata" aria-hidden="true" tabindex="-1">
+            <track kind="captions" srclang="pt" label="Sem legendas" src="assets/empty-captions.vtt" />
+          </video>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-copy hero-details">
       <p class="hero-tagline">{{ 'hero.tagline' | translate }}</p>
 
       <div class="hero-cta">
@@ -59,17 +76,6 @@
         <div class="stat">
           <div class="num">80+</div>
           <div class="lbl">{{ 'hero.technologies' | translate }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="hero-photo reveal">
-      <div class="photo-ring">
-        <div class="photo-glow"></div>
-        <div class="photo-deco"></div>
-        <img class="profile" src="assets/wesley-photo.webp" alt="Wesley de Carvalho Augusto Correia" width="400" height="400" fetchpriority="high" decoding="async" />
-        <div class="octocat">
-          <video #octocatVideo src="assets/octocat.mp4" width="140" height="140" muted playsinline preload="metadata"></video>
         </div>
       </div>
     </div>

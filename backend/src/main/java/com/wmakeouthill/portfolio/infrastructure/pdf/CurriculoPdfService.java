@@ -29,18 +29,34 @@ public class CurriculoPdfService {
         return renderizarPdf(html);
     }
 
+    /** Largura A4 em px a 96dpi (210mm). A altura é dinâmica (página única contínua). */
+    private static final int LARGURA_PX = 794;
+
     private byte[] renderizarPdf(String html) {
         try (Playwright playwright = Playwright.create();
                 Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
                         .setHeadless(true)
                         .setArgs(java.util.List.of("--no-sandbox", "--disable-dev-shm-usage")))) {
             Page page = browser.newPage(new Browser.NewPageOptions()
-                    .setViewportSize(794, 1123));
+                    .setViewportSize(LARGURA_PX, 1123));
             page.setContent(html, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
             page.emulateMedia(new Page.EmulateMediaOptions().setMedia(Media.PRINT));
+
+            // Espera as fontes (Inter/JetBrains Mono via @import) terminarem de carregar
+            // antes de medir/renderizar — senão a medição usa métricas da fonte fallback
+            // e a altura/quebra sai diferente do resultado final.
+            page.evaluate("() => document.fonts.ready");
+
+            // Gera UMA única página contínua com a altura real do conteúdo, em vez de
+            // fatiar em folhas A4 (que cortava o currículo no meio das seções/colunas).
+            long alturaPx = Math.round(((Number) page.evaluate(
+                    "() => { const el = document.querySelector('.page') || document.body;"
+                            + " return Math.ceil(el.getBoundingClientRect().height); }")).doubleValue());
+
             return page.pdf(new Page.PdfOptions()
-                    .setFormat("A4")
                     .setPrintBackground(true)
+                    .setWidth(LARGURA_PX + "px")
+                    .setHeight(alturaPx + "px")
                     .setMargin(new Margin()
                             .setTop("0")
                             .setRight("0")
@@ -74,13 +90,8 @@ public class CurriculoPdfService {
     }
 
     private String inserirBlocoPersonalizado(String html, CurriculoPersonalizado curriculo) {
-        String style = """
-                <style>
-                  .ai-fit{border:1px solid var(--line);background:var(--bg-soft);border-radius:8px;padding:3.5mm 4mm;margin:0 0 5mm 0}
-                  .ai-fit h2{margin-top:0}
-                  .ai-fit p{margin:1.5mm 0 0 0;color:var(--ink-soft);font-size:9pt}
-                </style>
-                """;
+        // O CSS de .ai-fit vive no template (curriculo.html), junto do .summary, para
+        // herdar a mesma linguagem visual. Aqui só injetamos o conteúdo da seção.
         String bloco = """
                   <section class="ai-fit">
                     <h2>Alinhamento com a vaga</h2>
@@ -93,8 +104,7 @@ public class CurriculoPdfService {
                 escape(curriculo.palavrasChave()),
                 escape(curriculo.destaquesAlinhamento()));
 
-        String withStyle = html.replace("</style>", style + "\n</style>");
-        return withStyle.replace("<main class=\"main\">", "<main class=\"main\">\n" + bloco);
+        return html.replace("<main class=\"main\">", "<main class=\"main\">\n" + bloco);
     }
 
     private String carregarTemplate() {

@@ -28,7 +28,7 @@
 
     <div class="chat-messages" role="log" #messagesContainer>
       @for (message of messages(); track message.timestamp) {
-      <app-chat-message [message]="message" />
+      <app-chat-message [message]="message" (generateCurriculo)="onGenerateCurriculo($event)" />
       }
 
       @if (isLoading()) {

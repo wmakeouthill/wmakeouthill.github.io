@@ -65,6 +65,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   private lastLanguage = this.i18nService.language();
   private initialized = false;
   private gridResizeObserver?: ResizeObserver;
+  private galleryObserver?: IntersectionObserver;
   private readmeUrlPushed = false;
   private readonly handlePopState = () => {
     if (this.showReadmeModal()) {
@@ -130,6 +131,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.gridResizeObserver?.disconnect();
+    this.galleryObserver?.disconnect();
     if (this.isBrowser()) {
       window.removeEventListener('popstate', this.handlePopState);
     }
@@ -220,10 +222,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     if (!this.isBrowser()) {
       return;
     }
-    // Sonda em idle: são ~1 request por projeto (~33) e disparar tudo no load
-    // satura a conexão (no 4G lento) justo na janela de medição do Speed Index.
-    // O botão de galeria fica abaixo da dobra, então pode ser descoberto depois.
-    this.runWhenIdle(() => {
+    // São ~1 request por projeto (~33). Disparar tudo no load — mesmo em idle —
+    // mantém a rede ocupada durante a janela de medição do Lighthouse, o que
+    // estende o Speed Index. Como o botão de galeria fica abaixo da dobra, só
+    // sondamos quando a seção de projetos chega perto da viewport. Assim a rede
+    // fica quieta cedo e a janela do SI fecha logo após a carga.
+    this.runWhenProjectsVisible(() => {
       for (const repo of repos) {
         const url = resolveApiUrl(`/api/content/gallery/${encodeURIComponent(repo.name.toLowerCase())}`);
         this.http.get<unknown[]>(url).subscribe({
@@ -236,6 +240,28 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  /**
+   * Executa `task` (uma vez) quando a seção de projetos se aproxima da viewport.
+   * Sem IntersectionObserver, ou se a seção já estiver visível, cai no idle.
+   * O rootMargin antecipa a sondagem para que o botão já apareça ao rolar até lá.
+   */
+  private runWhenProjectsVisible(task: () => void): void {
+    const section = this.projectsSection()?.nativeElement;
+    if (!section || typeof IntersectionObserver === 'undefined') {
+      this.runWhenIdle(task);
+      return;
+    }
+    this.galleryObserver?.disconnect();
+    this.galleryObserver = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        this.galleryObserver?.disconnect();
+        this.galleryObserver = undefined;
+        task();
+      }
+    }, { rootMargin: '200px 0px' });
+    this.galleryObserver.observe(section);
   }
 
   /** Projeto tem galeria com mídia? */

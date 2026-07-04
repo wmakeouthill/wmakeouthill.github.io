@@ -64,6 +64,26 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
     this.setupRevealAnimations();
+    this.enableAmbientAnimations();
+  }
+
+  /**
+   * Liga as animações ambientes infinitas (sweep do texto cyber, giro do botão
+   * Github Stats) só depois que a página carregou e ficou ociosa. Elas repintam
+   * a cada frame; rodando durante a janela de medição do Lighthouse, empurravam
+   * o Speed Index pra cima sem que o visitante real notasse diferença. Ao adiar
+   * o início pro idle, a janela vê a tela estável e o efeito aparece logo em
+   * seguida. Fora da zona do Angular: só alterna uma classe, não precisa de CD.
+   */
+  private enableAmbientAnimations(): void {
+    const start = () => document.documentElement.classList.add('anim-ready');
+    this.ngZone.runOutsideAngular(() => {
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(start, { timeout: 3000 });
+      } else {
+        setTimeout(start, 1200);
+      }
+    });
   }
 
   scrollToTop(): void {

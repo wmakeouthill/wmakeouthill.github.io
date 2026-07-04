@@ -44,6 +44,10 @@ interface ChatMessageRaw {
   text: string;
   timestamp: string | Date;
   attachments?: AttachmentMeta[];
+  /** Estado da geração de currículo, persistido para retomar após reload. */
+  curriculoJobId?: string;
+  curriculoLoading?: boolean;
+  curriculoRequest?: { message: string; reply: string };
 }
 
 @Component({
@@ -87,6 +91,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private unreadInitialized = false;
   private sessionId = obterOuGerarSessionId();
   private currentRequest?: Subscription;
+  private curriculoPollTimer?: ReturnType<typeof setTimeout>;
 
   readonly initialMessage = computed<ChatMessage>(() => ({
     from: 'assistant',
@@ -166,6 +171,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.currentRequest?.unsubscribe();
+    this.pararPollCurriculo();
     this.outsideClickDestroy.ngOnDestroy?.();
     this.scrollBlockDestroy.ngOnDestroy?.();
     if (this.isBrowser) {
@@ -262,6 +268,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isCurriculoCommand(text) && files.length === 0) {
+      this.gerarCurriculoPeloComando(text);
+      return;
+    }
+
     const request$ = files.length > 0 || this.audioResponseEnabled()
       ? this.chatService.enviarMultimodal(text, files, this.sessionId, this.selectedModel(), this.audioResponseEnabled())
       : this.chatService.enviarMensagem(text, this.sessionId, this.selectedModel());
@@ -269,7 +280,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.currentRequest = request$.subscribe({
       next: (response: ChatResponse) => {
         this.currentRequest = undefined;
-        this.chatMessagesHandlers.handleAssistantResponse(response).catch(() => {
+        this.chatMessagesHandlers.handleAssistantResponse(response, text).catch(() => {
           this.chatMessagesHandlers.handleAssistantError();
         });
         // Mantém foco após resposta
@@ -319,6 +330,216 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     return text.trim().toLowerCase().startsWith('/email');
   }
 
+  private isCurriculoCommand(text: string): boolean {
+    return text.trim().toLowerCase().startsWith('/curriculo');
+  }
+
+  /**
+   * Fluxo do comando /curriculo <vaga>: mostra na hora uma mensagem de "gerando"
+   * e, quando o PDF volta da requisição dedicada, transforma essa mesma mensagem
+   * no card de download (sem nunca rodar duas chamadas ao Vertex na mesma requisição).
+   */
+  private gerarCurriculoPeloComando(text: string): void {
+    const vaga = text.replace(/^\/curriculo\s*/i, '').trim();
+    const en = this.i18n.language() === 'en';
+
+    if (!vaga) {
+      const dica = en
+        ? 'Use: /curriculo <paste the job posting here>'
+        : 'Use: /curriculo <cole o conteúdo da vaga aqui>';
+      this.chatMessagesHandlers.handleAssistantResponse({ reply: dica });
+      return;
+    }
+
+    const aviso = en
+      ? '📄 Generating your tailored résumé for this role… it will show up here shortly.'
+      : '📄 Gerando seu currículo personalizado para essa vaga… já aparece aqui.';
+    const placeholder = this.adicionarMensagemCurriculoEmAndamento(aviso);
+    this.isLoading.set(false);
+
+    this.dispararGeracaoCurriculo(placeholder, vaga, '');
+  }
+
+  /** Handler do botão "Gerar currículo PDF" (fluxo de linguagem natural). */
+  onGenerateCurriculo(message: ChatMessage): void {
+    const pedido = message.curriculoRequest;
+    if (!pedido || message.curriculoLoading || message.generatedPdf) {
+      return;
+    }
+    this.atualizarMensagem(message, { curriculoLoading: true, curriculoError: undefined });
+    this.dispararGeracaoCurriculo(message, pedido.message, pedido.reply);
+  }
+
+  /**
+   * Inicia a geração assíncrona e entra em polling até o PDF ficar pronto. Como
+   * a geração roda em background no backend, nenhuma requisição individual fica
+   * perto do teto de 60s — o 504 deixa de acontecer mesmo se o Vertex demorar.
+   */
+  private dispararGeracaoCurriculo(alvo: ChatMessage, vaga: string, reply: string): void {
+    this.currentRequest = this.chatService.iniciarCurriculo(vaga, reply, this.sessionId).subscribe({
+      next: (job) => {
+        this.currentRequest = undefined;
+        if (!job?.jobId || job.status === 'ERROR') {
+          this.marcarErroCurriculo(alvo, job?.error);
+          return;
+        }
+        // Grava o jobId na mensagem (e, portanto, no localStorage) para conseguir
+        // retomar o polling caso a página recarregue antes de o PDF ficar pronto.
+        this.atualizarMensagem(alvo, { curriculoJobId: job.jobId });
+        this.pollCurriculo(alvo, job.jobId, 0);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.marcarErroCurriculo(alvo);
+      }
+    });
+  }
+
+  /**
+   * Após carregar mensagens (abertura inicial ou troca de conversa), varre por
+   * gerações de currículo que ficaram pendentes em um reload e as retoma:
+   * - estava gerando + tem jobId → retoma o polling de onde parou;
+   * - estava gerando sem jobId (reload no instante do POST) → marca erro;
+   * - já tinha concluído → reidrata o PDF (o data URL não é persistido).
+   */
+  /** Cancela qualquer polling de currículo em andamento (troca/nova conversa, destroy). */
+  private pararPollCurriculo(): void {
+    if (this.curriculoPollTimer) {
+      clearTimeout(this.curriculoPollTimer);
+      this.curriculoPollTimer = undefined;
+    }
+  }
+
+  private retomarCurriculosPendentes(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    for (const msg of this.messages()) {
+      if (msg.generatedPdf) {
+        continue;
+      }
+      if (msg.curriculoLoading) {
+        if (msg.curriculoJobId) {
+          this.pollCurriculo(msg, msg.curriculoJobId, 0);
+        } else {
+          this.marcarErroCurriculo(msg);
+        }
+      } else if (msg.curriculoJobId) {
+        this.reidratarCurriculo(msg, msg.curriculoJobId);
+      }
+    }
+  }
+
+  /**
+   * Tenta rebuscar um currículo já concluído cujo PDF (data URL) foi descartado
+   * na persistência. Só age em DONE; PENDING/ERROR/expirado são ignorados em
+   * silêncio para não alterar uma mensagem que já estava pronta.
+   */
+  private reidratarCurriculo(alvo: ChatMessage, jobId: string): void {
+    this.chatService.consultarCurriculo(jobId, this.sessionId).subscribe({
+      next: (job) => {
+        if (job?.status === 'DONE' && job.pdfBase64) {
+          this.aplicarCurriculoPronto(alvo, job.pdfBase64, job.pdfFilename);
+        }
+      },
+      error: () => {
+        // Silencioso: a mensagem permanece como está (sem o link de download).
+      }
+    });
+  }
+
+  private pollCurriculo(alvo: ChatMessage, jobId: string, tentativas: number): void {
+    const MAX_TENTATIVAS = 60; // ~60 × 3s = 180s de teto total
+    this.currentRequest = this.chatService.consultarCurriculo(jobId, this.sessionId).subscribe({
+      next: (job) => {
+        this.currentRequest = undefined;
+        if (job?.status === 'DONE' && job.pdfBase64) {
+          this.aplicarCurriculoPronto(alvo, job.pdfBase64, job.pdfFilename);
+          setTimeout(() => this.focarInput(), 100);
+          return;
+        }
+        if (job?.status === 'ERROR') {
+          this.marcarErroCurriculo(alvo, job.error);
+          return;
+        }
+        this.agendarProximoPoll(alvo, jobId, tentativas);
+      },
+      error: () => {
+        this.currentRequest = undefined;
+        this.agendarProximoPoll(alvo, jobId, tentativas);
+      }
+    });
+  }
+
+  private agendarProximoPoll(alvo: ChatMessage, jobId: string, tentativas: number): void {
+    const MAX_TENTATIVAS = 60;
+    if (tentativas >= MAX_TENTATIVAS) {
+      this.marcarErroCurriculo(alvo);
+      return;
+    }
+    this.curriculoPollTimer = setTimeout(() => this.pollCurriculo(alvo, jobId, tentativas + 1), 3000);
+  }
+
+  private aplicarCurriculoPronto(alvo: ChatMessage, pdfBase64: string, pdfFilename?: string): void {
+    const en = this.i18n.language() === 'en';
+    const url = `data:application/pdf;base64,${pdfBase64}`;
+    const filename = pdfFilename || 'curriculo-wesley-personalizado.pdf';
+    const texto = en
+      ? '✅ Your tailored résumé is ready — download it below.'
+      : '✅ Seu currículo personalizado está pronto — baixe abaixo.';
+    this.atualizarMensagem(alvo, {
+      text: texto,
+      html: this.sanitizer.bypassSecurityTrustHtml(texto),
+      curriculoLoading: false,
+      curriculoRequest: undefined,
+      curriculoError: undefined,
+      generatedPdf: { filename, url }
+    });
+  }
+
+  private marcarErroCurriculo(alvo: ChatMessage, mensagem?: string): void {
+    const en = this.i18n.language() === 'en';
+    const erro = mensagem?.trim()
+      || (en ? 'Could not generate the résumé now. Try again.' : 'Não foi possível gerar o currículo agora. Tente novamente.');
+    if (alvo.curriculoRequest) {
+      // Fluxo do botão: mantém a mensagem e mostra o erro abaixo do botão (permite tentar de novo).
+      this.atualizarMensagem(alvo, { curriculoLoading: false, curriculoError: erro });
+      return;
+    }
+    // Fluxo do comando /curriculo: não há botão onde pendurar o erro, então
+    // transforma a própria mensagem "Gerando…" no texto de erro.
+    this.atualizarMensagem(alvo, {
+      text: erro,
+      html: this.sanitizer.bypassSecurityTrustHtml(erro),
+      curriculoLoading: false,
+      curriculoError: undefined
+    });
+  }
+
+  private adicionarMensagemCurriculoEmAndamento(texto: string): ChatMessage {
+    const mensagem: ChatMessage = {
+      from: 'assistant',
+      text: texto,
+      html: this.sanitizer.bypassSecurityTrustHtml(texto),
+      timestamp: new Date(),
+      curriculoLoading: true
+    };
+    this.messages.update((arr) => [...arr, mensagem]);
+    setTimeout(() => scrollToBottom(this.messagesContainer), 50);
+    return mensagem;
+  }
+
+  /**
+   * Aplica um patch a uma mensagem do signal. Casa pela referência do timestamp
+   * (preservada entre patches, já que nunca a sobrescrevemos) para continuar
+   * encontrando a mensagem certa mesmo depois de updates anteriores a recriarem.
+   */
+  private atualizarMensagem(alvo: ChatMessage, patch: Partial<ChatMessage>): void {
+    this.messages.update((arr) =>
+      arr.map((m) => (m === alvo || m.timestamp === alvo.timestamp ? { ...m, ...patch } : m))
+    );
+  }
+
   private montarRespostaEmailEnviado(subject?: string, body?: string): string {
     const linhas = ['Email enviado para o Wesley.'];
     if (subject) {
@@ -335,6 +556,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       this.currentRequest.unsubscribe();
       this.currentRequest = undefined;
     }
+    this.pararPollCurriculo();
     this.isLoading.set(false);
     this.focarInput();
   }
@@ -413,6 +635,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       const mensagensConvertidas = await this.converterMensagensSalvas(mensagensSalvas);
       this.messages.set(mensagensConvertidas);
       this.marcarComoLidas();
+      this.retomarCurriculosPendentes();
       // Se o chat já estiver aberto, garante scroll para o final
       if (this.isOpen()) {
         setTimeout(() => {
@@ -440,7 +663,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           from: msg.from,
           text: msg.text,
           html: this.sanitizer.bypassSecurityTrustHtml(html),
-          timestamp
+          timestamp,
+          // Restaura o estado da geração de currículo para retomar após reload.
+          ...(msg.curriculoJobId ? { curriculoJobId: msg.curriculoJobId } : {}),
+          ...(msg.curriculoLoading ? { curriculoLoading: true } : {}),
+          ...(msg.curriculoRequest ? { curriculoRequest: msg.curriculoRequest } : {})
         });
       } else {
         // Mensagens de usuário não precisam HTML
@@ -467,7 +694,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           timestamp: msg.timestamp.toISOString(),
           ...(msg.attachments && msg.attachments.length > 0
             ? { attachments: msg.attachments.map(a => ({ name: a.name, mime: a.mime, kind: a.kind })) }
-            : {})
+            : {}),
+          // Estado da geração de currículo (leve) para retomar após reload.
+          // O PDF em si (generatedPdf, data URL pesada) continua não sendo salvo.
+          ...(msg.curriculoJobId ? { curriculoJobId: msg.curriculoJobId } : {}),
+          ...(msg.curriculoLoading ? { curriculoLoading: true } : {}),
+          ...(msg.curriculoRequest ? { curriculoRequest: msg.curriculoRequest } : {})
         }));
         salvarMensagens(mensagensParaSalvar);
       }
@@ -475,6 +707,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   iniciarNovaConversa(): void {
+    // Encerra qualquer polling de currículo da conversa anterior.
+    this.pararPollCurriculo();
     // Cria uma nova conversa no storage (a anterior fica preservada no histórico).
     const nova = iniciarNovaConversaStorage();
     this.sessionId = nova.sessionId;
@@ -499,10 +733,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (!conversa) {
       return;
     }
+    // Encerra qualquer polling de currículo da conversa que estava aberta.
+    this.pararPollCurriculo();
     this.sessionId = conversa.sessionId;
     const mensagens = await this.converterMensagensSalvas(conversa.messages as ChatMessageRaw[]);
     this.messages.set(mensagens.length > 0 ? mensagens : [this.initialMessage()]);
     this.marcarComoLidas();
+    this.retomarCurriculosPendentes();
     this.showHistory.set(false);
     this.atualizarConversas();
     setTimeout(() => {

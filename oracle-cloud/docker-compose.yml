@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: portfolio-wesley-backend:latest
@@ -9,6 +7,10 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google-service-account.json
+    volumes:
+      - ./secrets/google-service-account.json:/run/secrets/google-service-account.json:ro
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/health"]
       interval: 30s

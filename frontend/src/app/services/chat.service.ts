@@ -16,6 +16,7 @@ export interface ChatResponse {
   audioBase64?: string; // Áudio TTS da resposta (WAV base64), quando solicitado
   pdfBase64?: string; // PDF gerado (ex: currículo) em base64
   pdfFilename?: string; // Nome sugerido do PDF gerado
+  curriculoDisponivel?: boolean; // True quando a mensagem pede currículo (gerar sob demanda)
 }
 
 export interface ChatEmailResponse {
@@ -23,6 +24,16 @@ export interface ChatEmailResponse {
   reply: string;
   subject?: string;
   body?: string;
+}
+
+export type CurriculoJobStatus = 'PENDING' | 'DONE' | 'ERROR';
+
+export interface CurriculoJob {
+  jobId: string;
+  status: CurriculoJobStatus;
+  pdfBase64?: string;
+  pdfFilename?: string;
+  error?: string;
 }
 
 @Injectable({
@@ -99,6 +110,38 @@ export class ChatService {
 
   enviarEmailChat(mensagem: string, model: AIModel = 'gemini'): Observable<ChatEmailResponse> {
     return this.http.post<ChatEmailResponse>(`${this.apiUrl}/email`, { message: mensagem, model });
+  }
+
+  /**
+   * Inicia a geração assíncrona do currículo (PDF). A geração pode ultrapassar o
+   * teto de ~60s do proxy/Vercel, então não bloqueamos a requisição: o backend
+   * roda em background e devolve um jobId; o resultado é obtido por polling em
+   * {@link consultarCurriculo}.
+   *
+   * @param message vaga / pedido do usuário
+   * @param reply resposta conversacional já gerada (opcional; vazia no comando /curriculo)
+   * @param sessionId identificador da sessão (header X-Session-ID)
+   */
+  iniciarCurriculo(message: string, reply = '', sessionId?: string): Observable<CurriculoJob> {
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+
+    return this.http.post<CurriculoJob>(`${this.apiUrl}/curriculo`, { message, reply }, { headers });
+  }
+
+  /**
+   * Consulta o estado da geração do currículo (polling). Cada chamada é rápida e
+   * cabe folgada no teto do proxy, independente de quanto o Vertex demore.
+   */
+  consultarCurriculo(jobId: string, sessionId?: string): Observable<CurriculoJob> {
+    let headers = new HttpHeaders();
+    if (sessionId) {
+      headers = headers.set('X-Session-ID', sessionId);
+    }
+
+    return this.http.get<CurriculoJob>(`${this.apiUrl}/curriculo/${encodeURIComponent(jobId)}`, { headers });
   }
 }
 

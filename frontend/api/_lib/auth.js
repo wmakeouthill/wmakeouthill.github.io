@@ -6,9 +6,10 @@
 const TARGET_API_URL = process.env.API_BASE_URL || 'http://137.131.158.76:8080';
 const API_KEY = process.env.API_KEY || '';
 
-// Aborta o fetch ao backend pouco antes do maxDuration da função (60s na Vercel),
-// devolvendo um 504 com corpo legível em vez do 504 opaco da plataforma.
-const BACKEND_TIMEOUT_MS = 55000;
+// Aborta o fetch ao backend pouco antes do maxDuration da função (60s no plano
+// Hobby da Vercel), devolvendo um 504 com corpo legível em vez do 504 opaco da
+// plataforma. 58s deixa ~2s para a função serializar a resposta antes do kill.
+const BACKEND_TIMEOUT_MS = 58000;
 
 /** Executa um fetch com timeout via AbortController. */
 async function fetchWithTimeout(url, options = {}, timeoutMs = BACKEND_TIMEOUT_MS) {

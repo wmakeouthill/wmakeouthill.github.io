@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Wesley de Carvalho Augusto Correia — Engenheiro de Software Pleno</title>
 <style>
+  /* Fontes do template embutidas (sem elas o Chromium do servidor cai pra
+     Liberation e o espaçamento/quebra fica diferente do exemplo no navegador). */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
   /* ============ TOKENS (paleta do portfólio wmakeouthill.dev) ============ */
   :root{
     --primary:#002E59;
@@ -165,6 +169,17 @@
     background:linear-gradient(90deg,var(--bg-soft),transparent 70%);
     line-height:1.4;
   }
+
+  /* "Alinhamento com a vaga": usa a mesma linguagem visual do .summary
+     (faixa com borda dourada), em vez de um cartao destacado que destoa. */
+  .ai-fit{margin:0 0 4mm 0;page-break-inside:avoid}
+  .ai-fit p{
+    font-size:9.2pt;color:var(--ink);margin:1.4mm 0 0 0;text-align:justify;
+    border-left:3px solid var(--accent);padding:.7mm 0 .7mm 3.5mm;
+    background:linear-gradient(90deg,var(--bg-soft),transparent 70%);
+    line-height:1.4;
+  }
+  .ai-fit p b{color:var(--primary)}
 
   .xp{margin-bottom:3mm;page-break-inside:avoid}
   .xp .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}

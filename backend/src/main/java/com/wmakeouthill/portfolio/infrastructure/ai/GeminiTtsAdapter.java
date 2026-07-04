@@ -8,13 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -24,34 +20,32 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class GeminiTtsAdapter {
-    private static final String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
     private static final int SAMPLE_RATE = 24000;
     private static final short CHANNELS = 1;
     private static final short BITS_PER_SAMPLE = 16;
 
-    private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
-    private final String apiKey;
+    private final VertexAiClient vertexAiClient;
     private final String model;
     private final String voiceName;
 
     public GeminiTtsAdapter(
-            @Value("${gemini.api.key:}") String geminiApiKey,
-            @Value("${gemini.tts.model:gemini-2.5-flash-preview-tts}") String model,
+            VertexAiClient vertexAiClient,
+            @Value("${gemini.tts.model:gemini-2.5-flash-tts}") String model,
             @Value("${gemini.tts.voice:Puck}") String voiceName) {
-        this.apiKey = resolverApiKey(geminiApiKey);
+        this.vertexAiClient = vertexAiClient;
         this.model = model;
         this.voiceName = voiceName;
     }
 
     public Optional<String> sintetizarWavBase64(String texto) {
-        if (apiKey == null || apiKey.isBlank() || texto == null || texto.isBlank()) {
+        if (!vertexAiClient.isConfigured() || texto == null || texto.isBlank()) {
             return Optional.empty();
         }
 
         try {
             String body = mapper.writeValueAsString(criarPayload(texto));
-            HttpResponse<String> response = http.send(criarRequisicao(body), HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = vertexAiClient.generateContent(model, body);
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 log.warn("Gemini TTS falhou com status {}: {}", response.statusCode(), response.body());
                 return Optional.empty();
@@ -86,16 +80,6 @@ public class GeminiTtsAdapter {
                 + "O tom deve ser jovem, natural, simpatico e levemente digital, como um robo fofo e esperto, "
                 + "mas sem ficar travado, monotono ou dificil de entender.\n\n"
                 + texto;
-    }
-
-    private HttpRequest criarRequisicao(String body) {
-        String url = String.format(API_URL_TEMPLATE, model, apiKey);
-        return HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(60))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
     }
 
     private Optional<String> extrairAudio(String body) throws IOException {
@@ -155,11 +139,4 @@ public class GeminiTtsAdapter {
         out.write(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array());
     }
 
-    private String resolverApiKey(String geminiApiKey) {
-        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
-            return geminiApiKey;
-        }
-        String envKey = System.getenv("GEMINI_API_KEY");
-        return envKey == null || envKey.isBlank() ? null : envKey;
-    }
 }

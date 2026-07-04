@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError, retry, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { resolveApiUrl } from '../utils/api-url.util';
+import { resolveApiUrl, resolveMediaUrl } from '../utils/api-url.util';
 
 /**
  * DTO para arquivos do repositório GitHub
@@ -212,7 +212,8 @@ export class PortfolioContentService {
     if (cached) {
       return cached;
     }
-    return resolveApiUrl(`/api/content/images/${encodeURIComponent(projectName)}.webp`);
+    // resolveMediaUrl: URL relativa no SSR evita Mixed Content (HTML HTTPS + img HTTP)
+    return resolveMediaUrl(`/api/content/images/${encodeURIComponent(projectName)}.webp`);
   }
 
   /**
@@ -232,7 +233,7 @@ export class PortfolioContentService {
     this.loggedMissing.clear();
 
     for (const img of imagens) {
-      const url = resolveApiUrl(`/api/content/images/${encodeURIComponent(img.fileName)}`);
+      const url = resolveMediaUrl(`/api/content/images/${encodeURIComponent(img.fileName)}`);
       const baseName = img.displayName.toLowerCase();
       this.availableImageNames.push(img.displayName);
 

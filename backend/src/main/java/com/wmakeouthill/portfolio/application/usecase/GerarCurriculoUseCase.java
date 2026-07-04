@@ -12,11 +12,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class GerarCurriculoUseCase {
     private static final double TEMPERATURE_CURRICULO = 0.3;
+
+    /** Substantivo "CV"/"resume" como palavra isolada (evita casar dentro de outras palavras). */
+    private static final Pattern CV_TOKEN = Pattern.compile("\\b(cv|resume)\\b",
+            Pattern.UNICODE_CHARACTER_CLASS);
+
+    /**
+     * Verbos/termos de intenção de GERAR ou RECEBER o currículo. O PDF só é gerado
+     * quando a mensagem cita currículo/CV E traz uma destas intenções — assim
+     * pedir "redigir um email pra essa vaga" não dispara a 2ª chamada ao Vertex.
+     */
+    private static final List<String> INTENCAO_GERAR = List.of(
+            "gera", "gere", "cria", "crie", "monta", "monte", "faz", "fazer", "faça", "faca",
+            "quero", "queria", "gostaria", "preciso", "prepara", "adapta", "personaliza",
+            "atualiza", "baixa", "baixar", "download", "pdf", "manda", "mandar", "envia", "enviar",
+            "generate", "create", "make", "build", "want", "need", "prepare", "tailor", "update");
 
     private final CurriculoPdfService curriculoPdfService;
     private final PortfolioPromptService portfolioPromptService;
@@ -30,16 +46,23 @@ public class GerarCurriculoUseCase {
     }
 
     public boolean deveGerar(String mensagem) {
-        if (mensagem == null) {
+        if (mensagem == null || mensagem.isBlank()) {
             return false;
         }
         String lower = mensagem.toLowerCase();
+        return mencionaCurriculo(lower) && temIntencaoDeGerar(lower);
+    }
+
+    private boolean mencionaCurriculo(String lower) {
         return lower.contains("currículo")
                 || lower.contains("curriculo")
-                || lower.contains("vaga")
-                || lower.contains("job description")
-                || lower.contains("descrição da vaga")
-                || lower.contains("descricao da vaga");
+                || lower.contains("résumé")
+                || lower.contains("resumé")
+                || CV_TOKEN.matcher(lower).find();
+    }
+
+    private boolean temIntencaoDeGerar(String lower) {
+        return INTENCAO_GERAR.stream().anyMatch(lower::contains);
     }
 
     private CurriculoPersonalizado gerarDadosEstruturados(String mensagemUsuario, String respostaIa) {

@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -62,7 +60,7 @@ public class ChatUseCase {
                 modeloSelecionado);
         registrarRespostaNoHistorico(sessionId, resposta);
 
-        return adicionarCurriculoSeSolicitado(mensagemUsuarioTexto, resposta);
+        return sinalizarCurriculoSeSolicitado(mensagemUsuarioTexto, resposta);
     }
 
     /**
@@ -114,7 +112,7 @@ public class ChatUseCase {
                 anexos);
         registrarRespostaNoHistorico(sessionId, resposta);
 
-        ChatResponse respostaComPdf = adicionarCurriculoSeSolicitado(mensagemParaIa, resposta);
+        ChatResponse respostaComPdf = sinalizarCurriculoSeSolicitado(mensagemParaIa, resposta);
         return adicionarAudioSeSolicitado(respostaComPdf, audioResponse);
     }
 
@@ -159,13 +157,18 @@ public class ChatUseCase {
                 .orElse(resposta);
     }
 
-    private ChatResponse adicionarCurriculoSeSolicitado(String mensagemUsuario, ChatResponse resposta) {
-        if (!gerarCurriculoUseCase.deveGerar(mensagemUsuario) || resposta.reply() == null || resposta.reply().isBlank()) {
+    /**
+     * Não gera o currículo aqui (seria uma 2ª chamada pesada ao Vertex na mesma
+     * requisição, estourando o teto de ~58s do proxy). Apenas sinaliza ao frontend
+     * que a mensagem pede currículo; a geração acontece sob demanda em uma
+     * requisição própria ({@link #gerarCurriculo}) via POST /api/chat/curriculo.
+     */
+    private ChatResponse sinalizarCurriculoSeSolicitado(String mensagemUsuario, ChatResponse resposta) {
+        if (!gerarCurriculoUseCase.deveGerar(mensagemUsuario) || resposta.reply() == null
+                || resposta.reply().isBlank()) {
             return resposta;
         }
-        byte[] pdf = gerarCurriculoUseCase.executar(mensagemUsuario, resposta.reply());
-        String base64 = Base64.getEncoder().encodeToString(pdf);
-        return resposta.comPdf(base64, "curriculo-wesley-personalizado.pdf");
+        return resposta.comCurriculoDisponivel();
     }
 
     /**

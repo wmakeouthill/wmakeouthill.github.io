@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
-import { getApiUrl } from '../utils/api-url.util';
+import { getApiUrl, resolveMediaUrl } from '../utils/api-url.util';
 
 /**
  * Interface para certificado PDF (vindo do backend)
@@ -158,18 +158,20 @@ export class CertificationsService {
    * Retorna a URL do PDF de um certificado (servido pelo backend)
    */
   getCertificadoPdfUrl(fileName: string): string {
-    // Mantém o nome completo com .pdf para garantir match correto
+    // Mantém o nome completo com .pdf para garantir match correto.
+    // resolveMediaUrl evita Mixed Content no SSR (caminho relativo no HTML).
     const encodedFileName = encodeURIComponent(fileName);
-    return `${this.API_BASE}/api/certifications/${encodedFileName}/pdf`;
+    return resolveMediaUrl(`/api/certifications/${encodedFileName}/pdf`);
   }
 
   /**
    * Retorna a URL do thumbnail (preview) de um certificado
    */
   getCertificadoThumbnailUrl(fileName: string): string {
-    // Mantém o nome completo com .pdf para garantir match correto
+    // Mantém o nome completo com .pdf para garantir match correto.
+    // resolveMediaUrl evita Mixed Content no SSR (caminho relativo no HTML).
     const encodedFileName = encodeURIComponent(fileName);
-    return `${this.API_BASE}/api/certifications/${encodedFileName}/thumbnail`;
+    return resolveMediaUrl(`/api/certifications/${encodedFileName}/thumbnail`);
   }
 
   /**
@@ -177,7 +179,7 @@ export class CertificationsService {
    */
   getCurriculoThumbnailUrl(): string {
     const lang = this.getLanguage();
-    return `${this.API_BASE}/api/certifications/curriculo/thumbnail?lang=${lang}&v=${Date.now()}`;
+    return resolveMediaUrl(`/api/certifications/curriculo/thumbnail?lang=${lang}&v=${Date.now()}`);
   }
 
   private getLanguage(): string {

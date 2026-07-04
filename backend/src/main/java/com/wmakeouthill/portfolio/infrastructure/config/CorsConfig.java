@@ -21,6 +21,8 @@ public class CorsConfig {
                 registry.addMapping("/api/**")
                         // Permite apenas domínios específicos (mais seguro)
                         .allowedOriginPatterns(
+                                "https://wmakeouthill.dev",
+                                "https://www.wmakeouthill.dev",
                                 "https://wmakeouthill.github.io",
                                 "https://projeto-wesley-263590688560.southamerica-east1.run.app",
                                 "https://*.vercel.app",
