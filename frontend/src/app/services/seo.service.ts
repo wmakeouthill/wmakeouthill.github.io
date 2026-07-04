@@ -78,6 +78,13 @@ export class SeoService {
 
   private metadadosDe(ptPath: string, idioma: Language): PageSeo {
     const conjunto = METADADOS[idioma];
+    if (ptPath.startsWith('/cases/')) {
+      const slug = ptPath.substring('/cases/'.length);
+      return {
+        title: `${this.titulizar(slug)} — Case — Wesley de Carvalho`,
+        description: conjunto.projects.description
+      };
+    }
     if (ptPath.startsWith('/projects/')) {
       const slug = ptPath.substring('/projects/'.length);
       return {
@@ -117,14 +124,18 @@ export class SeoService {
     this.upsertLink('alternate', 'x-default', this.urlAbsoluta(this.caminhoPara(ptPath, 'pt')));
   }
 
-  /** JSON-LD por rota: Person+WebSite na home; Breadcrumb+SoftwareSourceCode no projeto. */
+  /** JSON-LD por rota: Person+WebSite na home; Breadcrumb+SoftwareSourceCode/CreativeWork nos detalhes. */
   private definirJsonLd(ptPath: string, idioma: Language): void {
-    const grafo = ptPath.startsWith('/projects/')
-      ? this.jsonLdProjeto(ptPath, idioma)
-      : this.jsonLdPessoa();
+    let grafo: unknown;
+    if (ptPath.startsWith('/cases/')) {
+      grafo = this.jsonLdCase(ptPath, idioma);
+    } else if (ptPath.startsWith('/projects/')) {
+      grafo = this.jsonLdProjeto(ptPath, idioma);
+    } else {
+      grafo = this.jsonLdPessoa();
+    }
     this.upsertJsonLd(JSON.stringify(grafo));
   }
-
   private jsonLdPessoa(): unknown {
     const base = this.baseUrl();
     return {
@@ -168,6 +179,30 @@ export class SeoService {
     };
   }
 
+  /** Case profissional: CreativeWork, sem codeRepository porque pode envolver cliente privado. */
+  private jsonLdCase(ptPath: string, idioma: Language): unknown {
+    const slug = ptPath.substring('/cases/'.length);
+    const nome = this.titulizar(slug);
+    const url = this.urlAbsoluta(this.caminhoPara(ptPath, idioma));
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: idioma === 'en' ? 'Home' : 'Início', item: this.urlAbsoluta(this.caminhoPara('/', idioma)) },
+            { '@type': 'ListItem', position: 2, name: nome, item: url }
+          ]
+        },
+        {
+          '@type': 'CreativeWork',
+          name: nome,
+          url,
+          author: { '@type': 'Person', name: 'Wesley de Carvalho Augusto Correia' }
+        }
+      ]
+    };
+  }
   private upsertJsonLd(json: string): void {
     let script = this.document.head.querySelector<HTMLScriptElement>('script[data-seo-jsonld]');
     if (!script) {

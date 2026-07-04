@@ -246,7 +246,22 @@
       "all": "All",
       "demo": "With Site/Demo"
     },
-    "refresh": "Refresh",
+    "tabs": {
+      "professional": "Professional",
+      "personal": "Personal"
+    },
+    "caseFilters": {
+      "all": "All",
+      "freela": "Freelance",
+      "autou": "AutoU"
+    },
+    "case": {
+      "readCase": "Read full case",
+      "gallery": "Gallery",
+      "demoBadge": "Demo",
+      "loading": "Loading cases...",
+      "empty": "No cases found."
+    },    "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "loading": "Loading projects...",
     "github": "GitHub",

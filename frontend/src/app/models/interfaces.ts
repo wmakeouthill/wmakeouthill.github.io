@@ -152,3 +152,17 @@ export interface NavItem {
   section: string;
   active?: boolean;
 }
+/** Case profissional (aba Profissionais) - espelho do CaseDto do backend. */
+export interface CaseItem {
+  slug: string;
+  title: string;
+  client: string | null;
+  category: 'freela' | 'autou';
+  status: string | null;
+  stack: string[];
+  coverUrl: string | null;
+  logoUrl: string | null;
+  hasGallery: boolean;
+  gallerySlug: string;
+  order: number | null;
+}

@@ -18,8 +18,10 @@ export const routes: Routes = [
   { path: '', loadComponent: home },
   { path: 'projects', loadComponent: home },
   { path: 'projects/:slug', loadComponent: projectDetail },
+  { path: 'cases/:slug', loadComponent: projectDetail },
   { path: 'en', loadComponent: home },
   { path: 'en/projects', loadComponent: home },
   { path: 'en/projects/:slug', loadComponent: projectDetail },
+  { path: 'en/cases/:slug', loadComponent: projectDetail },
   { path: '**', redirectTo: '' }
 ];
