@@ -119,6 +119,7 @@ claude-design-portfolio/
 dist/
 build/
 out/
+!backend/src/**/out/
 *.zip
 *.tar
 *.tar.gz
