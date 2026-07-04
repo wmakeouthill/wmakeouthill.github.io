@@ -1,5 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
 
 import { I18nService } from '../../../i18n/i18n.service';
 import { TranslatePipe } from '../../../i18n/i18n.pipe';
@@ -20,15 +32,18 @@ import { CaseItem } from '../../../models/interfaces';
 export class ProfessionalShowcaseComponent implements OnDestroy {
   private static readonly AUTO_ROTATE_MS = 3500;
   private static readonly PAUSE_AFTER_CLICK_MS = 15000;
+  private static readonly DRAG_THRESHOLD_PX = 4;
 
   private readonly i18n = inject(I18nService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly logosStrip = viewChild<ElementRef<HTMLElement>>('logosStrip');
 
   readonly cases = input.required<CaseItem[]>();
   readonly readCase = output<string>();
 
   readonly activeIndex = signal<number>(0);
   readonly activeCase = computed(() => this.cases()[this.activeIndex()] ?? null);
+  readonly isDragging = signal(false);
 
   readonly isLogoCover = computed(() => {
     const item = this.activeCase();
@@ -43,6 +58,10 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
   private visibilityObserver?: IntersectionObserver;
   private inViewport = true;
   private pausedByClick = false;
+  private dragPointerId: number | null = null;
+  private dragStartX = 0;
+  private scrollStartX = 0;
+  private dragged = false;
 
   private readonly setupOnCases = effect(() => {
     const total = this.cases().length;
@@ -57,6 +76,11 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
       this.observeViewport();
       this.startRotation();
     }
+  });
+
+  private readonly scrollActiveOnChange = effect(() => {
+    this.activeIndex();
+    this.scrollActiveTabIntoView();
   });
 
   ngOnDestroy(): void {
@@ -75,6 +99,81 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
     this.pauseAfterInteraction();
   }
 
+  private advance(): void {
+    const total = this.cases().length;
+    if (total <= 1) {
+      return;
+    }
+    this.activeIndex.set((this.activeIndex() + 1) % total);
+  }
+
+  onLogoClick(index: number, event: MouseEvent): void {
+    if (this.dragged) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.dragged = false;
+      return;
+    }
+    this.select(index);
+  }
+
+  goPrevious(): void {
+    const total = this.cases().length;
+    if (total <= 1) {
+      return;
+    }
+    this.select((this.activeIndex() - 1 + total) % total);
+  }
+
+  goNext(): void {
+    const total = this.cases().length;
+    if (total <= 1) {
+      return;
+    }
+    this.select((this.activeIndex() + 1) % total);
+  }
+
+  onStripPointerDown(event: PointerEvent): void {
+    if (!this.isBrowser() || event.button !== 0) {
+      return;
+    }
+    const strip = this.logosStrip()?.nativeElement;
+    if (!strip || strip.scrollWidth <= strip.clientWidth) {
+      return;
+    }
+    strip.setPointerCapture(event.pointerId);
+    this.dragPointerId = event.pointerId;
+    this.dragStartX = event.clientX;
+    this.scrollStartX = strip.scrollLeft;
+    this.dragged = false;
+    this.isDragging.set(true);
+  }
+
+  onStripPointerMove(event: PointerEvent): void {
+    if (this.dragPointerId !== event.pointerId) {
+      return;
+    }
+    const strip = this.logosStrip()?.nativeElement;
+    if (!strip) {
+      return;
+    }
+    const deltaX = event.clientX - this.dragStartX;
+    if (Math.abs(deltaX) > ProfessionalShowcaseComponent.DRAG_THRESHOLD_PX) {
+      this.dragged = true;
+    }
+    strip.scrollLeft = this.scrollStartX - deltaX;
+  }
+
+  onStripPointerUp(event: PointerEvent): void {
+    if (this.dragPointerId !== event.pointerId) {
+      return;
+    }
+    const strip = this.logosStrip()?.nativeElement;
+    strip?.releasePointerCapture(event.pointerId);
+    this.dragPointerId = null;
+    this.isDragging.set(false);
+  }
+
   caseHref(slug: string): string {
     return this.i18n.language() === 'en' ? `/en/cases/${slug}` : `/cases/${slug}`;
   }
@@ -87,16 +186,23 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
     this.readCase.emit(slug);
   }
 
+  private scrollActiveTabIntoView(): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+    const strip = this.logosStrip()?.nativeElement;
+    if (!strip) {
+      return;
+    }
+    const active = strip.querySelector<HTMLElement>('.showcase-logo.active');
+    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
   private startRotation(): void {
     if (!this.canRotate() || this.rotateTimer) {
       return;
     }
-    this.rotateTimer = setInterval(() => {
-      const total = this.cases().length;
-      if (total > 1) {
-        this.activeIndex.set((this.activeIndex() + 1) % total);
-      }
-    }, ProfessionalShowcaseComponent.AUTO_ROTATE_MS);
+    this.rotateTimer = setInterval(() => this.advance(), ProfessionalShowcaseComponent.AUTO_ROTATE_MS);
   }
 
   private stopRotation(): void {

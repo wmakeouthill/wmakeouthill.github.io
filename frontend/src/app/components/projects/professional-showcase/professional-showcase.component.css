@@ -7,12 +7,64 @@
   gap: clamp(8px, 1.2vh, 12px);
 }
 
+.showcase-carousel-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.showcase-nav {
+  flex: 0 0 auto;
+  min-width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.showcase-nav:hover:not(:disabled),
+.showcase-nav:focus-visible:not(:disabled) {
+  color: var(--color-accent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+.showcase-nav:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.showcase-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .showcase-logos {
   display: flex;
   gap: 0.42rem;
   overflow-x: auto;
   padding: 0.1rem 0 0.2rem;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  touch-action: pan-x;
+}
+
+.showcase-logos.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.showcase-logos.dragging .showcase-logo {
+  pointer-events: none;
 }
 
 .showcase-logos::-webkit-scrollbar {
@@ -200,16 +252,18 @@
 }
 
 @media (max-width: 620px) {
-  .showcase-logos::-webkit-scrollbar {
-  display: none;
-}
-
-.showcase-logo {
+  .showcase-logo {
     min-width: 84px;
     height: 44px;
   }
 
   .showcase-info {
     padding: 14px;
+  }
+
+  .showcase-nav {
+    min-width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
   }
 }

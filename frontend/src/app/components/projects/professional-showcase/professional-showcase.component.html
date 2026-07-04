@@ -1,16 +1,32 @@
 @if (activeCase(); as caseItem) {
   <section class="showcase" aria-label="Cases profissionais em destaque">
-    <div class="showcase-logos" role="tablist" aria-label="Cases profissionais">
-      @for (item of cases(); track item.slug; let i = $index) {
-        <button type="button" role="tab" class="showcase-logo" [attr.aria-selected]="i === activeIndex()"
-          [class.active]="i === activeIndex()" (click)="select(i)" [title]="item.title">
-          @if (item.logoUrl) {
-            <img [src]="item.logoUrl" [alt]="item.client || item.title" loading="lazy" decoding="async" />
-          } @else {
-            <span>{{ item.client || item.title }}</span>
-          }
-        </button>
-      }
+    <div class="showcase-carousel-controls">
+      <button type="button" class="showcase-nav pg-arrow" (click)="goPrevious()"
+        [disabled]="cases().length <= 1" [attr.aria-label]="'projects.case.showcasePrev' | translate">
+        ‹
+      </button>
+
+      <div #logosStrip class="showcase-logos" role="tablist" aria-label="Cases profissionais"
+        [class.dragging]="isDragging()" (pointerdown)="onStripPointerDown($event)"
+        (pointermove)="onStripPointerMove($event)" (pointerup)="onStripPointerUp($event)"
+        (pointercancel)="onStripPointerUp($event)">
+        @for (item of cases(); track item.slug; let i = $index) {
+          <button type="button" role="tab" class="showcase-logo" [attr.aria-selected]="i === activeIndex()"
+            [class.active]="i === activeIndex()" (click)="onLogoClick(i, $event)" [title]="item.title">
+            @if (item.logoUrl) {
+              <img [src]="item.logoUrl" [alt]="item.client || item.title" loading="lazy" decoding="async"
+                draggable="false" />
+            } @else {
+              <span>{{ item.client || item.title }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <button type="button" class="showcase-nav pg-arrow" (click)="goNext()"
+        [disabled]="cases().length <= 1" [attr.aria-label]="'projects.case.showcaseNext' | translate">
+        ›
+      </button>
     </div>
 
     <article class="showcase-card">

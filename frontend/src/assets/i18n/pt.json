@@ -260,7 +260,9 @@
       "gallery": "Galeria",
       "demoBadge": "Demo",
       "loading": "Carregando cases...",
-      "empty": "Nenhum case encontrado."
+      "empty": "Nenhum case encontrado.",
+      "showcasePrev": "Case anterior",
+      "showcaseNext": "Próximo case"
     },    "refresh": "Atualizar",
     "refreshing": "Atualizando...",
     "loading": "Carregando projetos...",
