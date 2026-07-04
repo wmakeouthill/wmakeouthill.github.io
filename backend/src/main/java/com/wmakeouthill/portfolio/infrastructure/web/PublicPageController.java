@@ -36,8 +36,8 @@ public class PublicPageController {
   private final SsrProperties ssrProperties;
 
   @GetMapping(value = {
-      "/", "/projects", "/projects/**",
-      "/en", "/en/projects", "/en/projects/**"
+      "/", "/projects", "/projects/**", "/cases/**",
+      "/en", "/en/projects", "/en/projects/**", "/en/cases/**"
   }, produces = MediaType.TEXT_HTML_VALUE)
   public ResponseEntity<String> servirPagina(HttpServletRequest request) {
     String caminho = request.getRequestURI();

@@ -1,5 +1,6 @@
 package com.wmakeouthill.portfolio.application.seo;
 
+import com.wmakeouthill.portfolio.domain.model.PortfolioMarkdownResource;
 import com.wmakeouthill.portfolio.domain.port.PortfolioContentPort;
 import com.wmakeouthill.portfolio.infrastructure.config.CaffeineCacheConfig;
 import com.wmakeouthill.portfolio.infrastructure.config.SiteProperties;
@@ -33,8 +34,11 @@ public class GerarSitemapUseCase {
 
     adicionarUrl(sb, "/");
     adicionarUrl(sb, "/projects");
-    for (String slug : slugsMarkdownPublicos()) {
+    for (String slug : slugsMarkdownPublicos(false)) {
       adicionarUrl(sb, "/projects/" + slug);
+    }
+    for (String slug : slugsMarkdownPublicos(true)) {
+      adicionarUrl(sb, "/cases/" + slug);
     }
 
     sb.append("</urlset>\n");
@@ -82,24 +86,33 @@ public class GerarSitemapUseCase {
     var rotas = new java.util.ArrayList<String>();
     rotas.add("/");
     rotas.add("/projects");
-    for (String slug : slugsMarkdownPublicos()) {
+    for (String slug : slugsMarkdownPublicos(false)) {
       rotas.add("/projects/" + slug);
+    }
+    for (String slug : slugsMarkdownPublicos(true)) {
+      rotas.add("/cases/" + slug);
     }
     return rotas;
   }
 
-  private Set<String> slugsMarkdownPublicos() {
+  /**
+   * Slugs de markdowns projeto=true, separados por tipo: cases (caminho com
+   * /cases/) viram /cases/&lt;slug&gt;; o resto continua em /projects/&lt;slug&gt;.
+   */
+  private Set<String> slugsMarkdownPublicos(boolean cases) {
     Set<String> slugs = new LinkedHashSet<>();
-    portfolioContentPort.carregarMarkdownsDetalhados("pt").stream()
-        .filter(recurso -> recurso.projeto() && recurso.nome() != null && !recurso.nome().isBlank())
-        .map(recurso -> recurso.nome().toLowerCase())
-        .map(nome -> nome.replaceFirst("-english$", ""))
-        .forEach(slugs::add);
-    portfolioContentPort.carregarMarkdownsDetalhados("en").stream()
-        .filter(recurso -> recurso.projeto() && recurso.nome() != null && !recurso.nome().isBlank())
-        .map(recurso -> recurso.nome().toLowerCase())
-        .map(nome -> nome.replaceFirst("-english$", ""))
-        .forEach(slugs::add);
+    for (String lang : List.of("pt", "en")) {
+      portfolioContentPort.carregarMarkdownsDetalhados(lang).stream()
+          .filter(recurso -> recurso.projeto() && recurso.nome() != null && !recurso.nome().isBlank())
+          .filter(recurso -> cases == ehCase(recurso))
+          .map(recurso -> recurso.nome().toLowerCase())
+          .map(nome -> nome.replaceFirst("-english$", ""))
+          .forEach(slugs::add);
+    }
     return slugs;
+  }
+
+  private boolean ehCase(PortfolioMarkdownResource recurso) {
+    return recurso.caminho() != null && recurso.caminho().contains("/cases/");
   }
 }

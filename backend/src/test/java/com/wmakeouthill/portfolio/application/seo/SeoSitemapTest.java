@@ -66,6 +66,30 @@ class SeoSitemapTest {
   }
 
   @Test
+  void sitemap_deveListarCasesEmRotaPropriaENaoComoProjeto() {
+    PortfolioContentPort conteudo = mock(PortfolioContentPort.class);
+    when(conteudo.carregarMarkdownsDetalhados("pt")).thenReturn(List.of(
+        markdown("aa-space"),
+        caseMarkdown("mercearia-rv")));
+    when(conteudo.carregarMarkdownsDetalhados("en")).thenReturn(List.of(
+        caseMarkdown("mercearia-rv-english")));
+    GerarSitemapUseCase uc = new GerarSitemapUseCase(conteudo, site);
+
+    String xml = uc.gerarSitemap();
+
+    assertThat(xml).contains("<loc>https://meu-site.dev/cases/mercearia-rv</loc>");
+    assertThat(xml).contains("<loc>https://meu-site.dev/en/cases/mercearia-rv</loc>");
+    assertThat(xml).contains("<loc>https://meu-site.dev/projects/aa-space</loc>");
+    assertThat(xml).doesNotContain("/projects/mercearia-rv");
+    assertThat(uc.rotasPublicas()).contains("/cases/mercearia-rv");
+  }
+
+  private PortfolioMarkdownResource caseMarkdown(String nome) {
+    return new PortfolioMarkdownResource(nome,
+        "portfolio-content/cases/freelas/" + nome + ".md", "# " + nome, true, false, Set.of());
+  }
+
+  @Test
   void robots_deveBloquearApiEApontarSitemap() {
     PortfolioContentPort conteudo = mock(PortfolioContentPort.class);
     GerarSitemapUseCase uc = new GerarSitemapUseCase(conteudo, site);

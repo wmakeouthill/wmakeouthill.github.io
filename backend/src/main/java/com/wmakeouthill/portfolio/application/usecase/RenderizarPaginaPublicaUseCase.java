@@ -139,6 +139,12 @@ public class RenderizarPaginaPublicaUseCase {
     if (semIdioma.isBlank()) {
       semIdioma = "/";
     }
+    if (semIdioma.startsWith("/cases/")) {
+      String slug = semIdioma.substring("/cases/".length()).toLowerCase();
+      if (!slug.isBlank()) {
+        return Set.of("case:" + slug);
+      }
+    }
     if (semIdioma.startsWith("/projects/")) {
       String slug = semIdioma.substring("/projects/".length()).toLowerCase();
       if (!slug.isBlank()) {

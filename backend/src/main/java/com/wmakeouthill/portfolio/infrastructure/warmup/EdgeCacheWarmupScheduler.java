@@ -117,7 +117,10 @@ public class EdgeCacheWarmupScheduler {
       fixedDelayString = "${edge.warmup.interval-ms:300000}")
   public void aquecerEdge() {
     String base = trimTrailingSlash(baseUrl);
-    List<String> rotas = rotas();
+    List<String> rotas = new ArrayList<>(rotas());
+    // Aquece o JSON de cases nos dois idiomas (alimenta a vitrine da aba Profissionais)
+    rotas.add("/api/content/cases?lang=pt");
+    rotas.add("/api/content/cases?lang=en");
     long inicio = System.currentTimeMillis();
     int ok = 0;
     for (String rota : rotas) {
