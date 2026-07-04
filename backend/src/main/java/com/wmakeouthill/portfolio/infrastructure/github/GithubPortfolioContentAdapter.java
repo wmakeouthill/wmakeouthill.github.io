@@ -29,6 +29,9 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
   private static final String CONTENT_PATH = "portfolio-content";
   private static final String PROJECTS_PATH = CONTENT_PATH + "/projects";
   private static final String TRABALHOS_PATH = CONTENT_PATH + "/trabalhos";
+  private static final String CASES_PATH = CONTENT_PATH + "/cases";
+  private static final String CASES_FREELAS_PATH = CASES_PATH + "/freelas";
+  private static final String CASES_AUTOU_PATH = CASES_PATH + "/autou";
   private static final String GALLERY_PATH = "portfolio-gallery";
 
   private final GithubHttpClient httpClient;
@@ -51,6 +54,7 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
   public List<RepositoryFileDto> listarDocumentacoes() {
     List<RepositoryFileDto> todos = new ArrayList<>();
     todos.addAll(listarMarkdownsDaPasta(CONTENT_PATH));
+    todos.addAll(listarMarkdownsDaPasta(CASES_PATH));
     todos.addAll(listarDocumentacoesProjetos());
     todos.addAll(listarDocumentacoesTrabalhos());
     return todos.stream()
@@ -66,6 +70,16 @@ public class GithubPortfolioContentAdapter implements GithubRepositoryContentPor
   @Override
   public List<RepositoryFileDto> listarDocumentacoesTrabalhos() {
     return listarMarkdownsDaPasta(TRABALHOS_PATH);
+  }
+
+  @Override
+  public List<RepositoryFileDto> listarDocumentacoesCases() {
+    List<RepositoryFileDto> todos = new ArrayList<>();
+    todos.addAll(listarMarkdownsDaPasta(CASES_FREELAS_PATH));
+    todos.addAll(listarMarkdownsDaPasta(CASES_AUTOU_PATH));
+    return todos.stream()
+        .sorted(Comparator.comparing(RepositoryFileDto::path))
+        .toList();
   }
 
   @Override
