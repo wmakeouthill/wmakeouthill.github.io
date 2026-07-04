@@ -1,0 +1,46 @@
+<article class="case-card reveal">
+  <div class="case-cover">
+    @if (caseItem().coverUrl) {
+      <img [src]="caseItem().coverUrl" [alt]="caseItem().title" loading="lazy" decoding="async" />
+    } @else {
+      <div class="case-cover-fallback" aria-hidden="true">
+        <span>{{ caseItem().client || caseItem().title }}</span>
+      </div>
+    }
+    @if (isDemo()) {
+      <span class="case-demo-badge">{{ 'projects.case.demoBadge' | translate }}</span>
+    }
+  </div>
+
+  <div class="case-body">
+    <div class="case-meta-row">
+      @if (caseItem().client) {
+        <span class="case-client">{{ caseItem().client }}</span>
+      }
+      @if (caseItem().status) {
+        <span class="case-status">{{ caseItem().status }}</span>
+      }
+    </div>
+
+    <h3 class="case-title">{{ caseItem().title }}</h3>
+
+    @if (caseItem().stack.length > 0) {
+      <div class="case-stack">
+        @for (tech of caseItem().stack.slice(0, 5); track tech) {
+          <span>{{ tech }}</span>
+        }
+      </div>
+    }
+
+    <div class="case-actions">
+      <a class="case-link" [href]="caseHref()" (click)="onReadCase($event)">
+        {{ 'projects.case.readCase' | translate }}
+      </a>
+      @if (caseItem().hasGallery) {
+        <button type="button" class="case-gallery-btn" (click)="openGallery.emit(caseItem())">
+          {{ 'projects.case.gallery' | translate }}
+        </button>
+      }
+    </div>
+  </div>
+</article>

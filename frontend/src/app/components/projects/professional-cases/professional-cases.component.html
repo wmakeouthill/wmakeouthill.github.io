@@ -1,0 +1,52 @@
+<div class="professional-cases">
+  <!-- Vitrine entra aqui na Tarefa 14 (app-professional-showcase) -->
+
+  <div class="filters case-filters" role="group" aria-label="Filtros de cases profissionais">
+    <button type="button" class="filter-btn" [class.active]="filter() === 'all'" (click)="setFilter('all')">
+      {{ 'projects.caseFilters.all' | translate }}
+    </button>
+    <button type="button" class="filter-btn" [class.active]="filter() === 'freela'" (click)="setFilter('freela')">
+      {{ 'projects.caseFilters.freela' | translate }}
+    </button>
+    <button type="button" class="filter-btn" [class.active]="filter() === 'autou'" (click)="setFilter('autou')">
+      {{ 'projects.caseFilters.autou' | translate }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>{{ 'projects.case.loading' | translate }}</p>
+    </div>
+  }
+
+  @if (!loading() && filteredCases().length > 0) {
+    <div class="cases-grid" #casesGrid>
+      @for (caseItem of paginatedCases(); track caseItem.slug) {
+        <app-case-card
+          [case]="caseItem"
+          (readCase)="readCase.emit($event)"
+          (openGallery)="openGallery.emit($event)" />
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination cert-pagination">
+        <button type="button" class="pagination-btn pg-arrow" [class.disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)" aria-label="{{ 'projects.pagination.previous' | translate }}">‹</button>
+        @for (page of pageNumbers(); track page) {
+          <button type="button" class="pagination-btn" [class.active]="currentPage() === page"
+            (click)="goToPage(page)">{{ page }}</button>
+        }
+        <button type="button" class="pagination-btn pg-arrow" [class.disabled]="currentPage() === totalPages()"
+          (click)="goToPage(currentPage() + 1)" aria-label="{{ 'projects.pagination.next' | translate }}">›</button>
+      </div>
+    }
+  }
+
+  @if (!loading() && filteredCases().length === 0) {
+    <div class="empty-state">
+      <p>{{ 'projects.case.empty' | translate }}</p>
+    </div>
+  }
+</div>

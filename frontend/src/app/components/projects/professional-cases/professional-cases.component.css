@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+.professional-cases {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2.4vh, 28px);
+}
+
+.case-filters {
+  margin: 0;
+}
+
+.cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: clamp(10px, 1.4vh, 14px);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.loading-container,
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  min-height: 220px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 980px) {
+  .cases-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .cases-grid {
+    grid-template-columns: 1fr;
+  }
+}

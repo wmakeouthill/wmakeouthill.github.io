@@ -224,3 +224,50 @@
     grid-template-columns: 1fr;
   }
 }
+.tabs-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto clamp(14px, 2.4vh, 30px);
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--bg-card);
+}
+
+.tab-btn {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-full);
+  color: var(--text-secondary);
+  background: transparent;
+  font-weight: 700;
+  transition: transform var(--t-fast), color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+}
+
+.tab-btn:hover,
+.tab-btn:focus-visible {
+  color: var(--color-accent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.tab-btn.active {
+  color: #1a1a1a;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  border-color: transparent;
+}
+
+.tab-btn.active:hover,
+.tab-btn.active:focus-visible {
+  color: #1a1a1a;
+}

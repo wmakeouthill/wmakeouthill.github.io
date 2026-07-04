@@ -5,110 +5,127 @@
     <p>{{ 'projects.subtitle' | translate }}</p>
   </div>
 
-  <div class="filters-wrapper">
-    <div class="filters">
-      @for (lang of availableLanguages(); track lang) {
-        <button class="filter-btn" [class.active]="selectedFilter() === lang" (click)="filterProjects(lang)">
-          {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
-        </button>
-      }
-      @if (demoCount() > 0) {
-        <button class="filter-btn demo-filter-btn" [class.active]="selectedFilter() === 'demo'" (click)="filterProjects('demo')">
-          🚀 {{ 'projects.filters.demo' | translate }}
-          <span class="filter-count-badge">{{ demoCount() }}</span>
-        </button>
-      }
-    </div>
-
+  <div class="tabs-toggle" role="tablist" aria-label="Tipo de projetos">
+    <button type="button" class="tab-btn" role="tab" [attr.aria-selected]="activeTab() === 'professional'"
+      [class.active]="activeTab() === 'professional'" (click)="selectTab('professional')">
+      {{ 'projects.tabs.professional' | translate }}
+    </button>
+    <button type="button" class="tab-btn" role="tab" [attr.aria-selected]="activeTab() === 'personal'"
+      [class.active]="activeTab() === 'personal'" (click)="selectTab('personal')">
+      {{ 'projects.tabs.personal' | translate }}
+    </button>
   </div>
 
-  @if (loading()) {
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>{{ 'projects.loading' | translate }}</p>
-    </div>
+  @if (activeTab() === 'professional') {
+    <app-professional-cases
+      (readCase)="openCaseReadme($event)"
+      (openGallery)="openCaseGallery($event)" />
   }
 
-  @if (!loading() && filteredProjects().length > 0) {
-    <div class="proj-grid" #projGrid>
-      @for (project of paginatedProjects(); track project.id; let i = $index) {
-        <article class="proj-card reveal">
-          <div class="proj-head">
-            <span class="pg"></span>
-            <img class="proj-thumb" [src]="getProjectImage(project.name)" [alt]="project.name" loading="lazy" decoding="async" (error)="onImageError($event, project.name)" />
-            <span class="proj-num">{{ projectNumber(i) }}</span>
-            <div class="proj-overlay">
-              @if (project.homepage) {
-                <button (click)="openDemoModal(project)" class="ov-btn demo">{{ 'projects.demo' | translate }}</button>
-              }
-              @if (hasGallery(project.name)) {
-                <button (click)="openProjectGallery(project)" class="ov-btn gallery">{{ 'projects.demoModal.galleryTitle' | translate }}</button>
-              }
-              <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
-              @if (hasReadme(project.name)) {
-                <a [href]="projectHref(project.name)" (click)="openReadmeFromLink($event, project.name)" class="ov-btn">README</a>
-              }
-            </div>
-          </div>
-
-          <div class="proj-body">
-            <div class="proj-name">{{ project.name }}</div>
-            <div class="proj-desc">{{ project.description || ('projects.noDescription' | translate) }}</div>
-
-            @if (project.topics && project.topics.length > 0) {
-              <div class="proj-stack">
-                @for (topic of project.topics.slice(0, 5); track topic) {
-                  <span>{{ topic }}</span>
-                }
-              </div>
-            }
-
-            <div class="proj-meta">
-              <div class="proj-stats">
-                <span>⭐ {{ project.stargazers_count }}</span>
-                <span>⑂ {{ project.forks_count }}</span>
-              </div>
-              @if (project.language) {
-                <span class="proj-lang">
-                  <i [style.background-color]="project.languages?.[0]?.color || '#DBC27D'"></i>
-                  {{ project.language }}
-                </span>
-              }
-              <a class="proj-lang repo-link" [href]="project.html_url" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">
-                <img src="assets/icons/github-octocat.svg" alt="" width="14" height="14" />
-                <span>Repositorio</span>
-              </a>
-            </div>
-          </div>
-        </article>
-      }
+  @if (activeTab() === 'personal') {
+    <div class="filters-wrapper">
+      <div class="filters">
+        @for (lang of availableLanguages(); track lang) {
+          <button class="filter-btn" [class.active]="selectedFilter() === lang" (click)="filterProjects(lang)">
+            {{ lang === 'all' ? ('projects.filters.all' | translate) : lang }}
+          </button>
+        }
+        @if (demoCount() > 0) {
+          <button class="filter-btn demo-filter-btn" [class.active]="selectedFilter() === 'demo'" (click)="filterProjects('demo')">
+            🚀 {{ 'projects.filters.demo' | translate }}
+            <span class="filter-count-badge">{{ demoCount() }}</span>
+          </button>
+        }
+      </div>
     </div>
 
-    @if (totalPages() > 1) {
-      <div class="pagination cert-pagination">
-        <button class="pagination-btn pg-arrow" [class.disabled]="currentPage() === 1" (click)="previousPage()" aria-label="{{ 'projects.pagination.previous' | translate }}">‹</button>
-        @for (page of pageNumbers(); track page) {
-          @if (page === -1) {
-            <span class="pagination-ellipsis">...</span>
-          } @else {
-            <button class="pagination-btn" [class.active]="currentPage() === page" (click)="goToPage(page)">{{ page }}</button>
-          }
+    @if (loading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>{{ 'projects.loading' | translate }}</p>
+      </div>
+    }
+
+    @if (!loading() && filteredProjects().length > 0) {
+      <div class="proj-grid" #projGrid>
+        @for (project of paginatedProjects(); track project.id; let i = $index) {
+          <article class="proj-card reveal">
+            <div class="proj-head">
+              <span class="pg"></span>
+              <img class="proj-thumb" [src]="getProjectImage(project.name)" [alt]="project.name" loading="lazy" decoding="async" (error)="onImageError($event, project.name)" />
+              <span class="proj-num">{{ projectNumber(i) }}</span>
+              <div class="proj-overlay">
+                @if (project.homepage) {
+                  <button (click)="openDemoModal(project)" class="ov-btn demo">{{ 'projects.demo' | translate }}</button>
+                }
+                @if (hasGallery(project.name)) {
+                  <button (click)="openProjectGallery(project)" class="ov-btn gallery">{{ 'projects.demoModal.galleryTitle' | translate }}</button>
+                }
+                <button (click)="openCodePreviewModal(project)" class="ov-btn">{{ 'projects.codePreview' | translate }}</button>
+                @if (hasReadme(project.name)) {
+                  <a [href]="projectHref(project.name)" (click)="openReadmeFromLink($event, project.name)" class="ov-btn">README</a>
+                }
+              </div>
+            </div>
+
+            <div class="proj-body">
+              <div class="proj-name">{{ project.name }}</div>
+              <div class="proj-desc">{{ project.description || ('projects.noDescription' | translate) }}</div>
+
+              @if (project.topics && project.topics.length > 0) {
+                <div class="proj-stack">
+                  @for (topic of project.topics.slice(0, 5); track topic) {
+                    <span>{{ topic }}</span>
+                  }
+                </div>
+              }
+
+              <div class="proj-meta">
+                <div class="proj-stats">
+                  <span>⭐ {{ project.stargazers_count }}</span>
+                  <span>⑂ {{ project.forks_count }}</span>
+                </div>
+                @if (project.language) {
+                  <span class="proj-lang">
+                    <i [style.background-color]="project.languages?.[0]?.color || '#DBC27D'"></i>
+                    {{ project.language }}
+                  </span>
+                }
+                <a class="proj-lang repo-link" [href]="project.html_url" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">
+                  <img src="assets/icons/github-octocat.svg" alt="" width="14" height="14" />
+                  <span>Repositorio</span>
+                </a>
+              </div>
+            </div>
+          </article>
         }
-        <button class="pagination-btn pg-arrow" [class.disabled]="currentPage() === totalPages()" (click)="nextPage()" aria-label="{{ 'projects.pagination.next' | translate }}">›</button>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination cert-pagination">
+          <button class="pagination-btn pg-arrow" [class.disabled]="currentPage() === 1" (click)="previousPage()" aria-label="{{ 'projects.pagination.previous' | translate }}">‹</button>
+          @for (page of pageNumbers(); track page) {
+            @if (page === -1) {
+              <span class="pagination-ellipsis">...</span>
+            } @else {
+              <button class="pagination-btn" [class.active]="currentPage() === page" (click)="goToPage(page)">{{ page }}</button>
+            }
+          }
+          <button class="pagination-btn pg-arrow" [class.disabled]="currentPage() === totalPages()" (click)="nextPage()" aria-label="{{ 'projects.pagination.next' | translate }}">›</button>
+        </div>
+      }
+    }
+
+    @if (showEmptyProjects()) {
+      <div class="empty-state">
+        <p>{{ 'projects.empty' | translate }}</p>
       </div>
     }
   }
-
-  @if (showEmptyProjects()) {
-    <div class="empty-state">
-      <p>{{ 'projects.empty' | translate }}</p>
-    </div>
-  }
-
 </section>
 
-<!-- Modais ficam FORA da <section> para escapar do stacking context (.block/.wrap têm z-index:1),
-     senão o backdrop fica preso abaixo do header fixo (z-index:50) e o topo do modal é cortado. -->
+<!-- Modais ficam FORA da <section> para escapar do stacking context (.block/.wrap tem z-index:1),
+     senao o backdrop fica preso abaixo do header fixo (z-index:50) e o topo do modal e cortado. -->
 <app-readme-modal [isOpen]="showReadmeModal()" [projectName]="currentProjectName()" (close)="closeReadmeModal()" />
 <app-code-preview-modal [isOpen]="showCodePreviewModal()" [projectName]="currentProjectForPreview()" (close)="closeCodePreviewModal()" />
 <app-demo-modal [isOpen]="showDemoModal()" [projectName]="currentProjectForDemo()" [demoUrl]="currentDemoUrl()" [initialView]="currentDemoInitialView()" (close)="closeDemoModal()" />

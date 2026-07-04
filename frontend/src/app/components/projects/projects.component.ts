@@ -5,7 +5,8 @@ import { GithubService } from '../../services/github.service';
 import { MarkdownService } from '../../services/markdown.service';
 import { PortfolioContentService } from '../../services/portfolio-content.service';
 import { resolveApiUrl } from '../../utils/api-url.util';
-import { GitHubRepository } from '../../models/interfaces';
+import { CaseItem, GitHubRepository } from '../../models/interfaces';
+import { ProfessionalCasesComponent } from './professional-cases/professional-cases.component';
 import { ReadmeModalComponent } from '../readme-modal/readme-modal.component';
 import { CodePreviewModalComponent } from '../code-preview-modal/code-preview-modal.component';
 import { DemoModalComponent } from '../demo-modal/demo-modal.component';
@@ -16,7 +17,7 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-projects',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, DemoModalComponent, TranslatePipe],
+  imports: [CommonModule, ReadmeModalComponent, CodePreviewModalComponent, DemoModalComponent, ProfessionalCasesComponent, TranslatePipe],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -35,6 +36,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   readonly loading = signal<boolean>(true);
   readonly selectedFilter = signal<string>('all');
   readonly currentPage = signal<number>(1);
+  readonly activeTab = signal<'professional' | 'personal'>('professional');
 
   /** Projetos que possuem mídia na galeria (preenchido por probe em background). */
   readonly galleryProjects = signal<Set<string>>(new Set());
@@ -376,6 +378,10 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     return ['all', ...Array.from(languages)];
   });
 
+  selectTab(tab: 'professional' | 'personal'): void {
+    this.activeTab.set(tab);
+  }
+
   filterProjects(filter: string): void {
     this.selectedFilter.set(filter);
     this.currentPage.set(1);
@@ -484,6 +490,16 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.showDemoModal.set(true);
   }
 
+  openCaseReadme(slug: string): void {
+    this.openReadmeModal(slug);
+  }
+
+  openCaseGallery(caseItem: CaseItem): void {
+    this.currentProjectForDemo.set(caseItem.gallerySlug);
+    this.currentDemoUrl.set('');
+    this.currentDemoInitialView.set('gallery');
+    this.showDemoModal.set(true);
+  }
   closeDemoModal(): void {
     this.showDemoModal.set(false);
     this.currentProjectForDemo.set('');
