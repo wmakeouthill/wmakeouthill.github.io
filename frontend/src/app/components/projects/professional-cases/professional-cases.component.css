@@ -5,7 +5,7 @@
 .professional-cases {
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.4vh, 16px);
+  gap: clamp(6px, 1vh, 12px);
 }
 
 .case-filters {
@@ -24,6 +24,7 @@
   justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: clamp(8px, 1.2vh, 14px);
 }
 
 .loading-container,

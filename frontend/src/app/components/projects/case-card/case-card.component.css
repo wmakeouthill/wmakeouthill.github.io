@@ -22,33 +22,39 @@
 
 .case-cover {
   position: relative;
-  min-height: clamp(92px, 12vh, 128px);
+  flex-shrink: 0;
+  height: clamp(68px, 9vh, 96px);
   background: var(--bg-card-2);
   overflow: hidden;
 }
 
 .case-cover img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: clamp(92px, 12vh, 128px);
+  min-height: 0;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
 
 .case-cover img.case-cover-logo {
   object-fit: contain;
-  padding: 1.25rem;
+  padding: clamp(0.35rem, 0.7vh, 0.65rem);
   background: var(--bg-card);
 }
 
 .case-cover-fallback {
-  min-height: clamp(92px, 12vh, 128px);
+  height: 100%;
+  min-height: 0;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: 0.65rem;
   text-align: center;
   color: #1a1a1a;
   font-weight: 700;
+  font-size: 0.82rem;
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
 }
 
