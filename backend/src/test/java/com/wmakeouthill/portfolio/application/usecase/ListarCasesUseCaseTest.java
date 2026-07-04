@@ -124,6 +124,29 @@ class ListarCasesUseCaseTest {
   }
 
   @Test
+  void executar_caseDeEstudo_deveFicarForaDaAbaProfissional() {
+    when(port.listarDocumentacoesCases()).thenReturn(List.of(
+        md("notas-vue-spring", "portfolio-content/cases/freelas/notas-vue-spring.md"),
+        md("aog-dux-truck", "portfolio-content/cases/freelas/aog-dux-truck.md")));
+    when(port.listarGaleriaProjeto(anyString())).thenReturn(List.of());
+    when(port.obterMarkdownConteudo("portfolio-content/cases/freelas/notas-vue-spring.md"))
+        .thenReturn(Optional.of("""
+            ---
+            title: App de anotações
+            category: freela
+            status: Estudo
+            order: 8
+            ---
+            corpo"""));
+    when(port.obterMarkdownConteudo("portfolio-content/cases/freelas/aog-dux-truck.md"))
+        .thenReturn(Optional.of(caseMd("AOG", "freela", 2)));
+
+    List<CaseDto> cases = useCase.executar("pt");
+
+    assertThat(cases).extracting(CaseDto::slug).containsExactly("aog-dux-truck");
+  }
+
+  @Test
   void executar_semGaleria_deveDevolverHasGalleryFalseEUrlsNulas() {
     when(port.listarDocumentacoesCases()).thenReturn(List.of(
         md("itau-demo", "portfolio-content/cases/autou/itau-demo.md")));

@@ -57,6 +57,9 @@ public class ListarCasesUseCase {
     }
     CaseFrontmatter fm = frontmatterParser.extrair(conteudo.get());
     String slug = baseName(doc.displayName());
+    if (deveExcluirDaAbaProfissional(slug, fm)) {
+      return Optional.empty();
+    }
     if (fm.title() == null) {
       log.warn("Case {} sem frontmatter válido; usando metadados derivados do nome", doc.path());
     }
@@ -113,6 +116,18 @@ public class ListarCasesUseCase {
     return lower.endsWith(ENGLISH_SUFFIX)
         ? lower.substring(0, lower.length() - ENGLISH_SUFFIX.length())
         : lower;
+  }
+
+  private boolean deveExcluirDaAbaProfissional(String slug, CaseFrontmatter fm) {
+    if ("notas-vue-spring".equals(slug)) {
+      return true;
+    }
+    String status = fm.status();
+    if (status == null) {
+      return false;
+    }
+    String normalizado = status.toLowerCase(Locale.ROOT);
+    return normalizado.contains("estudo") || normalizado.contains("study");
   }
 
   private String humanizar(String slug) {
