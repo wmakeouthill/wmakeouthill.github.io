@@ -30,9 +30,18 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
   readonly useNativePdf = this.isBrowser
     && typeof navigator !== 'undefined'
     && navigator.pdfViewerEnabled === true;
+  /** Idioma dos metadados já carregados (cache: evita refetch a cada abertura). */
+  private loadedLang: string | null = null;
+  // Recarrega os metadados se o idioma mudar com o modal aberto. Fora isso, o
+  // carregamento é lazy (só na abertura, via ngOnChanges) e nunca roda no SSR:
+  // este componente é instanciado na home mesmo fechado, e o fetch no init
+  // disparava uma chamada ao backend em todo render server-side.
   private readonly languageEffect = effect(() => {
-    this.i18n.language();
-    this.loadCurriculoMetadata();
+    const lang = this.i18n.language();
+    if (!this.isBrowser || !this.isOpen || lang === this.loadedLang) {
+      return;
+    }
+    this.loadCurriculoMetadata(lang);
   });
 
   @Input() isOpen = false;
@@ -80,6 +89,7 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['isOpen']) {
       if (this.isOpen) {
         this.disableBodyScroll();
+        this.ensureCurriculoLoaded();
       } else {
         this.enableBodyScroll();
       }
@@ -97,22 +107,39 @@ export class CvModalComponent implements OnInit, OnChanges, OnDestroy {
     return this.curriculo()?.fileName || 'Wesley de Carvalho Augusto Correia - Currículo.pdf';
   }
 
+  /** Carrega os metadados na abertura do modal, se ainda não tiver para o idioma atual. */
+  private ensureCurriculoLoaded(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    const lang = this.i18n.language();
+    if (lang !== this.loadedLang) {
+      this.loadCurriculoMetadata(lang);
+    }
+  }
+
   /**
    * Carrega os metadados do currículo para obter a URL do GitHub
    */
-  private loadCurriculoMetadata(): void {
+  private loadCurriculoMetadata(lang: string): void {
     this.loading.set(true);
+    // Marca antes do fetch para não disparar requisições duplicadas
+    // (abertura + effect de idioma); em erro, volta a null para retentar.
+    this.loadedLang = lang;
 
     this.certificationsService.loadCurriculo().subscribe({
       next: (curriculo) => {
         if (curriculo) {
           this.curriculo.set(curriculo);
           console.log('✅ Metadados do currículo carregados');
+        } else {
+          this.loadedLang = null;
         }
         this.loading.set(false);
       },
       error: (err) => {
         console.error('Erro ao carregar metadados do currículo:', err);
+        this.loadedLang = null;
         this.loading.set(false);
       }
     });
