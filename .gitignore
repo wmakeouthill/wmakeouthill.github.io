@@ -131,7 +131,7 @@ out/
 *.backup
 *~
 *.orig
-
+backend\container\sync-secrets-from-prod.ps1
 # ============================================
 # Arquivos de Documentação Gerados
 # ============================================
