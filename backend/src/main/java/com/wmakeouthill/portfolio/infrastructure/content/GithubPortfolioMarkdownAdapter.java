@@ -40,6 +40,7 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
       "stacks", metadata(true, Set.of("stack", "tecnologias", "skills", "tech stack", "technologies")));
 
   private final GithubRepositoryContentPort githubContentPort;
+  private final CaseMarkdownSupport caseMarkdownSupport;
 
   @Override
   public List<String> carregarConteudosMarkdown() {
@@ -79,6 +80,9 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
       converterParaResource(doc, true).ifPresent(recursos::add);
     }
 
+    recursos.addAll(caseMarkdownSupport.carregarRecursos(githubContentPort,
+        filtrarPorIdioma(githubContentPort.listarDocumentacoesCases(), english), this::baseName, MAX_CHARS_PER_FILE));
+
     log.info("Carregados {} markdowns do GitHub para contexto da IA (lang={})", recursos.size(), english ? "en" : "pt");
     return recursos;
   }
@@ -117,6 +121,13 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
       return conteudo;
     }
 
+    // Fallback: paths diretos de cases (freelas e autou), corpo sem frontmatter
+    Optional<String> conteudoCase = caseMarkdownSupport.buscarPorPath(
+        githubContentPort, nomeProjetoNormalizado, english);
+    if (conteudoCase.isPresent()) {
+      return conteudoCase;
+    }
+
     // Último fallback: se idioma é EN e não achou variante traduzida, tenta padrão
     if (english) {
       log.debug("Fallback para versão padrão (pt) para projeto {}", nomeProjetoNormalizado);
@@ -133,6 +144,9 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
       nomes.add(baseName(doc.displayName()));
     }
     for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesTrabalhos()) {
+      nomes.add(baseName(doc.displayName()));
+    }
+    for (RepositoryFileDto doc : githubContentPort.listarDocumentacoesCases()) {
       nomes.add(baseName(doc.displayName()));
     }
     return nomes;
@@ -158,6 +172,12 @@ public class GithubPortfolioMarkdownAdapter implements PortfolioContentPort {
         log.debug("Encontrado em trabalhos: {} -> {}", nomeProjeto, doc.path());
         return githubContentPort.obterMarkdownConteudo(doc.path());
       }
+    }
+
+    Optional<String> emCases = caseMarkdownSupport.buscarPorSlug(githubContentPort,
+        filtrarPorIdioma(githubContentPort.listarDocumentacoesCases(), english), this::baseName, nomeNormalizado);
+    if (emCases.isPresent()) {
+      return emCases;
     }
 
     log.debug("Não encontrado na lista: {}", nomeProjeto);
