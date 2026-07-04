@@ -86,7 +86,10 @@ COPY --from=maven-build --chown=appuser:appuser /app/frontend/dist/portfolio/bro
 COPY --from=maven-build --chown=appuser:appuser /app/frontend/dist/portfolio/server /app/ssr/server
 
 # Entrypoint que sobe Node SSR + Spring e supervisiona ambos.
-COPY --chown=appuser:appuser --chmod=755 oracle-cloud/entrypoint-ssr.sh /app/entrypoint-ssr.sh
+COPY oracle-cloud/entrypoint-ssr.sh /app/entrypoint-ssr.sh
+RUN sed -i 's/\r$//' /app/entrypoint-ssr.sh && \
+    chmod 755 /app/entrypoint-ssr.sh && \
+    chown appuser:appuser /app/entrypoint-ssr.sh
 
 # --- Configuração padrão (sobrescreva no deploy) ---
 ENV SERVER_PORT=8080

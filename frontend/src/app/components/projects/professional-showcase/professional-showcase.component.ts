@@ -62,6 +62,7 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
   private dragStartX = 0;
   private scrollStartX = 0;
   private dragged = false;
+  private skipNextStripScroll = true;
 
   private readonly setupOnCases = effect(() => {
     const total = this.cases().length;
@@ -80,6 +81,10 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
 
   private readonly scrollActiveOnChange = effect(() => {
     this.activeIndex();
+    if (this.skipNextStripScroll) {
+      this.skipNextStripScroll = false;
+      return;
+    }
     this.scrollActiveTabIntoView();
   });
 
@@ -192,6 +197,7 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
     this.readCase.emit(slug);
   }
 
+  /** Centraliza o logo ativo só na faixa horizontal — sem scrollIntoView (evita puxar a página). */
   private scrollActiveTabIntoView(): void {
     if (!this.isBrowser()) {
       return;
@@ -201,7 +207,15 @@ export class ProfessionalShowcaseComponent implements OnDestroy {
       return;
     }
     const active = strip.querySelector<HTMLElement>('.showcase-logo.active');
-    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    if (!active) {
+      return;
+    }
+    const targetLeft = active.offsetLeft - (strip.clientWidth - active.clientWidth) / 2;
+    const maxLeft = strip.scrollWidth - strip.clientWidth;
+    strip.scrollTo({
+      left: Math.max(0, Math.min(targetLeft, maxLeft)),
+      behavior: 'smooth'
+    });
   }
 
   private startRotation(): void {
