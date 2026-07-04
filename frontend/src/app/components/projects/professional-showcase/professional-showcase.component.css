@@ -238,6 +238,7 @@
 .showcase-link:focus-visible {
   transform: translateY(-2px);
   color: #1a1a1a;
+  filter: brightness(1.05);
 }
 
 .showcase-link:focus-visible {

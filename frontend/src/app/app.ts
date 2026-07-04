@@ -113,16 +113,24 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
         }
       };
 
-      // Reveal bidirecional: aparece ao entrar na viewport e desaparece ao sair.
+      // Reveal one-shot: aparece ao entrar na viewport e PARA de ser observado.
+      // O toggle bidirecional foi removido de propósito: em grids dinâmicos
+      // (filtros/paginação de cases), trocar o filtro desloca o layout e o
+      // observer removia `in` de cards ainda na tela — eles piscavam ou ficavam
+      // permanentemente invisíveis (opacity 0) na faixa inferior da viewport.
       // `will-change` é ativado só durante a animação e removido no transitionend
       // (listener único e delegado) para não manter camadas de GPU em todos os
       // elementos — esse é o ponto-chave de performance.
       this.revealObserver = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
+            if (!entry.isIntersecting) {
+              continue;
+            }
             const element = entry.target as HTMLElement;
             element.style.willChange = 'opacity, transform';
-            element.classList.toggle('in', entry.isIntersecting);
+            element.classList.add('in');
+            this.revealObserver?.unobserve(element);
           }
         },
         { threshold: 0.12, rootMargin: '0px 0px -12% 0px' }

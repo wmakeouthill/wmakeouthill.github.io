@@ -147,8 +147,13 @@
 }
 
 .case-link:hover,
+.case-link:focus-visible {
+  transform: translateY(-2px);
+  color: #1a1a1a;
+  filter: brightness(1.05);
+}
+
 .case-gallery-btn:hover,
-.case-link:focus-visible,
 .case-gallery-btn:focus-visible {
   transform: translateY(-2px);
   border-color: var(--border-accent);

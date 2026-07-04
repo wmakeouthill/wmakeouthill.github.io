@@ -67,6 +67,26 @@ class GithubPortfolioMarkdownAdapterCasesTest {
   }
 
   @Test
+  void carregarMarkdownPorProjeto_deveOcultarSecaoStarNaExibicaoPublica() {
+    String caseComStar = CASE_MD + """
+
+        ## Destaques para entrevista (STAR resumido)
+
+        - **S/T:** nota privada.
+        """;
+    when(port.listarDocumentacoesProjetos()).thenReturn(List.of());
+    when(port.listarDocumentacoesTrabalhos()).thenReturn(List.of());
+    when(port.listarDocumentacoesCases()).thenReturn(List.of(md("mercearia-rv", CASE_PATH)));
+    when(port.obterMarkdownConteudo(CASE_PATH)).thenReturn(Optional.of(caseComStar));
+
+    Optional<String> publico = adapter.carregarMarkdownPorProjeto("mercearia-rv", "pt");
+
+    assertThat(publico).isPresent();
+    assertThat(publico.get()).doesNotContain("Destaques para entrevista");
+    assertThat(publico.get()).doesNotContain("nota privada");
+  }
+
+  @Test
   void listarNomesProjetosComMarkdown_deveIncluirCases() {
     when(port.listarDocumentacoesProjetos()).thenReturn(List.of());
     when(port.listarDocumentacoesTrabalhos()).thenReturn(List.of());

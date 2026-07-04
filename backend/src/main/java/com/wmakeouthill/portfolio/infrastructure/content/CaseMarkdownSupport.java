@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 /**
  * Converte cases profissionais (markdown com frontmatter) em recursos de RAG:
@@ -29,6 +30,13 @@ import java.util.function.UnaryOperator;
 @Component
 @RequiredArgsConstructor
 public class CaseMarkdownSupport {
+
+  private static final Pattern BLOCO_INTERNO = Pattern.compile(
+      "(?s)<!--\\s*portfolio-internal\\s*-->.*?<!--\\s*/portfolio-internal\\s*-->");
+
+  /** Seções de notas pessoais (STAR) — ficam no repo e no RAG, não na página pública. */
+  private static final Pattern SECAO_ENTREVISTA = Pattern.compile(
+      "(?ms)^## (?:Destaques para entrevista \\(STAR resumido\\)|Interview highlights \\(STAR summary\\)).*");
 
   private final CaseFrontmatterParser parser;
 
@@ -51,7 +59,7 @@ public class CaseMarkdownSupport {
       UnaryOperator<String> baseName, String slug) {
     for (RepositoryFileDto doc : docs) {
       if (baseName.apply(doc.displayName()).equals(slug)) {
-        return port.obterMarkdownConteudo(doc.path()).map(this::removerFrontmatter);
+        return port.obterMarkdownConteudo(doc.path()).map(this::prepararCorpoPublico);
       }
     }
     return Optional.empty();
@@ -76,11 +84,36 @@ public class CaseMarkdownSupport {
     return parser.extrair(conteudo).corpo();
   }
 
+  /**
+   * Corpo para exibição pública (modal / página / HTML): sem frontmatter e sem
+   * blocos marcados como uso interno (STAR, notas de entrevista).
+   */
+  public String prepararCorpoPublico(String conteudo) {
+    return removerSecoesInternas(removerFrontmatter(conteudo));
+  }
+
+  /**
+   * Remove seções só para uso pessoal. Convenções no markdown do case:
+   * <ul>
+   *   <li>{@code ## Destaques para entrevista (STAR resumido)} (PT)</li>
+   *   <li>{@code ## Interview highlights (STAR summary)} (EN)</li>
+   *   <li>{@code <!-- portfolio-internal --> ... <!-- /portfolio-internal -->}</li>
+   * </ul>
+   * O arquivo no repositório permanece intacto; o RAG da IA continua com o texto completo.
+   */
+  public String removerSecoesInternas(String corpo) {
+    if (corpo == null || corpo.isBlank()) {
+      return corpo;
+    }
+    String semBlocos = BLOCO_INTERNO.matcher(corpo).replaceAll("");
+    return SECAO_ENTREVISTA.matcher(semBlocos).replaceAll("").stripTrailing();
+  }
+
   /** Fallback por path direto (freelas/autou); devolve o primeiro corpo (sem frontmatter) achado. */
   public Optional<String> buscarPorPath(
       GithubRepositoryContentPort port, String nomeNormalizado, boolean english) {
     for (String pathCase : caminhosDiretos(nomeNormalizado, english)) {
-      Optional<String> corpo = port.obterMarkdownConteudo(pathCase).map(this::removerFrontmatter);
+      Optional<String> corpo = port.obterMarkdownConteudo(pathCase).map(this::prepararCorpoPublico);
       if (corpo.isPresent()) {
         return corpo;
       }
