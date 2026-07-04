@@ -13,7 +13,8 @@ Reposicionar a seção de Projetos do portfólio em duas abas — **Profissionai
 | --- | --- |
 | Classificação | Todos os 19 cases (10 freelas + 9 AutoU) vão para a aba Profissionais |
 | Duplicados (Mercearia-R-V, Experimenta-ai---soneca + delivery, gerador-de-cracha) | Aparecem nas **duas** abas; aba Pessoais permanece 100% automática |
-| Nomes de clientes AutoU (Saint-Gobain, Libbs, Itaú, Oxiquímica, JGV, Rede São Roque, Rocester) | Exibidos como estão nos markdowns (sem anonimização) |
+| Nomes de clientes AutoU (Saint-Gobain, Oxiquímica, JGV, Rede São Roque, Rocester) | Exibidos como estão nos markdowns (sem anonimização) |
+| Libbs (LIS) e Itaú | **Não são clientes** — foram demos solo/pré-venda (LIS para edital em andamento). O frontmatter e os cards devem rotulá-los como demo, nunca como cliente em produção |
 | Metadados dos cards | Frontmatter YAML em cada case `.md` |
 | Layout da aba Profissionais | Vitrine estilo AutoU no topo (logos + card grande auto-rotativo) + grid de todos os cases abaixo com filtro Freelance/AutoU |
 | Idiomas | Criar os 19 pares `-english.md` (frontmatter traduzido incluso) |
