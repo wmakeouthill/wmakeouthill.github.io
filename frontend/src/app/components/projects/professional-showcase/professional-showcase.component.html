@@ -1,0 +1,53 @@
+@if (activeCase(); as caseItem) {
+  <section class="showcase" aria-label="Cases profissionais em destaque">
+    <div class="showcase-logos" role="tablist" aria-label="Cases profissionais">
+      @for (item of cases(); track item.slug; let i = $index) {
+        <button type="button" role="tab" class="showcase-logo" [attr.aria-selected]="i === activeIndex()"
+          [class.active]="i === activeIndex()" (click)="select(i)" [title]="item.title">
+          @if (item.logoUrl) {
+            <img [src]="item.logoUrl" [alt]="item.client || item.title" loading="lazy" decoding="async" />
+          } @else {
+            <span>{{ item.client || item.title }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    <article class="showcase-card">
+      <div class="showcase-media">
+        @if (caseItem.coverUrl) {
+          <img [src]="caseItem.coverUrl" [alt]="caseItem.title" decoding="async" />
+        } @else {
+          <div class="showcase-media-fallback" aria-hidden="true">
+            <span>{{ caseItem.client || caseItem.title }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="showcase-info">
+        <div class="showcase-meta">
+          @if (caseItem.client) {
+            <span class="showcase-client">{{ caseItem.client }}</span>
+          }
+          @if (caseItem.status) {
+            <span class="showcase-status">{{ caseItem.status }}</span>
+          }
+        </div>
+
+        <h3>{{ caseItem.title }}</h3>
+
+        @if (caseItem.stack.length > 0) {
+          <div class="showcase-stack">
+            @for (tech of caseItem.stack.slice(0, 6); track tech) {
+              <span>{{ tech }}</span>
+            }
+          </div>
+        }
+
+        <a class="showcase-link" [href]="caseHref(caseItem.slug)" (click)="onReadCase($event, caseItem.slug)">
+          {{ 'projects.case.readCase' | translate }}
+        </a>
+      </div>
+    </article>
+  </section>
+}

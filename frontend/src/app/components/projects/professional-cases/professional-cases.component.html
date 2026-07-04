@@ -1,5 +1,7 @@
 <div class="professional-cases">
-  <!-- Vitrine entra aqui na Tarefa 14 (app-professional-showcase) -->
+  @if (!loading() && cases().length > 0) {
+    <app-professional-showcase [cases]="cases()" (readCase)="readCase.emit($event)" />
+  }
 
   <div class="filters case-filters" role="group" aria-label="Filtros de cases profissionais">
     <button type="button" class="filter-btn" [class.active]="filter() === 'all'" (click)="setFilter('all')">

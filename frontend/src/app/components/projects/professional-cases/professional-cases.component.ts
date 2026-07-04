@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../../i18n/i18n.pipe';
 import { CaseItem } from '../../../models/interfaces';
 import { CasesService } from '../../../services/cases.service';
 import { CaseCardComponent } from '../case-card/case-card.component';
+import { ProfessionalShowcaseComponent } from '../professional-showcase/professional-showcase.component';
 
 type CaseFilter = 'all' | 'freela' | 'autou';
 
@@ -14,7 +15,7 @@ type CaseFilter = 'all' | 'freela' | 'autou';
   selector: 'app-professional-cases',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslatePipe, CaseCardComponent],
+  imports: [CommonModule, TranslatePipe, CaseCardComponent, ProfessionalShowcaseComponent],
   templateUrl: './professional-cases.component.html',
   styleUrl: './professional-cases.component.css'
 })
