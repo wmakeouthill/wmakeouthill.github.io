@@ -282,11 +282,12 @@ footer{border-top:1px solid var(--border);padding:54px 0 38px;position:relative;
 .foot-bottom{margin-top:46px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--text-muted);font-family:var(--font-mono);}
 
 /* ===== Reveal ===== */
-/* One-shot: aparece ao entrar na viewport e permanece visível.
-   O estado escondido só vale com `html.reveal-armed` (setado pelo JS junto com
-   o observer): sem isso, o HTML do SSR pintava tudo invisível até a hidratação
-   e o conteúdo "pulava" pra aparecer. Anima apenas opacity/transform
-   (compositor-friendly); will-change é gerenciado via JS só durante a transição. */
+/* Bidirecional com histerese: aparece ao ficar >=5% visível e só some quando
+   sai completamente da viewport (ver observer no app.ts). O estado escondido só
+   vale com `html.reveal-armed` (setado pelo JS junto com o observer): sem isso,
+   o HTML do SSR pintava tudo invisível até a hidratação e o conteúdo "pulava"
+   pra aparecer. Anima apenas opacity/transform (compositor-friendly);
+   will-change é gerenciado via JS só durante a transição. */
 .reveal{transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);}
 .reveal-armed .reveal{opacity:0;transform:translateY(26px);}
 .reveal-armed .reveal.in{opacity:1;transform:none;}
