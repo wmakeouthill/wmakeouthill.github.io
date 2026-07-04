@@ -133,7 +133,10 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
             this.revealObserver?.unobserve(element);
           }
         },
-        { threshold: 0.12, rootMargin: '0px 0px -12% 0px' }
+        // Sem margem negativa embaixo: com -12%, conteúdo renderizado na faixa
+        // inferior da viewport (grids dinâmicos, paginação) ficava na tela mas
+        // permanentemente invisível por nunca "intersectar".
+        { threshold: 0.05 }
       );
 
       this.revealTransitionEnd = (event: TransitionEvent) => {
@@ -151,7 +154,19 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
         this.revealObserver?.observe(element);
       };
 
-      document.querySelectorAll('.reveal').forEach(observeReveal);
+      // O estado escondido (.reveal-armed) só é ligado DEPOIS de marcar com `in`
+      // o que já está na viewport: o HTML do SSR pinta visível desde o primeiro
+      // frame e nada "pisca" na hidratação. Só o conteúdo abaixo da dobra (e o
+      // inserido dinamicamente depois) anima ao entrar na tela.
+      const viewportHeight = window.innerHeight;
+      document.querySelectorAll('.reveal').forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.top < viewportHeight && rect.bottom > 0) {
+          element.classList.add('in');
+        }
+        observeReveal(element);
+      });
+      document.documentElement.classList.add('reveal-armed');
 
       this.mutationObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
