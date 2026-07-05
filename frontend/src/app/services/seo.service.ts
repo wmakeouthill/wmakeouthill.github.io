@@ -17,30 +17,30 @@ interface PageSeo {
 const METADADOS: Record<Language, { home: PageSeo; projects: PageSeo }> = {
   pt: {
     home: {
-      title: 'Wesley de Carvalho — Desenvolvedor Full Stack',
+      title: 'Wesley de Carvalho — Engenheiro Full Stack & IA',
       description:
-        'Portfólio de Wesley de Carvalho Augusto Correia, desenvolvedor Full Stack. '
-        + 'Projetos, experiência e habilidades em Java, Spring, Angular e mais.'
+        'Portfólio de Wesley de Carvalho, Engenheiro Full Stack: IA aplicada, Java/Spring Boot, '
+        + 'Python/FastAPI, Angular/React e sistemas reais em produção.'
     },
     projects: {
       title: 'Projetos — Wesley de Carvalho',
       description:
-        'Projetos open source e profissionais de Wesley de Carvalho: aplicações '
-        + 'Full Stack em Java, Spring, Angular, automação e IA.'
+        'Projetos de Wesley de Carvalho: sistemas em produção com IA aplicada, Java/Spring Boot, '
+        + 'Python/FastAPI, Angular, React e automação.'
     }
   },
   en: {
     home: {
-      title: 'Wesley de Carvalho — Full Stack Developer',
+      title: 'Wesley de Carvalho — Full Stack Engineer & AI',
       description:
-        'Portfolio of Wesley de Carvalho Augusto Correia, Full Stack developer. '
-        + 'Projects, experience and skills in Java, Spring, Angular and more.'
+        'Portfolio of Wesley de Carvalho, Full Stack Engineer: applied AI, Java/Spring Boot, '
+        + 'Python/FastAPI, Angular/React and real systems in production.'
     },
     projects: {
       title: 'Projects — Wesley de Carvalho',
       description:
-        'Open source and professional projects by Wesley de Carvalho: Full Stack '
-        + 'applications in Java, Spring, Angular, automation and AI.'
+        'Projects by Wesley de Carvalho: production systems with applied AI, Java/Spring Boot, '
+        + 'Python/FastAPI, Angular, React and automation.'
     }
   }
 };
@@ -146,8 +146,18 @@ export class SeoService {
           name: 'Wesley de Carvalho Augusto Correia',
           url: `${base}/`,
           image: this.urlAbsoluta(OG_IMAGE),
-          jobTitle: 'Full Stack Developer',
-          sameAs: ['https://github.com/wmakeouthill']
+          jobTitle: 'Full Stack Engineer',
+          description:
+            'Full Stack Engineer specializing in applied AI, Java/Spring Boot, Python/FastAPI '
+            + 'and Angular/React, with systems in production.',
+          knowsAbout: [
+            'Java', 'Spring Boot', 'Python', 'FastAPI', 'Angular', 'React',
+            'Artificial Intelligence', 'LLMs', 'RAG', 'Computer Vision', 'AWS', 'GCP', 'Azure'
+          ],
+          sameAs: [
+            'https://github.com/wmakeouthill',
+            'https://www.linkedin.com/in/wcacorreia'
+          ]
         },
         { '@type': 'WebSite', name: 'Wesley de Carvalho', url: `${base}/` }
       ]

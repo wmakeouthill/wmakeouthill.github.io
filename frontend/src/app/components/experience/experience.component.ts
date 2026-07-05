@@ -34,10 +34,30 @@ export class ExperienceComponent implements OnInit, AfterViewInit {
         { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' },
+        { title: '', text: '' }
+      ],
+      technologies: ['Python', 'FastAPI', 'google-genai / Responses API', 'LangGraph', 'RAG', 'YOLO', 'Prophet', 'BayBE', 'Gemini Vision', 'pgvector', 'React 19', 'AWS (S3/Lambda/DynamoDB)', 'Google Cloud Run', 'Pub/Sub', 'Azure', 'Prometheus/Grafana', 'Leaflet']
+    },
+    {
+      key: 'experience.items.exp7',
+      id: 7,
+      company: 'Freelancer',
+      position: '',
+      badgeLabel: undefined,
+      startDate: '2025-01',
+      endDate: null,
+      current: true,
+      location: '',
+      description: '',
+      highlights: [
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
+        { title: '', text: '' },
         { title: '', text: '' },
         { title: '', text: '' }
       ],
-      technologies: ['Python', 'FastAPI', 'LangGraph', 'RAG', 'Vision', 'YOLO', 'Prophet', 'Gemini Embeddings', 'pgvector', 'FAISS', 'React 19', 'Vite', 'Sankhya ERP', 'Slack', 'Microsoft 365', 'Docker Compose', 'GitHub Actions', 'AWS EC2', 'GCP Cloud Run', 'IaC', 'SSH']
+      technologies: ['Java 21', 'Spring Boot 3', 'Angular 20', 'Python', 'FastAPI', 'React', 'Next.js 16', 'Electron', 'PostgreSQL', 'pgvector', 'Microsoft Entra ID', 'Microsoft Graph', 'Gemini', 'Evolution/Meta API', 'MCP (TypeScript)', 'Tailwind 4']
     },
     {
       key: 'experience.items.exp2',

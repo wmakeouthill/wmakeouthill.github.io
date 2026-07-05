@@ -31,7 +31,7 @@ export class AboutComponent implements OnInit, AfterViewInit {
       return this.i18n.translate('about.titleRole');
     }),
     yearsOfExperience: 6,
-    age: 29,
+    age: 30,
     location: 'Duque de Caxias, RJ, Brasil',
     email: 'wcacorreia1995@gmail.com',
     driverLicense: 'AB',
@@ -62,7 +62,7 @@ export class AboutComponent implements OnInit, AfterViewInit {
   });
 
   readonly mainStack = [
-    'Java', 'Spring', 'Spring Boot', 'Maven', 'Angular', 'TypeScript', 'SQL', 'JavaScript', 'CSS', 'SCSS', 'HTML', 'Docker', 'Podman', 'Kubernetes', 'Compose', 'Electron', 'Liquibase', 'Prometheus', 'Grafana', 'Micrometer', 'AlertManager', 'Cloud', 'PostgreSQL', 'MySQL', 'Oracle'
+    'Java', 'Spring Boot', 'Python', 'FastAPI', 'Angular', 'React', 'TypeScript', 'Gemini (google-genai)', 'LangGraph', 'RAG', 'pgvector', 'PostgreSQL', 'Docker', 'AWS', 'GCP', 'Azure', 'Oracle Cloud'
   ];
 
   ngOnInit() {

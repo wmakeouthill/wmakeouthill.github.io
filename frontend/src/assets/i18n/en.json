@@ -25,8 +25,8 @@
   },
   "hero": {
     "greeting": "Hello, I'm",
-    "title": "Full Stack Developer",
-    "tagline": "Transforming ideas into code. Creating amazing digital experiences with modern technologies and elegant design.",
+    "title": "Full Stack Engineer",
+    "tagline": "Applied AI and full stack systems in production — from Java/Python backends to Angular/React frontends.",
     "viewProjects": "View Projects",
     "myResume": "My Resume",
     "githubStats": "Github Stats",
@@ -39,7 +39,7 @@
   "about": {
     "title": "About Me",
     "name": "Wesley de Carvalho Augusto Correia",
-    "titleRole": "Full Stack Developer",
+    "titleRole": "Full Stack Engineer",
     "yearsOfExperience": "Years of Experience",
     "age": "Age",
     "location": "Location",
@@ -48,16 +48,18 @@
     "available": "Available",
     "notAvailable": "Unavailable",
     "bio": [
-      "From the internet cafes of my childhood where I started working, to today, my journey is marked by a passion for technology and supporting businesses with IT solutions, technical support, and automation. I've worked as a freelancer, in the family IT company, and in industries such as gas and energy (Petrobras), tobacco (Philip Morris), legal, and critical financial infrastructure (Central Bank/Anbima/SELIC). This diversity has forged my technical versatility and strategic vision. Analytical and solution-oriented, I identify bottlenecks and create automations that generate measurable efficiency. I adapt easily to large corporations or dynamic contexts, standing out in creative solutions under pressure. More than executing, I understand contexts, propose improvements, and deliver value. I learn quickly, value collaboration, enjoy being useful and helping people, and seek challenges that combine innovation and business impact."
+      "Full cycle Full Stack engineer: I work from proposal and architecture to deployment and production monitoring. Today I split my time between AutoU — an applied-AI startup, working on projects for enterprise clients — and my own freelance operation, with production systems I sold, designed, built and operate myself. Backend in Java/Spring Boot and Python/FastAPI; frontend in Angular and React.",
+      "My focus is software that moves a business number. At AutoU, I rebuilt the pipeline that replicates savings projects across Saint-Gobain plants — a program whose recommendations already total ~R$ 13–15 million — and I lead technical fronts in computer vision (YOLO + LLMs) for 24/7 monitoring of gas stations and in chemical R&D with Bayesian optimization. As a freelancer, I keep systems in production ranging from invoice (NF-e) automation and an AI-powered omnichannel support center to the management system of a food business handling ~R$ 300k/month in sales. Before that, I took part in the modernization of Selic (COBOL → Java) at ANBIMA/Brazilian Central Bank, where I implemented the project's observability stack (Prometheus/Grafana).",
+      "Bachelor of Law and Computer Science undergraduate — a combination that makes me comfortable in domains where the complexity lives in the business rules, not just the code. I look for automation, integration and applied-AI problems where you can measure the before and after."
     ],
     "highlights": {
       "experience": {
         "title": "Experience",
-        "value": "Experience in IT with support, development, and Governance. In addition to administrative experiences and legal and salesforce backoffice."
+        "value": "Full Stack Engineer with 6+ years in tech: today at AutoU (applied AI for enterprise clients) and running my own freelance operation with systems in production. Before that, Selic modernization (COBOL → Java) at ANBIMA/Central Bank, IT governance and automation."
       },
       "education": {
         "title": "Education",
-        "value": "Graduated in Law. Postgraduate degree in FullStack Java Development (completed in Feb/2026), MBA in Project Management (paused) and studying Computer Science (in progress)"
+        "value": "Bachelor of Law. Postgraduate in Full Stack Java Development (completed Feb/2026), MBA in Project Management (in progress) and Computer Science (in progress)."
       },
       "projects": {
         "title": "Projects",
@@ -72,7 +74,7 @@
       "title": "Soft Skills",
       "items": [
         "Good Communication",
-        "Intermediate English",
+        "Advanced English",
         "Conflict Management / Teamwork",
         "Hyperfocus / Proactivity",
         "Emotional Intelligence and Self-control",
@@ -107,35 +109,60 @@
     "years": "years",
     "items": {
       "exp1": {
-        "position": "Full Stack Developer — full cycle",
+        "position": "Full Stack Engineer — Applied AI",
         "highlights": [
           {
-            "title": "Real-time computer vision + LLM pipeline",
-            "text": "architected a monitoring pipeline combining Computer Vision (Vision + YOLO) and LLMs via LangGraph and RAG, automating image analysis and insight generation while reducing manual operational inspection effort."
+            "title": "Savings replication pipeline (Saint-Gobain)",
+            "text": "rebuilt the pipeline that replicates savings projects across Saint-Gobain plants: previously manual spreadsheet integrations became an API, running as Cloud Run Jobs + Scheduler with hash-based idempotent sync, auditing and rollback — recommendations that already total ~R$ 13–15 million in savings."
           },
           {
-            "title": "PDF ingestion, embeddings and semantic search",
-            "text": "AI-assisted PDF catalog ingestion, embedding generation (Gemini) and indexing in pgvector/FAISS for semantic product search, enriching internal pipelines and AI agents."
+            "title": "24/7 computer vision in production",
+            "text": "I lead the compliance-monitoring front for a fuel-station chain with YOLO at the edge integrated with LLMs via google-genai, LangGraph and RAG, plus a retraining loop fed by user feedback — a 2-station pilot scaling toward the chain's ~50 stations."
           },
           {
             "title": "Demand forecasting and inventory optimization",
-            "text": "evolved predictive algorithms with Prophet (time series) for demand forecasting, inventory optimization, inter-branch transfers and substitute product suggestions, directly impacting commercial decisions and reducing stockouts."
+            "text": "Prophet algorithms for demand forecasting and daily purchase, inter-branch transfer and substitute-product recommendations, integrated with the Sankhya ERP — automated daily runs in production."
           },
           {
-            "title": "Sankhya/Microwork ERP integrations",
-            "text": "integrated the Sankhya (Microwork) ERP via API to automate reports, quotes and sales operational flows, eliminating recurring manual tasks."
+            "title": "Chemical R&D with Bayesian optimization",
+            "text": "modernized a previously manual R&D process (trial-and-error greenhouse cycles) into a workflow assisted by generative AI (Gemini via google-genai) — the Colibri agent — with next-formulation-to-test suggestions via BayBE (Merck's open-source framework) — fewer physical greenhouse cycles, in production for a chemical manufacturer."
           },
           {
-            "title": "B2B people & goals management platform",
-            "text": "delivered full cycle on a B2B platform used by corporate clients — FastAPI backend + React 19 + Vite frontend — shipping evaluation cycles, OKR/goal management and workforce administration."
+            "title": "AI cost observability (Prometheus/Grafana)",
+            "text": "implemented the production observability stack on my own initiative — Prometheus + Grafana on a stateful VM — monitoring AI cost, usage and infrastructure across the computer vision and R&D projects."
           },
           {
-            "title": "Slack and Microsoft 365 corporate integrations",
-            "text": "implemented integrations with Slack and Outlook (M365) for real-time notifications and transactional emails, connecting the systems to the channels companies already operate daily."
+            "title": "Intelligent catalog: PDF ingestion and semantic search",
+            "text": "took part in founding a catalog platform — PDF catalog extraction with Gemini Vision, confidence scoring with human curation, and pgvector for semantic search — in production."
+          }
+        ]
+      },
+      "exp7": {
+        "position": "Full Stack Engineer — full cycle (own products & direct clients)",
+        "highlights": [
+          {
+            "title": "AOG Dux Truck — emergency logistics (in production)",
+            "text": "AOG (aircraft on ground) operations system built solo in Java 21 + Spring Boot 3 (Clean Architecture), Angular 20 and Microsoft Entra ID; each demand has its own tracking screen with chat and a traceable event timeline, cutting email and phone follow-ups."
           },
           {
-            "title": "Multi-cloud infrastructure and CI/CD",
-            "text": "provisioned infrastructure as code on AWS (EC2) and GCP (Cloud Run), with automated SSH deployments, Docker Compose and GitHub Actions for continuous multi-cloud delivery."
+            "title": "NF-e tax automation (in production)",
+            "text": "invoice capture from email via Microsoft Graph with layered extraction (deterministic XML → PDF → OCR/AI only as fallback) in FastAPI + React, eliminating manual data entry: 20–100 invoices per day, thousands already processed."
+          },
+          {
+            "title": "Sol — omnichannel service desk with AI (in production)",
+            "text": "support via WhatsApp, Teams, web and email in a single hub — around 20–50 tickets/day — with an AI satisfaction thermometer, ticket management and an integrated CRM; FastAPI + Angular 20 + pgvector + Gemini + Evolution/Meta API."
+          },
+          {
+            "title": "Soneca — snack-bar management in production",
+            "text": "full management in production handling ~R$ 300k/month in sales: counter, table ordering via QR code, self-service kiosk and cross-platform ESC/POS printing; own delivery ecosystem in Java 17 + Angular 20+ (PWAs, real-time GPS tracking), currently deactivated."
+          },
+          {
+            "title": "Mercearia R&V — offline-first retail (in production)",
+            "text": "desktop inventory/sales/POS system with Electron orchestrating embedded Spring Boot + PostgreSQL in a single NSIS installer — daily use in the client's operation with zero recurring cost."
+          },
+          {
+            "title": "Qualtrics CX dashboard and other deliveries",
+            "text": "customer-experience dashboard (FastAPI + Angular + Gemini) with a TypeScript MCP server for the Qualtrics API; plus a logistics workflow platform replacing a corporate BPM (in homologation) and an EDI frontend refactor in Next.js 16 + React 19 + Tailwind 4."
           }
         ]
       },
@@ -367,7 +394,7 @@
     "rights": "All rights reserved",
     "builtWith": "Built with",
     "and": "and",
-    "description": "Full Stack Developer passionate about solving people's problems, crafting innovative solutions, and building amazing digital experiences.",
+    "description": "Full Stack Engineer focused on automation, applied AI and production systems — from Java/Python backends to Angular/React frontends.",
     "quickLinks": "Quick Links",
     "social": "Social"
   }
